@@ -1,0 +1,195 @@
+﻿using ColourClashNet.Color;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ColourClashNet.Controls
+{
+    public partial class ColorTransformer : Component
+    {
+        public ColorTransformer()
+        {
+            InitializeComponent();
+        }
+
+        public ColorTransformer(IContainer container)
+        {
+            container.Add(this);
+
+            InitializeComponent();
+        }
+
+
+        ColorItem[,] mDataSource = null;
+        ColorItem[,] mDataQuantized = null;
+        ColorItem[,] mDataProcessed = null;
+
+        ColorItem BackColorSource = new ColorItem();
+        ColorItem BackColorDest = new ColorItem(0, 0, 0);
+
+        public Image ImageSource { get; private set; }
+        public Image ImageQuantized { get; private set; }
+        public Image ImageProcessed { get; private set; }
+        public ColorQuantizationMode ColorQuantizationMode => oTrQuantization?.QuantizationMode ?? ColorQuantizationMode.Unknown;
+
+        ColorTransformIdentity oTrIdentity = new ColorTransformIdentity();
+
+        ColorTransformQuantization oTrQuantization = new ColorTransformQuantization();
+
+        public int PixelCount = 0;
+        public int Colours => oTrQuantization?.DictHistogram?.Count ?? 0;
+        public int Width => ImageSource?.Width ?? 0;
+        public int Height => ImageSource?.Height ?? 0;
+
+
+        void Reset()
+        {
+            ImageSource?.Dispose();
+            ImageSource = null;
+            ImageQuantized?.Dispose();
+            ImageQuantized = null;
+            ImageProcessed?.Dispose();
+            ImageProcessed = null;
+
+            mDataSource = null;
+            mDataQuantized = null;
+            mDataProcessed = null;
+
+            PixelCount = 0;
+            oTrIdentity = null;
+        }
+
+        #region conversion
+
+        unsafe ColorItem[,] ToMatrix(Bitmap oBmp)
+        {
+            var m = new ColorItem[oBmp.Height, oBmp.Width];
+            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            {
+                byte* ptr = (byte*)oLock.Scan0.ToPointer();
+                for (int y = 0; y < oBmp.Height; y++)
+                {
+                    int yoff = oLock.Stride * y;
+                    for (int x = 0, xx = 0; xx < Width; x += 3, xx++)
+                    {
+                        m[y, xx] = new ColorItem(ptr[yoff + x + 2], ptr[yoff + x + 1], ptr[yoff + x + 0]);
+                    }
+                }
+                oBmp.UnlockBits(oLock);
+            }
+            return m;
+        }
+
+        unsafe Bitmap ToBitmap(ColorItem[,] m, ColorItem bkg)
+        {
+            if (ImageSource == null || m == null)
+                return null;
+            var oBmp = new Bitmap(Width, Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            {
+                byte* ptr = (byte*)oLock.Scan0.ToPointer();
+                for (int y = 0; y < oBmp.Height; y++)
+                {
+                    int yoff = oLock.Stride * y;
+                    for (int x = 0, xx = 0; xx < oBmp.Width; x += 3, xx++)
+                    {
+                        if (m[y, xx].Valid)
+                        {
+                            ptr[yoff + x + 0] = (byte)m[y, xx].B;
+                            ptr[yoff + x + 1] = (byte)m[y, xx].G;
+                            ptr[yoff + x + 2] = (byte)m[y, xx].R;
+                        }
+                        else
+                        {
+                            ptr[yoff + x + 0] = (byte)bkg.B;
+                            ptr[yoff + x + 1] = (byte)bkg.G;
+                            ptr[yoff + x + 2] = (byte)bkg.R;
+                        }
+                    }
+                }
+                oBmp.UnlockBits(oLock);
+            }
+            return oBmp;
+        }
+
+        #endregion
+
+        public void Create(System.Drawing.Bitmap oImage, ColorItem oBackColorSource, ColorItem oBackColorDest, ColorQuantizationMode eColorMode)
+        {
+            Reset();
+            if (oImage == null)
+                return;
+            try
+            {
+                BackColorSource = oBackColorSource;
+                BackColorDest = oBackColorDest;
+                ImageSource = new Bitmap(oImage.Width, oImage.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                using (Graphics g = Graphics.FromImage(ImageSource))
+                {
+                    g.DrawImage(oImage, 0, 0, Width, Height);
+                }
+                mDataSource = ToMatrix(ImageSource as Bitmap );
+                ImageSource = ToBitmap(mDataSource, BackColorDest);
+                oTrIdentity = new ColorTransformIdentity();
+                oTrIdentity.Create(mDataSource, BackColorSource);
+                Quantize(eColorMode);
+            }
+            catch (Exception ex)
+            {
+                Reset();
+            }
+        }
+
+
+        public void Quantize(ColorQuantizationMode eMode)
+        {
+            if (oTrIdentity == null)
+                return;
+
+            oTrQuantization.QuantizationMode = eMode;
+            oTrQuantization.Create(oTrIdentity.DictHistogram, BackColorSource);
+            mDataQuantized = oTrQuantization.Transform(mDataSource);
+            ImageQuantized = ToBitmap(mDataQuantized, BackColorDest);
+            mDataProcessed = oTrQuantization.Transform(mDataSource);
+            ImageProcessed = ToBitmap(mDataProcessed, BackColorDest);
+        }
+
+        void RebuildImageOutput()
+        {
+            ImageProcessed = ToBitmap(mDataProcessed, BackColorDest);
+        }
+
+        public void ReduceColorsQuantity(int iMaxColor)
+        {
+            var oTrasf = new ColorTransformReductionFast();
+            oTrasf.MaxColors = iMaxColor;
+            oTrasf.Create(mDataQuantized, BackColorSource);
+            mDataProcessed = oTrasf.Transform(mDataQuantized);
+            RebuildImageOutput();
+        }
+
+        public void ReduceColorsClustering(int iMaxColor, int iLoop)
+        {
+            var oTrasf = new ColorTransformReductionCluster();
+            oTrasf.MaxColors = iMaxColor;
+            oTrasf.TrainingLoop = iLoop;
+            oTrasf.Create(mDataQuantized, BackColorSource);
+            mDataProcessed = oTrasf.Transform(mDataQuantized);
+            RebuildImageOutput();
+        }
+
+        public void ReduceColorsScanLine(int iMaxColor, bool bUseCluster)
+        {
+            var oTrasf = new ColorTransformReductionScanLine();
+            oTrasf.MaxColors = iMaxColor;
+            oTrasf.Clustering = bUseCluster;
+            oTrasf.Create(mDataQuantized, BackColorSource);
+            mDataProcessed = oTrasf.Transform(mDataQuantized);
+            RebuildImageOutput();
+        }
+    }
+}
