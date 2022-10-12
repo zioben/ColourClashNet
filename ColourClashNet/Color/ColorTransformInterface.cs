@@ -6,18 +6,13 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color
 {
-    public interface ColorTransform
+    public interface ColorTransformInterface
     {
-        void Create(ColorItem[,] oSource, ColorItem oBackColor );
-        void Create(Dictionary<ColorItem, int> oSourceHistogram, ColorItem oBackColor);
-
+        void Create(ColorItem[,] oSource );
+        void Create(Dictionary<ColorItem, int> oSourceHistogram );
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; }
-        ColorItem[,] Transform( ColorItem[,] oSource);
-        ColorItem BackColor { get; }
-        ColorItem BackColorTransform { get; }
-
+        ColorItem[,] Transform( ColorItem[,] oSource );
         Dictionary<ColorItem, int> DictHistogram { get; }
-
         Dictionary<ColorItem, ColorItem> DictTransform { get; }
 
     }

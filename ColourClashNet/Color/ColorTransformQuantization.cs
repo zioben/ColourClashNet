@@ -13,13 +13,12 @@ namespace ColourClashNet.Color
         public ColorQuantizationMode QuantizationMode { get; set; }
         protected override void BuildTrasformation()
         {
-            DictTransform.Clear();          
+            DictTransform.Clear();
             foreach (var kvp in DictHistogram)
             {
-                if( !kvp.Key.Equals(BackColor))
-                    DictTransform.Add(kvp.Key, kvp.Key.Quantize(QuantizationMode));
+                DictTransform.Add(kvp.Key, kvp.Key.Quantize(QuantizationMode));
             }
-            ResultColors = DictTransform.Select( X=>X.Value).ToList().Distinct().ToList().Count;
+            ResultColors = DictTransform.Select(X => X.Value).ToList().Distinct().ToList().Count;
         }
     }
 }

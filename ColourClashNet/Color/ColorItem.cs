@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -7,6 +8,8 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color
 {
+
+
     public enum ColorQuantizationMode
     {
         Unknown=0,
@@ -35,6 +38,8 @@ namespace ColourClashNet.Color
 
     public struct ColorItem : IEquatable<ColorItem>
     {
+        static double dHSVScale =360.0;
+
         public int R, G, B;
         public double H, S, V;
 
@@ -58,12 +63,12 @@ namespace ColourClashNet.Color
             if (Max <= 0)
                 return;
 
-            V = Max;
+            V = Max * 100;
 
             double Min = Math.Min(B1, Math.Min(R1, G1));
 
             double Delta = Max - Min;
-            S = Delta / Max;
+            S = Delta / Max * 100;
 
             if (Delta <= 0)
                 return;
@@ -87,9 +92,7 @@ namespace ColourClashNet.Color
                 H = 8.0 + (B1 - R1)/Delta;
             else
                 H = 10.0 + (R1 - G1)/Delta;
-            H %= 6.0;
-            if (H < 0)
-                throw new Exception("medra");
+            H = ((H / 6.0) % 1.0) * 180;
         }
 
         public bool Equals(ColorItem other)
@@ -179,7 +182,8 @@ namespace ColourClashNet.Color
 
         double DistanceHSV(ColorItem oColor)
         {
-            double dH = Math.Min( H - oColor.H , Math.Min(H + 6 - oColor.H , H - oColor.H ));
+            double dH = Math.Min( Math.Abs( H - oColor.H ), Math.Min( Math.Abs(H + dHSVScale - oColor.H), Math.Abs( H - oColor.H - dHSVScale) ));
+            //Trace.WriteLine($"H1 = {H} : H2 = {oColor.H} : Delta = {dH}");
             double dS = S - oColor.S;
             double dV = V - oColor.V;
             return dH * dH + dS * dS + dV * dV;

@@ -93,7 +93,7 @@ namespace ColourClashNet.Controls
             return m;
         }
 
-        unsafe Bitmap ToBitmap(ColorItem[,] m, ColorItem bkg)
+        unsafe Bitmap ToBitmap(ColorItem[,] m)
         {
             if (ImageSource == null || m == null)
                 return null;
@@ -114,9 +114,9 @@ namespace ColourClashNet.Controls
                         }
                         else
                         {
-                            ptr[yoff + x + 0] = (byte)bkg.B;
-                            ptr[yoff + x + 1] = (byte)bkg.G;
-                            ptr[yoff + x + 2] = (byte)bkg.R;
+                            ptr[yoff + x + 0] = (byte)BackColorDest.B;
+                            ptr[yoff + x + 1] = (byte)BackColorDest.G;
+                            ptr[yoff + x + 2] = (byte)BackColorDest.R;
                         }
                     }
                 }
@@ -143,9 +143,9 @@ namespace ColourClashNet.Controls
                     g.DrawImage(oImage, 0, 0, Width, Height);
                 }
                 mDataSource = ToMatrix(ImageSource as Bitmap );
-                ImageSource = ToBitmap(mDataSource, BackColorDest);
+                ImageSource = ToBitmap(mDataSource);
                 oTrIdentity = new ColorTransformIdentity();
-                oTrIdentity.Create(mDataSource, BackColorSource);
+                oTrIdentity.Create(mDataSource);
                 Quantize(eColorMode);
             }
             catch (Exception ex)
@@ -162,16 +162,16 @@ namespace ColourClashNet.Controls
 
             oTrQuantization.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
             oTrQuantization.QuantizationMode = eMode;
-            oTrQuantization.Create(oTrIdentity.DictHistogram, BackColorSource);
+            oTrQuantization.Create(oTrIdentity.DictHistogram);
             mDataQuantized = oTrQuantization.Transform(mDataSource);
-            ImageQuantized = ToBitmap(mDataQuantized, BackColorDest);
+            ImageQuantized = ToBitmap(mDataQuantized);
             mDataProcessed = oTrQuantization.Transform(mDataSource);
-            ImageProcessed = ToBitmap(mDataProcessed, BackColorDest);
+            ImageProcessed = ToBitmap(mDataProcessed);
         }
 
         void RebuildImageOutput()
         {
-            ImageProcessed = ToBitmap(mDataProcessed, BackColorDest);
+            ImageProcessed = ToBitmap(mDataProcessed);
         }
 
         public void ReduceColorsQuantity(int iMaxColor)
@@ -179,7 +179,7 @@ namespace ColourClashNet.Controls
             var oTrasf = new ColorTransformReductionFast();
             oTrasf.MaxColors = iMaxColor;
             oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
-            oTrasf.Create(mDataQuantized, BackColorSource);
+            oTrasf.Create(mDataQuantized);
             mDataProcessed = oTrasf.Transform(mDataQuantized);
             ColoursTransform = oTrasf.ResultColors;
             RebuildImageOutput();
@@ -191,7 +191,7 @@ namespace ColourClashNet.Controls
             oTrasf.MaxColors = iMaxColor;
             oTrasf.TrainingLoop = iLoop;
             oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
-            oTrasf.Create(mDataQuantized, BackColorSource);
+            oTrasf.Create(mDataQuantized);
             mDataProcessed = oTrasf.Transform(mDataQuantized);
             ColoursTransform = oTrasf.ResultColors;
             RebuildImageOutput();
@@ -203,7 +203,7 @@ namespace ColourClashNet.Controls
             oTrasf.MaxColors = iMaxColor;
             oTrasf.Clustering = bUseCluster;
             oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
-            oTrasf.Create(mDataQuantized, BackColorSource);
+            oTrasf.Create(mDataQuantized);
             mDataProcessed = oTrasf.Transform(mDataQuantized);
             ColoursTransform = oTrasf.ResultColors;
             RebuildImageOutput();

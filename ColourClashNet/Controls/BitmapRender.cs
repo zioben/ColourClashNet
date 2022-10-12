@@ -14,18 +14,19 @@ namespace ColourClashNet.Controls
     {
         public enum EnumZoom
         {
-            ZoomQ,
-            ZoomH,
-            Zoom1,
-            Zoom2,
-            Zoom3,
-            Zoom4,
-            Fit,
-            FitW,
-            FitH,
-            Manual,
-            Stretch
-        } 
+            ZoomQ = 0,
+            ZoomH = 1,
+            Zoom1 = 2,
+            Zoom2 = 3,
+            Zoom3 = 4,
+            Zoom4 = 5,
+            Fit   = 6,
+            FitW  = 7,
+            FitH  = 8,
+            Stretch = 9,
+            Manual = 100
+        }
+
 
         public BitmapRender()
         {
@@ -340,7 +341,21 @@ namespace ColourClashNet.Controls
         {
             if (args.Delta != 0)
             {
-                ImageZoomManual += 0.5f * args.Delta;
+                if (ImageZoomMode == EnumZoom.Manual)
+                {
+                    ImageZoomManual += 0.5f * args.Delta;
+                }
+                else
+                {
+                    if (args.Delta < 0 && (int)ImageZoomMode > (int)EnumZoom.ZoomQ)
+                    {
+                        ImageZoomMode--;
+                    }
+                    else if (args.Delta > 0 && (int)ImageZoomMode < (int)EnumZoom.Stretch)
+                    {
+                        ImageZoomMode++;
+                    }
+                }
                 ImageZoomMode = EnumZoom.Manual;
             }
         }

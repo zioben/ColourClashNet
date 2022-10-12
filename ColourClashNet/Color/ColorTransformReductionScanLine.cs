@@ -29,7 +29,7 @@ namespace ColourClashNet.Color
             var oRet = new ColorItem[R, C];
             var oCols = new ColorItem[1, C];
             //            var oTrasf= new ColorTransformReductionFast();
-            ColorTransform oTrasf;
+            ColorTransformInterface oTrasf;
             if (Clustering)
             {
                 var oTrasf2 = new ColorTransformReductionCluster();
@@ -50,7 +50,7 @@ namespace ColourClashNet.Color
                 {
                     oCols[0, c] = oSource[r, c];
                 }
-                oTrasf.Create(oCols, BackColor);
+                oTrasf.Create(oCols);
                 var oColsTrasf = oTrasf.Transform(oCols);
                 if (oColsTrasf == null)
                 {
