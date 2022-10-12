@@ -42,7 +42,7 @@ namespace ColourClashNet.Color
                 // Aggregate
                 lColors.ForEach(item =>
                 {
-                    var oCluster = lMean.FirstOrDefault(X => X.DistanceHSV(item) == lMean.Min(Y => Y.DistanceHSV(item)));
+                    var oCluster = lMean.FirstOrDefault(X => X.Distance(item, ColorDistanceEvaluationMode) == lMean.Min(Y => Y.Distance(item, ColorDistanceEvaluationMode)));
                     var iIndex = lMean.IndexOf(oCluster);
                     llList[iIndex].Add(item);
                 });
@@ -72,11 +72,12 @@ namespace ColourClashNet.Color
             }
 
             lColors.ForEach(X =>
-            {
-                var dMin = lMean.Min(Y => Y.DistanceHSV(X));
-                var oItem = lMean.FirstOrDefault(Y => Y.DistanceHSV(X) == dMin);
+            {                
+                var dMin = lMean.Min(Y => Y.Distance(X, ColorDistanceEvaluationMode));
+                var oItem = lMean.FirstOrDefault(Y => Y.Distance(X, ColorDistanceEvaluationMode) == dMin);
                 DictTransform[X] = oItem;
             });
+            ResultColors = DictTransform.Select(X => X.Value).ToList().Distinct().ToList().Count;
         }
     }
 }

@@ -25,6 +25,14 @@ namespace ColourClashNet.Color
         XYZ,
     }
 
+    public enum ColorDistanceEvaluationMode
+    {
+        All,
+        RGB,
+        HSV,
+    }
+
+
     public struct ColorItem : IEquatable<ColorItem>
     {
         public int R, G, B;
@@ -161,7 +169,7 @@ namespace ColourClashNet.Color
             return System.Drawing.Color.FromArgb(R, G, B);
         }
 
-        public double DistanceRGB(ColorItem oColor)
+        double DistanceRGB(ColorItem oColor)
         {
             double dR = R - oColor.R;
             double dG = G - oColor.G;
@@ -169,25 +177,31 @@ namespace ColourClashNet.Color
             return dR * dR + dG * dG + dB * dB;
         }
 
-        public double DistanceHSV(ColorItem oColor)
+        double DistanceHSV(ColorItem oColor)
         {
-            double dH = Math.Min(Math.Abs( H - oColor.H ), Math.Min( Math.Abs( (H + 6) - oColor.H ), Math.Abs(H - (oColor.H+ 6))));
+            double dH = Math.Min( H - oColor.H , Math.Min(H + 6 - oColor.H , H - oColor.H ));
             double dS = S - oColor.S;
             double dV = V - oColor.V;
             return dH * dH + dS * dS + dV * dV;
         }
-        //public double Distance(ColorItem oColor)
-        //{
-        //    double dR = R - oColor.R;
-        //    double dG = G - oColor.G;
-        //    double dB = B - oColor.B;
-        //    double dH = H - oColor.H;
-        //    double dS = S - oColor.S;
-        //    double dV = V - oColor.V;
-        //    return dR * dR + dG * dG + dB * dB + dH * dH + dS * dS + dV * dV;
-        //}
 
+        double DistanceFull(ColorItem oColor)
+        {
+            var dRGB = DistanceRGB(oColor);
+            var dHSV = DistanceHSV(oColor);
+            return dRGB + dHSV;
+        }
 
+        public double Distance(ColorItem oColor, ColorDistanceEvaluationMode eEvaluation )
+        {
+            switch (eEvaluation)
+            {
+                case ColorDistanceEvaluationMode.All: return DistanceFull(oColor);
+                case ColorDistanceEvaluationMode.RGB: return DistanceRGB(oColor);
+                case ColorDistanceEvaluationMode.HSV: return DistanceHSV(oColor);
+                default:return 0;
+            }
+        }
 
         public bool Valid => R >= 0 && G >= 0 && B >= 0;
     }

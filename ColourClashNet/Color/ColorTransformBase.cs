@@ -10,6 +10,8 @@ namespace ColourClashNet.Color
     {
         static int[,,] Histogram = new int[256, 256, 256];
         static object locker = new object();
+
+        public int ResultColors { get; internal set; } = 0;
         static void BuildColorHistHistogram(ColorItem[,] m, ColorItem oBackColor, Dictionary<ColorItem, int> oDict)
         {
             oDict.Clear();
@@ -85,6 +87,7 @@ namespace ColourClashNet.Color
 
         public Dictionary<ColorItem, ColorItem> DictTransform { get; private init; } = new Dictionary<ColorItem, ColorItem>();
 
+        public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.All;
 
         abstract protected void BuildTrasformation();
 

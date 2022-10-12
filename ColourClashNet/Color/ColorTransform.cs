@@ -11,6 +11,7 @@ namespace ColourClashNet.Color
         void Create(ColorItem[,] oSource, ColorItem oBackColor );
         void Create(Dictionary<ColorItem, int> oSourceHistogram, ColorItem oBackColor);
 
+        public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; }
         ColorItem[,] Transform( ColorItem[,] oSource);
         ColorItem BackColor { get; }
         ColorItem BackColorTransform { get; }

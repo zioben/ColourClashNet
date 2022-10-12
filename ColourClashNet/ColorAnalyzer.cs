@@ -52,12 +52,18 @@ namespace ColourClashNet
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 var oBmp = Bitmap.FromFile(openFileDialog1.FileName) as Bitmap;
-                oColorTransformer.Create(oBmp, ColorItem.FromDrawingColor(pbBkColor.BackColor, ColorQuantizationMode.RGB888), new ColorItem(), ColorQuantizationMode.RGB888);
+                oColorTransformer.Create(
+                    oBmp, 
+                    ColorItem.FromDrawingColor(pbBkColor.BackColor, ColorQuantizationMode.RGB888), 
+                    new ColorItem(), 
+                    ColorQuantizationMode.RGB888, 
+                    GetColorDistanceMode());
+
                 RefreshData();
             }
         }
 
-        private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
+        private void pictureBox1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
@@ -75,10 +81,6 @@ namespace ColourClashNet
                     bmp.Dispose();
                 }
             }
-            else
-            {
-             //   oRaster.BackColorSource = ColorItem.FromDrawingColor(System.Drawing.Color.Black, ColorQuantizationMode.RGB888);
-            }
         }
 
         ColorQuantizationMode GetQuantizationMode()
@@ -94,6 +96,17 @@ namespace ColourClashNet
             if (hiColorToolStripMenuItem.Checked)
                 return ColorQuantizationMode.RGB565;
             return ColorQuantizationMode.RGB888;
+        }
+
+        ColorDistanceEvaluationMode GetColorDistanceMode()
+        {
+            if (rGBToolStripMenuItem.Checked)
+                return ColorDistanceEvaluationMode.RGB;
+            if( hSVToolStripMenuItem.Checked)
+                return ColorDistanceEvaluationMode.HSV;
+            if (aLLToolStripMenuItem.Checked)
+                return ColorDistanceEvaluationMode.All;
+            return ColorDistanceEvaluationMode.RGB;
         }
 
         void ResetTsColor(object sender, EventArgs e)
@@ -113,6 +126,20 @@ namespace ColourClashNet
 
             oColorTransformer.Quantize( GetQuantizationMode() );
             RefreshData();
+        }
+
+        void ResetTsColorDistance(object sender, EventArgs e)
+        {
+            ToolStripMenuItem oItem = sender as ToolStripMenuItem;
+            if (oItem != rGBToolStripMenuItem)
+                rGBToolStripMenuItem.Checked = false;
+            if (oItem != hSVToolStripMenuItem)
+                hSVToolStripMenuItem.Checked = false;
+            if (oItem != aLLToolStripMenuItem)
+                aLLToolStripMenuItem.Checked = false;
+            oItem.Checked = true;
+
+            oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
         }
 
         private void btnReduceColors_Click(object sender, EventArgs e)
@@ -145,6 +172,16 @@ namespace ColourClashNet
         private void pbBkColor_DoubleClick(object sender, EventArgs e)
         {
             pbBkColor.BackColor = System.Drawing.Color.Transparent;
+        }
+
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void toolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

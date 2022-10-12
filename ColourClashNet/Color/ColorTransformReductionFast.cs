@@ -27,10 +27,11 @@ namespace ColourClashNet.Color
             listMax.AddRange(listAll.Take(MaxColors));
             listAll.ForEach(X =>
             {
-                var dMin = listMax.Min(Y => Y.DistanceRGB(X));
-                var oItem = listMax.FirstOrDefault(Y => Y.DistanceRGB(X) == dMin);
+                var dMin = listMax.Min(Y => Y.Distance(X,ColorDistanceEvaluationMode));
+                var oItem = listMax.FirstOrDefault(Y => Y.Distance(X,ColorDistanceEvaluationMode) == dMin);
                 DictTransform[X] = oItem;
             });
+            ResultColors = DictTransform.Select(X => X.Value).ToList().Distinct().ToList().Count;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,6 +19,7 @@ namespace ColourClashNet.Color
                 if( !kvp.Key.Equals(BackColor))
                     DictTransform.Add(kvp.Key, kvp.Key.Quantize(QuantizationMode));
             }
+            ResultColors = DictTransform.Select( X=>X.Value).ToList().Distinct().ToList().Count;
         }
     }
 }

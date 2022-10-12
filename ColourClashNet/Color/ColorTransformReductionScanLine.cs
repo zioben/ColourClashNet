@@ -67,6 +67,7 @@ namespace ColourClashNet.Color
                     }
                 }
             }
+            ResultColors = -1;
             return oRet;
         }
 

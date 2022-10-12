@@ -15,6 +15,7 @@ namespace ColourClashNet.Color
             {
                 DictTransform.Add(kvp.Key, kvp.Key);
             }
+            ResultColors = DictHistogram.Count();
         }
     }
 }
