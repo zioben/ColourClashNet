@@ -10,19 +10,21 @@ namespace ColourClashNet.Color
     public class ColorTransformBkgRemover: ColorTransformIdentity
     {
         public List<ColorItem> ColorBackgroundList { get; set; } = new List<ColorItem>();
+        public ColorItem ColorBackground { get; set; } = new ColorItem(0, 0, 0);
         protected override void BuildTrasformation()
         {
             base.BuildTrasformation();
-            foreach (var kvp in DictHistogram)
+            int iColorRemoved = 0;  
+            foreach (var kvp in DictTransform)
             {
-                var Val = kvp.Value;
+                var Val = kvp.Key;
                 if (ColorBackgroundList.Any(X => X.Equals(Val)))
-                    DictTransform.Add(kvp.Key, new ColorItem() );
-                else
-                    DictTransform.Add(kvp.Key, kvp.Key);
-                DictTransform.Add(kvp.Key, kvp.Key);
+                {
+                    iColorRemoved++;
+                    DictTransform[kvp.Key] = ColorBackground;
+                }
             }
-            ResultColors = DictTransform.Select( X=>X.Value).ToList().Distinct().ToList().Count;
+            ResultColors -= iColorRemoved;
         }
     }
 }

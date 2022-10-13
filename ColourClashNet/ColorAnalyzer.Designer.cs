@@ -35,6 +35,7 @@
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.bitmapIndexedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.indexedPNGToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -43,6 +44,7 @@
             this.amigaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.iFFILBMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.bitplaneToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.rawBitplaneAndOCSCopperlistToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sourceCodeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.colorModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fullColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -69,11 +71,14 @@
             this.btnReduceColorsScanline = new System.Windows.Forms.Button();
             this.pbBkColor = new System.Windows.Forms.PictureBox();
             this.chkScanLineCluster = new System.Windows.Forms.CheckBox();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.oBitmapRender = new ColourClashNet.Controls.BitmapRender(this.components);
+            this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.pictureBoxSrc = new System.Windows.Forms.PictureBox();
+            this.pictureBoxProc = new System.Windows.Forms.PictureBox();
+            this.oBitmapRenderSource = new ColourClashNet.Controls.BitmapRender(this.components);
             this.oColorTransformer = new ColourClashNet.Controls.ColorTransformer(this.components);
-            this.rawBitplaneAndOCSCopperlistToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.bitmapRender1 = new ColourClashNet.Controls.BitmapRender(this.components);
+            this.bitmapRender2 = new ColourClashNet.Controls.BitmapRender(this.components);
+            this.oBitmapRenderDest = new ColourClashNet.Controls.BitmapRender(this.components);
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -84,7 +89,12 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudClusterLoop)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbBkColor)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
+            this.splitContainer2.Panel1.SuspendLayout();
+            this.splitContainer2.Panel2.SuspendLayout();
+            this.splitContainer2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSrc)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxProc)).BeginInit();
             this.SuspendLayout();
             // 
             // openFileDialog1
@@ -122,7 +132,7 @@
             this.newToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
             this.newToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.newToolStripMenuItem.Text = "&New";
             this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
             // 
@@ -132,9 +142,19 @@
             this.openToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             this.openToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.openToolStripMenuItem.Text = "&Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripMenuItem1.Image")));
+            this.toolStripMenuItem1.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(146, 22);
+            this.toolStripMenuItem1.Text = "&Save";
+            this.toolStripMenuItem1.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
             // 
             // exportToolStripMenuItem
             // 
@@ -145,31 +165,31 @@
             this.pNGToolStripMenuItem,
             this.amigaToolStripMenuItem});
             this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            this.exportToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exportToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.exportToolStripMenuItem.Text = "Export";
             // 
             // bitmapIndexedToolStripMenuItem
             // 
             this.bitmapIndexedToolStripMenuItem.Name = "bitmapIndexedToolStripMenuItem";
-            this.bitmapIndexedToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.bitmapIndexedToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.bitmapIndexedToolStripMenuItem.Text = "Bitmap Indexed";
             // 
             // indexedPNGToolStripMenuItem
             // 
             this.indexedPNGToolStripMenuItem.Name = "indexedPNGToolStripMenuItem";
-            this.indexedPNGToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.indexedPNGToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.indexedPNGToolStripMenuItem.Text = "PNG Indexed";
             // 
             // bitmapToolStripMenuItem
             // 
             this.bitmapToolStripMenuItem.Name = "bitmapToolStripMenuItem";
-            this.bitmapToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.bitmapToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.bitmapToolStripMenuItem.Text = "Bitmap";
             // 
             // pNGToolStripMenuItem
             // 
             this.pNGToolStripMenuItem.Name = "pNGToolStripMenuItem";
-            this.pNGToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.pNGToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.pNGToolStripMenuItem.Text = "PNG";
             // 
             // amigaToolStripMenuItem
@@ -180,7 +200,7 @@
             this.rawBitplaneAndOCSCopperlistToolStripMenuItem,
             this.sourceCodeToolStripMenuItem});
             this.amigaToolStripMenuItem.Name = "amigaToolStripMenuItem";
-            this.amigaToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.amigaToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.amigaToolStripMenuItem.Text = "Amiga";
             // 
             // iFFILBMToolStripMenuItem
@@ -194,6 +214,12 @@
             this.bitplaneToolStripMenuItem1.Name = "bitplaneToolStripMenuItem1";
             this.bitplaneToolStripMenuItem1.Size = new System.Drawing.Size(224, 22);
             this.bitplaneToolStripMenuItem1.Text = "Raw Bitplane";
+            // 
+            // rawBitplaneAndOCSCopperlistToolStripMenuItem
+            // 
+            this.rawBitplaneAndOCSCopperlistToolStripMenuItem.Name = "rawBitplaneAndOCSCopperlistToolStripMenuItem";
+            this.rawBitplaneAndOCSCopperlistToolStripMenuItem.Size = new System.Drawing.Size(224, 22);
+            this.rawBitplaneAndOCSCopperlistToolStripMenuItem.Text = "Raw Bitplane And Copperlist";
             // 
             // sourceCodeToolStripMenuItem
             // 
@@ -219,7 +245,7 @@
             this.fullColorToolStripMenuItem.Checked = true;
             this.fullColorToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.fullColorToolStripMenuItem.Name = "fullColorToolStripMenuItem";
-            this.fullColorToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.fullColorToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
             this.fullColorToolStripMenuItem.Tag = "FullColor";
             this.fullColorToolStripMenuItem.Text = "FullColor";
             this.fullColorToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColor);
@@ -227,7 +253,7 @@
             // rGB3ToolStripMenuItem
             // 
             this.rGB3ToolStripMenuItem.Name = "rGB3ToolStripMenuItem";
-            this.rGB3ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.rGB3ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
             this.rGB3ToolStripMenuItem.Tag = "RGB3";
             this.rGB3ToolStripMenuItem.Text = "RGB333";
             this.rGB3ToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColor);
@@ -235,7 +261,7 @@
             // rGB4ToolStripMenuItem
             // 
             this.rGB4ToolStripMenuItem.Name = "rGB4ToolStripMenuItem";
-            this.rGB4ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.rGB4ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
             this.rGB4ToolStripMenuItem.Tag = "RGB4";
             this.rGB4ToolStripMenuItem.Text = "RGB444";
             this.rGB4ToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColor);
@@ -243,7 +269,7 @@
             // rGB5ToolStripMenuItem
             // 
             this.rGB5ToolStripMenuItem.Name = "rGB5ToolStripMenuItem";
-            this.rGB5ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.rGB5ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
             this.rGB5ToolStripMenuItem.Tag = "RGB5";
             this.rGB5ToolStripMenuItem.Text = "RGB555";
             this.rGB5ToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColor);
@@ -251,7 +277,7 @@
             // hiColorToolStripMenuItem
             // 
             this.hiColorToolStripMenuItem.Name = "hiColorToolStripMenuItem";
-            this.hiColorToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.hiColorToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
             this.hiColorToolStripMenuItem.Text = "HiColor";
             this.hiColorToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColor);
             // 
@@ -270,21 +296,21 @@
             this.rGBToolStripMenuItem.Checked = true;
             this.rGBToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.rGBToolStripMenuItem.Name = "rGBToolStripMenuItem";
-            this.rGBToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.rGBToolStripMenuItem.Size = new System.Drawing.Size(96, 22);
             this.rGBToolStripMenuItem.Text = "RGB";
             this.rGBToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColorDistance);
             // 
             // hSVToolStripMenuItem
             // 
             this.hSVToolStripMenuItem.Name = "hSVToolStripMenuItem";
-            this.hSVToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.hSVToolStripMenuItem.Size = new System.Drawing.Size(96, 22);
             this.hSVToolStripMenuItem.Text = "HSV";
             this.hSVToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColorDistance);
             // 
             // aLLToolStripMenuItem
             // 
             this.aLLToolStripMenuItem.Name = "aLLToolStripMenuItem";
-            this.aLLToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.aLLToolStripMenuItem.Size = new System.Drawing.Size(96, 22);
             this.aLLToolStripMenuItem.Text = "ALL";
             this.aLLToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColorDistance);
             // 
@@ -300,7 +326,7 @@
             // 
             // splitContainer1.Panel2
             // 
-            this.splitContainer1.Panel2.Controls.Add(this.pictureBox1);
+            this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
             this.splitContainer1.Size = new System.Drawing.Size(1021, 646);
             this.splitContainer1.SplitterDistance = 355;
             this.splitContainer1.TabIndex = 1;
@@ -509,42 +535,92 @@
             this.chkScanLineCluster.Text = "Clustering Scanline";
             this.chkScanLineCluster.UseVisualStyleBackColor = true;
             // 
-            // pictureBox1
+            // splitContainer2
             // 
-            this.pictureBox1.BackColor = System.Drawing.Color.Black;
-            this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pictureBox1.Location = new System.Drawing.Point(0, 0);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(662, 646);
-            this.pictureBox1.TabIndex = 0;
-            this.pictureBox1.TabStop = false;
-            this.pictureBox1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseDoubleClick);
+            this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer2.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer2.Name = "splitContainer2";
+            this.splitContainer2.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
-            // oBitmapRender
+            // splitContainer2.Panel1
             // 
-            this.oBitmapRender.Control = this.pictureBox1;
-            this.oBitmapRender.Image = null;
-            this.oBitmapRender.ImageBlockScroll = false;
-            this.oBitmapRender.ImageMoveOverControlBorder = true;
-            this.oBitmapRender.ImageZoomManual = 1F;
-            this.oBitmapRender.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
-            this.oBitmapRender.MouseMovingButton = System.Windows.Forms.MouseButtons.Left;
+            this.splitContainer2.Panel1.Controls.Add(this.pictureBoxSrc);
             // 
-            // rawBitplaneAndOCSCopperlistToolStripMenuItem
+            // splitContainer2.Panel2
             // 
-            this.rawBitplaneAndOCSCopperlistToolStripMenuItem.Name = "rawBitplaneAndOCSCopperlistToolStripMenuItem";
-            this.rawBitplaneAndOCSCopperlistToolStripMenuItem.Size = new System.Drawing.Size(224, 22);
-            this.rawBitplaneAndOCSCopperlistToolStripMenuItem.Text = "Raw Bitplane And Copperlist";
+            this.splitContainer2.Panel2.Controls.Add(this.pictureBoxProc);
+            this.splitContainer2.Size = new System.Drawing.Size(662, 646);
+            this.splitContainer2.SplitterDistance = 336;
+            this.splitContainer2.TabIndex = 0;
             // 
-            // toolStripMenuItem1
+            // pictureBoxSrc
             // 
-            this.toolStripMenuItem1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripMenuItem1.Image")));
-            this.toolStripMenuItem1.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
-            this.toolStripMenuItem1.Text = "&Save";
-            this.toolStripMenuItem1.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
+            this.pictureBoxSrc.BackColor = System.Drawing.Color.Black;
+            this.pictureBoxSrc.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pictureBoxSrc.Location = new System.Drawing.Point(0, 0);
+            this.pictureBoxSrc.Name = "pictureBoxSrc";
+            this.pictureBoxSrc.Size = new System.Drawing.Size(662, 336);
+            this.pictureBoxSrc.TabIndex = 0;
+            this.pictureBoxSrc.TabStop = false;
+            this.pictureBoxSrc.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseDoubleClick);
+            // 
+            // pictureBoxProc
+            // 
+            this.pictureBoxProc.BackColor = System.Drawing.Color.Black;
+            this.pictureBoxProc.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pictureBoxProc.Location = new System.Drawing.Point(0, 0);
+            this.pictureBoxProc.Name = "pictureBoxProc";
+            this.pictureBoxProc.Size = new System.Drawing.Size(662, 306);
+            this.pictureBoxProc.TabIndex = 0;
+            this.pictureBoxProc.TabStop = false;
+            // 
+            // oBitmapRenderSource
+            // 
+            this.oBitmapRenderSource.Control = this.pictureBoxSrc;
+            this.oBitmapRenderSource.Image = null;
+            this.oBitmapRenderSource.ImageBlockScroll = false;
+            this.oBitmapRenderSource.ImageMoveOverControlBorder = true;
+            this.oBitmapRenderSource.ImageZoomManual = 1F;
+            this.oBitmapRenderSource.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
+            this.oBitmapRenderSource.MouseMovingButton = System.Windows.Forms.MouseButtons.Left;
+            // 
+            // oColorTransformer
+            // 
+            this.oColorTransformer.ColorQuantizationMode = ColourClashNet.Color.ColorQuantizationMode.Unknown;
+            this.oColorTransformer.OnReset += new System.EventHandler(this.oColorTransformer_OnReset);
+            this.oColorTransformer.OnCreate += new System.EventHandler(this.oColorTransformer_OnCreate);
+            this.oColorTransformer.OnQuantize += new System.EventHandler(this.oColorTransformer_OnQuantize);
+            this.oColorTransformer.OnProcess += new System.EventHandler(this.oColorTransformer_OnProcess);
+            // 
+            // bitmapRender1
+            // 
+            this.bitmapRender1.Control = this.pictureBoxSrc;
+            this.bitmapRender1.Image = null;
+            this.bitmapRender1.ImageBlockScroll = false;
+            this.bitmapRender1.ImageMoveOverControlBorder = true;
+            this.bitmapRender1.ImageZoomManual = 1F;
+            this.bitmapRender1.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
+            this.bitmapRender1.MouseMovingButton = System.Windows.Forms.MouseButtons.Left;
+            // 
+            // bitmapRender2
+            // 
+            this.bitmapRender2.Control = this.pictureBoxSrc;
+            this.bitmapRender2.Image = null;
+            this.bitmapRender2.ImageBlockScroll = false;
+            this.bitmapRender2.ImageMoveOverControlBorder = true;
+            this.bitmapRender2.ImageZoomManual = 1F;
+            this.bitmapRender2.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
+            this.bitmapRender2.MouseMovingButton = System.Windows.Forms.MouseButtons.Left;
+            // 
+            // oBitmapRenderDest
+            // 
+            this.oBitmapRenderDest.Control = this.pictureBoxProc;
+            this.oBitmapRenderDest.Image = null;
+            this.oBitmapRenderDest.ImageBlockScroll = false;
+            this.oBitmapRenderDest.ImageMoveOverControlBorder = true;
+            this.oBitmapRenderDest.ImageZoomManual = 1F;
+            this.oBitmapRenderDest.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
+            this.oBitmapRenderDest.MouseMovingButton = System.Windows.Forms.MouseButtons.Left;
             // 
             // ColorAnalyzer
             // 
@@ -566,7 +642,12 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudClusterLoop)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbBkColor)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.splitContainer2.Panel1.ResumeLayout(false);
+            this.splitContainer2.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
+            this.splitContainer2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSrc)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxProc)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -580,7 +661,7 @@
         private ToolStripMenuItem newToolStripMenuItem;
         private ToolStripMenuItem openToolStripMenuItem;
         private SplitContainer splitContainer1;
-        private PictureBox pictureBox1;
+        private PictureBox pictureBoxSrc;
         private ToolStripMenuItem exportToolStripMenuItem;
         private ToolStripMenuItem colorModeToolStripMenuItem;
         private ToolStripMenuItem fullColorToolStripMenuItem;
@@ -601,7 +682,7 @@
         private Label label3;
         private PictureBox pbBkColor;
         private ToolStripMenuItem hiColorToolStripMenuItem;
-        private Controls.BitmapRender oBitmapRender;
+        private Controls.BitmapRender oBitmapRenderSource;
         private Controls.ColorTransformer oColorTransformer;
         private CheckBox chkScanLineCluster;
         private ToolStripMenuItem colorDistanceToolStripMenuItem;
@@ -618,5 +699,10 @@
         private ToolStripMenuItem sourceCodeToolStripMenuItem;
         private ToolStripMenuItem rawBitplaneAndOCSCopperlistToolStripMenuItem;
         private ToolStripMenuItem toolStripMenuItem1;
+        private SplitContainer splitContainer2;
+        private PictureBox pictureBoxProc;
+        private Controls.BitmapRender bitmapRender1;
+        private Controls.BitmapRender bitmapRender2;
+        private Controls.BitmapRender oBitmapRenderDest;
     }
 }

@@ -56,7 +56,7 @@ namespace ColourClashNet.Color
                 {
                     for (int c = 0; c < C; c++)
                     {
-                        oRet[r, c] = new ColorItem();
+                        oRet[r, c] = new ColorItem(-1, -1, -1);
                     }
                 }
                 else

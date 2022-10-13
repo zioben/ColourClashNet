@@ -339,6 +339,7 @@ namespace ColourClashNet.Controls
 
         protected void OnMouseWheel(object Sender, MouseEventArgs args)
         {
+            Trace.WriteLine($"{args.Delta}");
             if (args.Delta != 0)
             {
                 if (ImageZoomMode == EnumZoom.Manual)
@@ -351,12 +352,12 @@ namespace ColourClashNet.Controls
                     {
                         ImageZoomMode--;
                     }
-                    else if (args.Delta > 0 && (int)ImageZoomMode < (int)EnumZoom.Stretch)
+                    else if (args.Delta > 0 && (int)ImageZoomMode < (int)EnumZoom.Zoom4)
                     {
                         ImageZoomMode++;
                     }
                 }
-                ImageZoomMode = EnumZoom.Manual;
+                ForceRefresh();
             }
         }
 

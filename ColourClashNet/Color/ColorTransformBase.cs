@@ -47,6 +47,7 @@ namespace ColourClashNet.Color
                 }
             }
         }
+
         static void BuildColorHistDirect(ColorItem[,] m,  Dictionary<ColorItem, int> oDict)
         {
             oDict.Clear();
@@ -80,8 +81,6 @@ namespace ColourClashNet.Color
                 BuildColorHistHistogram(m, oDict);
         }
 
-        public List<ColorItem> BackColorList { get; private set; } = new List<ColorItem>();
-        public List<ColorItem> BackColorTransformList { get; private set; } = new List<ColorItem>();
         public Dictionary<ColorItem, int> DictHistogram { get; private init; } = new Dictionary<ColorItem, int>();
         public Dictionary<ColorItem, ColorItem> DictTransform { get; private init; } = new Dictionary<ColorItem, ColorItem>();
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.All;
@@ -92,8 +91,6 @@ namespace ColourClashNet.Color
 
         void Reset()
         {
-            BackColorList = new List<ColorItem>();
-            BackColorTransformList = new List<ColorItem>();
             DictHistogram.Clear();
             DictTransform.Clear();
             oDataSource = null;
@@ -137,7 +134,7 @@ namespace ColourClashNet.Color
                 {
                     var col = oSource[r, c];                    
                     if (!DictTransform.ContainsKey(col) )
-                        oRet[r, c] = new ColorItem();
+                        oRet[r, c] = new ColorItem(-1, -1, -1);
                     else
                         oRet[r, c] = DictTransform[col];
                 }

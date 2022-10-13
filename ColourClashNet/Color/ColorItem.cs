@@ -43,7 +43,7 @@ namespace ColourClashNet.Color
         public int R, G, B;
         public double H, S, V;
 
-        public ColorItem(int r = -1, int g = -1, int b = -1)
+        public ColorItem(int r, int g, int b)
         {
             R = r;
             G = g;
@@ -152,7 +152,7 @@ namespace ColourClashNet.Color
                         B = (c.B & 0xF8) | 0x07,//| ((c.B & 0x08) > 0 ? 0x07 : 0),
                     };
                 default:
-                    return new ColorItem();
+                    return new ColorItem(-1,-1,-1);
             }
 
         }
@@ -160,7 +160,7 @@ namespace ColourClashNet.Color
         public static ColorItem FromDrawingColor(System.Drawing.Color c, ColorQuantizationMode colorHistMode)
         {
             if (c == System.Drawing.Color.Transparent)
-                return new ColorItem();
+                return new ColorItem(-1, -1, -1);
             ColorItem col = new ColorItem(c.R, c.G, c.B);
             return FromColorItem(col, colorHistMode);
         }
