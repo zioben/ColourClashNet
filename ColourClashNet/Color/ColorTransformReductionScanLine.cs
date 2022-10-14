@@ -1,11 +1,11 @@
-﻿using ColourClashNet.Color;
+﻿using ColourClashNet.Colors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Color
+namespace ColourClashNet.Colors
 {
     public class ColorTransformReductionScanLine: ColorTransformBase
     {
@@ -23,7 +23,7 @@ namespace ColourClashNet.Color
         {
             if (oSource == null)
                 return null;
-            
+
             var R = oSource.GetLength(0);
             var C = oSource.GetLength(1);
             var oRet = new ColorItem[R, C];
@@ -43,6 +43,8 @@ namespace ColourClashNet.Color
                 oTrasf2.MaxColors = MaxColors;
                 oTrasf = oTrasf2;
             }
+            List<ColorItem> lColors = new List<ColorItem>();
+
             for (int r = 0; r < R; r++)
             {
                 Array.Clear(oCols);
@@ -66,8 +68,12 @@ namespace ColourClashNet.Color
                         oRet[r, c] = oColsTrasf[0, c];
                     }
                 }
+                foreach (var kvp in oTrasf.DictColorTransformation)
+                {
+                    lColors.Add(kvp.Value);
+                }
             }
-            ResultColors = -1;
+            ColorsUsed = lColors.Distinct().Count();
             return oRet;
         }
 

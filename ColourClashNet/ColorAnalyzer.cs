@@ -1,4 +1,4 @@
-﻿using ColourClashNet.Color;
+﻿using ColourClashNet.Colors;
 using ColourClashNet.Controls;
 using System;
 using System.Collections.Generic;
@@ -18,8 +18,9 @@ namespace ColourClashNet
         public ColorAnalyzer()
         {
             InitializeComponent();
+            oColorTransformer.ColorBackgroundList = GetBkgColors();
+            oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
             cbImage.SelectedIndex = 2;
-            pbBkColor.BackColor = System.Drawing.Color.Transparent;
         }
 
 
@@ -87,7 +88,11 @@ namespace ColourClashNet
         void Reprocess()
         {
             BuildBkgPalette();
-            Reprocess();
+            oColorTransformer.ColorBackgroundList = new List<ColorItem> { ColorItem.FromDrawingColor(pbBkColor.BackColor, ColorQuantizationMode.RGB888) };
+            oColorTransformer.ColorBackgroundReplacement = new ColorItem(0, 0, 0);
+            oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
+            oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
+            oColorTransformer.ProcessBase();
         }
 
         private void pictureBox1_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -220,22 +225,48 @@ namespace ColourClashNet
 
         }
 
-        private void oColorTransformer_OnCreate(object sender, EventArgs e)
-        {
 
-        }
-
-        private void oColorTransformer_OnProcess(object sender, EventArgs e)
+        private void oColorTransformer_OnReset(object sender, EventArgs e)
         {
             RefreshData();
         }
 
-        private void oColorTransformer_OnQuantize(object sender, EventArgs e)
-        {
 
+        private void bitmapToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (sfdExportImage.ShowDialog() == DialogResult.OK)
+            {
+                ImageTools.ImageExport.Export(oColorTransformer.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageTools.ImageExportformat.Bmp24, oColorTransformer.Palette,  ImageTools.WidthAlignMode.None);
+            }
         }
 
-        private void oColorTransformer_OnReset(object sender, EventArgs e)
+        private void pNGToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (sfdExportImage.ShowDialog() == DialogResult.OK)
+            {
+                ImageTools.ImageExport.Export(oColorTransformer.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageTools.ImageExportformat.Png24, oColorTransformer.Palette,  ImageTools.WidthAlignMode.None);
+            }
+        }
+
+        private void bitmapIndexedToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (sfdExportImage.ShowDialog() == DialogResult.OK)
+            {
+                ImageTools.ImageExport.Export(oColorTransformer.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageTools.ImageExportformat.BmpIndex, oColorTransformer.Palette,  ImageTools.WidthAlignMode.None);
+            }
+        }
+
+        private void oColorTransformer_OnProcess(object sender, ColorTransformer.EventArgsTransformation e)
+        {
+            RefreshData();
+        }
+
+        private void oColorTransformer_OnQuantize(object sender, ColorTransformer.EventArgsTransformation e)
+        {
+            RefreshData();
+        }
+
+        private void oColorTransformer_OnCreate(object sender, EventArgs e)
         {
             RefreshData();
         }

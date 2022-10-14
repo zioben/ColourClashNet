@@ -1,25 +1,24 @@
-﻿using ColourClashNet.Color;
+﻿using ColourClashNet.Colors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Color
+namespace ColourClashNet.Colors
 {
     public class ColorTransformReductionCluster : ColorTransformBase
     {
-
         public int MaxColors { get; set; } = -1;
         public int TrainingLoop { get; set; } = -1;
         protected override void BuildTrasformation()
         {
-            SortColors();
-            if (DictHistogram.Count < MaxColors)
+            SortColorsByHistogram();
+            if (DictColorHistogram.Count < MaxColors)
             {
-                foreach (var kvp in DictHistogram)
+                foreach (var kvp in DictColorHistogram)
                 {
-                    DictTransform[kvp.Key] = kvp.Key;
+                    DictColorTransformation[kvp.Key] = kvp.Key;
                 }
                 return;
             }
@@ -57,7 +56,7 @@ namespace ColourClashNet.Color
                         double B = 0;
                         XX.ForEach(Y =>
                         {
-                            var Elements = DictHistogram[Y];
+                            var Elements = DictColorHistogram[Y];
                             Count += Elements;
                             R += Elements * Y.R;
                             G += Elements * Y.G;
@@ -75,9 +74,9 @@ namespace ColourClashNet.Color
             {                
                 var dMin = lMean.Min(Y => Y.Distance(X, ColorDistanceEvaluationMode));
                 var oItem = lMean.FirstOrDefault(Y => Y.Distance(X, ColorDistanceEvaluationMode) == dMin);
-                DictTransform[X] = oItem;
+                DictColorTransformation[X] = oItem;
             });
-            ResultColors = DictTransform.Select(X => X.Value).ToList().Distinct().ToList().Count;
+            ColorsUsed = DictColorTransformation.Select(X => X.Value).ToList().Distinct().ToList().Count;
         }
     }
 }

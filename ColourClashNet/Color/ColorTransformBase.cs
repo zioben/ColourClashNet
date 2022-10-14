@@ -4,85 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Color
+namespace ColourClashNet.Colors
 {
-    public abstract class ColorTransformBase : ColorTransformInterface
+    public abstract partial class ColorTransformBase : ColorTransformInterface
     {
-        static int[,,] Histogram = new int[256, 256, 256];
-        static object locker = new object();
 
-        public int ResultColors { get; internal set; } = 0;
-        static void BuildColorHistHistogram(ColorItem[,] m, Dictionary<ColorItem, int> oDict)
-        {
-            oDict.Clear();
-            lock (locker)
-            {
-                Array.Clear(Histogram);
-                int R = m.GetLength(0);
-                int C = m.GetLength(1);
-                for (int r = 0; r < R; r++)
-                {
-                    for (int c = 0; c < C; c++)
-                    {
-                        var col = m[r, c];
-                        if (col.Valid)
-                        {
-                            Histogram[col.R, col.G, col.B]++;
-                        }
-                    }
-                }
-                for (int r = 0; r < 256; r++)
-                {
-                    for (int g = 0; g < 256; g++)
-                    {
-                        for (int b = 0; b < 256; b++)
-                        {
-                            int val = Histogram[r, g, b];
-                            if (val != 0)
-                            {
-                                oDict.Add(new ColorItem(r, g, b), val);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        static void BuildColorHistDirect(ColorItem[,] m,  Dictionary<ColorItem, int> oDict)
-        {
-            oDict.Clear();
-            int R = m.GetLength(0);
-            int C = m.GetLength(1);
-            for (int r = 0; r < R; r++)
-            {
-                for (int c = 0; c < C; c++)
-                {
-                    var col = m[r, c];
-                    if (col.Valid)
-                    {
-                        if (oDict.ContainsKey(col))
-                            oDict[col]++;
-                        else
-                            oDict[col]=1;
-                    }
-                }
-            }
-        }
-
-        static void BuildColorHist(ColorItem[,] m, Dictionary<ColorItem, int> oDict)
-        {
-            if (m == null)
-                return;
-            if (oDict == null)
-                return;
-            if (m.Length < 64 * 64)
-                BuildColorHistDirect(m, oDict);
-            else
-                BuildColorHistHistogram(m, oDict);
-        }
-
-        public Dictionary<ColorItem, int> DictHistogram { get; private init; } = new Dictionary<ColorItem, int>();
-        public Dictionary<ColorItem, ColorItem> DictTransform { get; private init; } = new Dictionary<ColorItem, ColorItem>();
+        public int ColorsUsed { get; internal set; } = 0;
+        public Dictionary<ColorItem, int> DictColorHistogram { get; private init; } = new Dictionary<ColorItem, int>();
+        public Dictionary<ColorItem, ColorItem> DictColorTransformation { get; private init; } = new Dictionary<ColorItem, ColorItem>();
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.All;
 
         abstract protected void BuildTrasformation();
@@ -91,38 +20,46 @@ namespace ColourClashNet.Color
 
         void Reset()
         {
-            DictHistogram.Clear();
-            DictTransform.Clear();
+            ColorsUsed = 0;
+            DictColorHistogram.Clear();
+            DictColorTransformation.Clear();
             oDataSource = null;
         }
 
-        public void Create(ColorItem[,] oSource )
+        public void Create(ColorItem[,] oDataSource )
         {
             Reset();
-            if (oSource == null)
+            if (oDataSource == null)
                 return;
-            BuildColorHist(oSource,DictHistogram);
-            SortColors();
+            BuildColorHist(oDataSource,DictColorHistogram);
+            SortColorsByHistogram();
             BuildTrasformation();
         }
 
-        public void Create(Dictionary<ColorItem, int> oSourceHistogram)
+        public void Create(Dictionary<ColorItem,int> oDictColorHistogramSource)
         {
             Reset();
-            if (oSourceHistogram==null)
+            if (oDictColorHistogramSource == null )
                 return;
-            foreach (var kvp in oSourceHistogram)
+            foreach (var kvp in oDictColorHistogramSource)
             {
-                DictHistogram.Add(kvp.Key, kvp.Value);
+                DictColorHistogram.Add(kvp.Key, kvp.Value);
             }
+            SortColorsByHistogram();
             BuildTrasformation();
+        }
+
+        public void Create(ColorTransformInterface oTrasformationSource)
+        {
+            Reset();
+            Create(oTrasformationSource?.DictColorHistogram);
         }
 
         public ColorItem[,] Transform(ColorItem[,] oSource)
         {
             if (oSource == null)
                 return null;
-            if (DictTransform == null || DictTransform.Count == 0)
+            if (DictColorTransformation == null || DictColorTransformation.Count == 0)
                 return null;
 
             var R = oSource.GetLength(0);
@@ -132,17 +69,17 @@ namespace ColourClashNet.Color
             {
                 for (int c = 0; c < C; c++)
                 {
-                    var col = oSource[r, c];                    
-                    if (!DictTransform.ContainsKey(col) )
+                    var col = oSource[r, c];
+                    if (!col.Valid || !DictColorTransformation.ContainsKey(col))
                         oRet[r, c] = new ColorItem(-1, -1, -1);
                     else
-                        oRet[r, c] = DictTransform[col];
+                        oRet[r, c] = DictColorTransformation[col];
                 }
             }
             return oRet;
         }
 
-        // Sort reverse in order
+        // Sort in reverse in order
         public class DuplicateKeyComparer<TKey> : IComparer<TKey> where TKey : IComparable
         {
             public int Compare(TKey x, TKey y)
@@ -156,24 +93,24 @@ namespace ColourClashNet.Color
             }
         }
 
-        protected void SortColors()
+        protected void SortColorsByHistogram()
         {
             SortedList<int, ColorItem> list = new SortedList<int, ColorItem>(new DuplicateKeyComparer<int>());
-            foreach (var kvp in DictHistogram)
+            foreach (var kvp in DictColorHistogram)
             {
                 list.Add(kvp.Value, kvp.Key);
             }
-            DictHistogram.Clear();
+            DictColorHistogram.Clear();
             foreach (var kvp in list)
             {
-                DictHistogram.Add(kvp.Value, kvp.Key);
+                DictColorHistogram.Add(kvp.Value, kvp.Key);
             }
         }
 
         protected List<ColorItem> DictToList()
         {
             List<ColorItem> listP = new List<ColorItem>();
-            foreach (var kvp in DictHistogram)
+            foreach (var kvp in DictColorHistogram)
             {
                 listP.Add(kvp.Key);
             }

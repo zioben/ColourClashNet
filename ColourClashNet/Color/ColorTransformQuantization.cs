@@ -5,20 +5,19 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Color
+namespace ColourClashNet.Colors
 {
     public class ColorTransformQuantization: ColorTransformBase
     {
-
         public ColorQuantizationMode QuantizationMode { get; set; }
         protected override void BuildTrasformation()
         {
-            DictTransform.Clear();
-            foreach (var kvp in DictHistogram)
+            DictColorTransformation.Clear();
+            foreach (var kvp in DictColorHistogram)
             {
-                DictTransform.Add(kvp.Key, kvp.Key.Quantize(QuantizationMode));
+                DictColorTransformation.Add(kvp.Key, kvp.Key.Quantize(QuantizationMode));
             }
-            ResultColors = DictTransform.Select(X => X.Value).ToList().Distinct().ToList().Count;
+            ColorsUsed = DictColorTransformation.Select(X => X.Value).ToList().Distinct().ToList().Count;
         }
     }
 }

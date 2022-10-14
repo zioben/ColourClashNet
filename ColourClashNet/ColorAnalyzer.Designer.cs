@@ -79,6 +79,7 @@
             this.bitmapRender1 = new ColourClashNet.Controls.BitmapRender(this.components);
             this.bitmapRender2 = new ColourClashNet.Controls.BitmapRender(this.components);
             this.oBitmapRenderDest = new ColourClashNet.Controls.BitmapRender(this.components);
+            this.sfdExportImage = new System.Windows.Forms.SaveFileDialog();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -173,6 +174,7 @@
             this.bitmapIndexedToolStripMenuItem.Name = "bitmapIndexedToolStripMenuItem";
             this.bitmapIndexedToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.bitmapIndexedToolStripMenuItem.Text = "Bitmap Indexed";
+            this.bitmapIndexedToolStripMenuItem.Click += new System.EventHandler(this.bitmapIndexedToolStripMenuItem_Click);
             // 
             // indexedPNGToolStripMenuItem
             // 
@@ -185,12 +187,14 @@
             this.bitmapToolStripMenuItem.Name = "bitmapToolStripMenuItem";
             this.bitmapToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.bitmapToolStripMenuItem.Text = "Bitmap";
+            this.bitmapToolStripMenuItem.Click += new System.EventHandler(this.bitmapToolStripMenuItem_Click);
             // 
             // pNGToolStripMenuItem
             // 
             this.pNGToolStripMenuItem.Name = "pNGToolStripMenuItem";
             this.pNGToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.pNGToolStripMenuItem.Text = "PNG";
+            this.pNGToolStripMenuItem.Click += new System.EventHandler(this.pNGToolStripMenuItem_Click);
             // 
             // amigaToolStripMenuItem
             // 
@@ -328,7 +332,7 @@
             // 
             this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
             this.splitContainer1.Size = new System.Drawing.Size(1021, 646);
-            this.splitContainer1.SplitterDistance = 355;
+            this.splitContainer1.SplitterDistance = 277;
             this.splitContainer1.TabIndex = 1;
             // 
             // tableLayoutPanel1
@@ -348,7 +352,7 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(355, 646);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(277, 646);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // propertyGrid1
@@ -356,14 +360,14 @@
             this.propertyGrid1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.propertyGrid1.Location = new System.Drawing.Point(3, 286);
             this.propertyGrid1.Name = "propertyGrid1";
-            this.propertyGrid1.Size = new System.Drawing.Size(349, 357);
+            this.propertyGrid1.Size = new System.Drawing.Size(271, 357);
             this.propertyGrid1.TabIndex = 0;
             // 
             // tableLayoutPanel2
             // 
             this.tableLayoutPanel2.ColumnCount = 2;
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 65.34954F));
+            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 34.65046F));
             this.tableLayoutPanel2.Controls.Add(this.label3, 0, 2);
             this.tableLayoutPanel2.Controls.Add(this.label2, 0, 1);
             this.tableLayoutPanel2.Controls.Add(this.cbImage, 1, 0);
@@ -387,7 +391,7 @@
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(349, 277);
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(271, 277);
             this.tableLayoutPanel2.TabIndex = 8;
             // 
             // label3
@@ -416,9 +420,9 @@
             "Original Image",
             "Quantized Image",
             "Color Reduced Image"});
-            this.cbImage.Location = new System.Drawing.Point(177, 3);
+            this.cbImage.Location = new System.Drawing.Point(180, 3);
             this.cbImage.Name = "cbImage";
-            this.cbImage.Size = new System.Drawing.Size(169, 23);
+            this.cbImage.Size = new System.Drawing.Size(88, 23);
             this.cbImage.TabIndex = 7;
             this.cbImage.SelectedIndexChanged += new System.EventHandler(this.cbImage_SelectedIndexChanged);
             // 
@@ -427,7 +431,7 @@
             this.btnReduceColors.Dock = System.Windows.Forms.DockStyle.Fill;
             this.btnReduceColors.Location = new System.Drawing.Point(3, 105);
             this.btnReduceColors.Name = "btnReduceColors";
-            this.btnReduceColors.Size = new System.Drawing.Size(168, 28);
+            this.btnReduceColors.Size = new System.Drawing.Size(171, 28);
             this.btnReduceColors.TabIndex = 3;
             this.btnReduceColors.Text = "Quantitative color reduction";
             this.btnReduceColors.UseVisualStyleBackColor = true;
@@ -441,7 +445,7 @@
             0,
             0,
             0});
-            this.numericUpDown1.Location = new System.Drawing.Point(177, 37);
+            this.numericUpDown1.Location = new System.Drawing.Point(180, 37);
             this.numericUpDown1.Maximum = new decimal(new int[] {
             256,
             0,
@@ -453,7 +457,7 @@
             0,
             0});
             this.numericUpDown1.Name = "numericUpDown1";
-            this.numericUpDown1.Size = new System.Drawing.Size(169, 23);
+            this.numericUpDown1.Size = new System.Drawing.Size(88, 23);
             this.numericUpDown1.TabIndex = 2;
             this.numericUpDown1.Value = new decimal(new int[] {
             16,
@@ -475,7 +479,7 @@
             this.btnReduceColorCluster.Dock = System.Windows.Forms.DockStyle.Fill;
             this.btnReduceColorCluster.Location = new System.Drawing.Point(3, 173);
             this.btnReduceColorCluster.Name = "btnReduceColorCluster";
-            this.btnReduceColorCluster.Size = new System.Drawing.Size(168, 28);
+            this.btnReduceColorCluster.Size = new System.Drawing.Size(171, 28);
             this.btnReduceColorCluster.TabIndex = 5;
             this.btnReduceColorCluster.Text = "Clustering color reduction";
             this.btnReduceColorCluster.UseVisualStyleBackColor = true;
@@ -484,7 +488,7 @@
             // nudClusterLoop
             // 
             this.nudClusterLoop.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.nudClusterLoop.Location = new System.Drawing.Point(177, 173);
+            this.nudClusterLoop.Location = new System.Drawing.Point(180, 173);
             this.nudClusterLoop.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -496,7 +500,7 @@
             0,
             0});
             this.nudClusterLoop.Name = "nudClusterLoop";
-            this.nudClusterLoop.Size = new System.Drawing.Size(169, 23);
+            this.nudClusterLoop.Size = new System.Drawing.Size(88, 23);
             this.nudClusterLoop.TabIndex = 6;
             this.nudClusterLoop.Value = new decimal(new int[] {
             100,
@@ -509,7 +513,7 @@
             this.btnReduceColorsScanline.Dock = System.Windows.Forms.DockStyle.Fill;
             this.btnReduceColorsScanline.Location = new System.Drawing.Point(3, 139);
             this.btnReduceColorsScanline.Name = "btnReduceColorsScanline";
-            this.btnReduceColorsScanline.Size = new System.Drawing.Size(168, 28);
+            this.btnReduceColorsScanline.Size = new System.Drawing.Size(171, 28);
             this.btnReduceColorsScanline.TabIndex = 9;
             this.btnReduceColorsScanline.Text = "Scanline color reduction";
             this.btnReduceColorsScanline.UseVisualStyleBackColor = true;
@@ -518,9 +522,9 @@
             // pbBkColor
             // 
             this.pbBkColor.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbBkColor.Location = new System.Drawing.Point(177, 71);
+            this.pbBkColor.Location = new System.Drawing.Point(180, 71);
             this.pbBkColor.Name = "pbBkColor";
-            this.pbBkColor.Size = new System.Drawing.Size(169, 28);
+            this.pbBkColor.Size = new System.Drawing.Size(88, 28);
             this.pbBkColor.TabIndex = 12;
             this.pbBkColor.TabStop = false;
             this.pbBkColor.DoubleClick += new System.EventHandler(this.pbBkColor_DoubleClick);
@@ -528,9 +532,9 @@
             // chkScanLineCluster
             // 
             this.chkScanLineCluster.AutoSize = true;
-            this.chkScanLineCluster.Location = new System.Drawing.Point(177, 139);
+            this.chkScanLineCluster.Location = new System.Drawing.Point(180, 139);
             this.chkScanLineCluster.Name = "chkScanLineCluster";
-            this.chkScanLineCluster.Size = new System.Drawing.Size(127, 19);
+            this.chkScanLineCluster.Size = new System.Drawing.Size(88, 19);
             this.chkScanLineCluster.TabIndex = 13;
             this.chkScanLineCluster.Text = "Clustering Scanline";
             this.chkScanLineCluster.UseVisualStyleBackColor = true;
@@ -549,7 +553,7 @@
             // splitContainer2.Panel2
             // 
             this.splitContainer2.Panel2.Controls.Add(this.pictureBoxProc);
-            this.splitContainer2.Size = new System.Drawing.Size(662, 646);
+            this.splitContainer2.Size = new System.Drawing.Size(740, 646);
             this.splitContainer2.SplitterDistance = 336;
             this.splitContainer2.TabIndex = 0;
             // 
@@ -559,7 +563,7 @@
             this.pictureBoxSrc.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pictureBoxSrc.Location = new System.Drawing.Point(0, 0);
             this.pictureBoxSrc.Name = "pictureBoxSrc";
-            this.pictureBoxSrc.Size = new System.Drawing.Size(662, 336);
+            this.pictureBoxSrc.Size = new System.Drawing.Size(740, 336);
             this.pictureBoxSrc.TabIndex = 0;
             this.pictureBoxSrc.TabStop = false;
             this.pictureBoxSrc.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseDoubleClick);
@@ -570,7 +574,7 @@
             this.pictureBoxProc.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pictureBoxProc.Location = new System.Drawing.Point(0, 0);
             this.pictureBoxProc.Name = "pictureBoxProc";
-            this.pictureBoxProc.Size = new System.Drawing.Size(662, 306);
+            this.pictureBoxProc.Size = new System.Drawing.Size(740, 306);
             this.pictureBoxProc.TabIndex = 0;
             this.pictureBoxProc.TabStop = false;
             // 
@@ -586,11 +590,11 @@
             // 
             // oColorTransformer
             // 
-            this.oColorTransformer.ColorQuantizationMode = ColourClashNet.Color.ColorQuantizationMode.Unknown;
+            this.oColorTransformer.ColorQuantizationMode = ColourClashNet.Colors.ColorQuantizationMode.Unknown;
             this.oColorTransformer.OnReset += new System.EventHandler(this.oColorTransformer_OnReset);
             this.oColorTransformer.OnCreate += new System.EventHandler(this.oColorTransformer_OnCreate);
-            this.oColorTransformer.OnQuantize += new System.EventHandler(this.oColorTransformer_OnQuantize);
-            this.oColorTransformer.OnProcess += new System.EventHandler(this.oColorTransformer_OnProcess);
+            this.oColorTransformer.OnQuantize += new System.EventHandler<ColourClashNet.Controls.ColorTransformer.EventArgsTransformation>(this.oColorTransformer_OnQuantize);
+            this.oColorTransformer.OnProcess += new System.EventHandler<ColourClashNet.Controls.ColorTransformer.EventArgsTransformation>(this.oColorTransformer_OnProcess);
             // 
             // bitmapRender1
             // 
@@ -621,6 +625,10 @@
             this.oBitmapRenderDest.ImageZoomManual = 1F;
             this.oBitmapRenderDest.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
             this.oBitmapRenderDest.MouseMovingButton = System.Windows.Forms.MouseButtons.Left;
+            // 
+            // sfdExportImage
+            // 
+            this.sfdExportImage.AddExtension = false;
             // 
             // ColorAnalyzer
             // 
@@ -704,5 +712,6 @@
         private Controls.BitmapRender bitmapRender1;
         private Controls.BitmapRender bitmapRender2;
         private Controls.BitmapRender oBitmapRenderDest;
+        private SaveFileDialog sfdExportImage;
     }
 }

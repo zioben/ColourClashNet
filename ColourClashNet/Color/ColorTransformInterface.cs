@@ -4,16 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Color
+namespace ColourClashNet.Colors
 {
     public interface ColorTransformInterface
     {
-        void Create(ColorItem[,] oSource );
-        void Create(Dictionary<ColorItem, int> oSourceHistogram );
-        public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; }
-        ColorItem[,] Transform( ColorItem[,] oSource );
-        Dictionary<ColorItem, int> DictHistogram { get; }
-        Dictionary<ColorItem, ColorItem> DictTransform { get; }
+        void Create(ColorItem[,] oDataSource);
+        void Create(Dictionary<ColorItem, int> oDictHistogramSource);
+        void Create(ColorTransformInterface oTrasformationSource);
+        ColorItem[,] Transform(ColorItem[,] oSource);
+        Dictionary<ColorItem, int> DictColorHistogram { get; }
+        Dictionary<ColorItem, ColorItem> DictColorTransformation { get; }
 
+        int ColorsUsed{get; }
     }
 }

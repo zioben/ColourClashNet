@@ -4,18 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Color
+namespace ColourClashNet.Colors
 {
     public class ColorTransformIdentity : ColorTransformBase
     {
         protected override void BuildTrasformation()
         {
-            DictTransform.Clear();
-            foreach (var kvp in DictHistogram)
+            DictColorTransformation.Clear();
+            foreach (var kvp in DictColorHistogram)
             {
-                DictTransform.Add(kvp.Key, kvp.Key);
+                DictColorTransformation.Add(kvp.Key, kvp.Key);
             }
-            ResultColors = DictHistogram.Count();
+            ColorsUsed = DictColorHistogram.Count();
         }
     }
 }
