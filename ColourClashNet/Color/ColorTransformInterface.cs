@@ -8,12 +8,12 @@ namespace ColourClashNet.Colors
 {
     public interface ColorTransformInterface
     {
-        void Create(ColorItem[,] oDataSource);
-        void Create(Dictionary<ColorItem, int> oDictHistogramSource);
+        void Create(int[,] oDataSource);
+        void Create(SortedList<int, int> oListHistogramSource);
         void Create(ColorTransformInterface oTrasformationSource);
-        ColorItem[,] Transform(ColorItem[,] oSource);
-        Dictionary<ColorItem, int> DictColorHistogram { get; }
-        Dictionary<ColorItem, ColorItem> DictColorTransformation { get; }
+        int[,] Transform(int[,] oSource);
+        SortedList<int, int> ListColorHistogram { get; }
+        SortedList<int, int> ListColorTransformation { get; }
 
         int ColorsUsed{get; }
     }

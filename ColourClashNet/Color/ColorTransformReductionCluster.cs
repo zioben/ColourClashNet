@@ -14,22 +14,22 @@ namespace ColourClashNet.Colors
         protected override void BuildTrasformation()
         {
             SortColorsByHistogram();
-            if (DictColorHistogram.Count < MaxColors)
+            if (ListColorHistogram.Count < MaxColors)
             {
-                foreach (var kvp in DictColorHistogram)
+                foreach (var kvp in ListColorHistogram)
                 {
-                    DictColorTransformation[kvp.Key] = kvp.Key;
+                    ListColorTransformation[kvp.Key] = kvp.Key;
                 }
                 return;
             }
             // Init Set
-            var lColors = DictToList();
+            var lColors = ListColorHistogram.Select(X=>X.Key).ToList();
 
             var lMean = lColors.Take(MaxColors).ToList();
-            List<List<ColorItem>> llList = new List<List<ColorItem>>();
+            List<List<int>> llList = new List<List<int>>();
             for (int i = 0; i < MaxColors; i++)
             {
-                llList.Add(new List<ColorItem>());
+                llList.Add(new List<int>());
             }
             // Init Clustering
             // Dictionary<ColorItem,List<ColorItem>> lKMeans = new Dictionary<ColorItem, List<ColorItem>>();
@@ -50,22 +50,23 @@ namespace ColourClashNet.Colors
                     lMean.Clear();
                     llList.ForEach(XX =>
                     {
-                        int Count = 0;
-                        double R = 0;
-                        double G = 0;
-                        double B = 0;
-                        XX.ForEach(Y =>
-                        {
-                            var Elements = DictColorHistogram[Y];
-                            Count += Elements;
-                            R += Elements * Y.R;
-                            G += Elements * Y.G;
-                            B += Elements * Y.B;
-                        });
-                        R = Count > 0 ? R / Count : -1;
-                        G = Count > 0 ? G / Count : -1;
-                        B = Count > 0 ? B / Count : -1;
-                        lMean.Add(new ColorItem((int)R, (int)G, (int)B));
+                        //int Count = 0;
+                        //double R = 0;
+                        //double G = 0;
+                        //double B = 0;
+                        //XX.ForEach(Y =>
+                        //{
+                        //    var Elements = DictColorHistogram[Y];
+                        //    Count += Elements;
+                        //    R += Elements * Y.R;
+                        //    G += Elements * Y.G;
+                        //    B += Elements * Y.B;
+                        //});
+                        //R = Count > 0 ? R / Count : -1;
+                        //G = Count > 0 ? G / Count : -1;
+                        //B = Count > 0 ? B / Count : -1;
+                        //lMean.Add(new ColorItem((int)R, (int)G, (int)B));
+                        lMean.Add(0);
                     });
                 }
             }
@@ -74,9 +75,9 @@ namespace ColourClashNet.Colors
             {                
                 var dMin = lMean.Min(Y => Y.Distance(X, ColorDistanceEvaluationMode));
                 var oItem = lMean.FirstOrDefault(Y => Y.Distance(X, ColorDistanceEvaluationMode) == dMin);
-                DictColorTransformation[X] = oItem;
+                ListColorTransformation[X] = oItem;
             });
-            ColorsUsed = DictColorTransformation.Select(X => X.Value).ToList().Distinct().ToList().Count;
+            ColorsUsed = ListColorTransformation.Select(X => X.Value).ToList().Distinct().ToList().Count;
         }
     }
 }

@@ -21,6 +21,7 @@ namespace ColourClashNet
             oColorTransformer.ColorBackgroundList = GetBkgColors();
             oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
             cbImage.SelectedIndex = 2;
+            pbBkColor.BackColor = Color.Transparent;
         }
 
 
@@ -77,8 +78,8 @@ namespace ColourClashNet
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 var oBmp = Bitmap.FromFile(openFileDialog1.FileName) as Bitmap;
-                oColorTransformer.ColorBackgroundList = new List<ColorItem> { ColorItem.FromDrawingColor(pbBkColor.BackColor, ColorQuantizationMode.RGB888) };
-                oColorTransformer.ColorBackgroundReplacement = new ColorItem(0, 0, 0);
+                oColorTransformer.ColorBackgroundList = new List<int> { ColorIntExt.FromDrawingColor(pbBkColor.BackColor) };
+                oColorTransformer.ColorBackgroundReplacement = 0;
                 oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
                 oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
                 oColorTransformer.Create(oBmp);
@@ -88,8 +89,8 @@ namespace ColourClashNet
         void Reprocess()
         {
             BuildBkgPalette();
-            oColorTransformer.ColorBackgroundList = new List<ColorItem> { ColorItem.FromDrawingColor(pbBkColor.BackColor, ColorQuantizationMode.RGB888) };
-            oColorTransformer.ColorBackgroundReplacement = new ColorItem(0, 0, 0);
+            oColorTransformer.ColorBackgroundList = new List<int> { ColorIntExt.FromDrawingColor(pbBkColor.BackColor) };
+            oColorTransformer.ColorBackgroundReplacement = 0;
             oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
             oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
             oColorTransformer.ProcessBase();
@@ -117,11 +118,11 @@ namespace ColourClashNet
         }
 
 
-        List<ColorItem> GetBkgColors()
+        List<int> GetBkgColors()
         {
-            var oRet = new List<ColorItem>();
+            var oRet = new List<int>();
             foreach (var item in lBkgColor)
-                oRet.Add(ColorItem.FromDrawingColor(item, ColorQuantizationMode.RGB888));
+                oRet.Add(ColorIntExt.FromDrawingColor(item));
             return oRet;
         }
 

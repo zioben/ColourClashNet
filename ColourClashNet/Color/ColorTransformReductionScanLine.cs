@@ -19,15 +19,15 @@ namespace ColourClashNet.Colors
         }
 
 
-        public new ColorItem[,] Transform(ColorItem[,] oSource)
+        public new int[,] Transform(int[,] oSource)
         {
             if (oSource == null)
                 return null;
 
             var R = oSource.GetLength(0);
             var C = oSource.GetLength(1);
-            var oRet = new ColorItem[R, C];
-            var oCols = new ColorItem[1, C];
+            var oRet = new int[R, C];
+            var oCols = new int[1, C];
             //            var oTrasf= new ColorTransformReductionFast();
             ColorTransformInterface oTrasf;
             if (Clustering)
@@ -43,7 +43,8 @@ namespace ColourClashNet.Colors
                 oTrasf2.MaxColors = MaxColors;
                 oTrasf = oTrasf2;
             }
-            List<ColorItem> lColors = new List<ColorItem>();
+
+            List<int> lColors = new List<int>();
 
             for (int r = 0; r < R; r++)
             {
@@ -58,7 +59,7 @@ namespace ColourClashNet.Colors
                 {
                     for (int c = 0; c < C; c++)
                     {
-                        oRet[r, c] = new ColorItem(-1, -1, -1);
+                        oRet[r, c] = -1;
                     }
                 }
                 else
@@ -68,7 +69,7 @@ namespace ColourClashNet.Colors
                         oRet[r, c] = oColsTrasf[0, c];
                     }
                 }
-                foreach (var kvp in oTrasf.DictColorTransformation)
+                foreach (var kvp in oTrasf.ListColorTransformation)
                 {
                     lColors.Add(kvp.Value);
                 }

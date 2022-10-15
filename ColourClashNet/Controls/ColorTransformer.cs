@@ -15,8 +15,8 @@ namespace ColourClashNet.Controls
         public class EventArgsTransformation : EventArgs
         {
             public ColorTransformInterface Transformation { get; internal set; }
-            public ColorItem[,] DataSource { get; internal set; }
-            public ColorItem[,] DataDest { get; internal set; }
+            public int[,] DataSource { get; internal set; }
+            public int[,] DataDest { get; internal set; }
         }
 
         public ColorTransformer()
@@ -36,9 +36,9 @@ namespace ColourClashNet.Controls
 
        
 
-        ColorItem[,] mDataSource = null;
-        ColorItem[,] mDataQuantized = null;
-        ColorItem[,] mDataProcessed = null;
+        int[,] mDataSource = null;
+        int[,] mDataQuantized = null;
+        int[,] mDataProcessed = null;
 
         // Needed to build source 
         ColorTransformIdentity oTrIdentity = new ColorTransformIdentity();
@@ -61,8 +61,8 @@ namespace ColourClashNet.Controls
         public int Width => ImageSource?.Width ?? 0;
         public int Height => ImageSource?.Height ?? 0;
 
-        public List<ColorItem> ColorBackgroundList { get; set; } = new List<ColorItem>();
-        public ColorItem ColorBackgroundReplacement { get; set; } = new ColorItem(0, 0, 0);
+        public List<int> ColorBackgroundList { get; set; } = new List<int>();
+        public int ColorBackgroundReplacement { get; set; } = 0;
 
 
         public event EventHandler OnReset;
@@ -98,18 +98,19 @@ namespace ColourClashNet.Controls
 
         #region conversion
 
-        unsafe ColorItem[,] ToMatrix(Bitmap oBmp)
+        unsafe int[,] ToMatrix(Bitmap oBmp)
         {
-            var m = new ColorItem[oBmp.Height, oBmp.Width];
-            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            var m = new int[oBmp.Height, oBmp.Width];
+            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
             {
                 byte* ptr = (byte*)oLock.Scan0.ToPointer();
                 for (int y = 0; y < oBmp.Height; y++)
                 {
                     int yoff = oLock.Stride * y;
-                    for (int x = 0, xx = 0; xx < Width; x += 3, xx++)
+                    int* ptrRow = (int*)oLock.Scan0.ToPointer()+yoff;
+                    for (int x = 0; x < Width; x++)
                     {
-                        m[y, xx] = new ColorItem(ptr[yoff + x + 2], ptr[yoff + x + 1], ptr[yoff + x + 0]);
+                        m[y, x] = ptrRow[x] & 0x00FFFFFF;
                     }
                 }
                 oBmp.UnlockBits(oLock);
@@ -117,32 +118,21 @@ namespace ColourClashNet.Controls
             return m;
         }
 
-        unsafe Bitmap ToBitmap(ColorItem[,] m)
+        unsafe Bitmap ToBitmap(int[,] m)
         {
             if (ImageSource == null || m == null)
                 return null;
-            var oBmp = new Bitmap(Width, Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-            var BackColorDest = ColorBackgroundReplacement.ToDrawingColor();
-            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            var oBmp = new Bitmap(Width, Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
             {
                 byte* ptr = (byte*)oLock.Scan0.ToPointer();
                 for (int y = 0; y < oBmp.Height; y++)
                 {
                     int yoff = oLock.Stride * y;
-                    for (int x = 0, xx = 0; xx < oBmp.Width; x += 3, xx++)
+                    int* ptrRow = (int*)oLock.Scan0.ToPointer() + yoff;
+                    for (int x = 0; x < oBmp.Width; x++)
                     {
-                        if (m[y, xx].Valid)
-                        {
-                            ptr[yoff + x + 0] = (byte)m[y, xx].B;
-                            ptr[yoff + x + 1] = (byte)m[y, xx].G;
-                            ptr[yoff + x + 2] = (byte)m[y, xx].R;
-                        }
-                        else
-                        {
-                            ptr[yoff + x + 0] = (byte)BackColorDest.B;
-                            ptr[yoff + x + 1] = (byte)BackColorDest.G;
-                            ptr[yoff + x + 2] = (byte)BackColorDest.R;
-                        }
+                        ptrRow[x] = m[y, x] >= 0 ? m[y, x] : ColorBackgroundReplacement;                        
                     }
                 }
                 oBmp.UnlockBits(oLock);
@@ -150,7 +140,7 @@ namespace ColourClashNet.Controls
             return oBmp;
         }
 
-        ColorPalette ToPalette(List<ColorItem> lPalette)
+        ColorPalette ToPalette(List<int> lPalette)
         {
             using (var oBmp = new Bitmap(16, 16, PixelFormat.Format8bppIndexed))
             {
@@ -163,11 +153,11 @@ namespace ColourClashNet.Controls
             }
         }
 
-        ColorPalette ToPalette(Dictionary<ColorItem, ColorItem> dictTrasf)
+        ColorPalette ToPalette(Dictionary<int, int> dictTrasf)
         {
             if (dictTrasf == null)
                 return null;
-            List<ColorItem> lCol = dictTrasf.Where(X => X.Value.Valid).Select(X => X.Value).ToList().Distinct().ToList();
+            List<int> lCol = dictTrasf.Where(X => X.Value >= 0).Select(X => X.Value).ToList().Distinct().ToList();
             return ToPalette(lCol); 
         }
 
@@ -192,7 +182,7 @@ namespace ColourClashNet.Controls
         {
             oLastTransformation = e.Transformation;
             ColorsProcessed = e.Transformation.ColorsUsed;
-            ToPalette(oLastTransformation.DictColorTransformation);
+            ToPalette(oLastTransformation.ListColorTransformation.Select(X=>X.Value).ToList());
             RebuildImageOutput();
         }
 
@@ -203,8 +193,7 @@ namespace ColourClashNet.Controls
             if (mDataSource == null)
                 return;
             Quantize();
-            mDataProcessed = mDataQuantized.Clone() as ColorItem[,];
-            RebuildImageOutput();
+            mDataProcessed = mDataQuantized.Clone() as int[,];
             OnProcess?.Invoke(this, new EventArgsTransformation
             {
                 DataDest = mDataProcessed,
@@ -234,14 +223,14 @@ namespace ColourClashNet.Controls
             }
         }
 
-        ColorItem[,] RemoveBkg()
+        int[,] RemoveBkg()
         {
             if (mDataSource == null)
                 return null;
             var oTrBkgRemover = new ColorTransformBkgRemover();
             oTrBkgRemover.ColorBackgroundList = ColorBackgroundList;
             oTrBkgRemover.ColorBackground = ColorBackgroundReplacement;
-            oTrBkgRemover.Create(oTrIdentity.DictColorHistogram);
+            oTrBkgRemover.Create(oTrIdentity.ListColorHistogram);
             var mDataBkgRemoved = oTrBkgRemover.Transform(mDataSource);
             return mDataBkgRemoved;
         }

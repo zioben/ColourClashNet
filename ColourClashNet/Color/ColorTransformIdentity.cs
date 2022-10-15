@@ -10,12 +10,12 @@ namespace ColourClashNet.Colors
     {
         protected override void BuildTrasformation()
         {
-            DictColorTransformation.Clear();
-            foreach (var kvp in DictColorHistogram)
+            ListColorHistogram.Clear();
+            foreach (var kvp in ListColorHistogram)
             {
-                DictColorTransformation.Add(kvp.Key, kvp.Key);
+                ListColorTransformation.Add(kvp.Key, kvp.Key);
             }
-            ColorsUsed = DictColorHistogram.Count();
+            ColorsUsed = ListColorHistogram.Count();
         }
     }
 }

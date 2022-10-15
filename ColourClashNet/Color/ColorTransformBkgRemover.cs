@@ -9,27 +9,27 @@ namespace ColourClashNet.Colors
 {
     public class ColorTransformBkgRemover: ColorTransformBase
     {
-        public List<ColorItem> ColorBackgroundList { get; set; } = new List<ColorItem>();
-        public ColorItem ColorBackground { get; set; } = new ColorItem(0, 0, 0);
+        public List<int> ColorBackgroundList { get; set; } = new List<int>();
+        public int ColorBackground { get; set; } = 0;
 
 
         protected override void BuildTrasformation()
         {
-            DictColorTransformation.Clear();
-            foreach (var kvp in DictColorHistogram)
+            ListColorTransformation.Clear();
+            foreach (var kvp in ListColorHistogram)
             {
-                DictColorTransformation.Add(kvp.Key, kvp.Key);
+                ListColorTransformation.Add(kvp.Key, kvp.Key);
             }
-            ColorsUsed = DictColorHistogram.Count();
+            ColorsUsed = ListColorHistogram.Count();
 
-            int iColorRemoved = 0;  
-            foreach (var kvp in DictColorTransformation)
+            int iColorRemoved = 0;
+            foreach (var kvp in ListColorHistogram)
             {
                 var Val = kvp.Key;
                 if (ColorBackgroundList.Any(X => X.Equals(Val)))
                 {
                     iColorRemoved++;
-                    DictColorTransformation[kvp.Key] = ColorBackground;
+                    ListColorHistogram[kvp.Key] = ColorBackground;
                 }
             }
             ColorsUsed -= iColorRemoved;
