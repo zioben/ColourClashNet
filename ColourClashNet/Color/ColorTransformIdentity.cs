@@ -8,6 +8,7 @@ namespace ColourClashNet.Colors
 {
     public class ColorTransformIdentity : ColorTransformBase
     {
+
         protected override void BuildTrasformation()
         {
             oColorTransformation.Clear();
@@ -17,5 +18,11 @@ namespace ColourClashNet.Colors
             }
             ColorsUsed = oColorHistogram.Count();
         }
+
+        public override int[,] Transform(int[,] oDataSource)
+        {
+            return base.TransformBase(oDataSource); 
+        }
+
     }
 }

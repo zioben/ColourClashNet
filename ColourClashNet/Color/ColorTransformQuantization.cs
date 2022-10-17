@@ -21,11 +21,29 @@ namespace ColourClashNet.Colors
                 case ColorQuantizationMode.RGB333:
                     return 0x00E0E0E0;
                 case ColorQuantizationMode.RGB444:
-                    return 0x00f0f0f0;
+                    return 0x00F0F0F0;
                 case ColorQuantizationMode.RGB555:
-                    return 0x00f8f8f8;
+                    return 0x00F8F8F8;
                 case ColorQuantizationMode.RGB565:
-                    return 0x00f8fcf8;
+                    return 0x00F8FCF8;
+                default:
+                    return -1;
+            }
+        }
+        public int GetFiller(ColorQuantizationMode colorHistMode)
+        {
+            switch (colorHistMode)
+            {
+                case ColorQuantizationMode.RGB888:
+                    return 0;
+                case ColorQuantizationMode.RGB333:
+                    return 0x001F1F1F;
+                case ColorQuantizationMode.RGB444:
+                    return 0x000F0F0F;
+                case ColorQuantizationMode.RGB555:
+                    return 0x00070707;
+                case ColorQuantizationMode.RGB565:
+                    return 0x00070307;
                 default:
                     return -1;
             }
@@ -35,7 +53,7 @@ namespace ColourClashNet.Colors
         {
             if (iRGB < 0)
                 return iRGB;
-            return iRGB & GetColorMask(colorHistMode);
+            return (iRGB & GetColorMask(colorHistMode)) | GetFiller(colorHistMode);
         }
 
         protected override void BuildTrasformation()
@@ -45,10 +63,10 @@ namespace ColourClashNet.Colors
             {
                 oColorTransformation.Add(kvp.Key, Quantize(kvp.Value, QuantizationMode));
             }
-            ColorsUsed = oColorTransformation.Select(X => X.Value).ToList().Distinct().ToList().Count;
+            ColorsUsed = oColorTransformation.Select(X => X.Value).ToList().Distinct().Count();
         }
 
-        public new int[,] Transform(int[,] oSource)
+        public override int[,] Transform(int[,] oSource)
         {
             if (oSource == null)
                 return null;
@@ -58,15 +76,15 @@ namespace ColourClashNet.Colors
             var oRet = new int[R, C];
             var oCols = new int[1, C];
             var iMask = GetColorMask(QuantizationMode);
+            var iFiller = GetFiller(QuantizationMode);  
             for (int r = 0; r < R; r++)
             {
                 for (int c = 0; c < C; c++)
                 {
-                    oRet[r, c] = oSource[r, c] & iMask;
+                    oRet[r, c] = (oSource[r, c] & iMask)|iFiller;
                 }
             }
             return oRet;
         }
-
     }
 }

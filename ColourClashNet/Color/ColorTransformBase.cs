@@ -17,6 +17,7 @@ namespace ColourClashNet.Colors
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.All;
 
         abstract protected void BuildTrasformation();
+        abstract public int[,] Transform( int[,] oDataSource );
 
         void Reset()
         {
@@ -42,7 +43,7 @@ namespace ColourClashNet.Colors
                 return;
             foreach (var kvp in oDictColorHistogramSource)
             {
-                oColorHistogram.Add(kvp.Key, kvp.Value);
+                oColorHistogram.Add(kvp.Key, kvp.Key);
             }
             BuildTrasformation();
         }
@@ -52,24 +53,7 @@ namespace ColourClashNet.Colors
             Create(oTrasformationSource?.oColorHistogram);
         }
 
-        //List<List<int>> ToListList(int[,] oSource)
-        //{
-        //    var R = oSource.GetLength(0);
-        //    var C = oSource.GetLength(1);
-        //    var oRet = new List<List<int>>(R);
-        //    for (int r = 0; r < R; r++)
-        //    {
-        //        var lColor = new List<int>(C);
-        //        for (int c = 0; c < C; c++)
-        //        {
-        //            lColor.Add(oSource[r, c]);
-        //        }
-        //        oRet.Add(lColor);   
-        //    }
-        //    return oRet;
-        //}
-
-        public int[,] Transform(int[,] oSource)
+        public int[,] TransformBase(int[,] oSource)
         {
             if (oSource == null)
                 return null;

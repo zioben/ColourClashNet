@@ -1,7 +1,9 @@
 ﻿using ColourClashNet.Colors;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,7 +12,9 @@ namespace ColourClashNet.Colors
     public class ColorTransformReductionCluster : ColorTransformBase
     {
         public int MaxColors { get; set; } = -1;
+        public bool UseClusterColorMean { get; set; } = true;
         public int TrainingLoop { get; set; } = -1;
+
         protected override void BuildTrasformation()
         {
             SortColorsByHistogram();
@@ -18,66 +22,86 @@ namespace ColourClashNet.Colors
             {
                 foreach (var kvp in oColorHistogram)
                 {
-                    oColorTransformation[kvp.Key] = kvp.Value;
+                    oColorTransformation[kvp.Key] = kvp.Key;
                 }
                 return;
             }
+
             // Init Set
-            var lColors = oColorHistogram.Select(X=>X).ToList();
+            // We need <List<ColorMeanOfTheCluster>,<Dictionary<ColorOfTheCluster,ColorOccurrences>>
+            List<Tuple<List<int>, Dictionary<int,int>>> lColorCluster = new List<Tuple<List<int>, Dictionary<int,int>>>();
 
-            var lMean = lColors.Take(MaxColors).ToList();
-            List<List<int>> llList = new List<List<int>>();
-            for (int i = 0; i < MaxColors; i++)
+            // initial population of the cluster, with base max color occurrences 
+            int i = 0;            
+            foreach (var kvp in oColorHistogram)
             {
-                llList.Add(new List<int>());
+                lColorCluster.Add(Tuple.Create(new List<int> { kvp.Key }, new Dictionary<int, int>()));
+                if (++i == MaxColors)
+                    break;
             }
-            // Init Clustering
-            // Dictionary<ColorItem,List<ColorItem>> lKMeans = new Dictionary<ColorItem, List<ColorItem>>();
 
+            // Clustering training
             for (int train = 0; train < TrainingLoop; train++)
             {
                 // Reset Set
-                llList.ForEach(X => X.Clear());
-                // Aggregate
-                lColors.ForEach(item =>
+                lColorCluster.ForEach(X => X.Item2.Clear()); ;
+
+                // Aggregate :  Assign every color to the cluster of appartenence 
+                foreach( var kvp in  oColorHistogram )
                 {
-                    var oCluster = lMean.FirstOrDefault(X => X.Value.Distance(item.Value, ColorDistanceEvaluationMode) == lMean.Min(Y => Y.Value.Distance(item.Value, ColorDistanceEvaluationMode)));
-                    var iIndex = lMean.IndexOf(oCluster);
-                    llList[iIndex].Add(item.Value);
-                });
-                // Evaluate cluster Mean
+                    // Evaluate minimum distance from every color to cluster
+                    var dMin = lColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
+                    var oTupleCluster = lColorCluster.FirstOrDefault(X => X.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
+                    oTupleCluster?.Item2.Add(kvp.Key,kvp.Value);
+                };
+                // Update the Color Mean for each cluster
                 {
-                    lMean.Clear();
-                    llList.ForEach(XX =>
+                    lColorCluster.ForEach( oTuple =>
                     {
-                        //int Count = 0;
-                        //double R = 0;
-                        //double G = 0;
-                        //double B = 0;
-                        //XX.ForEach(Y =>
-                        //{
-                        //    var Elements = DictColorHistogram[Y];
-                        //    Count += Elements;
-                        //    R += Elements * Y.R;
-                        //    G += Elements * Y.G;
-                        //    B += Elements * Y.B;
-                        //});
-                        //R = Count > 0 ? R / Count : -1;
-                        //G = Count > 0 ? G / Count : -1;
-                        //B = Count > 0 ? B / Count : -1;
-                        //lMean.Add(new ColorItem((int)R, (int)G, (int)B));
-                        //lMean.Add(0);
+                        int iMean = -1;
+                        if (oTuple.Item2.Count() > 0)
+                        {
+                            int Count = 0;
+                            double R = 0;
+                            double G = 0;
+                            double B = 0;
+                            foreach( var kvp in oTuple.Item2)
+                            {
+                                Count += kvp.Value;
+                                R += kvp.Value * kvp.Key.ToR();
+                                G += kvp.Value * kvp.Key.ToG();
+                                B += kvp.Value * kvp.Key.ToB();
+                            };
+                            R /= Count;
+                            G /= Count;
+                            B /= Count;
+                            iMean = ColorIntExt.FromRGB(R, G, B);
+                        }
+                        oTuple.Item1.Add(iMean);
                     });
                 }
             }
 
-            lColors.ForEach(X =>
+            foreach( var kvp in oColorHistogram )
             {                
-                var dMin = lMean.Min(Y => Y.Value.Distance(X.Value, ColorDistanceEvaluationMode));
-                var oItem = lMean.FirstOrDefault(Y => Y.Value.Distance(X.Value, ColorDistanceEvaluationMode) == dMin);
-                oColorTransformation[X.Key] = oItem.Value;
-            });
-            ColorsUsed = oColorTransformation.Select(X => X.Value).ToList().Distinct().ToList().Count;
+                var dMin = lColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
+                var oItem = lColorCluster.FirstOrDefault(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
+                if (UseClusterColorMean)
+                {
+                    oColorTransformation[kvp.Key] = oItem?.Item1.Last()??-1;
+                }
+                else
+                {
+                    var Max = oItem?.Item2.Max(X => X.Value);
+                    oColorTransformation[kvp.Key] = oItem?.Item2.FirstOrDefault(X=>X.Value==Max).Key ?? -1;// Item1.Last()??-1;
+                }
+            };
+            ColorsUsed = oColorTransformation.Select(X => X.Value).ToList().Distinct().Count();
+        }
+
+        public override int[,] Transform(int[,] oDataSource)
+        {
+            return base.TransformBase(oDataSource);
         }
     }
 }

@@ -11,6 +11,7 @@ namespace ColourClashNet.Colors
     {
 
         public int MaxColors { get; set; } = -1;
+
         protected override void BuildTrasformation()
         {
             SortColorsByHistogram();
@@ -18,7 +19,7 @@ namespace ColourClashNet.Colors
             {
                 foreach (var kvp in oColorHistogram)
                 {
-                    oColorTransformation[kvp.Key] = kvp.Value;
+                    oColorTransformation[kvp.Key] = kvp.Key;
                 }
                 return;
             }
@@ -31,6 +32,11 @@ namespace ColourClashNet.Colors
                 oColorTransformation[X]= oItem; 
             });
             ColorsUsed = oColorTransformation.Select(X => X.Value).ToList().Distinct().ToList().Count;
+        }
+
+        public override int[,] Transform(int[,] oDataSource)
+        {
+            return base.TransformBase(oDataSource);
         }
     }
 }

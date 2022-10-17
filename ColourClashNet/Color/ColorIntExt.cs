@@ -42,12 +42,24 @@ namespace ColourClashNet.Colors
             int B = i.ToB() - j.ToB();
             return R * R + G * G + B * B;
         }
+        public static int FromRGB( int r, int g , int b)
+        {
+            if (r<0 || g <0 || b <0 )
+                return -1;
+            return (Math.Min(255,r)<<16) | (Math.Min(255, g) << 8) | (Math.Min(255, b)<<0);
+        }
+
+        public static int FromRGB(double dr, double dg, double db)
+        {
+            return FromRGB((int)dr, (int)dg, (int)db);
+        }
 
         public static int FromDrawingColor(System.Drawing.Color oColor)
         {
             if (oColor == System.Drawing.Color.Transparent)
                 return -1;
-            return (oColor.R << 24) | (oColor.G << 16) | (oColor.B);
+
+            return FromRGB(oColor.R,oColor.G,oColor.B);
         }
 
         

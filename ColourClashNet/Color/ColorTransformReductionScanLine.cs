@@ -19,7 +19,7 @@ namespace ColourClashNet.Colors
         }
 
 
-        public new int[,] Transform(int[,] oSource)
+        public override int[,] Transform(int[,] oSource)
         {
             if (oSource == null)
                 return null;

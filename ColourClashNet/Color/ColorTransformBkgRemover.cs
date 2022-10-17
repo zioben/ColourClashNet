@@ -12,6 +12,7 @@ namespace ColourClashNet.Colors
         public List<int> ColorBackgroundList { get; set; } = new List<int>();
         public int ColorBackground { get; set; } = 0;
 
+      
 
         protected override void BuildTrasformation()
         {
@@ -33,6 +34,11 @@ namespace ColourClashNet.Colors
                 }
             }
             ColorsUsed -= iColorRemoved;
+        }
+
+        public override int[,] Transform(int[,] oDataSource)
+        {
+            return base.TransformBase(oDataSource);
         }
     }
 }
