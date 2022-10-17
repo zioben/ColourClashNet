@@ -14,23 +14,23 @@ namespace ColourClashNet.Colors
         protected override void BuildTrasformation()
         {
             SortColorsByHistogram();
-            if (ListColorHistogram.Count < MaxColors)
+            if (oColorHistogram.Count < MaxColors)
             {
-                foreach (var kvp in ListColorHistogram)
+                foreach (var kvp in oColorHistogram)
                 {
-                    ListColorTransformation[kvp.Key] = kvp.Key;
+                    oColorTransformation[kvp.Key] = kvp.Value;
                 }
                 return;
             }
-            List<int> listMax = new List<int>();
-/*            listMax.AddRange(this.Lis.Take(MaxColors));
+            var listAll = oColorHistogram.Select(X => X.Key).ToList();
+            var listMax = listAll.Take(MaxColors).ToList();
             listAll.ForEach(X =>
             {
                 var dMin = listMax.Min(Y => Y.Distance(X,ColorDistanceEvaluationMode));
                 var oItem = listMax.FirstOrDefault(Y => Y.Distance(X,ColorDistanceEvaluationMode) == dMin);
-                DictColorTransformation[X] = oItem;
+                oColorTransformation[X]= oItem; 
             });
-            ColorsUsed = DictColorTransformation.Select(X => X.Value).ToList().Distinct().ToList().Count;*/
+            ColorsUsed = oColorTransformation.Select(X => X.Value).ToList().Distinct().ToList().Count;
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,21 +12,17 @@ namespace ColourClashNet.Colors
     {
 
         public int ColorsUsed { get; internal set; } = 0;
-
-        public SortedList<int, int> ListColorHistogram { get; private init; } = new SortedList<int, int>();
-        public SortedList<int, int> ListColorTransformation { get; private init; } = new SortedList<int, int>();
+        public Dictionary<int, int> oColorHistogram { get; private set; } = new Dictionary<int, int>();
+        public Dictionary<int, int> oColorTransformation { get; private init; } = new Dictionary<int, int>();
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.All;
 
         abstract protected void BuildTrasformation();
 
-        protected int[,] oDataSource;
-
         void Reset()
         {
             ColorsUsed = 0;
-            ListColorHistogram.Clear();
-            ListColorTransformation.Clear();
-            oDataSource = null;
+            oColorHistogram.Clear();
+            oColorTransformation.Clear();
         }
 
         public void Create(int[,] oDataSource )
@@ -32,83 +30,67 @@ namespace ColourClashNet.Colors
             Reset();
             if (oDataSource == null)
                 return;
-            int R = oDataSource.GetLength(0);
-            int C = oDataSource.GetLength(1);
-            for (int r = 0; r < R; r++)
-            {
-                for (int c = 0; c < C; c++)
-                {
-                    ListColorHistogram[oDataSource[r, c]]++;
-                }
-            }
+            oColorHistogram = CreateColorHist(oDataSource);
             SortColorsByHistogram();
             BuildTrasformation();
         }
 
-        public void Create(SortedList<int,int> oDictColorHistogramSource)
+        public void Create(Dictionary<int, int> oDictColorHistogramSource)
         {
             Reset();
             if (oDictColorHistogramSource == null )
                 return;
             foreach (var kvp in oDictColorHistogramSource)
             {
-                ListColorHistogram.Add(kvp.Key, kvp.Value);
+                oColorHistogram.Add(kvp.Key, kvp.Value);
             }
-            SortColorsByHistogram();
             BuildTrasformation();
         }
 
         public void Create(ColorTransformInterface oTrasformationSource)
         {
-            Reset();
-            Create(oTrasformationSource?.ListColorHistogram);
+            Create(oTrasformationSource?.oColorHistogram);
         }
 
-        List<List<int>> ToListList(int[,] oSource)
-        {
-            var R = oSource.GetLength(0);
-            var C = oSource.GetLength(1);
-            var oRet = new List<List<int>>(R);
-            for (int r = 0; r < R; r++)
-            {
-                var lColor = new List<int>(C);
-                for (int c = 0; c < C; c++)
-                {
-                    lColor.Add(oSource[r, c]);
-                }
-                oRet.Add(lColor);   
-            }
-            return oRet;
-        }
+        //List<List<int>> ToListList(int[,] oSource)
+        //{
+        //    var R = oSource.GetLength(0);
+        //    var C = oSource.GetLength(1);
+        //    var oRet = new List<List<int>>(R);
+        //    for (int r = 0; r < R; r++)
+        //    {
+        //        var lColor = new List<int>(C);
+        //        for (int c = 0; c < C; c++)
+        //        {
+        //            lColor.Add(oSource[r, c]);
+        //        }
+        //        oRet.Add(lColor);   
+        //    }
+        //    return oRet;
+        //}
 
         public int[,] Transform(int[,] oSource)
         {
             if (oSource == null)
                 return null;
-            if (ListColorTransformation == null || ListColorTransformation.Count == 0)
+            if (oColorTransformation == null || oColorTransformation.Count == 0)
                 return null;
-            var lListList = ToListList(oSource);
-            Parallel.ForEach(lListList, lList =>
-            {
-                for (int i = 0; i < lList.Count; i++)
-                {
-                    var col = lList[i];
-                    if (col < 0 || !ListColorTransformation.ContainsKey(col))
-                        lList[i] = -1;
-                    else
-                        lList[i] = ListColorTransformation[col];
-                }
-            });
+            // var lListList = ToListList(oSource);
             var R = oSource.GetLength(0);
             var C = oSource.GetLength(1);
             var oRet = new int[R, C];
-            for (int r = 0; r < R; r++)
+            Parallel.For(0, R, r =>
             {
                 for (int c = 0; c < C; c++)
                 {
-                    oRet[r,c] = lListList[r][c];
+                    var col = oSource[r, c];
+                    if (col < 0 || !oColorTransformation.ContainsKey(col))
+                        oRet[r, c] = -1;
+                    else
+                        oRet[r, c] = oColorTransformation[col];
+
                 }
-            }
+            });
             return oRet;
         }
 
@@ -128,15 +110,16 @@ namespace ColourClashNet.Colors
 
         protected void SortColorsByHistogram()
         {
-            SortedList<int, int> list = new SortedList<int, int>(new DuplicateKeyComparer<int>());
-            foreach (var kvp in ListColorTransformation)
+            List<Tuple<int,int>> oListHist = new List<Tuple<int, int>>(oColorHistogram.Count);
+            foreach (var kvp in oColorHistogram)
             {
-                list.Add(kvp.Value, kvp.Key);
+                oListHist.Add(Tuple.Create( kvp.Value, kvp.Key));
             }
-            ListColorHistogram.Clear();
-            foreach (var kvp in list)
+            oListHist = oListHist.OrderByDescending(X => X.Item1).ToList();
+            oColorHistogram.Clear();
+            foreach (var kvp in oListHist)
             {
-                ListColorHistogram.Add(kvp.Value, kvp.Key);
+                oColorHistogram.Add( kvp.Item2, kvp.Item1);
             }
         }
     }

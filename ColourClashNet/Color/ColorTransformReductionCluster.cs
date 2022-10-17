@@ -14,16 +14,16 @@ namespace ColourClashNet.Colors
         protected override void BuildTrasformation()
         {
             SortColorsByHistogram();
-            if (ListColorHistogram.Count < MaxColors)
+            if (oColorHistogram.Count < MaxColors)
             {
-                foreach (var kvp in ListColorHistogram)
+                foreach (var kvp in oColorHistogram)
                 {
-                    ListColorTransformation[kvp.Key] = kvp.Key;
+                    oColorTransformation[kvp.Key] = kvp.Value;
                 }
                 return;
             }
             // Init Set
-            var lColors = ListColorHistogram.Select(X=>X.Key).ToList();
+            var lColors = oColorHistogram.Select(X=>X).ToList();
 
             var lMean = lColors.Take(MaxColors).ToList();
             List<List<int>> llList = new List<List<int>>();
@@ -41,9 +41,9 @@ namespace ColourClashNet.Colors
                 // Aggregate
                 lColors.ForEach(item =>
                 {
-                    var oCluster = lMean.FirstOrDefault(X => X.Distance(item, ColorDistanceEvaluationMode) == lMean.Min(Y => Y.Distance(item, ColorDistanceEvaluationMode)));
+                    var oCluster = lMean.FirstOrDefault(X => X.Value.Distance(item.Value, ColorDistanceEvaluationMode) == lMean.Min(Y => Y.Value.Distance(item.Value, ColorDistanceEvaluationMode)));
                     var iIndex = lMean.IndexOf(oCluster);
-                    llList[iIndex].Add(item);
+                    llList[iIndex].Add(item.Value);
                 });
                 // Evaluate cluster Mean
                 {
@@ -66,18 +66,18 @@ namespace ColourClashNet.Colors
                         //G = Count > 0 ? G / Count : -1;
                         //B = Count > 0 ? B / Count : -1;
                         //lMean.Add(new ColorItem((int)R, (int)G, (int)B));
-                        lMean.Add(0);
+                        //lMean.Add(0);
                     });
                 }
             }
 
             lColors.ForEach(X =>
             {                
-                var dMin = lMean.Min(Y => Y.Distance(X, ColorDistanceEvaluationMode));
-                var oItem = lMean.FirstOrDefault(Y => Y.Distance(X, ColorDistanceEvaluationMode) == dMin);
-                ListColorTransformation[X] = oItem;
+                var dMin = lMean.Min(Y => Y.Value.Distance(X.Value, ColorDistanceEvaluationMode));
+                var oItem = lMean.FirstOrDefault(Y => Y.Value.Distance(X.Value, ColorDistanceEvaluationMode) == dMin);
+                oColorTransformation[X.Key] = oItem.Value;
             });
-            ColorsUsed = ListColorTransformation.Select(X => X.Value).ToList().Distinct().ToList().Count;
+            ColorsUsed = oColorTransformation.Select(X => X.Value).ToList().Distinct().ToList().Count;
         }
     }
 }

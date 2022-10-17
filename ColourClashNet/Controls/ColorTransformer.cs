@@ -107,7 +107,7 @@ namespace ColourClashNet.Controls
                 for (int y = 0; y < oBmp.Height; y++)
                 {
                     int yoff = oLock.Stride * y;
-                    int* ptrRow = (int*)oLock.Scan0.ToPointer()+yoff;
+                    int* ptrRow = (int*)(oLock.Scan0+yoff);
                     for (int x = 0; x < Width; x++)
                     {
                         m[y, x] = ptrRow[x] & 0x00FFFFFF;
@@ -120,19 +120,21 @@ namespace ColourClashNet.Controls
 
         unsafe Bitmap ToBitmap(int[,] m)
         {
-            if (ImageSource == null || m == null)
+            if (m == null)
                 return null;
-            var oBmp = new Bitmap(Width, Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            var R = m.GetLength(0);
+            var C = m.GetLength(1);
+            var oBmp = new Bitmap(C, R, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
             var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
             {
                 byte* ptr = (byte*)oLock.Scan0.ToPointer();
                 for (int y = 0; y < oBmp.Height; y++)
                 {
                     int yoff = oLock.Stride * y;
-                    int* ptrRow = (int*)oLock.Scan0.ToPointer() + yoff;
+                    int* ptrRow = (int*)(oLock.Scan0 + yoff);
                     for (int x = 0; x < oBmp.Width; x++)
                     {
-                        ptrRow[x] = m[y, x] >= 0 ? m[y, x] : ColorBackgroundReplacement;                        
+                        ptrRow[x] = m[y, x] >= 0 ? m[y, x] : ColorBackgroundReplacement;
                     }
                 }
                 oBmp.UnlockBits(oLock);
@@ -182,7 +184,7 @@ namespace ColourClashNet.Controls
         {
             oLastTransformation = e.Transformation;
             ColorsProcessed = e.Transformation.ColorsUsed;
-            ToPalette(oLastTransformation.ListColorTransformation.Select(X=>X.Value).ToList());
+            ToPalette(oLastTransformation.oColorTransformation.Select(X=>X.Value).ToList());
             RebuildImageOutput();
         }
 
@@ -209,7 +211,7 @@ namespace ColourClashNet.Controls
                 return;
             try
             {
-                ImageSource = new Bitmap(oImage.Width, oImage.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                ImageSource = new Bitmap(oImage.Width, oImage.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
                 using (Graphics g = Graphics.FromImage(ImageSource))
                     g.DrawImage(oImage, 0, 0, Width, Height);
                 mDataSource = ToMatrix(ImageSource as Bitmap );
@@ -230,7 +232,7 @@ namespace ColourClashNet.Controls
             var oTrBkgRemover = new ColorTransformBkgRemover();
             oTrBkgRemover.ColorBackgroundList = ColorBackgroundList;
             oTrBkgRemover.ColorBackground = ColorBackgroundReplacement;
-            oTrBkgRemover.Create(oTrIdentity.ListColorHistogram);
+            oTrBkgRemover.Create(oTrIdentity.oColorHistogram);
             var mDataBkgRemoved = oTrBkgRemover.Transform(mDataSource);
             return mDataBkgRemoved;
         }
@@ -250,6 +252,8 @@ namespace ColourClashNet.Controls
 
             ColorsProcessed = ColorsQuantized = oTrQuantization.ColorsUsed;
             mDataQuantized = oTrQuantization.Transform(oTrBkgRemover.Transform(mDataSource));
+            mDataProcessed = mDataQuantized.Clone() as int[,];
+            RebuildImageOutput();
             OnQuantize?.Invoke(this, new EventArgsTransformation 
             {
                 DataDest = mDataQuantized,

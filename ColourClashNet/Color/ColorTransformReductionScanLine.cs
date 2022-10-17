@@ -69,7 +69,7 @@ namespace ColourClashNet.Colors
                         oRet[r, c] = oColsTrasf[0, c];
                     }
                 }
-                foreach (var kvp in oTrasf.ListColorTransformation)
+                foreach (var kvp in oTrasf.oColorTransformation)
                 {
                     lColors.Add(kvp.Value);
                 }

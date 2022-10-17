@@ -590,6 +590,8 @@
             // 
             // oColorTransformer
             // 
+            this.oColorTransformer.ColorBackgroundList = ((System.Collections.Generic.List<int>)(resources.GetObject("oColorTransformer.ColorBackgroundList")));
+            this.oColorTransformer.ColorBackgroundReplacement = 0;
             this.oColorTransformer.ColorQuantizationMode = ColourClashNet.Colors.ColorQuantizationMode.Unknown;
             this.oColorTransformer.OnReset += new System.EventHandler(this.oColorTransformer_OnReset);
             this.oColorTransformer.OnCreate += new System.EventHandler(this.oColorTransformer_OnCreate);
