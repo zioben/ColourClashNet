@@ -18,7 +18,7 @@ namespace ColourClashNet
         public ColorAnalyzer()
         {
             InitializeComponent();
-            oColorTransformer.ColorBackgroundList = GetBkgColors();
+            oColorTransformer.BackgroundColorList = GetBkgColors();
             oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
             cbImage.SelectedIndex = 2;
             pbBkColor.BackColor = Color.Transparent;
@@ -78,8 +78,8 @@ namespace ColourClashNet
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 var oBmp = Bitmap.FromFile(openFileDialog1.FileName) as Bitmap;
-                oColorTransformer.ColorBackgroundList = new List<int> { ColorIntExt.FromDrawingColor(pbBkColor.BackColor) };
-                oColorTransformer.ColorBackgroundReplacement = 0;
+                oColorTransformer.BackgroundColorList = new List<int> { ColorIntExt.FromDrawingColor(pbBkColor.BackColor) };
+                oColorTransformer.BackgroundColorOut = 0;
                 oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
                 oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
                 oColorTransformer.Create(oBmp);
@@ -89,8 +89,8 @@ namespace ColourClashNet
         void Reprocess()
         {
             BuildBkgPalette();
-            oColorTransformer.ColorBackgroundList = new List<int> { ColorIntExt.FromDrawingColor(pbBkColor.BackColor) };
-            oColorTransformer.ColorBackgroundReplacement = 0;
+            oColorTransformer.BackgroundColorList = new List<int> { ColorIntExt.FromDrawingColor(pbBkColor.BackColor) };
+            oColorTransformer.BackgroundColorOut = 0;
             oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
             oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
             oColorTransformer.ProcessBase();
@@ -192,14 +192,14 @@ namespace ColourClashNet
         {
             int iColors = (int)numericUpDown1.Value;
             bool bCluster = chkScanLineCluster.Checked;
-            oColorTransformer.ReduceColorsScanLine(iColors, bCluster);
+            oColorTransformer.ReduceColorsScanLine(iColors, bCluster, true);
         }
 
         private void btnReduceColorCluster_Click(object sender, EventArgs e)
         {
             int iColors = (int)numericUpDown1.Value;
             int iLoop = (int)nudClusterLoop.Value;
-            oColorTransformer.ReduceColorsClustering(iColors,iLoop);
+            oColorTransformer.ReduceColorsClustering(iColors,iLoop, true);
         }
 
         private void cbImage_SelectedIndexChanged(object sender, EventArgs e)
@@ -237,7 +237,7 @@ namespace ColourClashNet
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {
-                ImageTools.ImageExport.Export(oColorTransformer.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageTools.ImageExportformat.Bmp24, oColorTransformer.Palette,  ImageTools.WidthAlignMode.None);
+                ImageTools.ImageTools.Export(oColorTransformer.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageTools.ImageExportFormat.Bmp24);
             }
         }
 
@@ -245,7 +245,7 @@ namespace ColourClashNet
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {
-                ImageTools.ImageExport.Export(oColorTransformer.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageTools.ImageExportformat.Png24, oColorTransformer.Palette,  ImageTools.WidthAlignMode.None);
+                ImageTools.ImageTools.Export(oColorTransformer.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageTools.ImageExportFormat.Png24);
             }
         }
 
@@ -253,7 +253,7 @@ namespace ColourClashNet
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {
-                ImageTools.ImageExport.Export(oColorTransformer.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageTools.ImageExportformat.BmpIndex, oColorTransformer.Palette,  ImageTools.WidthAlignMode.None);
+                ImageTools.ImageTools.Export( oColorTransformer.CreateIndexedBitmap(), sfdExportImage.FileName, ImageTools.ImageExportFormat.BmpIndex);
             }
         }
 

@@ -48,7 +48,7 @@ namespace ColourClashNet.Controls
         public Image ImageQuantized { get; private set; }
         public Image ImageProcessed { get; private set; }
 
-        public ColorPalette Palette { get; private set; }
+        public ColorPalette ImageProcessedPalette { get; private set; }
 
         private ColorTransformInterface oLastTransformation;
 
@@ -61,9 +61,8 @@ namespace ColourClashNet.Controls
         public int Width => ImageSource?.Width ?? 0;
         public int Height => ImageSource?.Height ?? 0;
 
-        public List<int> ColorBackgroundList { get; set; } = new List<int>();
-        public int ColorBackgroundReplacement { get; set; } = 0;
-
+        public List<int> BackgroundColorList { get; set; } = new List<int>();
+        public int BackgroundColorOut { get; set; } = 0;
 
         public event EventHandler OnReset;
         public event EventHandler OnCreate;
@@ -134,7 +133,7 @@ namespace ColourClashNet.Controls
                     int* ptrRow = (int*)(oLock.Scan0 + yoff);
                     for (int x = 0; x < oBmp.Width; x++)
                     {
-                        ptrRow[x] = m[y, x] >= 0 ? m[y, x] : ColorBackgroundReplacement;
+                        ptrRow[x] = m[y, x] >= 0 ? m[y, x] : BackgroundColorOut;
                     }
                 }
                 oBmp.UnlockBits(oLock);
@@ -230,8 +229,8 @@ namespace ColourClashNet.Controls
             if (mDataSource == null)
                 return null;
             var oTrBkgRemover = new ColorTransformBkgRemover();
-            oTrBkgRemover.ColorBackgroundList = ColorBackgroundList;
-            oTrBkgRemover.ColorBackground = ColorBackgroundReplacement;
+            oTrBkgRemover.ColorBackgroundList = BackgroundColorList;
+            oTrBkgRemover.ColorBackground = BackgroundColorOut;
             oTrBkgRemover.Create(oTrIdentity.oColorHistogram);
             var mDataBkgRemoved = oTrBkgRemover.Transform(mDataSource);
             return mDataBkgRemoved;
@@ -242,8 +241,8 @@ namespace ColourClashNet.Controls
             if (mDataSource == null)
                 return;
             var oTrBkgRemover = new ColorTransformBkgRemover();
-            oTrBkgRemover.ColorBackgroundList = ColorBackgroundList;
-            oTrBkgRemover.ColorBackground = ColorBackgroundReplacement;
+            oTrBkgRemover.ColorBackgroundList = BackgroundColorList;
+            oTrBkgRemover.ColorBackground = BackgroundColorOut;
             oTrBkgRemover.Create(oTrIdentity);
 
             var oTrQuantization = new ColorTransformQuantization();
@@ -286,13 +285,14 @@ namespace ColourClashNet.Controls
             });
         }
 
-        public void ReduceColorsClustering(int iMaxColor, int iLoop)
+        public void ReduceColorsClustering(int iMaxColor, int iLoop, bool bUseMean )
         {
             if (mDataSource == null)
                 return;
             var oTrasf = new ColorTransformReductionCluster();
             oTrasf.MaxColors = iMaxColor;
             oTrasf.TrainingLoop = iLoop;
+            oTrasf.UseClusterColorMean = bUseMean;
             oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
             oTrasf.Create(mDataQuantized);
             mDataProcessed = oTrasf.Transform(mDataQuantized);
@@ -305,13 +305,14 @@ namespace ColourClashNet.Controls
 
         }
 
-        public void ReduceColorsScanLine(int iMaxColor, bool bUseCluster)
+        public void ReduceColorsScanLine(int iMaxColor, bool bUseCluster, bool bClusterUseMean )
         {
             if (mDataSource == null)
                 return;
             var oTrasf = new ColorTransformReductionScanLine();
             oTrasf.MaxColors = iMaxColor;
             oTrasf.Clustering = bUseCluster;
+            oTrasf.ClusteringUseMean = bClusterUseMean;
             oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
             oTrasf.Create(mDataQuantized);
             mDataProcessed = oTrasf.Transform(mDataQuantized);
@@ -321,6 +322,37 @@ namespace ColourClashNet.Controls
                 DataSource = mDataSource,
                 Transformation = oTrasf
             });
+        }
+
+        public Bitmap CreateIndexedBitmap()
+        {           
+            if( mDataProcessed == null )
+                return null;
+            if (oLastTransformation is ColorTransformReductionScanLine)
+            {
+                var oTras = oLastTransformation as ColorTransformReductionScanLine;
+                return ImageTools.ImageTools.CreateIndexedBitmap(mDataProcessed, oTras.ColorListRow, ImageTools.ImageWidthAlignMode.MultiplePixel16);
+                
+            }
+            else
+            {
+                HashSet<int> iSet = new HashSet<int>();
+                int R = mDataProcessed.GetLength(0);
+                int C = mDataProcessed.GetLength(1);
+                for (int r = 0; r < R; r++)
+                {
+                    for (int c = 0; c < C; c++)
+                    {
+                        iSet.Add(mDataProcessed[r, c]);
+                    }
+                }
+                if (iSet.Count > 256)
+                {
+                    return null;
+                }
+                var lPalette = iSet.ToList();
+                return ImageTools.ImageTools.CreateIndexedBitmap(mDataProcessed, lPalette, ImageTools.ImageWidthAlignMode.MultiplePixel16);
+            }
         }
     }
 }

@@ -13,6 +13,9 @@ namespace ColourClashNet.Colors
         public int MaxColors { get; set; } = -1;
 
         public bool Clustering { get; set; }
+        public bool ClusteringUseMean { get; set; }
+
+        public List<List<int>> ColorListRow { get; private set; } = new List<List<int>>();
 
         protected override void BuildTrasformation()
         {
@@ -24,6 +27,8 @@ namespace ColourClashNet.Colors
             if (oSource == null)
                 return null;
 
+            ColorListRow.Clear();
+
             var R = oSource.GetLength(0);
             var C = oSource.GetLength(1);
             var oRet = new int[R, C];
@@ -34,6 +39,7 @@ namespace ColourClashNet.Colors
             {
                 var oTrasf2 = new ColorTransformReductionCluster();
                 oTrasf2.MaxColors = MaxColors;
+                oTrasf2.UseClusterColorMean = ClusteringUseMean;    
                 oTrasf2.TrainingLoop = 30;
                 oTrasf = oTrasf2;
             }
@@ -44,7 +50,8 @@ namespace ColourClashNet.Colors
                 oTrasf = oTrasf2;
             }
 
-            List<int> lColors = new List<int>();
+            HashSet<int> oGlobalColors = new HashSet<int>();
+            HashSet<int> oRowColors = new HashSet<int>();
 
             for (int r = 0; r < R; r++)
             {
@@ -69,12 +76,16 @@ namespace ColourClashNet.Colors
                         oRet[r, c] = oColsTrasf[0, c];
                     }
                 }
+
+                oRowColors.Clear();
                 foreach (var kvp in oTrasf.oColorTransformation)
                 {
-                    lColors.Add(kvp.Value);
+                    oRowColors.Add(kvp.Value);
+                    oGlobalColors.Add(kvp.Value);
                 }
+                ColorListRow.Add(oRowColors.ToList());
             }
-            ColorsUsed = lColors.Distinct().Count();
+            ColorsUsed = oGlobalColors.Count();
             return oRet;
         }
 
