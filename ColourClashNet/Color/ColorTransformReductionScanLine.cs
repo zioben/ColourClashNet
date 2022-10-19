@@ -50,7 +50,6 @@ namespace ColourClashNet.Colors
                 oTrasf = oTrasf2;
             }
 
-            HashSet<int> oGlobalColors = new HashSet<int>();
             HashSet<int> oRowColors = new HashSet<int>();
 
             for (int r = 0; r < R; r++)
@@ -81,11 +80,10 @@ namespace ColourClashNet.Colors
                 foreach (var kvp in oTrasf.oColorTransformation)
                 {
                     oRowColors.Add(kvp.Value);
-                    oGlobalColors.Add(kvp.Value);
+                    oColorsPalette.Add(kvp.Value);
                 }
                 ColorListRow.Add(oRowColors.ToList());
             }
-            ColorsUsed = oGlobalColors.Count();
             return oRet;
         }
 

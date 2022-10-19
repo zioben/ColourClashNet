@@ -11,9 +11,13 @@ namespace ColourClashNet.Colors
     public abstract partial class ColorTransformBase : ColorTransformInterface
     {
 
-        public int ColorsUsed { get; internal set; } = 0;
         public Dictionary<int, int> oColorHistogram { get; private set; } = new Dictionary<int, int>();
         public Dictionary<int, int> oColorTransformation { get; private init; } = new Dictionary<int, int>();
+
+        protected HashSet<int> oColorsPalette { get; private init; } = new HashSet<int>();
+        public List<int> oColorTransformationPalette => oColorsPalette.ToList();
+        public int ColorsUsed => oColorsPalette?.Count ?? 0;
+
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.All;
 
         abstract protected void BuildTrasformation();
@@ -21,9 +25,9 @@ namespace ColourClashNet.Colors
 
         void Reset()
         {
-            ColorsUsed = 0;
             oColorHistogram.Clear();
             oColorTransformation.Clear();
+            oColorsPalette.Clear();
         }
 
         public void Create(int[,] oDataSource )
@@ -46,6 +50,7 @@ namespace ColourClashNet.Colors
                 oColorHistogram.Add(kvp.Key, kvp.Key);
             }
             BuildTrasformation();
+            oColorsPalette.Remove(-1);
         }
 
         public void Create(ColorTransformInterface oTrasformationSource)

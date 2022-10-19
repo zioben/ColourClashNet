@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using System.Drawing;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -22,6 +23,7 @@ namespace ColourClashNet.Colors
             {
                 foreach (var kvp in oColorHistogram)
                 {
+                    oColorsPalette.Add(kvp.Key);
                     oColorTransformation[kvp.Key] = kvp.Key;
                 }
                 return;
@@ -86,17 +88,19 @@ namespace ColourClashNet.Colors
             {                
                 var dMin = lColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
                 var oItem = lColorCluster.FirstOrDefault(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
+                var iCol = -1;
                 if (UseClusterColorMean)
                 {
-                    oColorTransformation[kvp.Key] = oItem?.Item1.Last()??-1;
+                    iCol = oItem?.Item1.Last()??-1;
                 }
                 else
                 {
                     var Max = oItem?.Item2.Max(X => X.Value);
-                    oColorTransformation[kvp.Key] = oItem?.Item2.FirstOrDefault(X=>X.Value==Max).Key ?? -1;// Item1.Last()??-1;
+                    iCol = oItem?.Item2.FirstOrDefault(X=>X.Value==Max).Key ?? -1;
                 }
+                oColorsPalette.Add(iCol);
+                oColorTransformation[kvp.Key] = iCol; // Item1.Last()??-1;
             };
-            ColorsUsed = oColorTransformation.Select(X => X.Value).ToList().Distinct().Count();
         }
 
         public override int[,] Transform(int[,] oDataSource)

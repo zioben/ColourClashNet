@@ -324,7 +324,7 @@ namespace ColourClashNet.Controls
             });
         }
 
-        public Bitmap CreateIndexedBitmap()
+        Bitmap CreateIndexedBitmap(ImageTools.ImageWidthAlignMode eWidthAlignMode)
         {           
             if( mDataProcessed == null )
                 return null;
@@ -351,8 +351,42 @@ namespace ColourClashNet.Controls
                     return null;
                 }
                 var lPalette = iSet.ToList();
-                return ImageTools.ImageTools.CreateIndexedBitmap(mDataProcessed, lPalette, ImageTools.ImageWidthAlignMode.MultiplePixel16);
+                return ImageTools.ImageTools.CreateIndexedBitmap(mDataProcessed, lPalette, eWidthAlignMode);
             }
         }
+
+        public void WriteBitmapIndex(string sFileName, ImageTools.ImageWidthAlignMode eWidthAlignMode)
+        {
+            var oBmp = CreateIndexedBitmap(eWidthAlignMode);
+            oBmp?.Save(sFileName, ImageFormat.Bmp);
+        }
+        public void WritePngIndex(string sFileName, ImageTools.ImageWidthAlignMode eWidthAlignMode)
+        {
+            var oBmp = CreateIndexedBitmap(eWidthAlignMode);
+            oBmp?.Save(sFileName, ImageFormat.Png);
+        }
+        public void WriteBitmap(string sFileName)
+        {
+            ImageProcessed?.Save(sFileName, ImageFormat.Bmp);
+        }
+        public void WritePng(string sFileName)
+        {
+            ImageProcessed?.Save(sFileName, ImageFormat.Png);
+        }
+        public void WriteBitplane(string sFileName, ImageTools.ImageWidthAlignMode eWidthAlignMode, bool bInterleaveData)
+        {
+            if (oLastTransformation is ColorTransformReductionScanLine)
+            {
+                var oTr = oLastTransformation as ColorTransformReductionScanLine;
+                ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oTr.ColorListRow, eWidthAlignMode, bInterleaveData);
+            }
+            else
+            {
+                ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oLastTransformation.oColorTransformationPalette, eWidthAlignMode, bInterleaveData);
+            }
+        }
+
+
+
     }
 }

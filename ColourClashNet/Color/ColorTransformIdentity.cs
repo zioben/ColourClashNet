@@ -11,12 +11,11 @@ namespace ColourClashNet.Colors
 
         protected override void BuildTrasformation()
         {
-            oColorTransformation.Clear();
             foreach (var kvp in oColorHistogram)
             {
+                oColorsPalette.Add(kvp.Key);
                 oColorTransformation.Add(kvp.Key, kvp.Key);
             }
-            ColorsUsed = oColorHistogram.Count();
         }
 
         public override int[,] Transform(int[,] oDataSource)

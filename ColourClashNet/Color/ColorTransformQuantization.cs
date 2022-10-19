@@ -58,12 +58,12 @@ namespace ColourClashNet.Colors
 
         protected override void BuildTrasformation()
         {
-            oColorTransformation.Clear();
             foreach (var kvp in oColorHistogram)
             {
-                oColorTransformation.Add(kvp.Key, Quantize(kvp.Value, QuantizationMode));
+                int iCol = Quantize(kvp.Value, QuantizationMode);
+                oColorsPalette.Add(iCol);
+                oColorTransformation.Add(kvp.Key, iCol);
             }
-            ColorsUsed = oColorTransformation.Select(X => X.Value).ToList().Distinct().Count();
         }
 
         public override int[,] Transform(int[,] oSource)

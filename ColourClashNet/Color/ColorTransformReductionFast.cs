@@ -19,6 +19,7 @@ namespace ColourClashNet.Colors
             {
                 foreach (var kvp in oColorHistogram)
                 {
+                    oColorsPalette.Add(kvp.Key);
                     oColorTransformation[kvp.Key] = kvp.Key;
                 }
                 return;
@@ -29,9 +30,9 @@ namespace ColourClashNet.Colors
             {
                 var dMin = listMax.Min(Y => Y.Distance(X,ColorDistanceEvaluationMode));
                 var oItem = listMax.FirstOrDefault(Y => Y.Distance(X,ColorDistanceEvaluationMode) == dMin);
+                oColorsPalette.Add(oItem);
                 oColorTransformation[X]= oItem; 
             });
-            ColorsUsed = oColorTransformation.Select(X => X.Value).ToList().Distinct().ToList().Count;
         }
 
         public override int[,] Transform(int[,] oDataSource)

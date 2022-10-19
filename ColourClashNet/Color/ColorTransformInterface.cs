@@ -14,7 +14,8 @@ namespace ColourClashNet.Colors
         int[,] Transform(int[,] oSource);
         Dictionary<int, int> oColorHistogram { get; }
         Dictionary<int, int> oColorTransformation { get; }
+        List<int> oColorTransformationPalette { get; }
 
-        int ColorsUsed{get; }
+        int ColorsUsed {get; }
     }
 }

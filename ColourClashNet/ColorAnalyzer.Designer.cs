@@ -133,7 +133,7 @@
             this.newToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
             this.newToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.newToolStripMenuItem.Text = "&New";
             this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
             // 
@@ -143,7 +143,7 @@
             this.openToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             this.openToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openToolStripMenuItem.Text = "&Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
@@ -153,7 +153,7 @@
             this.toolStripMenuItem1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
             this.toolStripMenuItem1.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(146, 22);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItem1.Text = "&Save";
             this.toolStripMenuItem1.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
             // 
@@ -166,33 +166,33 @@
             this.pNGToolStripMenuItem,
             this.amigaToolStripMenuItem});
             this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            this.exportToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.exportToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.exportToolStripMenuItem.Text = "Export";
             // 
             // bitmapIndexedToolStripMenuItem
             // 
             this.bitmapIndexedToolStripMenuItem.Name = "bitmapIndexedToolStripMenuItem";
-            this.bitmapIndexedToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.bitmapIndexedToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.bitmapIndexedToolStripMenuItem.Text = "Bitmap Indexed";
             this.bitmapIndexedToolStripMenuItem.Click += new System.EventHandler(this.bitmapIndexedToolStripMenuItem_Click);
             // 
             // indexedPNGToolStripMenuItem
             // 
             this.indexedPNGToolStripMenuItem.Name = "indexedPNGToolStripMenuItem";
-            this.indexedPNGToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.indexedPNGToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.indexedPNGToolStripMenuItem.Text = "PNG Indexed";
             // 
             // bitmapToolStripMenuItem
             // 
             this.bitmapToolStripMenuItem.Name = "bitmapToolStripMenuItem";
-            this.bitmapToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.bitmapToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.bitmapToolStripMenuItem.Text = "Bitmap";
             this.bitmapToolStripMenuItem.Click += new System.EventHandler(this.bitmapToolStripMenuItem_Click);
             // 
             // pNGToolStripMenuItem
             // 
             this.pNGToolStripMenuItem.Name = "pNGToolStripMenuItem";
-            this.pNGToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.pNGToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.pNGToolStripMenuItem.Text = "PNG";
             this.pNGToolStripMenuItem.Click += new System.EventHandler(this.pNGToolStripMenuItem_Click);
             // 
@@ -204,7 +204,7 @@
             this.rawBitplaneAndOCSCopperlistToolStripMenuItem,
             this.sourceCodeToolStripMenuItem});
             this.amigaToolStripMenuItem.Name = "amigaToolStripMenuItem";
-            this.amigaToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.amigaToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.amigaToolStripMenuItem.Text = "Amiga";
             // 
             // iFFILBMToolStripMenuItem
@@ -218,6 +218,7 @@
             this.bitplaneToolStripMenuItem1.Name = "bitplaneToolStripMenuItem1";
             this.bitplaneToolStripMenuItem1.Size = new System.Drawing.Size(224, 22);
             this.bitplaneToolStripMenuItem1.Text = "Raw Bitplane";
+            this.bitplaneToolStripMenuItem1.Click += new System.EventHandler(this.bitplaneToolStripMenuItem1_Click);
             // 
             // rawBitplaneAndOCSCopperlistToolStripMenuItem
             // 

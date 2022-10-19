@@ -1,5 +1,6 @@
 ﻿using ColourClashNet.Colors;
 using ColourClashNet.Controls;
+using ColourClashNet.ImageTools;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -124,6 +125,11 @@ namespace ColourClashNet
             foreach (var item in lBkgColor)
                 oRet.Add(ColorIntExt.FromDrawingColor(item));
             return oRet;
+        }
+
+        ImageWidthAlignMode GetImageWidthAlignMode()
+        {
+            return ImageWidthAlignMode.MultiplePixel16;
         }
 
         ColorQuantizationMode GetQuantizationMode()
@@ -253,7 +259,14 @@ namespace ColourClashNet
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {
-                ImageTools.ImageTools.Export( oColorTransformer.CreateIndexedBitmap(), sfdExportImage.FileName, ImageTools.ImageExportFormat.BmpIndex);
+                oColorTransformer.WriteBitmapIndex(sfdExportImage.FileName, GetImageWidthAlignMode());
+            }
+        }
+        private void bitplaneToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            if (sfdExportImage.ShowDialog() == DialogResult.OK)
+            {
+                oColorTransformer.WriteBitplane(sfdExportImage.FileName, GetImageWidthAlignMode(), false);
             }
         }
 
@@ -271,5 +284,6 @@ namespace ColourClashNet
         {
             RefreshData();
         }
+
     }
 }

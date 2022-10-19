@@ -16,24 +16,21 @@ namespace ColourClashNet.Colors
 
         protected override void BuildTrasformation()
         {
-            oColorTransformation.Clear();
             foreach (var kvp in oColorHistogram)
             {
+                oColorsPalette.Add(kvp.Key);    
                 oColorTransformation.Add(kvp.Key, kvp.Key);
             }
-            ColorsUsed = oColorHistogram.Count();
 
-            int iColorRemoved = 0;
             foreach (var kvp in oColorHistogram)
             {
                 var Val = kvp;
                 if (ColorBackgroundList.Any(X => X.Equals(Val)))
                 {
-                    iColorRemoved++;
+                    oColorsPalette.Remove(kvp.Key);
                     oColorTransformation[kvp.Key] = ColorBackground;
                 }
             }
-            ColorsUsed -= iColorRemoved;
         }
 
         public override int[,] Transform(int[,] oDataSource)
