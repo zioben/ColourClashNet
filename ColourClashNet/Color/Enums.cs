@@ -31,4 +31,21 @@ namespace ColourClashNet.Colors
         HSV,
     }
 
+    public enum ColorDithering
+    {
+        None=0,
+        Ordered_2x2,
+        Ordered_4x4,
+        Ordered_8x8,
+    }
+
+    public enum Parameters
+    {
+        Unknown = 0,
+        ColorQuantization,
+        ColorDistanceMode,
+        PaletteEntries,
+        DitherMode,
+    }
+
 }

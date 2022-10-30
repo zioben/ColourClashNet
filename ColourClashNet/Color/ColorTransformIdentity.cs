@@ -9,18 +9,24 @@ namespace ColourClashNet.Colors
     public class ColorTransformIdentity : ColorTransformBase
     {
 
-        protected override void BuildTrasformation()
+        public ColorTransformIdentity()
+        {
+            Name = "Identity";
+            Description = "1:1 Color transformation";
+        }
+
+        protected override void CreateTrasformationMap()
         {
             foreach (var kvp in oColorHistogram)
             {
-                oColorsPalette.Add(kvp.Key);
-                oColorTransformation.Add(kvp.Key, kvp.Key);
+                oColorTransformationMap.Add(kvp.Key, kvp.Key);
+                hashColorsPalette.Add(kvp.Key);
             }
         }
 
-        public override int[,] Transform(int[,] oDataSource)
+        public override int[,]? Transform(int[,]? oDataSource, Dictionary<Parameters, object>? oParameters)
         {
-            return base.TransformBase(oDataSource); 
+            return ApplyTransform(oDataSource); 
         }
 
     }

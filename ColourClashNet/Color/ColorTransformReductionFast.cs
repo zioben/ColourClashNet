@@ -12,15 +12,15 @@ namespace ColourClashNet.Colors
 
         public int MaxColors { get; set; } = -1;
 
-        protected override void BuildTrasformation()
+        protected override void CreateTrasformationMap()
         {
             SortColorsByHistogram();
             if (oColorHistogram.Count < MaxColors)
             {
                 foreach (var kvp in oColorHistogram)
                 {
-                    oColorsPalette.Add(kvp.Key);
-                    oColorTransformation[kvp.Key] = kvp.Key;
+                    hashColorsPalette.Add(kvp.Key);
+                    oColorTransformationMap[kvp.Key] = kvp.Key;
                 }
                 return;
             }
@@ -30,14 +30,14 @@ namespace ColourClashNet.Colors
             {
                 var dMin = listMax.Min(Y => Y.Distance(X,ColorDistanceEvaluationMode));
                 var oItem = listMax.FirstOrDefault(Y => Y.Distance(X,ColorDistanceEvaluationMode) == dMin);
-                oColorsPalette.Add(oItem);
-                oColorTransformation[X]= oItem; 
+                hashColorsPalette.Add(oItem);
+                oColorTransformationMap[X]= oItem; 
             });
         }
 
-        public override int[,] Transform(int[,] oDataSource)
+        public override int[,]? Transform(int[,]? oDataSource, Dictionary<Parameters, object>? oParameters)
         {
-            return base.TransformBase(oDataSource);
+            return ApplyTransform(oDataSource);
         }
     }
 }

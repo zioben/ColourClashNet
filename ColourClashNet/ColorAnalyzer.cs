@@ -285,5 +285,16 @@ namespace ColourClashNet
             RefreshData();
         }
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+            oColorTransformer.ReduceColorsZXSpectrum();
+        }
+
+        private void ColorAnalyzer_Load(object sender, EventArgs e)
+        {
+            ColorDitherOrdered oDither = new ColorDitherOrdered() { Size = 2 };
+            oDither.Create();
+        }
+
     }
 }

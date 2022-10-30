@@ -9,6 +9,13 @@ namespace ColourClashNet.Colors
 {
     public class ColorTransformQuantization: ColorTransformBase
     {
+
+        public ColorTransformQuantization()
+        {
+            Name = "Quantizator";
+            Description = "Reduces color bit spectrum";
+        }
+
         public ColorQuantizationMode QuantizationMode { get; set; }
 
 
@@ -19,7 +26,7 @@ namespace ColourClashNet.Colors
                 case ColorQuantizationMode.RGB888:
                     return -1;
                 case ColorQuantizationMode.RGB333:
-                    return 0x00E0E0E0;
+                    return 0x00808080;
                 case ColorQuantizationMode.RGB444:
                     return 0x00F0F0F0;
                 case ColorQuantizationMode.RGB555:
@@ -32,6 +39,7 @@ namespace ColourClashNet.Colors
         }
         public int GetFiller(ColorQuantizationMode colorHistMode)
         {
+            return 0;
             switch (colorHistMode)
             {
                 case ColorQuantizationMode.RGB888:
@@ -56,17 +64,16 @@ namespace ColourClashNet.Colors
             return (iRGB & GetColorMask(colorHistMode)) | GetFiller(colorHistMode);
         }
 
-        protected override void BuildTrasformation()
+        protected override void CreateTrasformationMap()
         {
             foreach (var kvp in oColorHistogram)
             {
                 int iCol = Quantize(kvp.Value, QuantizationMode);
-                oColorsPalette.Add(iCol);
-                oColorTransformation.Add(kvp.Key, iCol);
+                oColorTransformationMap.Add(kvp.Key, iCol);
             }
         }
 
-        public override int[,] Transform(int[,] oSource)
+        public override int[,]? Transform(int[,]? oSource, Dictionary<Parameters, object>? oParameters)
         {
             if (oSource == null)
                 return null;
@@ -77,11 +84,14 @@ namespace ColourClashNet.Colors
             var oCols = new int[1, C];
             var iMask = GetColorMask(QuantizationMode);
             var iFiller = GetFiller(QuantizationMode);  
+            hashColorsPalette.Clear();
             for (int r = 0; r < R; r++)
             {
                 for (int c = 0; c < C; c++)
                 {
-                    oRet[r, c] = (oSource[r, c] & iMask)|iFiller;
+                    var col = (oSource[r, c] & iMask) | iFiller;
+                    hashColorsPalette.Add(col); 
+                    oRet[r, c] = col;
                 }
             }
             return oRet;
