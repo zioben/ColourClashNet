@@ -80,6 +80,83 @@ namespace ColourClashNet.Colors
             }
         }
 
+        public static List<int> CreatePalette(int[,] oData)
+        {
+            if (oData == null)
+                return new List<int>();
+            HashSet<int> palette = new HashSet<int>();
+            foreach (var k in oData)
+            {
+                palette.Add(k);
+            }
+            return palette.ToList();
+        }
 
+        public static List<int> CreatePalette(Dictionary<int, int> oDataHistogram)
+        {
+            if (oDataHistogram == null || oDataHistogram.Count == 0)
+                return new List<int>();
+
+            HashSet<int> palette = new HashSet<int>();
+            foreach (var k in oDataHistogram)
+            {
+                palette.Add(k.Key);
+            }
+            return palette.ToList();
+        }
+
+        public static int GetNearestColor(int iColor, List<int> oPalette, ColorDistanceEvaluationMode eMode)
+        {
+            //if (oPalette == null || oPalette.Count == -1)
+            //    return -1;
+            //var col = oPalette[0];
+            //var distMin = iColor.Distance(oPalette[0], eMode);
+            //for (int i = 1; i < oPalette.Count; i++)
+            //{ 
+            //    var dist = col.Distance(oPalette[i], eMode);
+            //    if (distMin > dist)
+            //    {
+            //        col = oPalette[i];
+            //        distMin = dist;
+            //    }
+            //}
+            //return col;
+            //
+            // SLOOOOW
+            double dmin = oPalette.Min(X => X.Distance(iColor, eMode));
+            if (dmin == 0)
+                return iColor;
+            return oPalette.FirstOrDefault(X => X.Distance(iColor, eMode) == dmin);
+        }
+
+        public static int[,]? ApplyTransform(int[,]? oSource, Dictionary<int, int>? oColorTransformationMap)
+        {
+            if (oSource == null)
+                return null;
+            if (oColorTransformationMap == null || oColorTransformationMap.Count == 0)
+                return null;
+            // var lListList = ToListList(oSource);
+            var R = oSource.GetLength(0);
+            var C = oSource.GetLength(1);
+            var oRet = new int[R, C];
+            Parallel.For(0, R, r =>
+            {
+                for (int c = 0; c < C; c++)
+                {
+                    var col = oSource[r, c];
+                    if (col < 0 || !oColorTransformationMap.ContainsKey(col))
+                        oRet[r, c] = -1;
+                    else
+                        oRet[r, c] = oColorTransformationMap[col];
+
+                }
+            });
+            return oRet;
+        }
+
+        public static int[,]? ApplyTransform(int[,]? oSource, ColorTransformInterface oI )
+        {
+            return ApplyTransform(oSource, oI?.oColorTransformationMap );
+        }
     }
 }

@@ -12,76 +12,65 @@ namespace ColourClashNet.Colors
     {
 
         public Dictionary<int, int> oColorHistogram { get; private set; } = new Dictionary<int, int>();
-        public Dictionary<int, int> oColorTransformation { get; private init; } = new Dictionary<int, int>();
+        public Dictionary<int, int> oColorTransformationMap { get; private init; } = new Dictionary<int, int>();
 
-        protected HashSet<int> oColorsPalette { get; private init; } = new HashSet<int>();
-        public List<int> oColorTransformationPalette => oColorsPalette.ToList();
-        public int ColorsUsed => oColorsPalette?.Count ?? 0;
+        protected HashSet<int> hashColorsPalette { get; private init; } = new HashSet<int>();
+        public List<int> oColorTransformationPalette => hashColorsPalette.ToList();
+        public int ColorsUsed => hashColorsPalette?.Count ?? 0;
 
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.All;
 
-        abstract protected void BuildTrasformation();
-        abstract public int[,] Transform( int[,] oDataSource );
+        abstract protected void CreateTrasformationMap();
+        abstract public int[,]? Transform( int[,]? oDataSource );
+
+        public string Name { get; protected set; } = "";
+        public string Description { get; protected set; } = "";
 
         void Reset()
         {
             oColorHistogram.Clear();
-            oColorTransformation.Clear();
-            oColorsPalette.Clear();
+            oColorTransformationMap.Clear();
+            hashColorsPalette.Clear();
         }
 
-        public void Create(int[,] oDataSource )
+        public void Create(int[,]? oDataSource )
         {
             Reset();
             if (oDataSource == null)
                 return;
             oColorHistogram = CreateColorHist(oDataSource);
-            SortColorsByHistogram();
-            BuildTrasformation();
+            CreateTrasformationMap();
         }
 
-        public void Create(Dictionary<int, int> oDictColorHistogramSource)
+        public void Create(Dictionary<int, int>? oDictColorHistogramSource)
         {
             Reset();
             if (oDictColorHistogramSource == null )
                 return;
             foreach (var kvp in oDictColorHistogramSource)
             {
-                oColorHistogram.Add(kvp.Key, kvp.Key);
+                oColorHistogram.Add(kvp.Key, kvp.Value);
+                hashColorsPalette.Add(kvp.Key);
             }
-            BuildTrasformation();
-            oColorsPalette.Remove(-1);
+            CreateTrasformationMap();
+            hashColorsPalette.Remove(-1);
         }
 
-        public void Create(ColorTransformInterface oTrasformationSource)
+        public void Create(List<int>? oColorPalette)
         {
-            Create(oTrasformationSource?.oColorHistogram);
-        }
-
-        public int[,] TransformBase(int[,] oSource)
-        {
-            if (oSource == null)
-                return null;
-            if (oColorTransformation == null || oColorTransformation.Count == 0)
-                return null;
-            // var lListList = ToListList(oSource);
-            var R = oSource.GetLength(0);
-            var C = oSource.GetLength(1);
-            var oRet = new int[R, C];
-            Parallel.For(0, R, r =>
+            Reset();
+            if (oColorPalette == null)
+                return;
+            foreach (var col in oColorPalette)
             {
-                for (int c = 0; c < C; c++)
-                {
-                    var col = oSource[r, c];
-                    if (col < 0 || !oColorTransformation.ContainsKey(col))
-                        oRet[r, c] = -1;
-                    else
-                        oRet[r, c] = oColorTransformation[col];
-
-                }
-            });
-            return oRet;
+                oColorHistogram.Add(col, col);
+                hashColorsPalette.Add(col);
+            }
+            CreateTrasformationMap();
+            hashColorsPalette.Remove(-1);
         }
+
+      
 
         // Sort in reverse in order
         public class DuplicateKeyComparer<TKey> : IComparer<TKey> where TKey : IComparable
@@ -110,6 +99,11 @@ namespace ColourClashNet.Colors
             {
                 oColorHistogram.Add( kvp.Item2, kvp.Item1);
             }
+        }
+
+        protected int[,]? ApplyTransform(int[,]? oDataSource)
+        {
+            return ApplyTransform(oDataSource, this);
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using System.Diagnostics.Metrics;
 
 namespace ColourClashNet.Colors
 {
@@ -59,7 +60,7 @@ namespace ColourClashNet.Colors
         }
 
 
-        public static double Distance(this int i,  int j, ColorDistanceEvaluationMode eMode)
+        public static double Distance(this int i, int j, ColorDistanceEvaluationMode eMode)
         {
             if (i < 0 || j < 0)
                 return double.PositiveInfinity;
@@ -94,11 +95,11 @@ namespace ColourClashNet.Colors
             }
         }
 
-        public static int FromRGB( int r, int g , int b)
+        public static int FromRGB(int r, int g, int b)
         {
-            if (r<0 || g <0 || b <0 )
+            if (r < 0 || g < 0 || b < 0)
                 return -1;
-            return (Math.Min(255,r)<<16) | (Math.Min(255, g) << 8) | (Math.Min(255, b)<<0);
+            return (Math.Min(255, r) << 16) | (Math.Min(255, g) << 8) | (Math.Min(255, b) << 0);
         }
 
         public static int FromRGB(double dr, double dg, double db)
@@ -111,10 +112,8 @@ namespace ColourClashNet.Colors
             if (oColor == System.Drawing.Color.Transparent)
                 return -1;
 
-            return FromRGB(oColor.R,oColor.G,oColor.B);
+            return FromRGB(oColor.R, oColor.G, oColor.B);
         }
-
-        
 
     }
 }

@@ -17,12 +17,12 @@ namespace ColourClashNet.Colors
 
         public List<List<int>> ColorListRow { get; private set; } = new List<List<int>>();
 
-        protected override void BuildTrasformation()
+        protected override void CreateTrasformationMap()
         {
         }
 
 
-        public override int[,] Transform(int[,] oSource)
+        public override int[,]? Transform(int[,]? oSource)
         {
             if (oSource == null)
                 return null;
@@ -77,10 +77,10 @@ namespace ColourClashNet.Colors
                 }
 
                 oRowColors.Clear();
-                foreach (var kvp in oTrasf.oColorTransformation)
+                foreach (var kvp in oTrasf.oColorTransformationMap)
                 {
                     oRowColors.Add(kvp.Value);
-                    oColorsPalette.Add(kvp.Value);
+                    hashColorsPalette.Add(kvp.Value);
                 }
                 ColorListRow.Add(oRowColors.ToList());
             }

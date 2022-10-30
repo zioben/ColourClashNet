@@ -54,6 +54,9 @@ namespace ColourClashNet.Controls
 
         public ColorQuantizationMode ColorQuantizationMode { get; set; } = ColorQuantizationMode.Unknown;
 
+        public ColorDithering Dithering { get; set; } = ColorDithering.FloydSteinberg;
+        
+
         public int PixelCount = 0;
         public int ColorsSource => oTrIdentity?.ColorsUsed ?? 0;
         public int ColorsQuantized { get; private set; } = 0;
@@ -183,7 +186,7 @@ namespace ColourClashNet.Controls
         {
             oLastTransformation = e.Transformation;
             ColorsProcessed = e.Transformation.ColorsUsed;
-            ToPalette(oLastTransformation.oColorTransformation.Select(X=>X.Value).ToList());
+            ToPalette(oLastTransformation.oColorTransformationMap.Select(X=>X.Value).ToList());
             RebuildImageOutput();
         }
 
@@ -243,14 +246,40 @@ namespace ColourClashNet.Controls
             var oTrBkgRemover = new ColorTransformBkgRemover();
             oTrBkgRemover.ColorBackgroundList = BackgroundColorList;
             oTrBkgRemover.ColorBackground = BackgroundColorOut;
-            oTrBkgRemover.Create(oTrIdentity);
+            oTrBkgRemover.Create(oTrIdentity.oColorHistogram);
 
             var oTrQuantization = new ColorTransformQuantization();
             oTrQuantization.QuantizationMode = ColorQuantizationMode;
-            oTrQuantization.Create(oTrBkgRemover);
+            oTrQuantization.Create(oTrBkgRemover.oColorHistogram);
 
             ColorsProcessed = ColorsQuantized = oTrQuantization.ColorsUsed;
             mDataQuantized = oTrQuantization.Transform(oTrBkgRemover.Transform(mDataSource));
+
+/*            if (Dithering != ColorDithering.None)
+            {
+                ColorDitherOrdered oDither = new ColorDitherOrdered();
+                switch (Dithering)
+                {
+                    case ColorDithering.Ordered_2x2:
+                        oDither.Size = 2;
+                        break;
+                    case ColorDithering.Ordered_4x4:
+                        oDither.Size = 4;
+                        break;
+                    case ColorDithering.Ordered_8x8:
+                        oDither.Size = 8;
+                        break;
+                    default:
+                        break;
+                }
+               // mDataQuantizedTmp = oDither.Dither(mDataQuantizedTmp, oTrQuantization.oColorTransformationPalette, mDataSource, ColorDistanceEvaluationMode);
+            }
+*/
+//            ColorDitherFloysSteinberg oFS = new ColorDitherFloysSteinberg();
+  //          oFS.Create();
+    //        var mDataQuantizedTmp2 = oFS.Dither(mDataQuantizedTmp, oTrQuantization.oColorTransformationPalette, mDataSource, ColorDistanceEvaluationMode);
+  //          mDataQuantized = mDataQuantizedTmp2.Clone() as int[,];//  oTrQuantization.Transform(mDataQuantizedTmp2);
+
             mDataProcessed = mDataQuantized.Clone() as int[,];
             RebuildImageOutput();
             OnQuantize?.Invoke(this, new EventArgsTransformation 
@@ -268,6 +297,51 @@ namespace ColourClashNet.Controls
             ImageProcessed = ToBitmap(mDataProcessed);
         }
 
+        int[,] ApplyDither(ColorTransformInterface oTransform, int[,] oDataOriginal )
+        {
+            if (oTransform == null)
+                return null;
+            oTransform.Create(oDataOriginal);
+            int[,] oProc = oTransform.Transform(oDataOriginal);
+            switch (Dithering)
+            {
+                case ColorDithering.None:
+                    {
+                        return oProc.Clone() as int[,];
+                    }
+                case ColorDithering.Ordered_2x2:
+                    {
+                        var oDither = new ColorDitherOrdered() { Size = 2 };
+                        oProc = oDither.Dither(oProc, oTransform.oColorTransformationPalette, oDataOriginal, ColorDistanceEvaluationMode);
+                        break;
+                    }
+                case ColorDithering.Ordered_4x4:
+                    {
+                        var oDither = new ColorDitherOrdered() { Size = 4 };
+                        oProc = oDither.Dither(oProc, oTransform.oColorTransformationPalette, oDataOriginal, ColorDistanceEvaluationMode);
+                        break;
+                    }
+                case ColorDithering.Ordered_8x8:
+                    {
+                        var oDither = new ColorDitherOrdered() { Size = 8 };
+                        oProc = oDither.Dither(oProc, oTransform.oColorTransformationPalette, oDataOriginal, ColorDistanceEvaluationMode);
+                        break;
+                    }
+                case ColorDithering.FloydSteinberg:
+                    {
+                        var oDither = new ColorDitherFloysSteinberg();
+                        oProc = oDither.Dither(oProc, oTransform.oColorTransformationPalette, oDataOriginal, ColorDistanceEvaluationMode);
+                        break;
+                    }
+                default:
+                    return null;
+            }
+            var oTrans = new ColorTransformToPalette();
+            oTrans.Create(oTransform.oColorTransformationPalette);
+            var oRet = oTrans.Transform(oProc);
+            return oRet;
+        }
+
         public void ReduceColorsQuantity(int iMaxColor)
         {
             if (mDataSource == null)
@@ -276,7 +350,7 @@ namespace ColourClashNet.Controls
             oTrasf.MaxColors = iMaxColor;
             oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
             oTrasf.Create(mDataQuantized);
-            mDataProcessed = oTrasf.Transform(mDataQuantized);
+            mDataProcessed = ApplyDither(oTrasf, mDataQuantized);
             OnProcess?.Invoke(this, new EventArgsTransformation
             {
                 DataDest = mDataQuantized,
@@ -295,7 +369,7 @@ namespace ColourClashNet.Controls
             oTrasf.UseClusterColorMean = bUseMean;
             oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
             oTrasf.Create(mDataQuantized);
-            mDataProcessed = oTrasf.Transform(mDataQuantized);
+            mDataProcessed = ApplyDither( oTrasf, mDataQuantized);
             OnProcess?.Invoke(this, new EventArgsTransformation
             {
                 DataDest = mDataQuantized,
@@ -315,13 +389,30 @@ namespace ColourClashNet.Controls
             oTrasf.ClusteringUseMean = bClusterUseMean;
             oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
             oTrasf.Create(mDataQuantized);
-            mDataProcessed = oTrasf.Transform(mDataQuantized);
+            mDataProcessed = ApplyDither(oTrasf,mDataQuantized);
             OnProcess?.Invoke(this, new EventArgsTransformation
             {
                 DataDest = mDataQuantized,
                 DataSource = mDataSource,
                 Transformation = oTrasf
             });
+        }
+
+        public void ReduceColorsZXSpectrum()
+        {
+            if (mDataSource == null)
+                return;
+            var oTrasf = new ColorTransformReductionZxSpectrum();
+            oTrasf.MaxColors = 16;
+            oTrasf.Create(mDataQuantized);
+            mDataProcessed = ApplyDither(oTrasf, mDataQuantized);
+            OnProcess?.Invoke(this, new EventArgsTransformation
+            {
+                DataDest = mDataQuantized,
+                DataSource = mDataSource,
+                Transformation = oTrasf
+            });
+
         }
 
         Bitmap CreateIndexedBitmap(ImageTools.ImageWidthAlignMode eWidthAlignMode)

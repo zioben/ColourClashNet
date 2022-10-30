@@ -16,15 +16,15 @@ namespace ColourClashNet.Colors
         public bool UseClusterColorMean { get; set; } = true;
         public int TrainingLoop { get; set; } = -1;
 
-        protected override void BuildTrasformation()
+        protected override void CreateTrasformationMap()
         {
             SortColorsByHistogram();
             if (oColorHistogram.Count < MaxColors)
             {
                 foreach (var kvp in oColorHistogram)
                 {
-                    oColorsPalette.Add(kvp.Key);
-                    oColorTransformation[kvp.Key] = kvp.Key;
+                    oColorTransformationMap[kvp.Key] = kvp.Key;
+                    hashColorsPalette.Add(kvp.Key);
                 }
                 return;
             }
@@ -98,14 +98,14 @@ namespace ColourClashNet.Colors
                     var Max = oItem?.Item2.Max(X => X.Value);
                     iCol = oItem?.Item2.FirstOrDefault(X=>X.Value==Max).Key ?? -1;
                 }
-                oColorsPalette.Add(iCol);
-                oColorTransformation[kvp.Key] = iCol; // Item1.Last()??-1;
+                hashColorsPalette.Add(iCol);
+                oColorTransformationMap[kvp.Key] = iCol; // Item1.Last()??-1;
             };
         }
 
-        public override int[,] Transform(int[,] oDataSource)
+        public override int[,]? Transform(int[,]? oDataSource)
         {
-            return base.TransformBase(oDataSource);
+            return ApplyTransform(oDataSource);
         }
     }
 }
