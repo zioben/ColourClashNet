@@ -15,8 +15,6 @@ namespace ColourClashNet.Colors
             Description = "1:1 Color transformation";
         }
 
-        public ColorDistanceEvaluationMode ColorDistanceMode { get; set; }
-
         protected override void CreateTrasformationMap()
         {
             foreach (var kvp in oColorHistogram)
@@ -44,7 +42,7 @@ namespace ColourClashNet.Colors
             var oColorList = oColorTransformationPalette;
             Parallel.ForEach( oHasSet, rgb =>
             {
-                oColorTransformationMap[rgb] = ColorTransformBase.GetNearestColor(rgb, oColorTransformationPalette, ColorDistanceMode);
+                oColorTransformationMap[rgb] = ColorTransformBase.GetNearestColor(rgb, oColorTransformationPalette, ColorDistanceEvaluationMode);
             });
 
             return ApplyTransform(oDataSource); 

@@ -72,6 +72,7 @@ namespace ColourClashNet.Colors
             double[,] oRP = new double[R, C];
             double[,] oGP = new double[R, C];
             double[,] oBP = new double[R, C];
+
             for (int r = 0; r < R; r++)
             {
                 for (int c = 0; c < C; c++)
@@ -90,6 +91,7 @@ namespace ColourClashNet.Colors
             var oRT = (double[,])oRO.Clone();
             var oGT = (double[,])oGO.Clone();
             var oBT = (double[,])oBO.Clone();
+
 
             var oRet = oDataProcessed.Clone() as  int[,];
             for (int r = 0; r < R-1; r++)
@@ -112,26 +114,10 @@ namespace ColourClashNet.Colors
                     var oCol = ColorIntExt.FromRGB(iR, iG, iB);
                     oHashSet.Add(oCol);
                     oRet[r, c] = oCol;
+                }
             }
             
-            var oColorTransformation = new Dictionary<int, int>();
-            foreach (var col in oHashSet)
-            {
-                oColorTransformation.Add(col, ColorTransformBase.GetNearestColor(col, oDataProcessedPalette, eDistanceMode));
-            }
-            var oRet2 = new int[R, C];
-            Parallel.For(0, R, r =>
-            {
-                for (int c = 0; c < C; c++)
-                {
-                    var col = oRet[r, c];
-                    if (col < 0 || !oColorTransformation.ContainsKey(col))
-                        oRet2[r, c] = -1;
-                    else
-                        oRet2[r, c] = oColorTransformation[col];
 
-                }
-            });
 
             return oRet;
             
@@ -139,6 +125,7 @@ namespace ColourClashNet.Colors
 
         private void SpreadErrorDiffusion(double[,] oChannelO, double[,] oChannelQ, double[,] oChannelT, int r, int c)
         {
+
 
             double error = oChannelT[r, c] - oChannelQ[r, c];
             //oChannelT[r, c] = oChannelO[r, c];

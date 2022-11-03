@@ -235,7 +235,7 @@ namespace ColourClashNet.Controls
             oTrBkgRemover.ColorBackgroundList = BackgroundColorList;
             oTrBkgRemover.ColorBackground = BackgroundColorOut;
             oTrBkgRemover.Create(oTrIdentity.oColorHistogram);
-            var mDataBkgRemoved = oTrBkgRemover.Transform(mDataSource,null);
+            var mDataBkgRemoved = oTrBkgRemover.Transform(mDataSource);
             return mDataBkgRemoved;
         }
 
@@ -310,7 +310,7 @@ namespace ColourClashNet.Controls
                 default:
                     return null;
             }
-            var oTrans = new ColorTransformToPalette();
+            var oTrans = new ColorTransformToPalette() { ColorDistanceEvaluationMode = ColorDistanceEvaluationMode };
             oTrans.Create(oTransform.oColorTransformationPalette);
             var oRet = oTrans.Transform(oProc);
             return oRet;
@@ -324,7 +324,7 @@ namespace ColourClashNet.Controls
             oTrasf.MaxColors = iMaxColor;
             oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
             oTrasf.Create(mDataQuantized);
-            mDataProcessed = oTrasf.Transform(mDataQuantized);
+            mDataProcessed = ApplyDither( oTrasf, mDataQuantized);
             OnProcess?.Invoke(this, new EventArgsTransformation
             {
                 DataDest = mDataQuantized,
@@ -343,7 +343,7 @@ namespace ColourClashNet.Controls
             oTrasf.UseClusterColorMean = bUseMean;
             oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
             oTrasf.Create(mDataQuantized);
-            mDataProcessed = oTrasf.Transform(mDataQuantized);
+            mDataProcessed = ApplyDither(oTrasf, mDataQuantized);
             OnProcess?.Invoke(this, new EventArgsTransformation
             {
                 DataDest = mDataQuantized,
@@ -363,7 +363,24 @@ namespace ColourClashNet.Controls
             oTrasf.ClusteringUseMean = bClusterUseMean;
             oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
             oTrasf.Create(mDataQuantized);
-            mDataProcessed = oTrasf.Transform(mDataQuantized);
+            mDataProcessed = ApplyDither(oTrasf, mDataQuantized);
+            OnProcess?.Invoke(this, new EventArgsTransformation
+            {
+                DataDest = mDataQuantized,
+                DataSource = mDataSource,
+                Transformation = oTrasf
+            });
+
+        }
+
+        public void ReduceColorsZXSpectrum()
+        {
+            if (mDataSource == null)
+                return;
+            var oTrasf = new ColorTransformReductionZxSpectrum();
+            oTrasf.MaxColors = 16;
+            oTrasf.Create(mDataQuantized);
+            mDataProcessed = ApplyDither(oTrasf, mDataQuantized);
             OnProcess?.Invoke(this, new EventArgsTransformation
             {
                 DataDest = mDataQuantized,
