@@ -15,8 +15,6 @@ namespace ColourClashNet.Colors
             Description = "2^P Scalable ordered dithering";
         }
 
-        public ColorQuantizationMode QuantizationMode { get; set; } = ColorQuantizationMode.RGB888;
-
         int iSize = 2;
         public int Size 
         { 
@@ -30,7 +28,20 @@ namespace ColourClashNet.Colors
             }
         }
 
-        
+        double dSpread = 256.0 / 3;
+        public double Spread
+        {
+            get
+            {
+                return dSpread;
+            }
+            set
+            {
+                dSpread = Math.Max(1.0,dSpread);
+            }
+        }
+
+
 
         double[,] oBase = { { 0, 2 }, { 3, 1 } };
         double dDivider = 4;

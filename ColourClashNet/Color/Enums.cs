@@ -14,6 +14,7 @@ namespace ColourClashNet.Colors
         RGB555,
         RGB444,
         RGB333,
+        RGB222,
     }
 
     public enum Colorspace

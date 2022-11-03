@@ -292,7 +292,7 @@ namespace ColourClashNet
 
         private void ColorAnalyzer_Load(object sender, EventArgs e)
         {
-            oColorTransformer.Dithering = ColorDithering.Ordered_8x8;
+            oColorTransformer.Dithering = ColorDithering.Ordered_2x2;
         }
 
     }

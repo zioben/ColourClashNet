@@ -25,8 +25,10 @@ namespace ColourClashNet.Colors
             {
                 case ColorQuantizationMode.RGB888:
                     return -1;
-                case ColorQuantizationMode.RGB333:
+                case ColorQuantizationMode.RGB222:
                     return 0x00C0C0C0;
+                case ColorQuantizationMode.RGB333:
+                    return 0x00E0E0E0;
                 case ColorQuantizationMode.RGB444:
                     return 0x00F0F0F0;
                 case ColorQuantizationMode.RGB555:
@@ -39,11 +41,12 @@ namespace ColourClashNet.Colors
         }
         public int GetFiller(ColorQuantizationMode colorHistMode)
         {
-            return 0;
             switch (colorHistMode)
             {
                 case ColorQuantizationMode.RGB888:
                     return 0;
+                case ColorQuantizationMode.RGB222:
+                    return 0x003F3F3F;
                 case ColorQuantizationMode.RGB333:
                     return 0x001F1F1F;
                 case ColorQuantizationMode.RGB444:
