@@ -285,19 +285,19 @@ namespace ColourClashNet.Controls
                     }
                 case ColorDithering.Ordered_2x2:
                     {
-                        var oDither = new ColorDitherOrdered() { Size = 2 };
+                        var oDither = new ColorDitherOrdered() { Size = 2, QuantizationMode = ColorQuantizationMode };
                         oProc = oDither.Dither(oProc, oTransform.oColorTransformationPalette, oDataOriginal, ColorDistanceEvaluationMode);
                         break;
                     }
                 case ColorDithering.Ordered_4x4:
                     {
-                        var oDither = new ColorDitherOrdered() { Size = 4 };
+                        var oDither = new ColorDitherOrdered() { Size = 4, QuantizationMode = ColorQuantizationMode };
                         oProc = oDither.Dither(oProc, oTransform.oColorTransformationPalette, oDataOriginal, ColorDistanceEvaluationMode);
                         break;
                     }
                 case ColorDithering.Ordered_8x8:
                     {
-                        var oDither = new ColorDitherOrdered() { Size = 8 };
+                        var oDither = new ColorDitherOrdered() { Size = 8, QuantizationMode = ColorQuantizationMode };
                         oProc = oDither.Dither(oProc, oTransform.oColorTransformationPalette, oDataOriginal, ColorDistanceEvaluationMode);
                         break;
                     }

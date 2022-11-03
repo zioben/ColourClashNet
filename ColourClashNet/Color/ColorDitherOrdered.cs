@@ -15,6 +15,8 @@ namespace ColourClashNet.Colors
             Description = "2^P Scalable ordered dithering";
         }
 
+        public ColorQuantizationMode QuantizationMode { get; set; } = ColorQuantizationMode.RGB888;
+
         int iSize = 2;
         public int Size 
         { 
@@ -27,6 +29,8 @@ namespace ColourClashNet.Colors
                 iSize = Math.Max(2, value);
             }
         }
+
+        
 
         double[,] oBase = { { 0, 2 }, { 3, 1 } };
         double dDivider = 4;
@@ -101,14 +105,14 @@ namespace ColourClashNet.Colors
                     dMean += oThMat[r, c];
                 }
             }
-            dMean /= iS * iS;
-            for (int r = 0; r < iS; r++)
-            {
-                for (int c = 0; c < iS; c++)
-                {
-                    oThMat[r, c] -= dMean;
-                }
-            }
+            //dMean /= iS * iS;
+            //for (int r = 0; r < iS; r++)
+            //{
+            //    for (int c = 0; c < iS; c++)
+            //    {
+            //        oThMat[r, c] -= dMean;
+            //    }
+            //}
 
             return true;            
         }
@@ -124,7 +128,8 @@ namespace ColourClashNet.Colors
                 return null;
             }
             int S = oThMat.GetLength(0);
-            double spread = 256.0 / S;// oDataProcessedPalette.Count;
+
+            double spread = 127.0;
             int R = oDataOriginal.GetLength(0);
             int C = oDataOriginal.GetLength(1);
             var oRet = new int[R, C];
