@@ -60,7 +60,7 @@ namespace ColourClashNet.Colors
                     oCols[0, c] = oSource[r, c];
                 }
                 oTrasf.Create(oCols);
-                var oColsTrasf = oTrasf.Transform(oCols);
+                var oColsTrasf = oTrasf.Transform(oCols, null);
                 if (oColsTrasf == null)
                 {
                     for (int c = 0; c < C; c++)

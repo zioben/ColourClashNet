@@ -112,9 +112,26 @@ namespace ColourClashNet.Colors
                     var oCol = ColorIntExt.FromRGB(iR, iG, iB);
                     oHashSet.Add(oCol);
                     oRet[r, c] = oCol;
-                }
             }
             
+            var oColorTransformation = new Dictionary<int, int>();
+            foreach (var col in oHashSet)
+            {
+                oColorTransformation.Add(col, ColorTransformBase.GetNearestColor(col, oDataProcessedPalette, eDistanceMode));
+            }
+            var oRet2 = new int[R, C];
+            Parallel.For(0, R, r =>
+            {
+                for (int c = 0; c < C; c++)
+                {
+                    var col = oRet[r, c];
+                    if (col < 0 || !oColorTransformation.ContainsKey(col))
+                        oRet2[r, c] = -1;
+                    else
+                        oRet2[r, c] = oColorTransformation[col];
+
+                }
+            });
 
             return oRet;
             

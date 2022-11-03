@@ -20,8 +20,8 @@ namespace ColourClashNet.Colors
 
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.All;
 
-        abstract protected void CreateTrasformationMap();
-        abstract public int[,]? Transform( int[,]? oDataSource );
+        abstract protected void BuildTrasformation();
+        abstract public int[,] Transform( int[,] oDataSource );
 
         public string Name { get; protected set; } = "";
         public string Description { get; protected set; } = "";
@@ -56,18 +56,9 @@ namespace ColourClashNet.Colors
             hashColorsPalette.Remove(-1);
         }
 
-        public void Create(List<int>? oColorPalette)
+        public void Create(ColorTransformInterface oTrasformationSource)
         {
-            Reset();
-            if (oColorPalette == null)
-                return;
-            foreach (var col in oColorPalette)
-            {
-                oColorHistogram.Add(col, col);
-                hashColorsPalette.Add(col);
-            }
-            CreateTrasformationMap();
-            hashColorsPalette.Remove(-1);
+            Create(oTrasformationSource?.oColorHistogram);
         }
 
       

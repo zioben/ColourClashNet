@@ -73,7 +73,7 @@ namespace ColourClashNet.Colors
             }
         }
 
-        public override int[,]? Transform(int[,]? oSource )
+        public override int[,] Transform(int[,] oSource)
         {
             if (oSource == null)
                 return null;

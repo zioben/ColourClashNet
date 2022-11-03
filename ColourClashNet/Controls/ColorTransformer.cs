@@ -235,7 +235,7 @@ namespace ColourClashNet.Controls
             oTrBkgRemover.ColorBackgroundList = BackgroundColorList;
             oTrBkgRemover.ColorBackground = BackgroundColorOut;
             oTrBkgRemover.Create(oTrIdentity.oColorHistogram);
-            var mDataBkgRemoved = oTrBkgRemover.Transform(mDataSource);
+            var mDataBkgRemoved = oTrBkgRemover.Transform(mDataSource,null);
             return mDataBkgRemoved;
         }
 
@@ -254,32 +254,6 @@ namespace ColourClashNet.Controls
 
             ColorsProcessed = ColorsQuantized = oTrQuantization.ColorsUsed;
             mDataQuantized = oTrQuantization.Transform(oTrBkgRemover.Transform(mDataSource));
-
-/*            if (Dithering != ColorDithering.None)
-            {
-                ColorDitherOrdered oDither = new ColorDitherOrdered();
-                switch (Dithering)
-                {
-                    case ColorDithering.Ordered_2x2:
-                        oDither.Size = 2;
-                        break;
-                    case ColorDithering.Ordered_4x4:
-                        oDither.Size = 4;
-                        break;
-                    case ColorDithering.Ordered_8x8:
-                        oDither.Size = 8;
-                        break;
-                    default:
-                        break;
-                }
-               // mDataQuantizedTmp = oDither.Dither(mDataQuantizedTmp, oTrQuantization.oColorTransformationPalette, mDataSource, ColorDistanceEvaluationMode);
-            }
-*/
-//            ColorDitherFloysSteinberg oFS = new ColorDitherFloysSteinberg();
-  //          oFS.Create();
-    //        var mDataQuantizedTmp2 = oFS.Dither(mDataQuantizedTmp, oTrQuantization.oColorTransformationPalette, mDataSource, ColorDistanceEvaluationMode);
-  //          mDataQuantized = mDataQuantizedTmp2.Clone() as int[,];//  oTrQuantization.Transform(mDataQuantizedTmp2);
-
             mDataProcessed = mDataQuantized.Clone() as int[,];
             RebuildImageOutput();
             OnQuantize?.Invoke(this, new EventArgsTransformation 
@@ -350,7 +324,7 @@ namespace ColourClashNet.Controls
             oTrasf.MaxColors = iMaxColor;
             oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
             oTrasf.Create(mDataQuantized);
-            mDataProcessed = ApplyDither(oTrasf, mDataQuantized);
+            mDataProcessed = oTrasf.Transform(mDataQuantized);
             OnProcess?.Invoke(this, new EventArgsTransformation
             {
                 DataDest = mDataQuantized,
@@ -369,7 +343,7 @@ namespace ColourClashNet.Controls
             oTrasf.UseClusterColorMean = bUseMean;
             oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
             oTrasf.Create(mDataQuantized);
-            mDataProcessed = ApplyDither( oTrasf, mDataQuantized);
+            mDataProcessed = oTrasf.Transform(mDataQuantized);
             OnProcess?.Invoke(this, new EventArgsTransformation
             {
                 DataDest = mDataQuantized,
@@ -389,23 +363,7 @@ namespace ColourClashNet.Controls
             oTrasf.ClusteringUseMean = bClusterUseMean;
             oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
             oTrasf.Create(mDataQuantized);
-            mDataProcessed = ApplyDither(oTrasf,mDataQuantized);
-            OnProcess?.Invoke(this, new EventArgsTransformation
-            {
-                DataDest = mDataQuantized,
-                DataSource = mDataSource,
-                Transformation = oTrasf
-            });
-        }
-
-        public void ReduceColorsZXSpectrum()
-        {
-            if (mDataSource == null)
-                return;
-            var oTrasf = new ColorTransformReductionZxSpectrum();
-            oTrasf.MaxColors = 16;
-            oTrasf.Create(mDataQuantized);
-            mDataProcessed = ApplyDither(oTrasf, mDataQuantized);
+            mDataProcessed = oTrasf.Transform(mDataQuantized);
             OnProcess?.Invoke(this, new EventArgsTransformation
             {
                 DataDest = mDataQuantized,

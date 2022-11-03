@@ -114,7 +114,7 @@ namespace ColourClashNet.Colors
         }
 
         public override int[,] Dither(int[,] oDataProcessed, List<int> oDataProcessedPalette, int[,] oDataOriginal, ColorDistanceEvaluationMode eMode )
-        { 
+        {
             if (oDataProcessedPalette == null || oDataProcessedPalette.Count == 0)
             {
                 return null;
