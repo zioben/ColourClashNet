@@ -17,6 +17,7 @@ namespace ColourClashNet.Colors
         Dictionary<int, int> oColorHistogram { get; }
         Dictionary<int, int> oColorTransformationMap { get; }
         List<int> oColorTransformationPalette { get; }
+        ColorDitherInterface? Dithering { get; set; }
 
         int ColorsUsed {get; }
     }

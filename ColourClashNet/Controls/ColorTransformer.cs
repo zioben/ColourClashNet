@@ -34,21 +34,26 @@ namespace ColourClashNet.Controls
         }
 
 
-
-       
+        #region Data processed
 
         int[,] mDataSource = null;
         int[,] mDataQuantized = null;
         int[,] mDataProcessed = null;
 
-        // Needed to build source 
+        #endregion
+
+        #region Windows objects
 
         public Image ImageSource { get; private set; }
         public Image ImageQuantized { get; private set; }
         public Image ImageProcessed { get; private set; }
+
+        #endregion
+
+        #region Properties
         public int ImageSourceColors => oTrIdentity?.ColorsUsed ?? 0;
         public int ImageQuantizedColors => oTrQuantization?.ColorsUsed ?? 0;
-        public int ImageProcessedColors => oTrLast?.ColorsUsed ?? 0;
+        public int ImageProcessedColors => lTransform.LastOrDefault()?.ColorsUsed ?? 0;
         public int ImageWidth => ImageSource?.Width ?? 0;
         public int ImageHeight => ImageSource?.Height ?? 0;
 
@@ -77,20 +82,27 @@ namespace ColourClashNet.Controls
 
         public bool ClusteringUseMeanColor { get; set; } = true;
         public bool ScanlineClustering { get; set; } = true;
-
         public ColorTransform ColorTransformAlgorithm { get; set; } = ColorTransform.None;
 
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode = ColorDistanceEvaluationMode.RGB;
         public ColorQuantizationMode ColorQuantizationMode { get; set; } = ColorQuantizationMode.Unknown;
         public ColorDithering DitheringAlgorithm { get; set; } = ColorDithering.FloydSteinberg;
         public double DiteringStrenght { get; set; } = 1.0;
-
         public List<int> BackgroundColorList { get; set; } = new List<int>();
         public int BackgroundColorReplacement { get; set; } = 0;
 
+        #endregion
+
+        #region Trasformations
+
         private ColorTransformIdentity oTrIdentity = new ColorTransformIdentity();
         private ColorTransformQuantization oTrQuantization = new ColorTransformQuantization();
-        private ColorTransformInterface oTrLast;
+        private List<ColorTransformInterface> lTransform = new List<ColorTransformInterface>();
+
+        #endregion
+
+
+       // private ColorTransformInterface oTrLast;
 
         public event EventHandler OnReset;
         public event EventHandler OnCreate;
@@ -112,7 +124,7 @@ namespace ColourClashNet.Controls
 
             oTrIdentity = new ColorTransformIdentity();
             oTrQuantization = new ColorTransformQuantization();
-            oTrLast = null;
+            lTransform = new List<ColorTransformInterface>();
 
             OnReset?.Invoke(this, EventArgs.Empty);
         }
@@ -193,18 +205,13 @@ namespace ColourClashNet.Controls
         void RegisterEvents()
         {
             OnProcess += ColorTransformer_OnProcess;
-            OnQuantize += ColorTransformer_OnQuantize;
         }
 
-        private void ColorTransformer_OnQuantize(object? sender, EventArgsTransformation e)
-        {
-            oTrLast = e.Transformation;
-        }
+     
 
         private void ColorTransformer_OnProcess(object? sender, EventArgsTransformation e)
         {
-            oTrLast = e.Transformation;
-            ToPalette(oTrLast.oColorTransformationMap.Select(X=>X.Value).ToList());
+            ToPalette(lTransform.LastOrDefault()?.oColorTransformationMap.Select(X=>X.Value).ToList());
             RebuildImageOutput();
         }
 
@@ -220,7 +227,7 @@ namespace ColourClashNet.Controls
             {
                 DataDest = mDataProcessed,
                 DataSource = mDataSource,
-                Transformation = oTrLast,
+                Transformation = lTransform.LastOrDefault(),
             });
         }
 
@@ -265,9 +272,12 @@ namespace ColourClashNet.Controls
             oTrBkgRemover.ColorBackgroundList = BackgroundColorList;
             oTrBkgRemover.ColorBackground = BackgroundColorReplacement;
             oTrBkgRemover.Create(oTrIdentity.oColorHistogram);
+            lTransform.Add(oTrBkgRemover);
 
             oTrQuantization.QuantizationMode = ColorQuantizationMode;
             oTrQuantization.Create(oTrBkgRemover.oColorHistogram);
+            lTransform.Add(oTrQuantization);
+
             mDataQuantized = oTrQuantization.Transform(oTrBkgRemover.Transform(mDataSource));
             mDataProcessed = mDataQuantized.Clone() as int[,];
             RebuildImageOutput();
@@ -293,43 +303,43 @@ namespace ColourClashNet.Controls
             if (oDataOriginal == null)
                 return null;
             oTransform.Create(oDataOriginal);
+            lTransform.Add(oTransform);
             int[,]? oDataProc = oTransform.Transform(oDataOriginal);
             switch (DitheringAlgorithm)
             {
                 case ColorDithering.None:
                     {
-                        return oDataProc?.Clone() as int[,] ?? null;
+                        oTransform.Dithering = new ColorDitherIdentity();
+                        break;
                     }
                 case ColorDithering.Ordered_2x2:
                     {
-                        var oDither = new ColorDitherOrdered() { Size = 2 };
-                        oDataProc = oDither.Dither(oDataOriginal, oDataProc, oTransform.oColorTransformationPalette,  ColorDistanceEvaluationMode);
+                        oTransform.Dithering = new ColorDitherOrdered() { Size = 2, DitheringStrenght = DiteringStrenght };
                         break;
                     }
                 case ColorDithering.Ordered_4x4:
                     {
-                        var oDither = new ColorDitherOrdered() { Size = 4 };
-                        oDataProc = oDither.Dither(oDataOriginal, oDataProc, oTransform.oColorTransformationPalette, ColorDistanceEvaluationMode);
+                        oTransform.Dithering = new ColorDitherOrdered() { Size = 4, DitheringStrenght = DiteringStrenght };
                         break;
                     }
                 case ColorDithering.Ordered_8x8:
                     {
-                        var oDither = new ColorDitherOrdered() { Size = 8,  };
-                        oDataProc = oDither.Dither(oDataOriginal, oDataProc, oTransform.oColorTransformationPalette, ColorDistanceEvaluationMode);
+                        oTransform.Dithering = new ColorDitherOrdered() { Size = 8, DitheringStrenght = DiteringStrenght };
                         break;
                     }
                 case ColorDithering.FloydSteinberg:
                     {
-                        var oDither = new ColorDitherFloysSteinberg();
-                        oDataProc = oDither.Dither(oDataOriginal, oDataProc, oTransform.oColorTransformationPalette, ColorDistanceEvaluationMode);
+                        oTransform.Dithering = new ColorDitherFloysSteinberg() { DitheringStrenght = DiteringStrenght };
                         break;
                     }
                 default:
                     return null;
             }
-            var oTrans = new ColorTransformToPalette() { ColorDistanceEvaluationMode = ColorDistanceEvaluationMode };
-            oTrans.Create(oTransform.oColorTransformationPalette);
-            var oRet = oTrans.Transform(oDataProc);
+            var oDataProcDither = oTransform.Dithering.Dither(oDataOriginal, oDataProc, oTransform.oColorTransformationPalette, ColorDistanceEvaluationMode);
+            var oTransColorRemap = new ColorTransformToPalette() { ColorDistanceEvaluationMode = ColorDistanceEvaluationMode };
+            oTransColorRemap.Create(oTransform.oColorTransformationPalette);
+            lTransform.Add(oTransColorRemap);
+            var oRet = oTransColorRemap.Transform(oDataProcDither);
             return oRet;
         }
 
@@ -382,7 +392,7 @@ namespace ColourClashNet.Controls
             mDataProcessed = TransformAndDither(oTrI, mDataQuantized);
             OnProcess?.Invoke(this, new EventArgsTransformation
             {
-                DataDest = mDataQuantized,
+                DataDest = mDataProcessed,
                 DataSource = mDataSource,
                 Transformation = oTrI,
             });
@@ -394,11 +404,13 @@ namespace ColourClashNet.Controls
         {           
             if( mDataProcessed == null )
                 return null;
+            var oTrLast = lTransform.LastOrDefault();
+            if (oTrLast == null)
+                return null;
             if (oTrLast is ColorTransformReductionScanLine)
             {
                 var oTras = oTrLast as ColorTransformReductionScanLine;
-                return ImageTools.ImageTools.CreateIndexedBitmap(mDataProcessed, oTras.ColorListRow, ImageTools.ImageWidthAlignMode.MultiplePixel16);
-                
+                return ImageTools.ImageTools.CreateIndexedBitmap(mDataProcessed, oTras.ColorListRow, ImageTools.ImageWidthAlignMode.MultiplePixel16);                
             }
             else
             {
@@ -441,6 +453,9 @@ namespace ColourClashNet.Controls
         }
         public void WriteBitplane(string sFileName, ImageTools.ImageWidthAlignMode eWidthAlignMode, bool bInterleaveData)
         {
+            var oTrLast = lTransform.LastOrDefault();
+            if (oTrLast == null)
+                return;
             if (oTrLast is ColorTransformReductionScanLine)
             {
                 var oTr = oTrLast as ColorTransformReductionScanLine;

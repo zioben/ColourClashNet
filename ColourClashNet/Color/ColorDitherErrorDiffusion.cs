@@ -99,7 +99,7 @@ namespace ColourClashNet.Colors
                 var oHashSet = new HashSet<int>();
                 for (int r = 0; r < R; r++)
                 {
-                    for (int c = 1; c < C; c++)
+                    for (int c = 0; c < C; c++)
                     {
                         var iR = Math.Max(0, oRO[r, c]);
                         var iG = Math.Max(0, oGO[r, c]);
@@ -154,16 +154,6 @@ namespace ColourClashNet.Colors
                 }
             }
 
-            if (  c < C-1 )
-                oChannelOrig[r, c + 1] += (error * 7.0 / 16);
-            if (r < R - 1)
-            {
-                oChannelOrig[r + 1, c] += (error * 5.0 / 16);
-                if( c > 0 )
-                    oChannelOrig[r + 1, c - 1] += (error * 3.0 / 16);
-                if(c < C-1)
-                    oChannelOrig[r + 1, c + 1] += (error * 1.0 / 16);
-            }
         }
 
     }

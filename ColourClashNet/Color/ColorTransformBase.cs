@@ -25,6 +25,8 @@ namespace ColourClashNet.Colors
 
         public string Name { get; protected set; } = "";
         public string Description { get; protected set; } = "";
+        public ColorDitherInterface? Dithering { get; set; } = null;
+
 
         void Reset()
         {
