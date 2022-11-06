@@ -12,14 +12,14 @@ namespace ColourClashNet.Colors
 {
     public class ColorTransformReductionCluster : ColorTransformBase
     {
-        public int MaxColors { get; set; } = -1;
+        public int ColorsMax { get; set; } = -1;
         public bool UseClusterColorMean { get; set; } = true;
         public int TrainingLoop { get; set; } = -1;
 
         protected override void CreateTrasformationMap()
         {
             SortColorsByHistogram();
-            if (oColorHistogram.Count < MaxColors)
+            if (oColorHistogram.Count < ColorsMax)
             {
                 foreach (var kvp in oColorHistogram)
                 {
@@ -38,7 +38,7 @@ namespace ColourClashNet.Colors
             foreach (var kvp in oColorHistogram)
             {
                 lColorCluster.Add(Tuple.Create(new List<int> { kvp.Key }, new Dictionary<int, int>()));
-                if (++i == MaxColors)
+                if (++i == ColorsMax)
                     break;
             }
 

@@ -32,6 +32,18 @@ namespace ColourClashNet.Colors
         HSV,
     }
 
+    public enum ColorTransform
+    {
+        None = 0,
+        ColorReductionQuantization,
+        ColorReductionFast,
+        ColorReductionClustering,
+        ColorReductionScanline,
+        ColorReductionEga,
+        ColorReductionZxSpectrum,
+        ColorReductionCBM64,
+    }
+
     public enum ColorDithering
     {
         None=0,

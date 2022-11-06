@@ -80,7 +80,7 @@ namespace ColourClashNet
             {
                 var oBmp = Bitmap.FromFile(openFileDialog1.FileName) as Bitmap;
                 oColorTransformer.BackgroundColorList = new List<int> { ColorIntExt.FromDrawingColor(pbBkColor.BackColor) };
-                oColorTransformer.BackgroundColorOut = 0;
+                oColorTransformer.BackgroundColorReplacement = 0;
                 oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
                 oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
                 oColorTransformer.Create(oBmp);
@@ -91,7 +91,7 @@ namespace ColourClashNet
         {
             BuildBkgPalette();
             oColorTransformer.BackgroundColorList = new List<int> { ColorIntExt.FromDrawingColor(pbBkColor.BackColor) };
-            oColorTransformer.BackgroundColorOut = 0;
+            oColorTransformer.BackgroundColorReplacement = 0;
             oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
             oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
             oColorTransformer.ProcessBase();
@@ -191,21 +191,22 @@ namespace ColourClashNet
 
         private void btnReduceColors_Click(object sender, EventArgs e)
         {
-            int iColors = (int)numericUpDown1.Value;
-            oColorTransformer.ReduceColorsQuantity(iColors);
+            oColorTransformer.ColorsMax = (int)numericUpDown1.Value;
+            oColorTransformer.ColorTranform(ColorTransform.ColorReductionFast);
         }
         private void btnReduceColorsScanline_Click(object sender, EventArgs e)
         {
-            int iColors = (int)numericUpDown1.Value;
-            bool bCluster = chkScanLineCluster.Checked;
-            oColorTransformer.ReduceColorsScanLine(iColors, bCluster, true);
+            oColorTransformer.ColorsMax = (int)numericUpDown1.Value;
+            oColorTransformer.ScanlineClustering = chkScanLineCluster.Checked;
+            oColorTransformer.ColorTranform(ColorTransform.ColorReductionScanline);
         }
 
         private void btnReduceColorCluster_Click(object sender, EventArgs e)
         {
-            int iColors = (int)numericUpDown1.Value;
-            int iLoop = (int)nudClusterLoop.Value;
-            oColorTransformer.ReduceColorsClustering(iColors,iLoop, true);
+            oColorTransformer.ColorsMax = (int)numericUpDown1.Value;
+            oColorTransformer.ClusteringTrainingLoop = (int)nudClusterLoop.Value;
+            oColorTransformer.ClusteringUseMeanColor = true;
+            oColorTransformer.ColorTranform(ColorTransform.ColorReductionClustering);
         }
 
         private void cbImage_SelectedIndexChanged(object sender, EventArgs e)
@@ -287,12 +288,12 @@ namespace ColourClashNet
 
         private void button1_Click(object sender, EventArgs e)
         {
-            oColorTransformer.ReduceColorsZXSpectrum();
+            oColorTransformer.ColorTranform( ColorTransform.ColorReductionZxSpectrum );
         }
 
         private void ColorAnalyzer_Load(object sender, EventArgs e)
         {
-            oColorTransformer.Dithering = ColorDithering.Ordered_2x2;
+            oColorTransformer.DitheringAlgorithm = ColorDithering.Ordered_2x2;
         }
 
     }

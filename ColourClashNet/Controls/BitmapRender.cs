@@ -339,7 +339,7 @@ namespace ColourClashNet.Controls
 
         protected void OnMouseWheel(object Sender, MouseEventArgs args)
         {
-            Trace.WriteLine($"{args.Delta}");
+//            Trace.WriteLine($"{args.Delta}");
             if (args.Delta != 0)
             {
                 if (ImageZoomMode == EnumZoom.Manual)

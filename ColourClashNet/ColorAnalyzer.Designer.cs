@@ -638,9 +638,15 @@
             // oColorTransformer
             // 
             this.oColorTransformer.BackgroundColorList = ((System.Collections.Generic.List<int>)(resources.GetObject("oColorTransformer.BackgroundColorList")));
-            this.oColorTransformer.BackgroundColorOut = 0;
+            this.oColorTransformer.BackgroundColorReplacement = 0;
+            this.oColorTransformer.ClusteringTrainingLoop = 30;
+            this.oColorTransformer.ClusteringUseMeanColor = true;
             this.oColorTransformer.ColorQuantizationMode = ColourClashNet.Colors.ColorQuantizationMode.Unknown;
-            this.oColorTransformer.Dithering = ColourClashNet.Colors.ColorDithering.Ordered_4x4;
+            this.oColorTransformer.ColorsMax = 16;
+            this.oColorTransformer.ColorTransformAlgorithm = ColourClashNet.Colors.ColorTransform.None;
+            this.oColorTransformer.DiteringStrenght = 1D;
+            this.oColorTransformer.DitheringAlgorithm = ColourClashNet.Colors.ColorDithering.Ordered_4x4;
+            this.oColorTransformer.ScanlineClustering = true;
             this.oColorTransformer.OnReset += new System.EventHandler(this.oColorTransformer_OnReset);
             this.oColorTransformer.OnCreate += new System.EventHandler(this.oColorTransformer_OnCreate);
             this.oColorTransformer.OnQuantize += new System.EventHandler<ColourClashNet.Controls.ColorTransformer.EventArgsTransformation>(this.oColorTransformer_OnQuantize);
