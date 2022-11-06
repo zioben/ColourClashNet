@@ -6,22 +6,23 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Colors
 {
-    public class ColorDitherFloysSteinberg : ColorDitherBase
+    public class ColorDitherFloysSteinberg : ColorDitherErrorDiffusion
     {
 
         public ColorDitherFloysSteinberg()
         {
-            Name = "Floyd steinberg dithering";
-            Description = "Quantization error diffusion";
+            Name = "Floyd Steinberg dithering";
+            Description = "Floyd Steinberg quantization error diffusion";
         }
 
-        double[,] oBase = { { 0, 0, 7.0 / 16 }, { 3.0 / 16, 5.0 / 16, 1.0 / 16 } };
 
         public override bool Create()
         {
+            matErrorDiffusion = new double[,] { { 0, 0, 7.0 / 16 }, { 3.0 / 16, 5.0 / 16, 1.0 / 16 } };
             return true;
         }
 
+        /*
         void SetChannel(double[,] channel, int r, int c, int iValO, int iValQ)
         {
             var quant_error = iValO - iValQ;
@@ -231,6 +232,6 @@ namespace ColourClashNet.Colors
             return oRet;
 
         }       
+    }*/
     }
-
 }

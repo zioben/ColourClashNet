@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Accessibility;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -9,6 +11,7 @@ namespace ColourClashNet.Colors
 {
     public abstract partial class ColorTransformBase : ColorTransformInterface
     {
+        static string sClass = nameof(ColorTransformBase);
 
         static int[] oColorArray = new int[256 * 256 * 256];
 
@@ -17,8 +20,6 @@ namespace ColourClashNet.Colors
         static Dictionary<int, int> CreateColorHistArray(int[,] oDataSource)
         {
             var ret = new Dictionary<int, int>();
-            if (oDataSource == null)
-                return ret;
 
             lock (oLocker)
             {
@@ -49,18 +50,23 @@ namespace ColourClashNet.Colors
 
         static Dictionary<int, int> CreateColorHist(int[,] oDataSource)
         {
+            string sMethod = nameof(CreateColorHist);
             var ret = new Dictionary<int, int>();
             if (oDataSource == null)
+            {
+                Trace.TraceError($"{sClass}.{sMethod} : Invalid data source");
                 return ret;
-
+            }
             int R = oDataSource.GetLength(0);
             int C = oDataSource.GetLength(1);
             if (R * C > 64 * 64)
             {
+                Trace.TraceInformation($"{sClass}.{sMethod} : call CreateColorHistArray");
                 return CreateColorHistArray(oDataSource);
             }
             else
             {
+                Trace.TraceInformation($"{sClass}.{sMethod} : creating HashColorHistogram");
                 var ListPixels = new List<int>(R * C);
                 var HashColorHistogram = new HashSet<int>();
                 for (int r = 0; r < R; r++)
@@ -79,31 +85,7 @@ namespace ColourClashNet.Colors
                 return ret;
             }
         }
-
-        public static List<int> CreatePalette(int[,] oData)
-        {
-            if (oData == null)
-                return new List<int>();
-            HashSet<int> palette = new HashSet<int>();
-            foreach (var k in oData)
-            {
-                palette.Add(k);
-            }
-            return palette.ToList();
-        }
-
-        public static List<int> CreatePalette(Dictionary<int, int> oDataHistogram)
-        {
-            if (oDataHistogram == null || oDataHistogram.Count == 0)
-                return new List<int>();
-
-            HashSet<int> palette = new HashSet<int>();
-            foreach (var k in oDataHistogram)
-            {
-                palette.Add(k.Key);
-            }
-            return palette.ToList();
-        }
+     
 
         public static int GetNearestColor(int iColor, List<int> oPalette, ColorDistanceEvaluationMode eMode)
         {
@@ -131,11 +113,19 @@ namespace ColourClashNet.Colors
 
         public static int[,]? ApplyTransform(int[,]? oSource, Dictionary<int, int>? oColorTransformationMap)
         {
+            string sMethod = nameof(ApplyTransform);
             if (oSource == null)
+            {
+                Trace.TraceError($"{sClass}.{sMethod} : Invalid data source");
                 return null;
+            }
             if (oColorTransformationMap == null || oColorTransformationMap.Count == 0)
+            {
+                Trace.TraceError($"{sClass}.{sMethod} : Invalid color transformation map");
                 return null;
+            }
             // var lListList = ToListList(oSource);
+            Trace.TraceInformation($"{sClass}.{sMethod} : Apply default trasformatiion");
             var R = oSource.GetLength(0);
             var C = oSource.GetLength(1);
             var oRet = new int[R, C];

@@ -10,7 +10,7 @@ namespace ColourClashNet.Colors
     public class ColorTransformReductionScanLine: ColorTransformBase
     {
 
-        public int MaxColors { get; set; } = -1;
+        public int ColorsMax { get; set; } = -1;
 
         public bool Clustering { get; set; }
         public bool ClusteringUseMean { get; set; }
@@ -38,7 +38,7 @@ namespace ColourClashNet.Colors
             if (Clustering)
             {
                 var oTrasf2 = new ColorTransformReductionCluster();
-                oTrasf2.MaxColors = MaxColors;
+                oTrasf2.ColorsMax = ColorsMax;
                 oTrasf2.UseClusterColorMean = ClusteringUseMean;    
                 oTrasf2.TrainingLoop = 30;
                 oTrasf = oTrasf2;
@@ -46,7 +46,7 @@ namespace ColourClashNet.Colors
             else
             {
                 var oTrasf2 = new ColorTransformReductionFast();
-                oTrasf2.MaxColors = MaxColors;
+                oTrasf2.ColorsMax = ColorsMax;
                 oTrasf = oTrasf2;
             }
 

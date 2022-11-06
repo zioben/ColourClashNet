@@ -10,12 +10,12 @@ namespace ColourClashNet.Colors
     public class ColorTransformReductionFast : ColorTransformBase
     {
 
-        public int MaxColors { get; set; } = -1;
+        public int ColorsMax { get; set; } = -1;
 
         protected override void CreateTrasformationMap()
         {
             SortColorsByHistogram();
-            if (oColorHistogram.Count < MaxColors)
+            if (oColorHistogram.Count < ColorsMax)
             {
                 foreach (var kvp in oColorHistogram)
                 {
@@ -25,7 +25,7 @@ namespace ColourClashNet.Colors
                 return;
             }
             var listAll = oColorHistogram.Select(X => X.Key).ToList();
-            var listMax = listAll.Take(MaxColors).ToList();
+            var listMax = listAll.Take(ColorsMax).ToList();
             listAll.ForEach(X =>
             {
                 var dMin = listMax.Min(Y => Y.Distance(X,ColorDistanceEvaluationMode));

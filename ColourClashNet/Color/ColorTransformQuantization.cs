@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -10,6 +11,7 @@ namespace ColourClashNet.Colors
     public class ColorTransformQuantization: ColorTransformBase
     {
 
+        static string sClass = nameof(ColorTransformQuantization);
         public ColorTransformQuantization()
         {
             Name = "Quantizator";
@@ -69,6 +71,10 @@ namespace ColourClashNet.Colors
 
         protected override void CreateTrasformationMap()
         {
+
+            string sMethod = nameof(CreateTrasformationMap);
+            Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Creating trasformation map");
+
             foreach (var kvp in oColorHistogram)
             {
                 int iCol = Quantize(kvp.Value, QuantizationMode);
@@ -78,6 +84,9 @@ namespace ColourClashNet.Colors
 
         public override int[,] Transform(int[,] oSource)
         {
+            string sMethod = nameof(Transform);
+            Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : apply trasformation");
+
             if (oSource == null)
                 return null;
 

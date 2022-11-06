@@ -17,7 +17,7 @@ namespace ColourClashNet.Colors
             Description = "Reduce color to ZX Spectrum color map and apply Colourclash reduction";
         }
 
-        public int MaxColors { get; set; } = -1;
+        public int ColorsMax => 16;
 
         protected override void CreateTrasformationMap()
         {
@@ -38,7 +38,7 @@ namespace ColourClashNet.Colors
             hashColorsPalette.Add(0x00ffff00);
             hashColorsPalette.Add(0x00ffffff);
 
-            if (oColorHistogram.Count < MaxColors)
+            if (oColorHistogram.Count < ColorsMax)
             {
                 foreach (var kvp in oColorHistogram)
                 {

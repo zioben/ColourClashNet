@@ -10,8 +10,10 @@ namespace ColourClashNet.Colors
     { 
         string Name { get; }
         string Description { get; }
+        double DitheringStrenght { get; set; }
         public bool Create();
 
-        int[,] Dither(int[,] oDataProcessed, List<int> oDataProcessedPalette, int[,] oDataOriginal, ColorDistanceEvaluationMode eDistanceMode);
+        int[,]? Dither(int[,]? oDataSource, int[,]? oDataProcessed, List<int>? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode);
+
     }
 }

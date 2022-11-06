@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,7 +9,7 @@ namespace ColourClashNet.Colors
 {
     public class ColorDitherOrdered : ColorDitherBase
     {
-
+        static string sClass = nameof(ColorDitherOrdered);
         public ColorDitherOrdered()
         {
             Name = "Ordered dithering";
@@ -128,37 +129,50 @@ namespace ColourClashNet.Colors
             return true;            
         }
 
-        public override int[,] Dither(int[,] oDataProcessed, List<int> oDataProcessedPalette, int[,] oDataOriginal, ColorDistanceEvaluationMode eMode )
+        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, List<int>? oDataProcessedPalette,  ColorDistanceEvaluationMode eMode )
         {
-            if (oDataProcessedPalette == null || oDataProcessedPalette.Count == 0)
+            string sMethod = nameof(Dither);
+            try
             {
-                return null;
-            }
-            if (!Create())
-            {
-                return null;
-            }
-            int S = oThMat.GetLength(0);
-
-            double spread = 127.0;
-            int R = oDataOriginal.GetLength(0);
-            int C = oDataOriginal.GetLength(1);
-            var oRet = new int[R, C];
-            for (int r = 0; r < R; r++)
-            {
-                for (int c = 0; c < C; c++)
+                if (oDataProcessedPalette == null || oDataProcessedPalette.Count == 0)
                 {
-                    int col = oDataOriginal[r, c];
-                    var dV = spread * oThMat[r % S, c % S];
-                    var cr = Math.Max(0, col.ToR() + dV);
-                    var cg = Math.Max(0, col.ToG() + dV);
-                    var cb = Math.Max(0, col.ToB() + dV);
-                    var iCol = ColorIntExt.FromRGB(cr, cg, cb);
-                    oRet[r, c] = iCol;
+                    Trace.TraceError($"{sClass}.{sMethod} ({Name}) : Invalid input data");
+                    return null;
                 }
+                if (!Create())
+                {
+                    Trace.TraceError($"{sClass}.{sMethod} ({Name}) : Creation error");
+                    return null;
+                }
+
+                Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Dithering");
+                int S = oThMat.GetLength(0);
+
+                double spread = 127.0;
+                int R = oDataOriginal.GetLength(0);
+                int C = oDataOriginal.GetLength(1);
+                var oRet = new int[R, C];
+                for (int r = 0; r < R; r++)
+                {
+                    for (int c = 0; c < C; c++)
+                    {
+                        int col = oDataOriginal[r, c];
+                        var dV = spread * DitheringStrenght * oThMat[r % S, c % S];
+                        var cr = Math.Max(0, col.ToR() + dV);
+                        var cg = Math.Max(0, col.ToG() + dV);
+                        var cb = Math.Max(0, col.ToB() + dV);
+                        var iCol = ColorIntExt.FromRGB(cr, cg, cb);
+                        oRet[r, c] = iCol;
+                    }
+                }
+                Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Dithering completed");
+                return oRet;
             }
-            //var oRetPro = Transform(oRet, oDataProcessedPalette, eMode);
-            return oRet;// Pro;
+            catch (Exception ex)
+            {
+                Trace.TraceError($"{sClass}.{sMethod} ({Name}) : Invalid input data");
+                return null;
+            }
         }
     }
 }

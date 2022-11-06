@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -9,7 +10,7 @@ namespace ColourClashNet.Colors
 {
     public class ColorTransformBkgRemover : ColorTransformBase
     {
-
+        static string sClass = nameof(ColorTransformBkgRemover);
         public ColorTransformBkgRemover()
         {
             Name = "Bkg Remover";
@@ -19,10 +20,10 @@ namespace ColourClashNet.Colors
         public List<int> ColorBackgroundList { get; set; } = new List<int>();
         public int ColorBackground { get; set; } = 0;
 
-      
-
         protected override void CreateTrasformationMap()
         {
+            string sMethod = nameof(CreateTrasformationMap);
+            Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Creating trasformation map");
             foreach (var kvp in oColorHistogram)
             {
                 hashColorsPalette.Add(kvp.Key);
