@@ -329,7 +329,8 @@ namespace ColourClashNet.Controls
                     }
                 case ColorDithering.FloydSteinberg:
                     {
-                        oTransform.Dithering = new ColorDitherFloysSteinberg() { DitheringStrenght = DiteringStrenght };
+                        oTransform.Dithering= new ColorDitherJJS() { DitheringStrenght = DiteringStrenght };
+                  //      oTransform.Dithering = new ColorDitherFloydSteinberg() { DitheringStrenght = DiteringStrenght };
                         break;
                     }
                 default:
