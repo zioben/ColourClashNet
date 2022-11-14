@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +20,41 @@ namespace ColourClashNet.Colors
         protected double[,] matErrorDiffusion;
 
         //        double[,] oBase = { { 0, 0, 7.0 / 16 }, { 3.0 / 16, 5.0 / 16, 1.0 / 16 } };
+
+        protected void Normalize(double dN )
+        {
+            if (matErrorDiffusion == null)
+            {
+                return;
+            }
+            if (dN == 0)
+            {
+                return;
+            }
+            int R = matErrorDiffusion.GetLength(0);
+            int C = matErrorDiffusion.GetLength(1);
+            for (int r = 0; r < R; r++)
+            {
+                for (int c = 0; c < C; c++)
+                {
+                    matErrorDiffusion[r, c] /= dN;
+                }
+            }
+        }
+
+        protected void Normalize()
+        {
+            if (matErrorDiffusion == null) 
+            {
+                return;
+            }
+            var dN = 0.0;
+            foreach (var d in matErrorDiffusion)
+            {
+                dN += d;
+            }
+            Normalize(dN);
+        }
 
 
 

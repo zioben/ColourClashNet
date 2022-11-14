@@ -51,6 +51,11 @@ namespace ColourClashNet.Colors
         Ordered_4x4,
         Ordered_8x8,
         FloydSteinberg,
+        Atkinson,
+        Burkes,
+        JarvisJudiceNinke,
+        Sierra,
+        Stucki
     }
 
     public enum Parameters

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SqlTypes;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -20,13 +21,84 @@ namespace ColourClashNet
         {
             InitializeComponent();
             oColorTransformer.BackgroundColorList = GetBkgColors();
-            oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
+            oColorTransformer.ColorQuantizationMode = ColorQuantizationMode.RGB888;//GetQuantizationMode();
             cbImage.SelectedIndex = 2;
             pbBkColor.BackColor = Color.Transparent;
+            InitMenu();
         }
 
 
         List<System.Drawing.Color> lBkgColor = new List<System.Drawing.Color>();
+        List<ToolStripMenuItem>lTsItems= new List<ToolStripMenuItem>();
+
+        void RebulidSetCheck(string sItem)
+        {
+            var ts = lTsItems.FirstOrDefault(X => X.Tag.ToString() == sItem );
+            if( ts != null)
+                ts.Checked = true;  
+        }
+
+        void RebuildChecks()
+        {
+            lTsItems.ForEach(X=>X.Checked = false);
+            RebulidSetCheck(oColorTransformer.ColorQuantizationMode.ToString());
+            RebulidSetCheck(oColorTransformer.ColorDistanceEvaluationMode.ToString());
+            RebulidSetCheck(oColorTransformer.DitheringAlgorithm.ToString());
+        }
+
+        private void TsItem_Click(object? sender, EventArgs e)
+        {
+            var oTS = sender as ToolStripMenuItem;
+            var oTag = oTS.Tag;
+            if (oTag is ColorQuantizationMode)
+            {
+                oColorTransformer.ColorQuantizationMode = (ColorQuantizationMode)oTag;
+                oColorTransformer.ProcessBase();
+            }
+            else if (oTag is ColorDistanceEvaluationMode)
+            {
+                oColorTransformer.ColorDistanceEvaluationMode = (ColorDistanceEvaluationMode)oTag;
+            }
+            else if (oTag is ColorDithering)
+            {
+                oColorTransformer.DitheringAlgorithm = (ColorDithering)oTag;
+            }
+            RebuildChecks();
+        }
+
+
+        void CreateMenuItem(ToolStripMenuItem oTsBase, object oItem )
+        {
+            if (oItem.ToString() == "Unknown")
+                return;
+            var tsItem = new System.Windows.Forms.ToolStripMenuItem();
+            tsItem.Name = oItem.ToString();
+            tsItem.Size = new System.Drawing.Size(180, 22);
+            tsItem.Text = oItem.ToString();
+            tsItem.CheckOnClick = true;
+            tsItem.Tag = oItem;
+            tsItem.Click += TsItem_Click;
+            oTsBase.DropDownItems.Add(tsItem);
+            lTsItems.Add(tsItem);
+        }
+
+        void InitMenu<T>(ToolStripMenuItem oTsBase) where T : System.Enum
+        {
+             var lColorMode = Enum.GetValues(typeof(T));
+            foreach(var X in lColorMode )
+            {
+                CreateMenuItem(oTsBase, X);
+            };
+        }
+
+        void InitMenu()
+        {
+            InitMenu<ColorQuantizationMode>(colorModeToolStripMenuItem);
+            InitMenu<ColorDistanceEvaluationMode>(colorDistanceToolStripMenuItem);
+            InitMenu<ColorDithering>(ditheringToolStripMenuItem);
+            RebuildChecks();
+        }
+
         void BuildBkgPalette()
         {
             pbBkColor.Image = null;
@@ -81,8 +153,8 @@ namespace ColourClashNet
                 var oBmp = Bitmap.FromFile(openFileDialog1.FileName) as Bitmap;
                 oColorTransformer.BackgroundColorList = new List<int> { ColorIntExt.FromDrawingColor(pbBkColor.BackColor) };
                 oColorTransformer.BackgroundColorReplacement = 0;
-                oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
-                oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
+             //   oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
+             //   oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
                 oColorTransformer.Create(oBmp);
             }
         }
@@ -92,30 +164,30 @@ namespace ColourClashNet
             BuildBkgPalette();
             oColorTransformer.BackgroundColorList = new List<int> { ColorIntExt.FromDrawingColor(pbBkColor.BackColor) };
             oColorTransformer.BackgroundColorReplacement = 0;
-            oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
-            oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
+            // oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
+            // oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
             oColorTransformer.ProcessBase();
         }
 
         private void pictureBox1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (!fullColorToolStripMenuItem.Checked)
-                return;
-            if (e.Button == MouseButtons.Left)
-            {
-                using (Bitmap bmp = new Bitmap(pictureBoxSrc.ClientSize.Width, pictureBoxSrc.Height))
-                {
-                    pictureBoxSrc.DrawToBitmap(bmp, pictureBoxSrc.ClientRectangle);
-                    try
-                    {
-                        lBkgColor.Add(bmp.GetPixel(e.X, e.Y));
-                        Reprocess();
-                    }
-                    catch
-                    {
-                    }
-                }
-            }
+            //if (!fullColorToolStripMenuItem.Checked)
+            //    return;
+            //if (e.Button == MouseButtons.Left)
+            //{
+            //    using (Bitmap bmp = new Bitmap(pictureBoxSrc.ClientSize.Width, pictureBoxSrc.Height))
+            //    {
+            //        pictureBoxSrc.DrawToBitmap(bmp, pictureBoxSrc.ClientRectangle);
+            //        try
+            //        {
+            //            lBkgColor.Add(bmp.GetPixel(e.X, e.Y));
+            //            Reprocess();
+            //        }
+            //        catch
+            //        {
+            //        }
+            //    }
+            //}
         }
 
 
@@ -132,62 +204,62 @@ namespace ColourClashNet
             return ImageWidthAlignMode.MultiplePixel16;
         }
 
-        ColorQuantizationMode GetQuantizationMode()
-        {
-            if (fullColorToolStripMenuItem.Checked)
-                return ColorQuantizationMode.RGB888;
-            if (rGB3ToolStripMenuItem.Checked)
-                return ColorQuantizationMode.RGB333;
-            if (rGB4ToolStripMenuItem.Checked)
-                return ColorQuantizationMode.RGB444;
-            if (rGB5ToolStripMenuItem.Checked)
-                return ColorQuantizationMode.RGB555;
-            if (hiColorToolStripMenuItem.Checked)
-                return ColorQuantizationMode.RGB565;
-            return ColorQuantizationMode.RGB888;
-        }
+        //ColorQuantizationMode GetQuantizationMode()
+        //{
+        //    if (fullColorToolStripMenuItem.Checked)
+        //        return ColorQuantizationMode.RGB888;
+        //    if (rGB3ToolStripMenuItem.Checked)
+        //        return ColorQuantizationMode.RGB333;
+        //    if (rGB4ToolStripMenuItem.Checked)
+        //        return ColorQuantizationMode.RGB444;
+        //    if (rGB5ToolStripMenuItem.Checked)
+        //        return ColorQuantizationMode.RGB555;
+        //    if (hiColorToolStripMenuItem.Checked)
+        //        return ColorQuantizationMode.RGB565;
+        //    return ColorQuantizationMode.RGB888;
+        //}
 
-        ColorDistanceEvaluationMode GetColorDistanceMode()
-        {
-            if (rGBToolStripMenuItem.Checked)
-                return ColorDistanceEvaluationMode.RGB;
-            if( hSVToolStripMenuItem.Checked)
-                return ColorDistanceEvaluationMode.HSV;
-            if (aLLToolStripMenuItem.Checked)
-                return ColorDistanceEvaluationMode.All;
-            return ColorDistanceEvaluationMode.RGB;
-        }
+        //ColorDistanceEvaluationMode GetColorDistanceMode()
+        //{
+        //    if (rGBToolStripMenuItem.Checked)
+        //        return ColorDistanceEvaluationMode.RGB;
+        //    if( hSVToolStripMenuItem.Checked)
+        //        return ColorDistanceEvaluationMode.HSV;
+        //    if (aLLToolStripMenuItem.Checked)
+        //        return ColorDistanceEvaluationMode.All;
+        //    return ColorDistanceEvaluationMode.RGB;
+        //}
 
-        void ResetTsColor(object sender, EventArgs e)
-        {
-            ToolStripMenuItem oItem = sender as ToolStripMenuItem;
-            if ( oItem != fullColorToolStripMenuItem )
-                fullColorToolStripMenuItem.Checked = false;
-            if (oItem != rGB3ToolStripMenuItem)
-                rGB3ToolStripMenuItem.Checked = false;
-            if (oItem != rGB4ToolStripMenuItem)
-                rGB4ToolStripMenuItem.Checked = false;
-            if (oItem != rGB5ToolStripMenuItem)
-                rGB5ToolStripMenuItem.Checked = false;
-            if (oItem != hiColorToolStripMenuItem)
-                rGB5ToolStripMenuItem.Checked = false;
-            oItem.Checked = true;
-            Reprocess();
-        }
+        //void ResetTsColor(object sender, EventArgs e)
+        //{
+        //    ToolStripMenuItem oItem = sender as ToolStripMenuItem;
+        //    if ( oItem != fullColorToolStripMenuItem )
+        //        fullColorToolStripMenuItem.Checked = false;
+        //    if (oItem != rGB3ToolStripMenuItem)
+        //        rGB3ToolStripMenuItem.Checked = false;
+        //    if (oItem != rGB4ToolStripMenuItem)
+        //        rGB4ToolStripMenuItem.Checked = false;
+        //    if (oItem != rGB5ToolStripMenuItem)
+        //        rGB5ToolStripMenuItem.Checked = false;
+        //    if (oItem != hiColorToolStripMenuItem)
+        //        rGB5ToolStripMenuItem.Checked = false;
+        //    oItem.Checked = true;
+        //    Reprocess();
+        //}
 
-        void ResetTsColorDistance(object sender, EventArgs e)
-        {
-            ToolStripMenuItem oItem = sender as ToolStripMenuItem;
-            if (oItem != rGBToolStripMenuItem)
-                rGBToolStripMenuItem.Checked = false;
-            if (oItem != hSVToolStripMenuItem)
-                hSVToolStripMenuItem.Checked = false;
-            if (oItem != aLLToolStripMenuItem)
-                aLLToolStripMenuItem.Checked = false;
-            oItem.Checked = true;
+        //void ResetTsColorDistance(object sender, EventArgs e)
+        //{
+        //    ToolStripMenuItem oItem = sender as ToolStripMenuItem;
+        //    if (oItem != rGBToolStripMenuItem)
+        //        rGBToolStripMenuItem.Checked = false;
+        //    if (oItem != hSVToolStripMenuItem)
+        //        hSVToolStripMenuItem.Checked = false;
+        //    if (oItem != aLLToolStripMenuItem)
+        //        aLLToolStripMenuItem.Checked = false;
+        //    oItem.Checked = true;
 
-            oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
-        }
+        //    oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
+        //}
 
         private void btnReduceColors_Click(object sender, EventArgs e)
         {
@@ -296,5 +368,9 @@ namespace ColourClashNet
             oColorTransformer.DitheringAlgorithm = ColorDithering.FloydSteinberg;
         }
 
+        private void button2_Click(object sender, EventArgs e)
+        {
+            oColorTransformer.ColorTranform(ColorTransform.ColorReductionEga);
+        }
     }
 }

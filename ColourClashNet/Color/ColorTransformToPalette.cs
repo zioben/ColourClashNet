@@ -11,8 +11,8 @@ namespace ColourClashNet.Colors
 
         public ColorTransformToPalette()
         {
-            Name = "Identity";
-            Description = "1:1 Color transformation";
+            Name = "Palette Mapper";
+            Description = "Color palette trasformation";
         }
 
         protected override void CreateTrasformationMap()

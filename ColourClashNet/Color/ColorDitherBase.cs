@@ -18,6 +18,7 @@ namespace ColourClashNet.Colors
 
         public abstract bool Create();
 
+       
         public abstract int[,]? Dither(int[,]? oDataSource, int[,]? oDataProcessed, List<int>? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode);
 
 /*        protected int[,]? Transform(int[,] oDataProcessed, List<int> oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode)

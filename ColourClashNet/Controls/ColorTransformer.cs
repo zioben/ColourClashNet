@@ -83,8 +83,7 @@ namespace ColourClashNet.Controls
         public bool ClusteringUseMeanColor { get; set; } = true;
         public bool ScanlineClustering { get; set; } = true;
         public ColorTransform ColorTransformAlgorithm { get; set; } = ColorTransform.None;
-
-        public ColorDistanceEvaluationMode ColorDistanceEvaluationMode = ColorDistanceEvaluationMode.RGB;
+        public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
         public ColorQuantizationMode ColorQuantizationMode { get; set; } = ColorQuantizationMode.Unknown;
         public ColorDithering DitheringAlgorithm { get; set; } = ColorDithering.FloydSteinberg;
         public double DiteringStrenght { get; set; } = 1.0;
@@ -307,35 +306,42 @@ namespace ColourClashNet.Controls
             int[,]? oDataProc = oTransform.Transform(oDataOriginal);
             switch (DitheringAlgorithm)
             {
-                case ColorDithering.None:
-                    {
-                        oTransform.Dithering = new ColorDitherIdentity();
-                        break;
-                    }
-                case ColorDithering.Ordered_2x2:
-                    {
-                        oTransform.Dithering = new ColorDitherOrdered() { Size = 2, DitheringStrenght = DiteringStrenght };
-                        break;
-                    }
-                case ColorDithering.Ordered_4x4:
-                    {
-                        oTransform.Dithering = new ColorDitherOrdered() { Size = 4, DitheringStrenght = DiteringStrenght };
-                        break;
-                    }
-                case ColorDithering.Ordered_8x8:
-                    {
-                        oTransform.Dithering = new ColorDitherOrdered() { Size = 8, DitheringStrenght = DiteringStrenght };
-                        break;
-                    }
+                case ColorDithering.Atkinson:
+                        oTransform.Dithering = new ColorDitherAtkinson();
+                    break;
+                case ColorDithering.Burkes:
+                    oTransform.Dithering = new ColorDitherBurkes();
+                    break;
                 case ColorDithering.FloydSteinberg:
-                    {
-                        oTransform.Dithering = new ColorDitherFloysSteinberg() { DitheringStrenght = DiteringStrenght };
+                        oTransform.Dithering = new ColorDitherFloydSteinberg();
                         break;
-                    }
+                case ColorDithering.JarvisJudiceNinke:
+                    oTransform.Dithering = new ColorDitherJJS();
+                    break;
+                case ColorDithering.None:
+                    oTransform.Dithering = new ColorDitherIdentity();
+                    break;
+                case ColorDithering.Ordered_2x2:
+                        oTransform.Dithering = new ColorDitherOrdered() { Size = 2 };
+                        break;
+                case ColorDithering.Ordered_4x4:
+                        oTransform.Dithering = new ColorDitherOrdered() { Size = 4 };
+                        break;
+                case ColorDithering.Ordered_8x8:
+                        oTransform.Dithering = new ColorDitherOrdered() { Size = 8 };
+                        break;
+                case ColorDithering.Sierra:
+                    oTransform.Dithering = new ColorDitherSierra();
+                    break;
+                case ColorDithering.Stucki:
+                    oTransform.Dithering = new ColorDitherStucki();
+                    break;
+
                 default:
                     return null;
             }
-            var oDataProcDither = oTransform.Dithering.Dither(oDataOriginal, oDataProc, oTransform.oColorTransformationPalette, ColorDistanceEvaluationMode);
+            oTransform.Dithering.DitheringStrenght = DiteringStrenght;
+            var oDataProcDither = oTransform.Dithering.Dither(mDataSource, oDataProc, oTransform.oColorTransformationPalette, ColorDistanceEvaluationMode);
             var oTransColorRemap = new ColorTransformToPalette() { ColorDistanceEvaluationMode = ColorDistanceEvaluationMode };
             oTransColorRemap.Create(oTransform.oColorTransformationPalette);
             lTransform.Add(oTransColorRemap);
@@ -381,6 +387,12 @@ namespace ColourClashNet.Controls
                 case ColorTransform.ColorReductionZxSpectrum:
                     {
                         var oTrasf = new ColorTransformReductionZxSpectrum();
+                        oTrI = oTrasf;
+                    }
+                    break;
+                case ColorTransform.ColorReductionEga:
+                {
+                        var oTrasf = new ColorTransformReductionEga();
                         oTrI = oTrasf;
                     }
                     break;

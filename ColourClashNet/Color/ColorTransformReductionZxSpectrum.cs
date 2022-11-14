@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Colors
 {
-    public class ColorTransformReductionZxSpectrum : ColorTransformBase
+    public class ColorTransformReductionZxSpectrum : ColorTransformToPalette
     {
 
 
@@ -17,11 +17,9 @@ namespace ColourClashNet.Colors
             Description = "Reduce color to ZX Spectrum color map and apply Colourclash reduction";
         }
 
-        public int ColorsMax => 16;
-
         protected override void CreateTrasformationMap()
         {
-
+            hashColorsPalette.Clear();
             hashColorsPalette.Add(0x00000000);
             hashColorsPalette.Add(0x000000ee);
             hashColorsPalette.Add(0x00ee0000);
@@ -37,28 +35,6 @@ namespace ColourClashNet.Colors
             hashColorsPalette.Add(0x0000ffff);
             hashColorsPalette.Add(0x00ffff00);
             hashColorsPalette.Add(0x00ffffff);
-
-            if (oColorHistogram.Count < ColorsMax)
-            {
-                foreach (var kvp in oColorHistogram)
-                {
-                    oColorTransformationMap[kvp.Key] = kvp.Key;
-                }
-                return;
-            }
-            var listAll = oColorHistogram.Select(X => X.Key).ToList();
-            var listMax = hashColorsPalette;
-            listAll.ForEach(X =>
-            {
-                var dMin = listMax.Min(Y => Y.Distance(X,ColorDistanceEvaluationMode));
-                var oItem = listMax.FirstOrDefault(Y => Y.Distance(X,ColorDistanceEvaluationMode) == dMin);
-                oColorTransformationMap[X] = oItem; 
-            });
-        }
-
-        public override int[,]? Transform(int[,]? oDataSource)
-        {
-            return base.ApplyTransform(oDataSource);
         }
     }
 }

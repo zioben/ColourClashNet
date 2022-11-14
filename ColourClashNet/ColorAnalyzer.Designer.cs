@@ -47,19 +47,13 @@
             this.rawBitplaneAndOCSCopperlistToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sourceCodeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.colorModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.fullColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.rGB3ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.rGB4ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.rGB5ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.hiColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.colorDistanceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.rGBToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.hSVToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.aLLToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ditheringToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
+            this.button2 = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.cbImage = new System.Windows.Forms.ComboBox();
@@ -110,7 +104,8 @@
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
             this.colorModeToolStripMenuItem,
-            this.colorDistanceToolStripMenuItem});
+            this.colorDistanceToolStripMenuItem,
+            this.ditheringToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(1021, 24);
@@ -235,90 +230,22 @@
             // 
             // colorModeToolStripMenuItem
             // 
-            this.colorModeToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fullColorToolStripMenuItem,
-            this.rGB3ToolStripMenuItem,
-            this.rGB4ToolStripMenuItem,
-            this.rGB5ToolStripMenuItem,
-            this.hiColorToolStripMenuItem});
             this.colorModeToolStripMenuItem.Name = "colorModeToolStripMenuItem";
-            this.colorModeToolStripMenuItem.Size = new System.Drawing.Size(79, 20);
+            this.colorModeToolStripMenuItem.Size = new System.Drawing.Size(87, 20);
             this.colorModeToolStripMenuItem.Tag = "FullColor";
-            this.colorModeToolStripMenuItem.Text = "ColorMode";
-            // 
-            // fullColorToolStripMenuItem
-            // 
-            this.fullColorToolStripMenuItem.Checked = true;
-            this.fullColorToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.fullColorToolStripMenuItem.Name = "fullColorToolStripMenuItem";
-            this.fullColorToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
-            this.fullColorToolStripMenuItem.Tag = "FullColor";
-            this.fullColorToolStripMenuItem.Text = "FullColor";
-            this.fullColorToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColor);
-            // 
-            // rGB3ToolStripMenuItem
-            // 
-            this.rGB3ToolStripMenuItem.Name = "rGB3ToolStripMenuItem";
-            this.rGB3ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
-            this.rGB3ToolStripMenuItem.Tag = "RGB3";
-            this.rGB3ToolStripMenuItem.Text = "RGB333";
-            this.rGB3ToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColor);
-            // 
-            // rGB4ToolStripMenuItem
-            // 
-            this.rGB4ToolStripMenuItem.Name = "rGB4ToolStripMenuItem";
-            this.rGB4ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
-            this.rGB4ToolStripMenuItem.Tag = "RGB4";
-            this.rGB4ToolStripMenuItem.Text = "RGB444";
-            this.rGB4ToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColor);
-            // 
-            // rGB5ToolStripMenuItem
-            // 
-            this.rGB5ToolStripMenuItem.Name = "rGB5ToolStripMenuItem";
-            this.rGB5ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
-            this.rGB5ToolStripMenuItem.Tag = "RGB5";
-            this.rGB5ToolStripMenuItem.Text = "RGB555";
-            this.rGB5ToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColor);
-            // 
-            // hiColorToolStripMenuItem
-            // 
-            this.hiColorToolStripMenuItem.Name = "hiColorToolStripMenuItem";
-            this.hiColorToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
-            this.hiColorToolStripMenuItem.Text = "HiColor";
-            this.hiColorToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColor);
+            this.colorModeToolStripMenuItem.Text = "Quantization";
             // 
             // colorDistanceToolStripMenuItem
             // 
-            this.colorDistanceToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.rGBToolStripMenuItem,
-            this.hSVToolStripMenuItem,
-            this.aLLToolStripMenuItem});
             this.colorDistanceToolStripMenuItem.Name = "colorDistanceToolStripMenuItem";
             this.colorDistanceToolStripMenuItem.Size = new System.Drawing.Size(93, 20);
             this.colorDistanceToolStripMenuItem.Text = "ColorDistance";
             // 
-            // rGBToolStripMenuItem
+            // ditheringToolStripMenuItem
             // 
-            this.rGBToolStripMenuItem.Checked = true;
-            this.rGBToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.rGBToolStripMenuItem.Name = "rGBToolStripMenuItem";
-            this.rGBToolStripMenuItem.Size = new System.Drawing.Size(96, 22);
-            this.rGBToolStripMenuItem.Text = "RGB";
-            this.rGBToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColorDistance);
-            // 
-            // hSVToolStripMenuItem
-            // 
-            this.hSVToolStripMenuItem.Name = "hSVToolStripMenuItem";
-            this.hSVToolStripMenuItem.Size = new System.Drawing.Size(96, 22);
-            this.hSVToolStripMenuItem.Text = "HSV";
-            this.hSVToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColorDistance);
-            // 
-            // aLLToolStripMenuItem
-            // 
-            this.aLLToolStripMenuItem.Name = "aLLToolStripMenuItem";
-            this.aLLToolStripMenuItem.Size = new System.Drawing.Size(96, 22);
-            this.aLLToolStripMenuItem.Text = "ALL";
-            this.aLLToolStripMenuItem.Click += new System.EventHandler(this.ResetTsColorDistance);
+            this.ditheringToolStripMenuItem.Name = "ditheringToolStripMenuItem";
+            this.ditheringToolStripMenuItem.Size = new System.Drawing.Size(68, 20);
+            this.ditheringToolStripMenuItem.Text = "Dithering";
             // 
             // splitContainer1
             // 
@@ -370,6 +297,7 @@
             this.tableLayoutPanel2.ColumnCount = 2;
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 65.34954F));
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 34.65046F));
+            this.tableLayoutPanel2.Controls.Add(this.button2, 0, 7);
             this.tableLayoutPanel2.Controls.Add(this.label3, 0, 2);
             this.tableLayoutPanel2.Controls.Add(this.label2, 0, 1);
             this.tableLayoutPanel2.Controls.Add(this.cbImage, 1, 0);
@@ -396,6 +324,16 @@
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
             this.tableLayoutPanel2.Size = new System.Drawing.Size(271, 277);
             this.tableLayoutPanel2.TabIndex = 8;
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(3, 241);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(75, 23);
+            this.button2.TabIndex = 15;
+            this.button2.Text = "To EGA";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // label3
             // 
@@ -641,6 +579,7 @@
             this.oColorTransformer.BackgroundColorReplacement = 0;
             this.oColorTransformer.ClusteringTrainingLoop = 30;
             this.oColorTransformer.ClusteringUseMeanColor = true;
+            this.oColorTransformer.ColorDistanceEvaluationMode = ColourClashNet.Colors.ColorDistanceEvaluationMode.RGB;
             this.oColorTransformer.ColorQuantizationMode = ColourClashNet.Colors.ColorQuantizationMode.Unknown;
             this.oColorTransformer.ColorsMax = 16;
             this.oColorTransformer.ColorTransformAlgorithm = ColourClashNet.Colors.ColorTransform.None;
@@ -694,11 +633,6 @@
         private SplitContainer splitContainer1;
         private PictureBox pictureBoxSrc;
         private ToolStripMenuItem exportToolStripMenuItem;
-        private ToolStripMenuItem colorModeToolStripMenuItem;
-        private ToolStripMenuItem fullColorToolStripMenuItem;
-        private ToolStripMenuItem rGB3ToolStripMenuItem;
-        private ToolStripMenuItem rGB4ToolStripMenuItem;
-        private ToolStripMenuItem rGB5ToolStripMenuItem;
         private TableLayoutPanel tableLayoutPanel1;
         private PropertyGrid propertyGrid1;
         private TableLayoutPanel tableLayoutPanel2;
@@ -712,14 +646,10 @@
         private Button btnReduceColorsScanline;
         private Label label3;
         private PictureBox pbBkColor;
-        private ToolStripMenuItem hiColorToolStripMenuItem;
         private Controls.BitmapRender oBitmapRenderSource;
        
         private CheckBox chkScanLineCluster;
         private ToolStripMenuItem colorDistanceToolStripMenuItem;
-        private ToolStripMenuItem rGBToolStripMenuItem;
-        private ToolStripMenuItem hSVToolStripMenuItem;
-        private ToolStripMenuItem aLLToolStripMenuItem;
         private ToolStripMenuItem bitmapIndexedToolStripMenuItem;
         private ToolStripMenuItem indexedPNGToolStripMenuItem;
         private ToolStripMenuItem bitmapToolStripMenuItem;
@@ -738,5 +668,8 @@
         private SaveFileDialog sfdExportImage;
         private Button button1;
         private Controls.ColorTransformer oColorTransformer;
+        private Button button2;
+        private ToolStripMenuItem ditheringToolStripMenuItem;
+        private ToolStripMenuItem colorModeToolStripMenuItem;
     }
 }
