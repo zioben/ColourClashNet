@@ -8,16 +8,16 @@ namespace ColourClashNet.Colors
 {
     public interface ColorTransformInterface
     {
-        string Name { get; }
+        ColorTransform Type { get; }
         string Description { get; }
         void Create(int[,]? oDataSource);
         void Create(Dictionary<int, int>? oHistogramSource);
         void Create(List<int> oColorPalette);
-        int[,]? Transform(int[,]? oSource);
+        ColorDitherInterface? Dithering { get; set; }
+        int[,]? TransformAndDither(int[,]? oSource);
         Dictionary<int, int> oColorHistogram { get; }
         Dictionary<int, int> oColorTransformationMap { get; }
         List<int> oColorTransformationPalette { get; }
-        ColorDitherInterface? Dithering { get; set; }
 
         int ColorsUsed {get; }
     }

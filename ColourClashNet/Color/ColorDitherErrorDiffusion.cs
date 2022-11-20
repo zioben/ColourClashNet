@@ -11,15 +11,8 @@ namespace ColourClashNet.Colors
     public abstract class ColorDitherErrorDiffusion : ColorDitherBase
     {
         static string sClass = nameof(ColorDitherErrorDiffusion);
-        public ColorDitherErrorDiffusion()
-        {
-            Name = "Error Diffusion";
-            Description = "Quantization error diffusion";
-        }
 
-        protected double[,] matErrorDiffusion;
-
-        //        double[,] oBase = { { 0, 0, 7.0 / 16 }, { 3.0 / 16, 5.0 / 16, 1.0 / 16 } };
+        protected double[,] matErrorDiffusion = null;
 
         protected void Normalize(double dN )
         {
@@ -65,19 +58,17 @@ namespace ColourClashNet.Colors
             {
                 if (oDataProcessedPalette == null || oDataProcessedPalette.Count == 0)
                 {
-                    Trace.TraceError($"{sClass}.{sMethod} ({Name}) : Invalid input data");
+                    Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Invalid input data");
                     return null;
                 }
                 if (!Create())
                 {
-                    Trace.TraceError($"{sClass}.{sMethod} ({Name}) : Creation Error");
+                    Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Creation Error");
                     return null;
                 }
 
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Dithering");
+                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering");
 
-                int R = oDataOriginal.GetLength(0);
-                int C = oDataOriginal.GetLength(1);
                 //
                 //
                 //
@@ -93,6 +84,9 @@ namespace ColourClashNet.Colors
                 //
                 //
                 //
+                int R = oDataOriginal.GetLength(0);
+                int C = oDataOriginal.GetLength(1);
+            
                 double[,] oRO = new double[R, C];
                 double[,] oGO = new double[R, C];
                 double[,] oBO = new double[R, C];
@@ -146,13 +140,13 @@ namespace ColourClashNet.Colors
                     }
                 }
 
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Dithering completed");
+                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering completed");
                 return oRet;
 
             }
             catch (Exception ex)
             {
-                Trace.TraceError($"{sClass}.{sMethod} ({Name}) : Exception raised : {ex.Message}");
+                Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Exception raised : {ex.Message}");
                 return null;
             }
         }
@@ -164,9 +158,12 @@ namespace ColourClashNet.Colors
 
             var dMin = oPalette.Min(X => Math.Abs(X - dOldPixel));
             double dNewPixel = oPalette.FirstOrDefault(X => Math.Abs(X - dOldPixel) == dMin);
+            oChannelOrig[r, c] = dNewPixel;
 
             double error = (dOldPixel - dNewPixel);
-            oChannelOrig[r, c] = dNewPixel;
+            if (error == 0)
+                return;
+
 
             int R = oChannelOrig.GetLength(0);
             int C = oChannelOrig.GetLength(1);

@@ -11,7 +11,7 @@ namespace ColourClashNet.Colors
 
         public ColorDitherBurkes()
         {
-            Name = "Burkes dithering";
+            Type = ColorDithering.Burkes;
             Description = "Burkes quantization error diffusion";
         }
 

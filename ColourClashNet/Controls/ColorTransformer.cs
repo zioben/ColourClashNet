@@ -259,7 +259,7 @@ namespace ColourClashNet.Controls
             oTrBkgRemover.ColorBackgroundList = BackgroundColorList;
             oTrBkgRemover.ColorBackground = BackgroundColorReplacement;
             oTrBkgRemover.Create(oTrIdentity.oColorHistogram);
-            var mDataBkgRemoved = oTrBkgRemover.Transform(mDataSource);
+            var mDataBkgRemoved = oTrBkgRemover.TransformAndDither(mDataSource);
             return mDataBkgRemoved;
         }
 
@@ -275,9 +275,10 @@ namespace ColourClashNet.Controls
 
             oTrQuantization.QuantizationMode = ColorQuantizationMode;
             oTrQuantization.Create(oTrBkgRemover.oColorHistogram);
+            //oTrQuantization.Dithering = CreateDithering();
             lTransform.Add(oTrQuantization);
 
-            mDataQuantized = oTrQuantization.Transform(oTrBkgRemover.Transform(mDataSource));
+            mDataQuantized = oTrQuantization.TransformAndDither(oTrBkgRemover.TransformAndDither(mDataSource));
             mDataProcessed = mDataQuantized.Clone() as int[,];
             RebuildImageOutput();
             OnQuantize?.Invoke(this, new EventArgsTransformation 
@@ -295,6 +296,51 @@ namespace ColourClashNet.Controls
             ImageProcessed = ToBitmap(mDataProcessed);
         }
 
+        ColorDitherInterface? CreateDithering()
+        {
+            ColorDitherInterface Dithering;
+            switch (DitheringAlgorithm)
+            {
+                case ColorDithering.Atkinson:
+                    Dithering = new ColorDitherAtkinson();
+                    break;
+                case ColorDithering.Burkes:
+                    Dithering = new ColorDitherBurkes();
+                    break;
+                case ColorDithering.FloydSteinberg:
+                    Dithering = new ColorDitherFloydSteinberg();
+                    break;
+                case ColorDithering.JarvisJudiceNinke:
+                    Dithering = new ColorDitherJJS();
+                    break;
+                case ColorDithering.None:
+                    Dithering = new ColorDitherIdentity();
+                    break;
+                case ColorDithering.Ordered_2x2:
+                    Dithering = new ColorDitherOrdered() { Size = 2 };
+                    break;
+                case ColorDithering.Ordered_4x4:
+                    Dithering = new ColorDitherOrdered() { Size = 4 };
+                    break;
+                case ColorDithering.Ordered_8x8:
+                    Dithering = new ColorDitherOrdered() { Size = 8 };
+                    break;
+                case ColorDithering.Sierra:
+                    Dithering = new ColorDitherSierra();
+                    break;
+                case ColorDithering.Stucki:
+                    Dithering = new ColorDitherStucki();
+                    break;
+                default:
+                    return null;
+            }
+            if (Dithering != null)
+            {
+                Dithering.DitheringStrenght = DiteringStrenght;
+            }
+            return Dithering;
+        }
+
         int[,]? TransformAndDither(ColorTransformInterface? oTransform, int[,]? oDataOriginal )
         {
             if (oTransform == null)
@@ -302,50 +348,9 @@ namespace ColourClashNet.Controls
             if (oDataOriginal == null)
                 return null;
             oTransform.Create(oDataOriginal);
+            oTransform.Dithering = CreateDithering();
             lTransform.Add(oTransform);
-            int[,]? oDataProc = oTransform.Transform(oDataOriginal);
-            switch (DitheringAlgorithm)
-            {
-                case ColorDithering.Atkinson:
-                        oTransform.Dithering = new ColorDitherAtkinson();
-                    break;
-                case ColorDithering.Burkes:
-                    oTransform.Dithering = new ColorDitherBurkes();
-                    break;
-                case ColorDithering.FloydSteinberg:
-                        oTransform.Dithering = new ColorDitherFloydSteinberg();
-                        break;
-                case ColorDithering.JarvisJudiceNinke:
-                    oTransform.Dithering = new ColorDitherJJS();
-                    break;
-                case ColorDithering.None:
-                    oTransform.Dithering = new ColorDitherIdentity();
-                    break;
-                case ColorDithering.Ordered_2x2:
-                        oTransform.Dithering = new ColorDitherOrdered() { Size = 2 };
-                        break;
-                case ColorDithering.Ordered_4x4:
-                        oTransform.Dithering = new ColorDitherOrdered() { Size = 4 };
-                        break;
-                case ColorDithering.Ordered_8x8:
-                        oTransform.Dithering = new ColorDitherOrdered() { Size = 8 };
-                        break;
-                case ColorDithering.Sierra:
-                    oTransform.Dithering = new ColorDitherSierra();
-                    break;
-                case ColorDithering.Stucki:
-                    oTransform.Dithering = new ColorDitherStucki();
-                    break;
-
-                default:
-                    return null;
-            }
-            oTransform.Dithering.DitheringStrenght = DiteringStrenght;
-            var oDataProcDither = oTransform.Dithering.Dither(mDataSource, oDataProc, oTransform.oColorTransformationPalette, ColorDistanceEvaluationMode);
-            var oTransColorRemap = new ColorTransformToPalette() { ColorDistanceEvaluationMode = ColorDistanceEvaluationMode };
-            oTransColorRemap.Create(oTransform.oColorTransformationPalette);
-            lTransform.Add(oTransColorRemap);
-            var oRet = oTransColorRemap.Transform(oDataProcDither);
+            var oRet = oTransform.TransformAndDither(oDataOriginal);
             return oRet;
         }
 

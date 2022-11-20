@@ -11,8 +11,8 @@ namespace ColourClashNet.Colors
     public abstract class ColorDitherBase : ColorDitherInterface
     {
         static string sClass = nameof(ColorDitherBase);
-        public string Description { get; protected set; }
-        public string Name { get; protected set; }
+        public string Description { get; protected init; }
+        public ColorDithering Type { get; protected init; }
 
         public double DitheringStrenght { get; set; } = 1.0;
 

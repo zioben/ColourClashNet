@@ -7,21 +7,17 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Colors
 {
-    public class ColorTransformReductionEga : ColorTransformBase
+    public class ColorTransformReductionEga : ColorTransformToPalette
     {
 
 
         public ColorTransformReductionEga()
         {
-            Name = "Fixed palette color reduction";
+            Type = ColorTransform.ColorReductionEga;
             Description = "Reduce color to EGA palette";
         }
-
-        public int ColorsMax => hashColorsPalette.Count;
-        public string PaletteFile { get; set; }
         protected override void CreateTrasformationMap()
         {
-
             hashColorsPalette.Add(0x00000000);
             hashColorsPalette.Add(0x000000AA);
             hashColorsPalette.Add(0x0000AA00);
@@ -37,28 +33,7 @@ namespace ColourClashNet.Colors
             hashColorsPalette.Add(0x00FF55FF);
             hashColorsPalette.Add(0x00FFFF55);
             hashColorsPalette.Add(0x00FFFFFF);
-
-            if (oColorHistogram.Count < ColorsMax)
-            {
-                foreach (var kvp in oColorHistogram)
-                {
-                    oColorTransformationMap[kvp.Key] = kvp.Key;
-                }
-                return;
-            }
-            var listAll = oColorHistogram.Select(X => X.Key).ToList();
-            var listMax = hashColorsPalette;
-            listAll.ForEach(X =>
-            {
-                var dMin = listMax.Min(Y => Y.Distance(X,ColorDistanceEvaluationMode));
-                var oItem = listMax.FirstOrDefault(Y => Y.Distance(X,ColorDistanceEvaluationMode) == dMin);
-                oColorTransformationMap[X] = oItem; 
-            });
         }
 
-        public override int[,]? Transform(int[,]? oDataSource)
-        {
-            return base.ApplyTransform(oDataSource);
-        }
     }
 }

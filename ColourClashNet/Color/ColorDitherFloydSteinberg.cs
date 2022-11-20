@@ -11,7 +11,7 @@ namespace ColourClashNet.Colors
 
         public ColorDitherFloydSteinberg()
         {
-            Name = "Floyd Steinberg dithering";
+            Type = ColorDithering.FloydSteinberg;
             Description = "Floyd Steinberg quantization error diffusion";
         }
 

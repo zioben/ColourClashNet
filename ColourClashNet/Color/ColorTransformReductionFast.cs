@@ -10,6 +10,12 @@ namespace ColourClashNet.Colors
     public class ColorTransformReductionFast : ColorTransformBase
     {
 
+        public ColorTransformReductionFast()
+        {
+            Type = ColorTransform.ColorReductionFast;
+            Description = "Quantitative color reduction";
+        }
+
         public int ColorsMax { get; set; } = -1;
 
         protected override void CreateTrasformationMap()
@@ -35,9 +41,6 @@ namespace ColourClashNet.Colors
             });
         }
 
-        public override int[,]? Transform(int[,]? oDataSource)
-        {
-            return ApplyTransform(oDataSource);
-        }
+   
     }
 }

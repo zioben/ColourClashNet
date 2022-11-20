@@ -14,7 +14,7 @@ namespace ColourClashNet.Colors
 
         public ColorDitherIdentity()
         {
-            Name = "Identity dithering";
+            Type = ColorDithering.None;
             Description = "Passthrought";
         }
 
@@ -30,18 +30,18 @@ namespace ColourClashNet.Colors
             {
                 if (oDataOriginal == null)
                 {
-                    Trace.TraceError($"{sClass}.{sMethod} ({Name}) : Invalid input data");
+                    Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Invalid input data");
                     return null;
                 }
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Dithering");
+                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering");
                 var oRet = oDataProcessed.Clone() as int[,];
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Dithering completed");
+                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering completed");
                 return oRet;
 
             }
             catch (Exception ex)
             {
-                Trace.TraceError($"{sClass}.{sMethod} ({Name}) : Exception raised : {ex.Message}");
+                Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Exception raised : {ex.Message}");
                 return null;
             }
         }

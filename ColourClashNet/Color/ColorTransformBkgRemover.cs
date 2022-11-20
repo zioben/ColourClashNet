@@ -13,7 +13,7 @@ namespace ColourClashNet.Colors
         static string sClass = nameof(ColorTransformBkgRemover);
         public ColorTransformBkgRemover()
         {
-            Name = "Bkg Remover";
+            Type = ColorTransform.ColorRemover;
             Description = "Substitute a colorlist with a single color";
         }
 
@@ -23,7 +23,7 @@ namespace ColourClashNet.Colors
         protected override void CreateTrasformationMap()
         {
             string sMethod = nameof(CreateTrasformationMap);
-            Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Creating trasformation map");
+            Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
             foreach (var kvp in oColorHistogram)
             {
                 hashColorsPalette.Add(kvp.Key);
@@ -39,11 +39,6 @@ namespace ColourClashNet.Colors
                     oColorTransformationMap[kvp.Key] = ColorBackground;
                 }
             }
-        }
-
-        public override int[,]? Transform(int[,]? oDataSource )
-        {
-            return ApplyTransform(oDataSource);
         }
     }
 }

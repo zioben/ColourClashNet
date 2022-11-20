@@ -9,7 +9,11 @@ namespace ColourClashNet.Colors
 {
     public class ColorTransformReductionScanLine: ColorTransformBase
     {
-
+        public ColorTransformReductionScanLine()
+        {
+            Type = ColorTransform.ColorReductionScanline;
+            Description = "Raster line color reduction";
+        }
         public int ColorsMax { get; set; } = -1;
 
         public bool Clustering { get; set; }
@@ -22,7 +26,7 @@ namespace ColourClashNet.Colors
         }
 
 
-        public override int[,]? Transform(int[,]? oSource)
+        protected override int[,]? ExecuteTransform(int[,]? oSource)
         {
             if (oSource == null)
                 return null;
@@ -60,7 +64,7 @@ namespace ColourClashNet.Colors
                     oCols[0, c] = oSource[r, c];
                 }
                 oTrasf.Create(oCols);
-                var oColsTrasf = oTrasf.Transform(oCols);
+                var oColsTrasf = oTrasf.TransformAndDither(oCols);
                 if (oColsTrasf == null)
                 {
                     for (int c = 0; c < C; c++)

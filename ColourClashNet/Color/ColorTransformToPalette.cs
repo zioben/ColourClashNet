@@ -11,7 +11,6 @@ namespace ColourClashNet.Colors
 
         public ColorTransformToPalette()
         {
-            Name = "Palette Mapper";
             Description = "Color palette trasformation";
         }
 
@@ -23,7 +22,7 @@ namespace ColourClashNet.Colors
             }
         }
 
-        public override int[,]? Transform(int[,]? oDataSource)
+        protected override int[,]? ExecuteTransform(int[,]? oDataSource)
         {
             if (oDataSource == null)
                 return null;
@@ -45,7 +44,7 @@ namespace ColourClashNet.Colors
                 oColorTransformationMap[rgb] = ColorTransformBase.GetNearestColor(rgb, oColorTransformationPalette, ColorDistanceEvaluationMode);
             });
 
-            return ApplyTransform(oDataSource); 
+            return base.ExecuteTransform(oDataSource); 
         }
 
     }

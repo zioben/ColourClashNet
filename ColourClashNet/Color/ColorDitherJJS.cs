@@ -11,7 +11,7 @@ namespace ColourClashNet.Colors
 
         public ColorDitherJJS()
         {
-            Name = "Jarvis Judice and Ninke dithering";
+            Type = ColorDithering.JarvisJudiceNinke;
             Description = "Jarvis, Judice and Ninke quantization error diffusion";
         }
 

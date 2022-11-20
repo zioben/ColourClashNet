@@ -111,9 +111,9 @@ namespace ColourClashNet.Colors
             return oPalette.FirstOrDefault(X => X.Distance(iColor, eMode) == dmin);
         }
 
-        public static int[,]? ApplyTransform(int[,]? oSource, Dictionary<int, int>? oColorTransformationMap)
+        public static int[,]? ExecuteStdTransform(int[,]? oSource, Dictionary<int, int>? oColorTransformationMap)
         {
-            string sMethod = nameof(ApplyTransform);
+            string sMethod = nameof(ExecuteStdTransform);
             if (oSource == null)
             {
                 Trace.TraceError($"{sClass}.{sMethod} : Invalid data source");
@@ -144,9 +144,9 @@ namespace ColourClashNet.Colors
             return oRet;
         }
 
-        public static int[,]? ApplyTransform(int[,]? oSource, ColorTransformInterface oI )
+        public static int[,]? ExecuteStdTransform(int[,]? oSource, ColorTransformInterface oI )
         {
-            return ApplyTransform(oSource, oI?.oColorTransformationMap );
+            return ExecuteStdTransform(oSource, oI?.oColorTransformationMap );
         }
     }
 }

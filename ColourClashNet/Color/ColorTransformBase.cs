@@ -5,11 +5,13 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Xsl;
 
 namespace ColourClashNet.Colors
 {
     public abstract partial class ColorTransformBase : ColorTransformInterface
     {
+        public ColorTransform Type { get; protected init; }
 
         public Dictionary<int, int> oColorHistogram { get; private set; } = new Dictionary<int, int>();
         public Dictionary<int, int> oColorTransformationMap { get; private init; } = new Dictionary<int, int>();
@@ -21,12 +23,15 @@ namespace ColourClashNet.Colors
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.All;
 
         abstract protected void CreateTrasformationMap();
-        abstract public int[,] Transform( int[,] oDataSource );
+        protected virtual int[,]? ExecuteTransform(int[,]? oDataSource)
+        {
+            return ExecuteStdTransform(oDataSource,this);
+        }
 
-        public string Name { get; protected set; } = "";
         public string Description { get; protected set; } = "";
         public ColorDitherInterface? Dithering { get; set; } = null;
 
+        protected bool BypassDithering { get; set; }
 
         void Reset()
         {
@@ -34,6 +39,7 @@ namespace ColourClashNet.Colors
             oColorTransformationMap.Clear();
             hashColorsPalette.Clear();
         }
+
 
         public void Create(int[,]? oDataSource )
         {
@@ -72,7 +78,29 @@ namespace ColourClashNet.Colors
             hashColorsPalette.Remove(-1);
         }
 
-      
+        public int[,]? TransformAndDither(int[,]? oDataSource)
+        {
+            if (oDataSource == null)
+            {
+                return null;
+            }
+            var oProc = ExecuteTransform(oDataSource);
+            if (oProc == null || Dithering == null || BypassDithering)
+            {
+                return oProc;
+            }
+            if (!Dithering.Create())
+            {
+                return oProc;
+            }
+            var oProcDither = Dithering.Dither(oDataSource, oProc, hashColorsPalette.ToList(), ColorDistanceEvaluationMode);
+
+            var oTransColorRemap = new ColorTransformToPalette() { ColorDistanceEvaluationMode = ColorDistanceEvaluationMode };
+            oTransColorRemap.Create(oColorTransformationPalette);
+            var oRemapData = oTransColorRemap.TransformAndDither(oProcDither);
+            return oRemapData;
+        }
+
 
         // Sort in reverse in order
         public class DuplicateKeyComparer<TKey> : IComparer<TKey> where TKey : IComparable
@@ -103,9 +131,5 @@ namespace ColourClashNet.Colors
             }
         }
 
-        protected int[,]? ApplyTransform(int[,]? oDataSource)
-        {
-            return ApplyTransform(oDataSource, this);
-        }
     }
 }

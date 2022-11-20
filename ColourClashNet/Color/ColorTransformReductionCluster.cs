@@ -16,6 +16,12 @@ namespace ColourClashNet.Colors
         public bool UseClusterColorMean { get; set; } = true;
         public int TrainingLoop { get; set; } = -1;
 
+        public ColorTransformReductionCluster()
+        {
+            Type = ColorTransform.ColorReductionClustering;
+            Description = "Reduces color bit spectrum";
+        }
+
         protected override void CreateTrasformationMap()
         {
             SortColorsByHistogram();
@@ -103,9 +109,5 @@ namespace ColourClashNet.Colors
             };
         }
 
-        public override int[,]? Transform(int[,]? oDataSource)
-        {
-            return ApplyTransform(oDataSource);
-        }
     }
 }

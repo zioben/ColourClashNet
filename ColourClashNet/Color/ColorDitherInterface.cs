@@ -8,7 +8,7 @@ namespace ColourClashNet.Colors
 {
     public interface ColorDitherInterface
     { 
-        string Name { get; }
+        ColorDithering Type { get; }
         string Description { get; }
         double DitheringStrenght { get; set; }
         public bool Create();

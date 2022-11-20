@@ -35,6 +35,8 @@ namespace ColourClashNet.Colors
     public enum ColorTransform
     {
         None = 0,
+        ColorRemover = 1,
+        ColorIdentity = 2,
         ColorReductionQuantization,
         ColorReductionFast,
         ColorReductionClustering,
@@ -55,7 +57,8 @@ namespace ColourClashNet.Colors
         Burkes,
         JarvisJudiceNinke,
         Sierra,
-        Stucki
+        Stucki,
+        Linear
     }
 
     public enum Parameters

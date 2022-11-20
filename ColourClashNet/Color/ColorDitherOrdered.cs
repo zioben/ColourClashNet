@@ -10,10 +10,17 @@ namespace ColourClashNet.Colors
     public class ColorDitherOrdered : ColorDitherBase
     {
         static string sClass = nameof(ColorDitherOrdered);
-        public ColorDitherOrdered()
+        public new ColorDithering Type
         {
-            Name = "Ordered dithering";
-            Description = "2^P Scalable ordered dithering";
+            get
+            {
+                if (Size == 2)
+                    return ColorDithering.Ordered_2x2;
+                else if (Size <= 4)
+                    return ColorDithering.Ordered_4x4;
+                else
+                    return ColorDithering.Ordered_8x8;
+            }
         }
 
         int iSize = 2;
@@ -29,17 +36,10 @@ namespace ColourClashNet.Colors
             }
         }
 
-        double dSpread = 256.0 / 3;
-        public double Spread
+
+        public ColorDitherOrdered()
         {
-            get
-            {
-                return dSpread;
-            }
-            set
-            {
-                dSpread = Math.Max(1.0,dSpread);
-            }
+            Description = "2^P Scalable ordered dithering";
         }
 
 
@@ -136,16 +136,16 @@ namespace ColourClashNet.Colors
             {
                 if (oDataProcessedPalette == null || oDataProcessedPalette.Count == 0)
                 {
-                    Trace.TraceError($"{sClass}.{sMethod} ({Name}) : Invalid input data");
+                    Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Invalid input data");
                     return null;
                 }
                 if (!Create())
                 {
-                    Trace.TraceError($"{sClass}.{sMethod} ({Name}) : Creation error");
+                    Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Creation error");
                     return null;
                 }
 
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Dithering");
+                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering");
                 int S = oThMat.GetLength(0);
 
                 double spread = 127.0;
@@ -165,12 +165,12 @@ namespace ColourClashNet.Colors
                         oRet[r, c] = iCol;
                     }
                 }
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Dithering completed");
+                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering completed");
                 return oRet;
             }
             catch (Exception ex)
             {
-                Trace.TraceError($"{sClass}.{sMethod} ({Name}) : Invalid input data");
+                Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Invalid input data");
                 return null;
             }
         }

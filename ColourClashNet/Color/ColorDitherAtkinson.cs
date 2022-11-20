@@ -11,7 +11,7 @@ namespace ColourClashNet.Colors
 
         public ColorDitherAtkinson()
         {
-            Name = "Atkinson dithering";
+            Type = ColorDithering.Atkinson;
             Description = "Atkinson quantization error diffusion";
         }
 

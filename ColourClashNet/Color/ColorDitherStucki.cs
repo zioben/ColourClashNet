@@ -11,7 +11,7 @@ namespace ColourClashNet.Colors
 
         public ColorDitherStucki()
         {
-            Name = "Stucki dithering";
+            Type = ColorDithering.Stucki;
             Description = "Stucki quantization error diffusion";
         }
 

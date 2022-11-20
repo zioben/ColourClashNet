@@ -11,7 +11,7 @@ namespace ColourClashNet.Colors
 
         public ColorDitherSierra()
         {
-            Name = "Sierra dithering";
+            Type = ColorDithering.Sierra;
             Description = "Sierra quantization error diffusion";
         }
 

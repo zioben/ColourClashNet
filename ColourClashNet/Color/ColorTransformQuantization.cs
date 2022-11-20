@@ -14,79 +14,71 @@ namespace ColourClashNet.Colors
         static string sClass = nameof(ColorTransformQuantization);
         public ColorTransformQuantization()
         {
-            Name = "Quantizator";
+            Type = ColorTransform.ColorReductionQuantization;
             Description = "Reduces color bit spectrum";
         }
 
         public ColorQuantizationMode QuantizationMode { get; set; }
 
-
-        public int GetColorMask(ColorQuantizationMode colorHistMode)
-        {
-            switch (colorHistMode)
-            {
-                case ColorQuantizationMode.RGB888:
-                    return -1;
-                case ColorQuantizationMode.RGB222:
-                    return 0x00C0C0C0;
-                case ColorQuantizationMode.RGB333:
-                    return 0x00E0E0E0;
-                case ColorQuantizationMode.RGB444:
-                    return 0x00F0F0F0;
-                case ColorQuantizationMode.RGB555:
-                    return 0x00F8F8F8;
-                case ColorQuantizationMode.RGB565:
-                    return 0x00F8FCF8;
-                default:
-                    return -1;
-            }
-        }
-        public int GetFiller(ColorQuantizationMode colorHistMode)
-        {
-            switch (colorHistMode)
-            {
-                case ColorQuantizationMode.RGB888:
-                    return 0;
-                case ColorQuantizationMode.RGB222:
-                    return 0x003F3F3F;
-                case ColorQuantizationMode.RGB333:
-                    return 0x001F1F1F;
-                case ColorQuantizationMode.RGB444:
-                    return 0x000F0F0F;
-                case ColorQuantizationMode.RGB555:
-                    return 0x00070707;
-                case ColorQuantizationMode.RGB565:
-                    return 0x00070307;
-                default:
-                    return -1;
-            }
-        }
-
-        public int Quantize(int iRGB, ColorQuantizationMode colorHistMode)
+        public int QuantizeColor(int iRGB)
         {
             if (iRGB < 0)
                 return iRGB;
-            return (iRGB & GetColorMask(colorHistMode)) | GetFiller(colorHistMode);
+            double dR = iRGB.ToR();
+            double dG = iRGB.ToG();
+            double dB = iRGB.ToB();
+            switch (QuantizationMode)
+            {
+                case ColorQuantizationMode.RGB888:
+                    return iRGB;
+                case ColorQuantizationMode.RGB222:
+                    dR = Math.Round(dR / 64) * 64; 
+                    dG = Math.Round(dG / 64) * 64;
+                    dB = Math.Round(dB / 64) * 64;
+                    break;
+                case ColorQuantizationMode.RGB333:
+                    dR = Math.Round(dR / 32) * 32;
+                    dG = Math.Round(dG / 32) * 32;
+                    dB = Math.Round(dB / 32) * 32;
+                    break;
+                case ColorQuantizationMode.RGB444:
+                    dR = Math.Round(dR / 16) * 16;
+                    dG = Math.Round(dG / 16) * 16;
+                    dB = Math.Round(dB / 16) * 16;
+                    break;
+                case ColorQuantizationMode.RGB555:
+                    dR = Math.Round(dR / 8) * 8;
+                    dG = Math.Round(dG / 8) * 8;
+                    dB = Math.Round(dB / 8) * 8;
+                    break;
+                case ColorQuantizationMode.RGB565:
+                    dR = Math.Round(dR / 8) * 8;
+                    dG = Math.Round(dG / 4) * 4;
+                    dB = Math.Round(dB / 8) * 8;
+                    break;
+                default:
+                    return -1;
+            }
+            var iRGBOut = ColorIntExt.FromRGB(dR, dG, dB);
+            return (iRGBOut);
         }
 
+ 
         protected override void CreateTrasformationMap()
         {
 
             string sMethod = nameof(CreateTrasformationMap);
-            Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Creating trasformation map");
+            Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
 
             foreach (var kvp in oColorHistogram)
             {
-                int iCol = Quantize(kvp.Value, QuantizationMode);
+                int iCol = QuantizeColor(kvp.Value);
                 oColorTransformationMap.Add(kvp.Key, iCol);
             }
         }
 
-        public override int[,] Transform(int[,] oSource)
+        protected override int[,]? ExecuteTransform(int[,]? oSource)
         {
-            string sMethod = nameof(Transform);
-            Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : apply trasformation");
-
             if (oSource == null)
                 return null;
 
@@ -94,14 +86,12 @@ namespace ColourClashNet.Colors
             var C = oSource.GetLength(1);
             var oRet = new int[R, C];
             var oCols = new int[1, C];
-            var iMask = GetColorMask(QuantizationMode);
-            var iFiller = GetFiller(QuantizationMode);  
             hashColorsPalette.Clear();
             for (int r = 0; r < R; r++)
             {
                 for (int c = 0; c < C; c++)
                 {
-                    var col = (oSource[r, c] & iMask) | iFiller;
+                    var col = QuantizeColor( oSource[r, c]);
                     hashColorsPalette.Add(col); 
                     oRet[r, c] = col;
                 }

@@ -12,14 +12,14 @@ namespace ColourClashNet.Colors
         static string sClass = nameof(ColorTransformIdentity);
         public ColorTransformIdentity()
         {
-            Name = "Identity";
+            Type = ColorTransform.ColorIdentity;
             Description = "1:1 Color transformation";
         }
 
         protected override void CreateTrasformationMap()
         {
             string sMethod = nameof(CreateTrasformationMap);
-            Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Creating trasformation map");
+            Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
 
             foreach (var kvp in oColorHistogram)
             {
@@ -27,11 +27,5 @@ namespace ColourClashNet.Colors
                 hashColorsPalette.Add(kvp.Key);
             }
         }
-
-        public override int[,]? Transform(int[,]? oDataSource )
-        {
-            return ApplyTransform(oDataSource); 
-        }
-
     }
 }
