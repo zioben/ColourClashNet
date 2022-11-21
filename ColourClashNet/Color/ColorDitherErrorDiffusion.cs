@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,9 +11,76 @@ namespace ColourClashNet.Colors
 {
     public abstract class ColorDitherErrorDiffusion : ColorDitherBase
     {
+        internal class ErrorDiffusion
+        {
+            internal HashSet<double> hPalette { get; set; }
+            internal double[,] oChannelOrig { get; set; }
+            internal double[,] oChannelProc { get; set; }
+
+            internal void Create(int R, int C)
+            {
+                hPalette = new HashSet<double>();
+                oChannelOrig = new double[R, C];
+                oChannelProc = new double[R, C];
+            }
+
+            internal void SpreadErrorDiffusion(double[,] matErrorDiffusion, double DitheringStrenght)
+            {
+
+                int R = oChannelOrig.GetLength(0);
+                int C = oChannelOrig.GetLength(1);
+                int RR = matErrorDiffusion.GetLength(0);
+                int CC = matErrorDiffusion.GetLength(1);
+                int CO = CC / 2;
+
+                var oMap = new double[256];
+                for (int i = 0; i < 256; i++)
+                {
+                    var dMin = hPalette.Min(X => Math.Abs(X - i));
+                    oMap[i] = hPalette.FirstOrDefault(X => Math.Abs(X - i) == dMin);
+                }
+
+                for (int r = 0; r < R; r++)
+                {
+                    for (int c = 0; c < C; c++)
+                    {
+                        var dOldPixel = Math.Max(0, Math.Min(255, oChannelOrig[r, c]));
+                        var dNewPixel = oMap[(int)dOldPixel];                    
+                        //int dMin = hPalette.Min(X => Math.Abs(X - dOldPixel));
+                        //int dNewPixel = hPalette.FirstOrDefault(X => Math.Abs(X - dOldPixel) == dMin);
+
+                        oChannelOrig[r, c] = dNewPixel;
+
+                        var error = dOldPixel - dNewPixel;
+                        if (error == 0)
+                            continue;
+                        for (int rr = 0; rr < RR; rr++)
+                        {
+                            int rOffset = rr + r;
+                            if (rOffset >= R)
+                                break;
+                            for (int cc = 0; cc < CC; cc++)
+                            {
+                                int cOffset = c + cc - CO;
+                                if (cOffset < 0)
+                                    continue;
+                                if (c == CO)
+                                    continue;
+                                if (cOffset >= C)
+                                    break;
+                                oChannelOrig[rOffset, cOffset] += (error * matErrorDiffusion[rr, cc] * DitheringStrenght);
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         static string sClass = nameof(ColorDitherErrorDiffusion);
 
         protected double[,] matErrorDiffusion = null;
+       
 
         protected void Normalize(double dN )
         {
@@ -69,71 +137,52 @@ namespace ColourClashNet.Colors
 
                 Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering");
 
-                //
-                //
-                //
-                List<double> lPaletteR = new List<double>();
-                List<double> lPaletteG = new List<double>();
-                List<double> lPaletteB = new List<double>();
-                foreach (var col in oDataProcessedPalette)
-                {
-                    lPaletteR.Add(col.ToR());
-                    lPaletteG.Add(col.ToG());
-                    lPaletteB.Add(col.ToB());
-                }
-                //
-                //
-                //
                 int R = oDataOriginal.GetLength(0);
                 int C = oDataOriginal.GetLength(1);
-            
-                double[,] oRO = new double[R, C];
-                double[,] oGO = new double[R, C];
-                double[,] oBO = new double[R, C];
-                for (int r = 0; r < R; r++)
+
+                var oErrDiff = new ErrorDiffusion[3];
+                for (int i = 0; i < 3; i++)
+                {
+                    oErrDiff[i] = new ErrorDiffusion();
+                    oErrDiff[i].Create(R, C);
+                }
+
+                foreach (var col in oDataProcessedPalette)
+                {
+                    oErrDiff[0].hPalette.Add(col.ToR());
+                    oErrDiff[1].hPalette.Add(col.ToG());
+                    oErrDiff[2].hPalette.Add(col.ToB());
+                }
+
+                Parallel.For(0, R, r =>
                 {
                     for (int c = 0; c < C; c++)
                     {
                         var oDatOrig = oDataOriginal[r, c];
-                        oRO[r, c] = oDatOrig.ToR();
-                        oGO[r, c] = oDatOrig.ToG();
-                        oBO[r, c] = oDatOrig.ToB();
-                    }
-                }
-
-                double[,] oRP = new double[R, C];
-                double[,] oGP = new double[R, C];
-                double[,] oBP = new double[R, C];
-                for (int r = 0; r < R; r++)
-                {
-                    for (int c = 0; c < C; c++)
-                    {
+                        oErrDiff[0].oChannelOrig[r, c] = oDatOrig.ToR();
+                        oErrDiff[1].oChannelOrig[r, c] = oDatOrig.ToG();
+                        oErrDiff[2].oChannelOrig[r, c] = oDatOrig.ToB();
                         var oDataProc = oDataProcessed[r, c];
-                        oRP[r, c] = oDataProc.ToR();
-                        oGP[r, c] = oDataProc.ToG();
-                        oBP[r, c] = oDataProc.ToB();
+                        oErrDiff[0].oChannelProc[r, c] = oDataProc.ToR();
+                        oErrDiff[1].oChannelProc[r, c] = oDataProc.ToG();
+                        oErrDiff[2].oChannelProc[r, c] = oDataProc.ToB();
                     }
-                }
+                });
 
-                var oRet = oDataProcessed.Clone() as int[,];
-                for (int r = 0; r < R; r++)
+                Parallel.For(0, 3, RGB =>
                 {
-                    for (int c = 1; c < C; c++)
-                    {
-                        SpreadErrorDiffusion(oRO, oRP, r, c, lPaletteR);
-                        SpreadErrorDiffusion(oGO, oGP, r, c, lPaletteG);
-                        SpreadErrorDiffusion(oBO, oBP, r, c, lPaletteB);
-                    }
-                }
+                    oErrDiff[RGB].SpreadErrorDiffusion(matErrorDiffusion, DitheringStrenght);
+                });
 
+                var oRet = new int[R, C];
                 var oHashSet = new HashSet<int>();
                 for (int r = 0; r < R; r++)
                 {
                     for (int c = 0; c < C; c++)
                     {
-                        var iR = Math.Max(0, oRO[r, c]);
-                        var iG = Math.Max(0, oGO[r, c]);
-                        var iB = Math.Max(0, oBO[r, c]);
+                        var iR = Math.Max(0, oErrDiff[0].oChannelOrig[r, c]);
+                        var iG = Math.Max(0, oErrDiff[1].oChannelOrig[r, c]);
+                        var iB = Math.Max(0, oErrDiff[2].oChannelOrig[r, c]);
                         var oCol = ColorIntExt.FromRGB(iR, iG, iB);
                         oHashSet.Add(oCol);
                         oRet[r, c] = oCol;
@@ -151,13 +200,17 @@ namespace ColourClashNet.Colors
             }
         }
 
-        private void SpreadErrorDiffusion(double[,] oChannelOrig, double[,] oChannelProc, int r, int c, List<double> oPalette)
+     
+
+
+
+        private void SpreadErrorDiffusion(double[,] oChannelOrig, double[,] oChannelProc, int r, int c, HashSet<double> hPalette)
         {
 
             double dOldPixel = Math.Max( 0, Math.Min(255, oChannelOrig[r, c]));
 
-            var dMin = oPalette.Min(X => Math.Abs(X - dOldPixel));
-            double dNewPixel = oPalette.FirstOrDefault(X => Math.Abs(X - dOldPixel) == dMin);
+            var dMin = hPalette.Min(X => Math.Abs(X - dOldPixel));
+            double dNewPixel = hPalette.FirstOrDefault(X => Math.Abs(X - dOldPixel) == dMin);
             oChannelOrig[r, c] = dNewPixel;
 
             double error = (dOldPixel - dNewPixel);

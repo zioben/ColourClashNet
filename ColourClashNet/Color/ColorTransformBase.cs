@@ -98,7 +98,7 @@ namespace ColourClashNet.Colors
             var oTransColorRemap = new ColorTransformToPalette() { ColorDistanceEvaluationMode = ColorDistanceEvaluationMode };
             oTransColorRemap.Create(oColorTransformationPalette);
             var oRemapData = oTransColorRemap.TransformAndDither(oProcDither);
-            return oRemapData;
+            return oProcDither;
         }
 
 

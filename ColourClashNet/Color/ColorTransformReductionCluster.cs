@@ -1,6 +1,7 @@
 ﻿using ColourClashNet.Colors;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Drawing;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace ColourClashNet.Colors
 {
     public class ColorTransformReductionCluster : ColorTransformBase
     {
+        static string sClass = nameof(ColorTransformReductionCluster);
         public int ColorsMax { get; set; } = -1;
         public bool UseClusterColorMean { get; set; } = true;
         public int TrainingLoop { get; set; } = -1;
@@ -24,6 +26,7 @@ namespace ColourClashNet.Colors
 
         protected override void CreateTrasformationMap()
         {
+            string sMethod = nameof(CreateTrasformationMap);
             SortColorsByHistogram();
             if (oColorHistogram.Count < ColorsMax)
             {
@@ -53,9 +56,9 @@ namespace ColourClashNet.Colors
             {
                 // Reset Set
                 lColorCluster.ForEach(X => X.Item2.Clear()); ;
-
+                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Train {train}");
                 // Aggregate :  Assign every color to the cluster of appartenence 
-                foreach( var kvp in  oColorHistogram )
+                foreach ( var kvp in  oColorHistogram )
                 {
                     // Evaluate minimum distance from every color to cluster
                     var dMin = lColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
