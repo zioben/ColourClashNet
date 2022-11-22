@@ -11,71 +11,6 @@ namespace ColourClashNet.Colors
 {
     public abstract class ColorDitherErrorDiffusion : ColorDitherBase
     {
-        internal class ErrorDiffusion
-        {
-            internal HashSet<double> hPalette { get; set; }
-            internal double[,] oChannelOrig { get; set; }
-            internal double[,] oChannelProc { get; set; }
-
-            internal void Create(int R, int C)
-            {
-                hPalette = new HashSet<double>();
-                oChannelOrig = new double[R, C];
-                oChannelProc = new double[R, C];
-            }
-
-            internal void SpreadErrorDiffusion(double[,] matErrorDiffusion, double DitheringStrenght)
-            {
-
-                int R = oChannelOrig.GetLength(0);
-                int C = oChannelOrig.GetLength(1);
-                int RR = matErrorDiffusion.GetLength(0);
-                int CC = matErrorDiffusion.GetLength(1);
-                int CO = CC / 2;
-
-                var oMap = new double[256];
-                for (int i = 0; i < 256; i++)
-                {
-                    var dMin = hPalette.Min(X => Math.Abs(X - i));
-                    oMap[i] = hPalette.FirstOrDefault(X => Math.Abs(X - i) == dMin);
-                }
-
-                for (int r = 0; r < R; r++)
-                {
-                    for (int c = 0; c < C; c++)
-                    {
-                        var dOldPixel = Math.Max(0, Math.Min(255, oChannelOrig[r, c]));
-                        var dNewPixel = oMap[(int)dOldPixel];                    
-                        //int dMin = hPalette.Min(X => Math.Abs(X - dOldPixel));
-                        //int dNewPixel = hPalette.FirstOrDefault(X => Math.Abs(X - dOldPixel) == dMin);
-
-                        oChannelOrig[r, c] = dNewPixel;
-
-                        var error = dOldPixel - dNewPixel;
-                        if (error == 0)
-                            continue;
-                        for (int rr = 0; rr < RR; rr++)
-                        {
-                            int rOffset = rr + r;
-                            if (rOffset >= R)
-                                break;
-                            for (int cc = 0; cc < CC; cc++)
-                            {
-                                int cOffset = c + cc - CO;
-                                if (cOffset < 0)
-                                    continue;
-                                if (c == CO)
-                                    continue;
-                                if (cOffset >= C)
-                                    break;
-                                oChannelOrig[rOffset, cOffset] += (error * matErrorDiffusion[rr, cc] * DitheringStrenght);
-
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         static string sClass = nameof(ColorDitherErrorDiffusion);
 
@@ -119,7 +54,7 @@ namespace ColourClashNet.Colors
 
 
 
-        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, List<int>? oDataProcessedPalette,  ColorDistanceEvaluationMode eDistanceMode)
+        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, HashSet<int>? oDataProcessedPalette,  ColorDistanceEvaluationMode eDistanceMode)
         {
             string sMethod = nameof(Dither);
             try
@@ -139,58 +74,78 @@ namespace ColourClashNet.Colors
 
                 int R = oDataOriginal.GetLength(0);
                 int C = oDataOriginal.GetLength(1);
+                int RR = matErrorDiffusion.GetLength(0);
+                int CC = matErrorDiffusion.GetLength(1);
+                int CO = CC / 2;
 
-                var oErrDiff = new ErrorDiffusion[3];
-                for (int i = 0; i < 3; i++)
-                {
-                    oErrDiff[i] = new ErrorDiffusion();
-                    oErrDiff[i].Create(R, C);
-                }
-
-                foreach (var col in oDataProcessedPalette)
-                {
-                    oErrDiff[0].hPalette.Add(col.ToR());
-                    oErrDiff[1].hPalette.Add(col.ToG());
-                    oErrDiff[2].hPalette.Add(col.ToB());
-                }
-
+                var oRO = new double[R, C];
+                var oGO = new double[R, C];
+                var oBO = new double[R, C];
+                var oRP = new double[R, C];
+                var oGP = new double[R, C];
+                var oBP = new double[R, C];
+             
+             
                 Parallel.For(0, R, r =>
                 {
                     for (int c = 0; c < C; c++)
                     {
                         var oDatOrig = oDataOriginal[r, c];
-                        oErrDiff[0].oChannelOrig[r, c] = oDatOrig.ToR();
-                        oErrDiff[1].oChannelOrig[r, c] = oDatOrig.ToG();
-                        oErrDiff[2].oChannelOrig[r, c] = oDatOrig.ToB();
+                        oRO[r, c] = oDatOrig.ToR();
+                        oGO[r, c] = oDatOrig.ToG();
+                        oBO[r, c] = oDatOrig.ToB();
                         var oDataProc = oDataProcessed[r, c];
-                        oErrDiff[0].oChannelProc[r, c] = oDataProc.ToR();
-                        oErrDiff[1].oChannelProc[r, c] = oDataProc.ToG();
-                        oErrDiff[2].oChannelProc[r, c] = oDataProc.ToB();
+                        oRP[r, c] = oDataProc.ToR();
+                        oGP[r, c] = oDataProc.ToG();
+                        oBP[r, c] = oDataProc.ToB();
                     }
                 });
 
-                Parallel.For(0, 3, RGB =>
-                {
-                    oErrDiff[RGB].SpreadErrorDiffusion(matErrorDiffusion, DitheringStrenght);
-                });
+                var oDataRet = new int[R, C];
 
-                var oRet = new int[R, C];
-                var oHashSet = new HashSet<int>();
                 for (int r = 0; r < R; r++)
                 {
                     for (int c = 0; c < C; c++)
                     {
-                        var iR = Math.Max(0, oErrDiff[0].oChannelOrig[r, c]);
-                        var iG = Math.Max(0, oErrDiff[1].oChannelOrig[r, c]);
-                        var iB = Math.Max(0, oErrDiff[2].oChannelOrig[r, c]);
-                        var oCol = ColorIntExt.FromRGB(iR, iG, iB);
-                        oHashSet.Add(oCol);
-                        oRet[r, c] = oCol;
+                        var OldPixelR = Math.Max(0, Math.Min(255, oRO[r, c]));
+                        var OldPixelG = Math.Max(0, Math.Min(255, oGO[r, c]));
+                        var OldPixelB = Math.Max(0, Math.Min(255, oBO[r, c]));
+
+                        var OldPixel = ColorIntExt.FromRGB(OldPixelR, OldPixelG, OldPixelB);
+                        var NewPixel = ColorTransformBase.GetNearestColor(OldPixel, oDataProcessedPalette, eDistanceMode);
+                        oDataRet[r, c] = NewPixel;
+
+                        var NewPixelR = NewPixel.ToR();
+                        var NewPixelG = NewPixel.ToG();
+                        var NewPixelB = NewPixel.ToB();
+                        var ErrorR = OldPixelR - NewPixelR;
+                        var ErrorG = OldPixelG - NewPixelG;
+                        var ErrorB = OldPixelB - NewPixelB;
+
+                        for (int rr = 0; rr < RR; rr++)
+                        {
+                            int rOffset = rr + r;
+                            if (rOffset >= R)
+                                break;
+                            for (int cc = 0; cc < CC; cc++)
+                            {
+                                int cOffset = c + cc - CO;
+                                if (cOffset < 0)
+                                    continue;
+                                if (c == CO)
+                                    continue;
+                                if (cOffset >= C)
+                                    break;
+                                oRO[rOffset, cOffset] += (ErrorR * matErrorDiffusion[rr, cc] * DitheringStrenght);
+                                oGO[rOffset, cOffset] += (ErrorG * matErrorDiffusion[rr, cc] * DitheringStrenght);
+                                oBO[rOffset, cOffset] += (ErrorB * matErrorDiffusion[rr, cc] * DitheringStrenght);
+                            }
+                        }
                     }
                 }
 
                 Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering completed");
-                return oRet;
+                return oDataRet;
 
             }
             catch (Exception ex)

@@ -16,9 +16,9 @@ namespace ColourClashNet.Colors
 
         protected override void CreateTrasformationMap()
         {
-            foreach (var kvp in oColorHistogram)
+            foreach (var kvp in ColorHistogram)
             {
-                hashColorsPalette.Add(kvp.Key);
+                ColorTransformationPalette.Add(kvp.Key);
             }
         }
 
@@ -36,12 +36,12 @@ namespace ColourClashNet.Colors
             oHasSet.Remove(-1);
             foreach (var rgb in oHasSet)
             {
-                oColorTransformationMap.Add(rgb, rgb);
+                ColorTransformationMap.Add(rgb, rgb);
             }
-            var oColorList = oColorTransformationPalette;
+            var oColorList = ColorTransformationPalette;
             Parallel.ForEach( oHasSet, rgb =>
             {
-                oColorTransformationMap[rgb] = ColorTransformBase.GetNearestColor(rgb, oColorTransformationPalette, ColorDistanceEvaluationMode);
+                ColorTransformationMap[rgb] = ColorTransformBase.GetNearestColor(rgb, ColorTransformationPalette, ColorDistanceEvaluationMode);
             });
 
             return base.ExecuteTransform(oDataSource); 

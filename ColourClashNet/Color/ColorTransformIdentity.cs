@@ -21,10 +21,10 @@ namespace ColourClashNet.Colors
             string sMethod = nameof(CreateTrasformationMap);
             Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
 
-            foreach (var kvp in oColorHistogram)
+            foreach (var kvp in ColorHistogram)
             {
-                oColorTransformationMap.Add(kvp.Key, kvp.Key);
-                hashColorsPalette.Add(kvp.Key);
+                ColorTransformationMap.Add(kvp.Key, kvp.Key);
+                ColorTransformationPalette.Add(kvp.Key);
             }
         }
     }

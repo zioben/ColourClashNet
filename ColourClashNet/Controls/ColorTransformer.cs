@@ -210,7 +210,7 @@ namespace ColourClashNet.Controls
 
         private void ColorTransformer_OnProcess(object? sender, EventArgsTransformation e)
         {
-            ToPalette(lTransform.LastOrDefault()?.oColorTransformationMap.Select(X=>X.Value).ToList());
+            ToPalette(lTransform.LastOrDefault()?.ColorTransformationMap.Select(X=>X.Value).ToList());
             RebuildImageOutput();
         }
 
@@ -258,7 +258,7 @@ namespace ColourClashNet.Controls
             var oTrBkgRemover = new ColorTransformBkgRemover();
             oTrBkgRemover.ColorBackgroundList = BackgroundColorList;
             oTrBkgRemover.ColorBackground = BackgroundColorReplacement;
-            oTrBkgRemover.Create(oTrIdentity.oColorHistogram);
+            oTrBkgRemover.Create(oTrIdentity.ColorHistogram);
             var mDataBkgRemoved = oTrBkgRemover.TransformAndDither(mDataSource);
             return mDataBkgRemoved;
         }
@@ -270,11 +270,11 @@ namespace ColourClashNet.Controls
             var oTrBkgRemover = new ColorTransformBkgRemover();
             oTrBkgRemover.ColorBackgroundList = BackgroundColorList;
             oTrBkgRemover.ColorBackground = BackgroundColorReplacement;
-            oTrBkgRemover.Create(oTrIdentity.oColorHistogram);
+            oTrBkgRemover.Create(oTrIdentity.ColorHistogram);
             lTransform.Add(oTrBkgRemover);
 
             oTrQuantization.QuantizationMode = ColorQuantizationMode;
-            oTrQuantization.Create(oTrBkgRemover.oColorHistogram);
+            oTrQuantization.Create(oTrBkgRemover.ColorHistogram);
             //oTrQuantization.Dithering = CreateDithering();
             lTransform.Add(oTrQuantization);
 
@@ -480,7 +480,7 @@ namespace ColourClashNet.Controls
             }
             else
             {
-                ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oTrLast.oColorTransformationPalette, eWidthAlignMode, bInterleaveData);
+                ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oTrLast.ColorTransformationPalette.ToList(), eWidthAlignMode, bInterleaveData);
             }
         }
 

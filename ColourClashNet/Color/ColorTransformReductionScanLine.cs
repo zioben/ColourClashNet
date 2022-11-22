@@ -81,10 +81,10 @@ namespace ColourClashNet.Colors
                 }
 
                 oRowColors.Clear();
-                foreach (var kvp in oTrasf.oColorTransformationMap)
+                foreach (var kvp in oTrasf.ColorTransformationMap)
                 {
                     oRowColors.Add(kvp.Value);
-                    hashColorsPalette.Add(kvp.Value);
+                    ColorTransformationPalette.Add(kvp.Value);
                 }
                 ColorListRow.Add(oRowColors.ToList());
             }

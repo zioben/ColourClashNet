@@ -87,24 +87,32 @@ namespace ColourClashNet.Colors
         }
      
 
-        public static int GetNearestColor(int iColor, List<int> oPalette, ColorDistanceEvaluationMode eMode)
+        //public static int GetNearestColor(int iColor, List<int> oPalette, ColorDistanceEvaluationMode eMode)
+        //{
+        //    //if (oPalette == null || oPalette.Count == -1)
+        //    //    return -1;
+        //    //var col = oPalette[0];
+        //    //var distMin = iColor.Distance(oPalette[0], eMode);
+        //    //for (int i = 1; i < oPalette.Count; i++)
+        //    //{ 
+        //    //    var dist = col.Distance(oPalette[i], eMode);
+        //    //    if (distMin > dist)
+        //    //    {
+        //    //        col = oPalette[i];
+        //    //        distMin = dist;
+        //    //    }
+        //    //}
+        //    //return col;
+        //    //
+        //    // SLOOOOW
+        //    double dmin = oPalette.Min(X => X.Distance(iColor, eMode));
+        //    if (dmin == 0)
+        //        return iColor;
+        //    return oPalette.FirstOrDefault(X => X.Distance(iColor, eMode) == dmin);
+        //}
+
+        public static int GetNearestColor(int iColor, HashSet<int> oPalette, ColorDistanceEvaluationMode eMode)
         {
-            //if (oPalette == null || oPalette.Count == -1)
-            //    return -1;
-            //var col = oPalette[0];
-            //var distMin = iColor.Distance(oPalette[0], eMode);
-            //for (int i = 1; i < oPalette.Count; i++)
-            //{ 
-            //    var dist = col.Distance(oPalette[i], eMode);
-            //    if (distMin > dist)
-            //    {
-            //        col = oPalette[i];
-            //        distMin = dist;
-            //    }
-            //}
-            //return col;
-            //
-            // SLOOOOW
             double dmin = oPalette.Min(X => X.Distance(iColor, eMode));
             if (dmin == 0)
                 return iColor;
@@ -146,7 +154,7 @@ namespace ColourClashNet.Colors
 
         public static int[,]? ExecuteStdTransform(int[,]? oSource, ColorTransformInterface oI )
         {
-            return ExecuteStdTransform(oSource, oI?.oColorTransformationMap );
+            return ExecuteStdTransform(oSource, oI?.ColorTransformationMap );
         }
     }
 }

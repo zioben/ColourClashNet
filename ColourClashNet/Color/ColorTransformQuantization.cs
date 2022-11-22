@@ -70,10 +70,10 @@ namespace ColourClashNet.Colors
             string sMethod = nameof(CreateTrasformationMap);
             Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
 
-            foreach (var kvp in oColorHistogram)
+            foreach (var kvp in ColorHistogram)
             {
                 int iCol = QuantizeColor(kvp.Value);
-                oColorTransformationMap.Add(kvp.Key, iCol);
+                ColorTransformationMap.Add(kvp.Key, iCol);
             }
         }
 
@@ -86,13 +86,13 @@ namespace ColourClashNet.Colors
             var C = oSource.GetLength(1);
             var oRet = new int[R, C];
             var oCols = new int[1, C];
-            hashColorsPalette.Clear();
+            ColorTransformationPalette.Clear();
             for (int r = 0; r < R; r++)
             {
                 for (int c = 0; c < C; c++)
                 {
                     var col = QuantizeColor( oSource[r, c]);
-                    hashColorsPalette.Add(col); 
+                    ColorTransformationPalette.Add(col); 
                     oRet[r, c] = col;
                 }
             }

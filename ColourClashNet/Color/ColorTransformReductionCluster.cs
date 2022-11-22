@@ -28,12 +28,12 @@ namespace ColourClashNet.Colors
         {
             string sMethod = nameof(CreateTrasformationMap);
             SortColorsByHistogram();
-            if (oColorHistogram.Count < ColorsMax)
+            if (ColorHistogram.Count < ColorsMax)
             {
-                foreach (var kvp in oColorHistogram)
+                foreach (var kvp in ColorHistogram)
                 {
-                    oColorTransformationMap[kvp.Key] = kvp.Key;
-                    hashColorsPalette.Add(kvp.Key);
+                    ColorTransformationMap[kvp.Key] = kvp.Key;
+                    ColorTransformationPalette.Add(kvp.Key);
                 }
                 return;
             }
@@ -44,7 +44,7 @@ namespace ColourClashNet.Colors
 
             // initial population of the cluster, with base max color occurrences 
             int i = 0;            
-            foreach (var kvp in oColorHistogram)
+            foreach (var kvp in ColorHistogram)
             {
                 lColorCluster.Add(Tuple.Create(new List<int> { kvp.Key }, new Dictionary<int, int>()));
                 if (++i == ColorsMax)
@@ -58,7 +58,7 @@ namespace ColourClashNet.Colors
                 lColorCluster.ForEach(X => X.Item2.Clear()); ;
                 Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Train {train}");
                 // Aggregate :  Assign every color to the cluster of appartenence 
-                foreach ( var kvp in  oColorHistogram )
+                foreach ( var kvp in  ColorHistogram )
                 {
                     // Evaluate minimum distance from every color to cluster
                     var dMin = lColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
@@ -93,7 +93,7 @@ namespace ColourClashNet.Colors
                 }
             }
 
-            foreach( var kvp in oColorHistogram )
+            foreach( var kvp in ColorHistogram )
             {                
                 var dMin = lColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
                 var oItem = lColorCluster.FirstOrDefault(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
@@ -107,8 +107,8 @@ namespace ColourClashNet.Colors
                     var Max = oItem?.Item2.Max(X => X.Value);
                     iCol = oItem?.Item2.FirstOrDefault(X=>X.Value==Max).Key ?? -1;
                 }
-                hashColorsPalette.Add(iCol);
-                oColorTransformationMap[kvp.Key] = iCol; // Item1.Last()??-1;
+                ColorTransformationPalette.Add(iCol);
+                ColorTransformationMap[kvp.Key] = iCol; // Item1.Last()??-1;
             };
         }
 

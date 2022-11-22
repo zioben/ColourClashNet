@@ -24,19 +24,19 @@ namespace ColourClashNet.Colors
         {
             string sMethod = nameof(CreateTrasformationMap);
             Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
-            foreach (var kvp in oColorHistogram)
+            foreach (var kvp in ColorHistogram)
             {
-                hashColorsPalette.Add(kvp.Key);
-                oColorTransformationMap.Add(kvp.Key, kvp.Key);
+                ColorTransformationPalette.Add(kvp.Key);
+                ColorTransformationMap.Add(kvp.Key, kvp.Key);
             }
 
-            foreach (var kvp in oColorHistogram)
+            foreach (var kvp in ColorHistogram)
             {
                 var Val = kvp;
                 if (ColorBackgroundList.Any(X => X.Equals(Val)))
                 {
-                    hashColorsPalette.Remove(kvp.Key);
-                    oColorTransformationMap[kvp.Key] = ColorBackground;
+                    ColorTransformationPalette.Remove(kvp.Key);
+                    ColorTransformationMap[kvp.Key] = ColorBackground;
                 }
             }
         }

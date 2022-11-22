@@ -13,12 +13,11 @@ namespace ColourClashNet.Colors
     {
         public ColorTransform Type { get; protected init; }
 
-        public Dictionary<int, int> oColorHistogram { get; private set; } = new Dictionary<int, int>();
-        public Dictionary<int, int> oColorTransformationMap { get; private init; } = new Dictionary<int, int>();
+        public Dictionary<int, int> ColorHistogram { get; private set; } = new Dictionary<int, int>();
+        public Dictionary<int, int> ColorTransformationMap { get; private init; } = new Dictionary<int, int>();
 
-        protected HashSet<int> hashColorsPalette { get; private init; } = new HashSet<int>();
-        public List<int> oColorTransformationPalette => hashColorsPalette.ToList();
-        public int ColorsUsed => hashColorsPalette?.Count ?? 0;
+        public HashSet<int> ColorTransformationPalette { get; private init; } = new HashSet<int>();
+        public int ColorsUsed => ColorTransformationPalette?.Count ?? 0;
 
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.All;
 
@@ -35,9 +34,9 @@ namespace ColourClashNet.Colors
 
         void Reset()
         {
-            oColorHistogram.Clear();
-            oColorTransformationMap.Clear();
-            hashColorsPalette.Clear();
+            ColorHistogram.Clear();
+            ColorTransformationMap.Clear();
+            ColorTransformationPalette.Clear();
         }
 
 
@@ -46,7 +45,7 @@ namespace ColourClashNet.Colors
             Reset();
             if (oDataSource == null)
                 return;
-            oColorHistogram = CreateColorHist(oDataSource);
+            ColorHistogram = CreateColorHist(oDataSource);
             CreateTrasformationMap();
         }
 
@@ -57,25 +56,25 @@ namespace ColourClashNet.Colors
                 return;
             foreach (var kvp in oDictColorHistogramSource)
             {
-                oColorHistogram.Add(kvp.Key, kvp.Value);
-                hashColorsPalette.Add(kvp.Key);
+                ColorHistogram.Add(kvp.Key, kvp.Value);
+                ColorTransformationPalette.Add(kvp.Key);
             }
             CreateTrasformationMap();
-            hashColorsPalette.Remove(-1);
+            ColorTransformationPalette.Remove(-1);
         }
 
-        public void Create(List<int> oColorPalette)
+        public void Create(HashSet<int>? oColorPalette)
         {
             Reset();
             if (oColorPalette == null)
                 return;
             foreach (var kvp in oColorPalette)
             {
-                oColorHistogram.Add(kvp, kvp);
-                hashColorsPalette.Add(kvp);
+                ColorHistogram.Add(kvp, kvp);
+                ColorTransformationPalette.Add(kvp);
             }
             CreateTrasformationMap();
-            hashColorsPalette.Remove(-1);
+            ColorTransformationPalette.Remove(-1);
         }
 
         public int[,]? TransformAndDither(int[,]? oDataSource)
@@ -93,11 +92,11 @@ namespace ColourClashNet.Colors
             {
                 return oProc;
             }
-            var oProcDither = Dithering.Dither(oDataSource, oProc, hashColorsPalette.ToList(), ColorDistanceEvaluationMode);
+            var oProcDither = Dithering.Dither(oDataSource, oProc, ColorTransformationPalette, ColorDistanceEvaluationMode);
 
-            var oTransColorRemap = new ColorTransformToPalette() { ColorDistanceEvaluationMode = ColorDistanceEvaluationMode };
-            oTransColorRemap.Create(oColorTransformationPalette);
-            var oRemapData = oTransColorRemap.TransformAndDither(oProcDither);
+            //var oTransColorRemap = new ColorTransformToPalette() { ColorDistanceEvaluationMode = ColorDistanceEvaluationMode };
+            //oTransColorRemap.Create(ColorTransformationPalette);
+            //var oRemapData = oTransColorRemap.TransformAndDither(oProcDither);
             return oProcDither;
         }
 
@@ -118,16 +117,16 @@ namespace ColourClashNet.Colors
 
         protected void SortColorsByHistogram()
         {
-            List<Tuple<int,int>> oListHist = new List<Tuple<int, int>>(oColorHistogram.Count);
-            foreach (var kvp in oColorHistogram)
+            List<Tuple<int,int>> oListHist = new List<Tuple<int, int>>(ColorHistogram.Count);
+            foreach (var kvp in ColorHistogram)
             {
                 oListHist.Add(Tuple.Create( kvp.Value, kvp.Key));
             }
             oListHist = oListHist.OrderByDescending(X => X.Item1).ToList();
-            oColorHistogram.Clear();
+            ColorHistogram.Clear();
             foreach (var kvp in oListHist)
             {
-                oColorHistogram.Add( kvp.Item2, kvp.Item1);
+                ColorHistogram.Add( kvp.Item2, kvp.Item1);
             }
         }
 

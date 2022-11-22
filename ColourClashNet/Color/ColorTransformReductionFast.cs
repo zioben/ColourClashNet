@@ -21,23 +21,23 @@ namespace ColourClashNet.Colors
         protected override void CreateTrasformationMap()
         {
             SortColorsByHistogram();
-            if (oColorHistogram.Count < ColorsMax)
+            if (ColorHistogram.Count < ColorsMax)
             {
-                foreach (var kvp in oColorHistogram)
+                foreach (var kvp in ColorHistogram)
                 {
-                    hashColorsPalette.Add(kvp.Key);
-                    oColorTransformationMap[kvp.Key] = kvp.Key;
+                    ColorTransformationPalette.Add(kvp.Key);
+                    ColorTransformationMap[kvp.Key] = kvp.Key;
                 }
                 return;
             }
-            var listAll = oColorHistogram.Select(X => X.Key).ToList();
+            var listAll = ColorHistogram.Select(X => X.Key).ToList();
             var listMax = listAll.Take(ColorsMax).ToList();
             listAll.ForEach(X =>
             {
                 var dMin = listMax.Min(Y => Y.Distance(X,ColorDistanceEvaluationMode));
                 var oItem = listMax.FirstOrDefault(Y => Y.Distance(X,ColorDistanceEvaluationMode) == dMin);
-                hashColorsPalette.Add(oItem);
-                oColorTransformationMap[X]= oItem; 
+                ColorTransformationPalette.Add(oItem);
+                ColorTransformationMap[X]= oItem; 
             });
         }
 

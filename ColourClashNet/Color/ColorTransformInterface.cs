@@ -12,13 +12,12 @@ namespace ColourClashNet.Colors
         string Description { get; }
         void Create(int[,]? oDataSource);
         void Create(Dictionary<int, int>? oHistogramSource);
-        void Create(List<int> oColorPalette);
+        void Create(HashSet<int> oColorPalette);
         ColorDitherInterface? Dithering { get; set; }
         int[,]? TransformAndDither(int[,]? oSource);
-        Dictionary<int, int> oColorHistogram { get; }
-        Dictionary<int, int> oColorTransformationMap { get; }
-        List<int> oColorTransformationPalette { get; }
-
+        Dictionary<int, int> ColorHistogram { get; }
+        Dictionary<int, int> ColorTransformationMap { get; }
+        HashSet<int> ColorTransformationPalette { get; }
         int ColorsUsed {get; }
     }
 }

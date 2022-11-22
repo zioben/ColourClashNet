@@ -129,7 +129,7 @@ namespace ColourClashNet.Colors
             return true;            
         }
 
-        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, List<int>? oDataProcessedPalette,  ColorDistanceEvaluationMode eMode )
+        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, HashSet<int>? oDataProcessedPalette,  ColorDistanceEvaluationMode eMode )
         {
             string sMethod = nameof(Dither);
             try
@@ -152,7 +152,7 @@ namespace ColourClashNet.Colors
                 int R = oDataOriginal.GetLength(0);
                 int C = oDataOriginal.GetLength(1);
                 var oRet = new int[R, C];
-                for (int r = 0; r < R; r++)
+                Parallel.For(0, R, r=>
                 {
                     for (int c = 0; c < C; c++)
                     {
@@ -162,9 +162,10 @@ namespace ColourClashNet.Colors
                         var cg = Math.Max(0, col.ToG() + dV);
                         var cb = Math.Max(0, col.ToB() + dV);
                         var iCol = ColorIntExt.FromRGB(cr, cg, cb);
-                        oRet[r, c] = iCol;
+                        oRet[r, c] = ColorTransformBase.GetNearestColor( iCol, oDataProcessedPalette, eMode);
                     }
-                }
+                });
+
                 Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering completed");
                 return oRet;
             }
