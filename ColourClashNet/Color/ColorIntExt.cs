@@ -71,7 +71,7 @@ namespace ColourClashNet.Colors
                         int R = i.ToR() - j.ToR();
                         int G = i.ToG() - j.ToG();
                         int B = i.ToB() - j.ToB();
-                        return R * R + G * G + B * B;
+                        return R * R + G * G + B * B + (R-G)*(R-G) + (R-B)*(R-B) + (G-B)*(G-B);
                     }
                 case ColorDistanceEvaluationMode.HSV:
                     {

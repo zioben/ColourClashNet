@@ -264,7 +264,7 @@ namespace ColourClashNet
         private void btnReduceColors_Click(object sender, EventArgs e)
         {
             oColorTransformer.ColorsMax = (int)numericUpDown1.Value;
-            oColorTransformer.ColorTranform(ColorTransform.ColorReductionFast);
+            oColorTransformer.ColorTranform(ColorTransform.ColorReductionMedianCut);
         }
         private void btnReduceColorsScanline_Click(object sender, EventArgs e)
         {
@@ -360,6 +360,8 @@ namespace ColourClashNet
 
         private void button1_Click(object sender, EventArgs e)
         {
+            oColorTransformer.ZxEqColorLO = (int)numericUpDownZXL.Value;
+            oColorTransformer.ZxEqColorHI = (int)numericUpDownZXH.Value;
             oColorTransformer.ColorTranform( ColorTransform.ColorReductionZxSpectrum );
         }
 

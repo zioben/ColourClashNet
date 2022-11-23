@@ -89,6 +89,8 @@ namespace ColourClashNet.Controls
         public double DiteringStrenght { get; set; } = 1.0;
         public List<int> BackgroundColorList { get; set; } = new List<int>();
         public int BackgroundColorReplacement { get; set; } = 0;
+        public int ZxEqColorLO { get; set; } = 0x80;
+        public int ZxEqColorHI { get; set; } = 0xFF;
 
         #endregion
 
@@ -337,6 +339,7 @@ namespace ColourClashNet.Controls
             if (Dithering != null)
             {
                 Dithering.DitheringStrenght = DiteringStrenght;
+                Dithering.Create();
             }
             return Dithering;
         }
@@ -392,15 +395,28 @@ namespace ColourClashNet.Controls
                 case ColorTransform.ColorReductionZxSpectrum:
                     {
                         var oTrasf = new ColorTransformReductionZxSpectrum();
+                        oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
+                        oTrasf.ColL = ZxEqColorLO;
+                        oTrasf.ColH = ZxEqColorHI;
                         oTrI = oTrasf;
                     }
                     break;
                 case ColorTransform.ColorReductionEga:
                 {
                         var oTrasf = new ColorTransformReductionEga();
+                        oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
                         oTrI = oTrasf;
                     }
                     break;
+                case ColorTransform.ColorReductionMedianCut:
+                    {
+                        var oTrasf = new ColorTransformReductionMedianCut();
+                        oTrasf.ColorsMax = ColorsMax;
+                        oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
+                        oTrI = oTrasf;
+                    }
+                    break;
+
                 default:
                     return;
             }

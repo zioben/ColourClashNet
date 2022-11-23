@@ -88,15 +88,7 @@ namespace ColourClashNet.Colors
             {
                 return oProc;
             }
-            if (!Dithering.Create())
-            {
-                return oProc;
-            }
             var oProcDither = Dithering.Dither(oDataSource, oProc, ColorTransformationPalette, ColorDistanceEvaluationMode);
-
-            //var oTransColorRemap = new ColorTransformToPalette() { ColorDistanceEvaluationMode = ColorDistanceEvaluationMode };
-            //oTransColorRemap.Create(ColorTransformationPalette);
-            //var oRemapData = oTransColorRemap.TransformAndDither(oProcDither);
             return oProcDither;
         }
 

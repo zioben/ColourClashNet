@@ -111,12 +111,19 @@ namespace ColourClashNet.Colors
         //    return oPalette.FirstOrDefault(X => X.Distance(iColor, eMode) == dmin);
         //}
 
-        public static int GetNearestColor(int iColor, HashSet<int> oPalette, ColorDistanceEvaluationMode eMode)
+        public static int GetNearestColorXX(int iColor, HashSet<int> oPalette, ColorDistanceEvaluationMode eMode)
         {
             double dmin = oPalette.Min(X => X.Distance(iColor, eMode));
             if (dmin == 0)
                 return iColor;
             return oPalette.FirstOrDefault(X => X.Distance(iColor, eMode) == dmin);
+        }
+        public static int GetNearestColor(int iColor, HashSet<int> oPalette, ColorDistanceEvaluationMode eMode)
+        {
+            double dmin = oPalette.Min(X => X.Distance(iColor, eMode));
+            if (dmin == 0)
+                return iColor;
+            return oPalette.LastOrDefault(X => X.Distance(iColor, eMode) == dmin);
         }
 
         public static int[,]? ExecuteStdTransform(int[,]? oSource, Dictionary<int, int>? oColorTransformationMap)

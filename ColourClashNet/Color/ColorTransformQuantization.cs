@@ -20,7 +20,7 @@ namespace ColourClashNet.Colors
 
         public ColorQuantizationMode QuantizationMode { get; set; }
 
-        public int QuantizeColor(int iRGB)
+        public int QuantizeColorR(int iRGB)
         {
             if (iRGB < 0)
                 return iRGB;
@@ -63,7 +63,32 @@ namespace ColourClashNet.Colors
             return (iRGBOut);
         }
 
- 
+        public int QuantizeColor(int iRGB)
+        {
+            if (iRGB < 0)
+                return iRGB;
+            switch (QuantizationMode)
+            {
+                case ColorQuantizationMode.RGB888:
+                    return iRGB;
+                case ColorQuantizationMode.RGB111:
+                    return iRGB & 0x00808080;
+                case ColorQuantizationMode.RGB222:
+                    return iRGB & 0x00C0C0C0;
+                case ColorQuantizationMode.RGB333:
+                    return iRGB & 0x00E0E0E0;
+                case ColorQuantizationMode.RGB444:
+                    return iRGB & 0x00F0F0F0;
+                case ColorQuantizationMode.RGB555:
+                    return iRGB & 0x00F8F8F8;
+                case ColorQuantizationMode.RGB565:
+                    return iRGB & 0x00F8FCF8;
+                default:
+                    return -1;
+            }
+        }
+
+
         protected override void CreateTrasformationMap()
         {
 

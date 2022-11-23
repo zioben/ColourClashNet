@@ -43,10 +43,12 @@ namespace ColourClashNet.Colors
             List<Tuple<List<int>, Dictionary<int,int>>> lColorCluster = new List<Tuple<List<int>, Dictionary<int,int>>>();
 
             // initial population of the cluster, with base max color occurrences 
-            int i = 0;            
+            int i = 0;
+            int iRGB = 0;
             foreach (var kvp in ColorHistogram)
             {
                 lColorCluster.Add(Tuple.Create(new List<int> { kvp.Key }, new Dictionary<int, int>()));
+                //lColorCluster.Add(Tuple.Create(new List<int> { iRGB }, new Dictionary<int, int>()));
                 if (++i == ColorsMax)
                     break;
             }

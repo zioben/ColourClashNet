@@ -66,6 +66,8 @@
             this.pbBkColor = new System.Windows.Forms.PictureBox();
             this.chkScanLineCluster = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.numericUpDownZXL = new System.Windows.Forms.NumericUpDown();
+            this.numericUpDownZXH = new System.Windows.Forms.NumericUpDown();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.pictureBoxSrc = new System.Windows.Forms.PictureBox();
             this.pictureBoxProc = new System.Windows.Forms.PictureBox();
@@ -85,6 +87,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudClusterLoop)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbBkColor)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZXL)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZXH)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
             this.splitContainer2.Panel2.SuspendLayout();
@@ -294,9 +298,10 @@
             // 
             // tableLayoutPanel2
             // 
-            this.tableLayoutPanel2.ColumnCount = 2;
+            this.tableLayoutPanel2.ColumnCount = 3;
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 65.34954F));
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 34.65046F));
+            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 64F));
             this.tableLayoutPanel2.Controls.Add(this.button2, 0, 7);
             this.tableLayoutPanel2.Controls.Add(this.label3, 0, 2);
             this.tableLayoutPanel2.Controls.Add(this.label2, 0, 1);
@@ -310,6 +315,8 @@
             this.tableLayoutPanel2.Controls.Add(this.pbBkColor, 1, 2);
             this.tableLayoutPanel2.Controls.Add(this.chkScanLineCluster, 1, 4);
             this.tableLayoutPanel2.Controls.Add(this.button1, 0, 6);
+            this.tableLayoutPanel2.Controls.Add(this.numericUpDownZXL, 1, 6);
+            this.tableLayoutPanel2.Controls.Add(this.numericUpDownZXH, 2, 6);
             this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel2.Location = new System.Drawing.Point(3, 3);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
@@ -361,9 +368,9 @@
             "Original Image",
             "Quantized Image",
             "Color Reduced Image"});
-            this.cbImage.Location = new System.Drawing.Point(180, 3);
+            this.cbImage.Location = new System.Drawing.Point(138, 3);
             this.cbImage.Name = "cbImage";
-            this.cbImage.Size = new System.Drawing.Size(88, 23);
+            this.cbImage.Size = new System.Drawing.Size(65, 23);
             this.cbImage.TabIndex = 7;
             this.cbImage.SelectedIndexChanged += new System.EventHandler(this.cbImage_SelectedIndexChanged);
             // 
@@ -372,7 +379,7 @@
             this.btnReduceColors.Dock = System.Windows.Forms.DockStyle.Fill;
             this.btnReduceColors.Location = new System.Drawing.Point(3, 105);
             this.btnReduceColors.Name = "btnReduceColors";
-            this.btnReduceColors.Size = new System.Drawing.Size(171, 28);
+            this.btnReduceColors.Size = new System.Drawing.Size(129, 28);
             this.btnReduceColors.TabIndex = 3;
             this.btnReduceColors.Text = "Quantitative color reduction";
             this.btnReduceColors.UseVisualStyleBackColor = true;
@@ -386,7 +393,7 @@
             0,
             0,
             0});
-            this.numericUpDown1.Location = new System.Drawing.Point(180, 37);
+            this.numericUpDown1.Location = new System.Drawing.Point(138, 37);
             this.numericUpDown1.Maximum = new decimal(new int[] {
             256,
             0,
@@ -398,7 +405,7 @@
             0,
             0});
             this.numericUpDown1.Name = "numericUpDown1";
-            this.numericUpDown1.Size = new System.Drawing.Size(88, 23);
+            this.numericUpDown1.Size = new System.Drawing.Size(65, 23);
             this.numericUpDown1.TabIndex = 2;
             this.numericUpDown1.Value = new decimal(new int[] {
             16,
@@ -420,7 +427,7 @@
             this.btnReduceColorCluster.Dock = System.Windows.Forms.DockStyle.Fill;
             this.btnReduceColorCluster.Location = new System.Drawing.Point(3, 173);
             this.btnReduceColorCluster.Name = "btnReduceColorCluster";
-            this.btnReduceColorCluster.Size = new System.Drawing.Size(171, 28);
+            this.btnReduceColorCluster.Size = new System.Drawing.Size(129, 28);
             this.btnReduceColorCluster.TabIndex = 5;
             this.btnReduceColorCluster.Text = "Clustering color reduction";
             this.btnReduceColorCluster.UseVisualStyleBackColor = true;
@@ -429,7 +436,7 @@
             // nudClusterLoop
             // 
             this.nudClusterLoop.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.nudClusterLoop.Location = new System.Drawing.Point(180, 173);
+            this.nudClusterLoop.Location = new System.Drawing.Point(138, 173);
             this.nudClusterLoop.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -441,7 +448,7 @@
             0,
             0});
             this.nudClusterLoop.Name = "nudClusterLoop";
-            this.nudClusterLoop.Size = new System.Drawing.Size(88, 23);
+            this.nudClusterLoop.Size = new System.Drawing.Size(65, 23);
             this.nudClusterLoop.TabIndex = 6;
             this.nudClusterLoop.Value = new decimal(new int[] {
             100,
@@ -454,7 +461,7 @@
             this.btnReduceColorsScanline.Dock = System.Windows.Forms.DockStyle.Fill;
             this.btnReduceColorsScanline.Location = new System.Drawing.Point(3, 139);
             this.btnReduceColorsScanline.Name = "btnReduceColorsScanline";
-            this.btnReduceColorsScanline.Size = new System.Drawing.Size(171, 28);
+            this.btnReduceColorsScanline.Size = new System.Drawing.Size(129, 28);
             this.btnReduceColorsScanline.TabIndex = 9;
             this.btnReduceColorsScanline.Text = "Scanline color reduction";
             this.btnReduceColorsScanline.UseVisualStyleBackColor = true;
@@ -463,9 +470,9 @@
             // pbBkColor
             // 
             this.pbBkColor.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbBkColor.Location = new System.Drawing.Point(180, 71);
+            this.pbBkColor.Location = new System.Drawing.Point(138, 71);
             this.pbBkColor.Name = "pbBkColor";
-            this.pbBkColor.Size = new System.Drawing.Size(88, 28);
+            this.pbBkColor.Size = new System.Drawing.Size(65, 28);
             this.pbBkColor.TabIndex = 12;
             this.pbBkColor.TabStop = false;
             this.pbBkColor.DoubleClick += new System.EventHandler(this.pbBkColor_DoubleClick);
@@ -473,9 +480,9 @@
             // chkScanLineCluster
             // 
             this.chkScanLineCluster.AutoSize = true;
-            this.chkScanLineCluster.Location = new System.Drawing.Point(180, 139);
+            this.chkScanLineCluster.Location = new System.Drawing.Point(138, 139);
             this.chkScanLineCluster.Name = "chkScanLineCluster";
-            this.chkScanLineCluster.Size = new System.Drawing.Size(88, 19);
+            this.chkScanLineCluster.Size = new System.Drawing.Size(65, 19);
             this.chkScanLineCluster.TabIndex = 13;
             this.chkScanLineCluster.Text = "Clustering Scanline";
             this.chkScanLineCluster.UseVisualStyleBackColor = true;
@@ -489,6 +496,40 @@
             this.button1.Text = "To ZX";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // numericUpDownZXL
+            // 
+            this.numericUpDownZXL.Location = new System.Drawing.Point(138, 207);
+            this.numericUpDownZXL.Maximum = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+            this.numericUpDownZXL.Name = "numericUpDownZXL";
+            this.numericUpDownZXL.Size = new System.Drawing.Size(65, 23);
+            this.numericUpDownZXL.TabIndex = 16;
+            this.numericUpDownZXL.Value = new decimal(new int[] {
+            127,
+            0,
+            0,
+            0});
+            // 
+            // numericUpDownZXH
+            // 
+            this.numericUpDownZXH.Location = new System.Drawing.Point(209, 207);
+            this.numericUpDownZXH.Maximum = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+            this.numericUpDownZXH.Name = "numericUpDownZXH";
+            this.numericUpDownZXH.Size = new System.Drawing.Size(59, 23);
+            this.numericUpDownZXH.TabIndex = 17;
+            this.numericUpDownZXH.Value = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
             // 
             // splitContainer2
             // 
@@ -586,6 +627,8 @@
             this.oColorTransformer.DiteringStrenght = 1D;
             this.oColorTransformer.DitheringAlgorithm = ColourClashNet.Colors.ColorDithering.Ordered_4x4;
             this.oColorTransformer.ScanlineClustering = true;
+            this.oColorTransformer.ZxEqColorHI = 255;
+            this.oColorTransformer.ZxEqColorLO = 128;
             this.oColorTransformer.OnReset += new System.EventHandler(this.oColorTransformer_OnReset);
             this.oColorTransformer.OnCreate += new System.EventHandler(this.oColorTransformer_OnCreate);
             this.oColorTransformer.OnQuantize += new System.EventHandler<ColourClashNet.Controls.ColorTransformer.EventArgsTransformation>(this.oColorTransformer_OnQuantize);
@@ -612,6 +655,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudClusterLoop)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbBkColor)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZXL)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZXH)).EndInit();
             this.splitContainer2.Panel1.ResumeLayout(false);
             this.splitContainer2.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
@@ -671,5 +716,7 @@
         private Button button2;
         private ToolStripMenuItem ditheringToolStripMenuItem;
         private ToolStripMenuItem colorModeToolStripMenuItem;
+        private NumericUpDown numericUpDownZXL;
+        private NumericUpDown numericUpDownZXH;
     }
 }

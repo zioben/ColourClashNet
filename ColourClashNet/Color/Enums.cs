@@ -15,6 +15,7 @@ namespace ColourClashNet.Colors
         RGB444,
         RGB333,
         RGB222,
+        RGB111,
     }
 
     public enum Colorspace
@@ -44,6 +45,7 @@ namespace ColourClashNet.Colors
         ColorReductionEga,
         ColorReductionZxSpectrum,
         ColorReductionCBM64,
+        ColorReductionMedianCut,
     }
 
     public enum ColorDithering

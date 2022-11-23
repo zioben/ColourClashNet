@@ -27,19 +27,19 @@ namespace ColourClashNet.Colors
             if (oDataSource == null)
                 return null;
 
-            var oHasSet = new  HashSet<int>();
+            var oHashSet = new  HashSet<int>();
 
             foreach (var rgb in oDataSource)
             {
-                oHasSet.Add(rgb);
+                oHashSet.Add(rgb);
             }
-            oHasSet.Remove(-1);
-            foreach (var rgb in oHasSet)
+            oHashSet.Remove(-1);
+            foreach (var rgb in oHashSet)
             {
                 ColorTransformationMap.Add(rgb, rgb);
             }
             var oColorList = ColorTransformationPalette;
-            Parallel.ForEach( oHasSet, rgb =>
+            Parallel.ForEach( oHashSet, rgb =>
             {
                 ColorTransformationMap[rgb] = ColorTransformBase.GetNearestColor(rgb, ColorTransformationPalette, ColorDistanceEvaluationMode);
             });
