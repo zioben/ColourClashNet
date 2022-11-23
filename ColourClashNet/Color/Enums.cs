@@ -44,6 +44,7 @@ namespace ColourClashNet.Colors
         ColorReductionEga,
         ColorReductionZxSpectrum,
         ColorReductionCBM64,
+        ColorReductionMedianCut,
     }
 
     public enum ColorDithering

@@ -401,6 +401,15 @@ namespace ColourClashNet.Controls
                         oTrI = oTrasf;
                     }
                     break;
+                case ColorTransform.ColorReductionMedianCut:
+                    {
+                        var oTrasf = new ColorTransformReductionMedianCut();
+                        oTrasf.ColorsMax = ColorsMax;
+                        oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
+                        oTrI = oTrasf;
+                    }
+                    break;
+
                 default:
                     return;
             }

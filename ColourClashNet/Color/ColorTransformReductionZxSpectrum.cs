@@ -1,5 +1,6 @@
 ﻿using ColourClashNet.Colors;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
@@ -38,17 +39,47 @@ namespace ColourClashNet.Colors
             ColorTransformationPalette.Add(0x00ffffff);
         }
 
+        internal class Tile
+        {
+            internal int r { get; set; }
+            internal int c { get; set; }
+            internal int[,] TileData { get; set; }
+            //internal int[,] TileDataProc { get; set; }
+
+            internal ColorTransformReductionCluster oReduction = new ColorTransformReductionCluster()
+            {
+                ColorDistanceEvaluationMode = ColorDistanceEvaluationMode.RGB,
+                ColorsMax = 2,
+                TrainingLoop = 1,
+                UseClusterColorMean= false,
+            };
+
+            internal int[,] Process()
+            {
+                oReduction.Create(TileData);
+                return oReduction.TransformAndDither(TileData);
+            }
+
+        }
+
         protected override int[,]? ExecuteTransform(int[,]? oDataSource)
         {
             if (oDataSource == null)
                 return null;
 
             var oTmpData = base.ExecuteTransform(oDataSource);
+            if (Dithering != null)
+            {
+                oTmpData = Dithering.Dither(oDataSource, oTmpData, ColorTransformationPalette, ColorDistanceEvaluationMode);
+            }
+            BypassDithering = true;
 
 
             int R = oTmpData.GetLength(0);
             int C = oTmpData.GetLength(1);
             int[,] oRet = new int[R, C];
+
+            List<Tile> lDataBlock= new List<Tile>();
 
             //Parallel.For(0, R / 8, r =>
             for( int r =0; r < R/8; r++ )
@@ -56,35 +87,35 @@ namespace ColourClashNet.Colors
                 for (int c = 0; c < C / 8; c++)
                 //  Parallel.For(0, C / 8, c =>
                 {
-                    int[,] oClashIn = new int[8, 8];
-                    int[,] oSourceIn = new int[8, 8];
-                    for (int rr = 0; rr < 8; rr++)
+                    Tile oTile = new Tile()
                     {
-                        for (int cc = 0; cc < 8; cc++)
-                        {
-                            oClashIn[rr, cc] = oTmpData[rr + r * 8, cc + c * 8];
-                            oSourceIn[rr, cc] = oDataSource[rr + r * 8, cc + c * 8];
-                        }
-                    }
-                    ColorTransformReductionCluster oFast = new ColorTransformReductionCluster()
-                    {
-                        ColorsMax = 2,
-                        Dithering = Dithering,
-                         ColorDistanceEvaluationMode= ColorDistanceEvaluationMode,
-                          TrainingLoop = 10
+                        r = r,
+                        c = c,
+                        TileData = new int[8, 8],
                     };
-                    oFast.Create(oClashIn);
-                    var oClashOut = oFast.TransformAndDither(oClashIn);
                     for (int rr = 0; rr < 8; rr++)
                     {
                         for (int cc = 0; cc < 8; cc++)
                         {
-                            oRet[rr + r * 8, cc + c * 8] = oClashOut[rr, cc];
+                            var rgb = oTmpData[rr + r * 8, cc + c * 8];
+                            oTile.TileData[rr, cc]=rgb;
                         }
                     }
+                    lDataBlock.Add(oTile);
                 }
             }
-            this.Dithering = new ColorDitherIdentity();
+
+            Parallel.ForEach( lDataBlock, oTile =>
+                {
+                    var TileDataProc = oTile.Process();
+                    for (int rr = 0; rr < 8; rr++)
+                    {
+                        for (int cc = 0; cc < 8; cc++)
+                        {
+                            oRet[oTile.r * 8 + rr, oTile.c * 8 + cc] = TileDataProc[rr, cc];
+                        }
+                    }
+                });
             return oRet;
         }
     }
