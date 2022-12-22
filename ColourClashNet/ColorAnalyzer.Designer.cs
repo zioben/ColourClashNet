@@ -49,26 +49,44 @@
             this.colorModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.colorDistanceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ditheringToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.scMain = new System.Windows.Forms.SplitContainer();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
-            this.button2 = new System.Windows.Forms.Button();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.cbImage = new System.Windows.Forms.ComboBox();
-            this.btnReduceColors = new System.Windows.Forms.Button();
-            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
-            this.label1 = new System.Windows.Forms.Label();
-            this.btnReduceColorCluster = new System.Windows.Forms.Button();
-            this.nudClusterLoop = new System.Windows.Forms.NumericUpDown();
-            this.btnReduceColorsScanline = new System.Windows.Forms.Button();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.rbLayoutH = new System.Windows.Forms.RadioButton();
+            this.gbLayoutV = new System.Windows.Forms.RadioButton();
             this.pbBkColor = new System.Windows.Forms.PictureBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.nudColorsWanted = new System.Windows.Forms.NumericUpDown();
+            this.label2 = new System.Windows.Forms.Label();
+            this.panel7 = new System.Windows.Forms.Panel();
+            this.label6 = new System.Windows.Forms.Label();
+            this.nudClusterLoop = new System.Windows.Forms.NumericUpDown();
+            this.btnReduceColorCluster = new System.Windows.Forms.Button();
+            this.panel6 = new System.Windows.Forms.Panel();
+            this.label7 = new System.Windows.Forms.Label();
+            this.numericUpDown2 = new System.Windows.Forms.NumericUpDown();
             this.chkScanLineCluster = new System.Windows.Forms.CheckBox();
-            this.button1 = new System.Windows.Forms.Button();
-            this.numericUpDownZXL = new System.Windows.Forms.NumericUpDown();
+            this.btnReduceColorsScanline = new System.Windows.Forms.Button();
+            this.panel5 = new System.Windows.Forms.Panel();
+            this.nudDitheringStrenght = new System.Windows.Forms.NumericUpDown();
+            this.tbDitherStrenght = new System.Windows.Forms.TrackBar();
+            this.label5 = new System.Windows.Forms.Label();
+            this.panel4 = new System.Windows.Forms.Panel();
+            this.btnReduceColors = new System.Windows.Forms.Button();
+            this.panel8 = new System.Windows.Forms.Panel();
+            this.btnReduceColorsEga = new System.Windows.Forms.Button();
+            this.panel9 = new System.Windows.Forms.Panel();
+            this.btnReduceColorsC64v1 = new System.Windows.Forms.Button();
+            this.panel1 = new System.Windows.Forms.Panel();
             this.numericUpDownZXH = new System.Windows.Forms.NumericUpDown();
-            this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.numericUpDownZXL = new System.Windows.Forms.NumericUpDown();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.btnReduceColorsZx = new System.Windows.Forms.Button();
+            this.scLayout = new System.Windows.Forms.SplitContainer();
             this.pictureBoxSrc = new System.Windows.Forms.PictureBox();
             this.pictureBoxProc = new System.Windows.Forms.PictureBox();
             this.oBitmapRenderSource = new ColourClashNet.Controls.BitmapRender(this.components);
@@ -78,21 +96,33 @@
             this.sfdExportImage = new System.Windows.Forms.SaveFileDialog();
             this.oColorTransformer = new ColourClashNet.Controls.ColorTransformer(this.components);
             this.menuStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
-            this.splitContainer1.Panel1.SuspendLayout();
-            this.splitContainer1.Panel2.SuspendLayout();
-            this.splitContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.scMain)).BeginInit();
+            this.scMain.Panel1.SuspendLayout();
+            this.scMain.Panel2.SuspendLayout();
+            this.scMain.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudClusterLoop)).BeginInit();
+            this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbBkColor)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZXL)).BeginInit();
+            this.panel3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudColorsWanted)).BeginInit();
+            this.panel7.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudClusterLoop)).BeginInit();
+            this.panel6.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
+            this.panel5.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudDitheringStrenght)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.tbDitherStrenght)).BeginInit();
+            this.panel4.SuspendLayout();
+            this.panel8.SuspendLayout();
+            this.panel9.SuspendLayout();
+            this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZXH)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
-            this.splitContainer2.Panel1.SuspendLayout();
-            this.splitContainer2.Panel2.SuspendLayout();
-            this.splitContainer2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZXL)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.scLayout)).BeginInit();
+            this.scLayout.Panel1.SuspendLayout();
+            this.scLayout.Panel2.SuspendLayout();
+            this.scLayout.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSrc)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxProc)).BeginInit();
             this.SuspendLayout();
@@ -251,22 +281,22 @@
             this.ditheringToolStripMenuItem.Size = new System.Drawing.Size(68, 20);
             this.ditheringToolStripMenuItem.Text = "Dithering";
             // 
-            // splitContainer1
+            // scMain
             // 
-            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer1.Location = new System.Drawing.Point(0, 24);
-            this.splitContainer1.Name = "splitContainer1";
+            this.scMain.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.scMain.Location = new System.Drawing.Point(0, 24);
+            this.scMain.Name = "scMain";
             // 
-            // splitContainer1.Panel1
+            // scMain.Panel1
             // 
-            this.splitContainer1.Panel1.Controls.Add(this.tableLayoutPanel1);
+            this.scMain.Panel1.Controls.Add(this.tableLayoutPanel1);
             // 
-            // splitContainer1.Panel2
+            // scMain.Panel2
             // 
-            this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
-            this.splitContainer1.Size = new System.Drawing.Size(1021, 646);
-            this.splitContainer1.SplitterDistance = 277;
-            this.splitContainer1.TabIndex = 1;
+            this.scMain.Panel2.Controls.Add(this.scLayout);
+            this.scMain.Size = new System.Drawing.Size(1021, 646);
+            this.scMain.SplitterDistance = 360;
+            this.scMain.TabIndex = 1;
             // 
             // tableLayoutPanel1
             // 
@@ -278,165 +308,181 @@
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 2;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 283F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 603F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(277, 646);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(360, 646);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // propertyGrid1
             // 
             this.propertyGrid1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.propertyGrid1.Location = new System.Drawing.Point(3, 286);
+            this.propertyGrid1.Location = new System.Drawing.Point(3, 606);
             this.propertyGrid1.Name = "propertyGrid1";
-            this.propertyGrid1.Size = new System.Drawing.Size(271, 357);
+            this.propertyGrid1.Size = new System.Drawing.Size(354, 37);
             this.propertyGrid1.TabIndex = 0;
             // 
             // tableLayoutPanel2
             // 
-            this.tableLayoutPanel2.ColumnCount = 3;
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 65.34954F));
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 34.65046F));
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 64F));
-            this.tableLayoutPanel2.Controls.Add(this.button2, 0, 7);
-            this.tableLayoutPanel2.Controls.Add(this.label3, 0, 2);
-            this.tableLayoutPanel2.Controls.Add(this.label2, 0, 1);
-            this.tableLayoutPanel2.Controls.Add(this.cbImage, 1, 0);
-            this.tableLayoutPanel2.Controls.Add(this.btnReduceColors, 0, 3);
-            this.tableLayoutPanel2.Controls.Add(this.numericUpDown1, 1, 1);
-            this.tableLayoutPanel2.Controls.Add(this.label1, 0, 0);
-            this.tableLayoutPanel2.Controls.Add(this.btnReduceColorCluster, 0, 5);
-            this.tableLayoutPanel2.Controls.Add(this.nudClusterLoop, 1, 5);
-            this.tableLayoutPanel2.Controls.Add(this.btnReduceColorsScanline, 0, 4);
-            this.tableLayoutPanel2.Controls.Add(this.pbBkColor, 1, 2);
-            this.tableLayoutPanel2.Controls.Add(this.chkScanLineCluster, 1, 4);
-            this.tableLayoutPanel2.Controls.Add(this.button1, 0, 6);
-            this.tableLayoutPanel2.Controls.Add(this.numericUpDownZXL, 1, 6);
-            this.tableLayoutPanel2.Controls.Add(this.numericUpDownZXH, 2, 6);
+            this.tableLayoutPanel2.ColumnCount = 1;
+            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel2.Controls.Add(this.panel2, 0, 0);
+            this.tableLayoutPanel2.Controls.Add(this.panel3, 0, 1);
+            this.tableLayoutPanel2.Controls.Add(this.panel7, 0, 4);
+            this.tableLayoutPanel2.Controls.Add(this.panel6, 0, 5);
+            this.tableLayoutPanel2.Controls.Add(this.panel5, 0, 2);
+            this.tableLayoutPanel2.Controls.Add(this.panel4, 0, 3);
+            this.tableLayoutPanel2.Controls.Add(this.panel8, 0, 6);
+            this.tableLayoutPanel2.Controls.Add(this.panel9, 0, 7);
+            this.tableLayoutPanel2.Controls.Add(this.panel1, 0, 8);
             this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel2.Location = new System.Drawing.Point(3, 3);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
-            this.tableLayoutPanel2.RowCount = 8;
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(271, 277);
+            this.tableLayoutPanel2.RowCount = 12;
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 54F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 48F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 54F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 48F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 48F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 48F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 48F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 48F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 8F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 70F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(354, 597);
             this.tableLayoutPanel2.TabIndex = 8;
             // 
-            // button2
+            // panel2
             // 
-            this.button2.Location = new System.Drawing.Point(3, 241);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 15;
-            this.button2.Text = "To EGA";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.panel2.Controls.Add(this.rbLayoutH);
+            this.panel2.Controls.Add(this.gbLayoutV);
+            this.panel2.Controls.Add(this.pbBkColor);
+            this.panel2.Controls.Add(this.label3);
+            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel2.Location = new System.Drawing.Point(0, 0);
+            this.panel2.Margin = new System.Windows.Forms.Padding(0);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(354, 54);
+            this.panel2.TabIndex = 28;
+            // 
+            // rbLayoutH
+            // 
+            this.rbLayoutH.AutoSize = true;
+            this.rbLayoutH.Checked = true;
+            this.rbLayoutH.Location = new System.Drawing.Point(237, 28);
+            this.rbLayoutH.Name = "rbLayoutH";
+            this.rbLayoutH.Size = new System.Drawing.Size(119, 19);
+            this.rbLayoutH.TabIndex = 14;
+            this.rbLayoutH.TabStop = true;
+            this.rbLayoutH.Text = "Horizontal Layout";
+            this.rbLayoutH.UseVisualStyleBackColor = true;
+            this.rbLayoutH.CheckedChanged += new System.EventHandler(this.rbLayoutH_CheckedChanged);
+            // 
+            // gbLayoutV
+            // 
+            this.gbLayoutV.AutoSize = true;
+            this.gbLayoutV.Location = new System.Drawing.Point(237, 3);
+            this.gbLayoutV.Name = "gbLayoutV";
+            this.gbLayoutV.Size = new System.Drawing.Size(102, 19);
+            this.gbLayoutV.TabIndex = 13;
+            this.gbLayoutV.Text = "Vertical Layout";
+            this.gbLayoutV.UseVisualStyleBackColor = true;
+            this.gbLayoutV.CheckedChanged += new System.EventHandler(this.gbLayoutV_CheckedChanged);
+            // 
+            // pbBkColor
+            // 
+            this.pbBkColor.Location = new System.Drawing.Point(138, 3);
+            this.pbBkColor.Name = "pbBkColor";
+            this.pbBkColor.Size = new System.Drawing.Size(47, 48);
+            this.pbBkColor.TabIndex = 12;
+            this.pbBkColor.TabStop = false;
+            this.pbBkColor.DoubleClick += new System.EventHandler(this.pbBkColor_DoubleClick);
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(3, 68);
+            this.label3.Location = new System.Drawing.Point(3, 18);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(103, 15);
             this.label3.TabIndex = 11;
             this.label3.Text = "Background Color";
             // 
-            // label2
+            // panel3
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(3, 34);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(80, 15);
-            this.label2.TabIndex = 10;
-            this.label2.Text = "Color Wanted";
+            this.panel3.Controls.Add(this.nudColorsWanted);
+            this.panel3.Controls.Add(this.label2);
+            this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel3.Location = new System.Drawing.Point(0, 54);
+            this.panel3.Margin = new System.Windows.Forms.Padding(0);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(354, 48);
+            this.panel3.TabIndex = 29;
             // 
-            // cbImage
+            // nudColorsWanted
             // 
-            this.cbImage.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.cbImage.FormattingEnabled = true;
-            this.cbImage.Items.AddRange(new object[] {
-            "Original Image",
-            "Quantized Image",
-            "Color Reduced Image"});
-            this.cbImage.Location = new System.Drawing.Point(138, 3);
-            this.cbImage.Name = "cbImage";
-            this.cbImage.Size = new System.Drawing.Size(65, 23);
-            this.cbImage.TabIndex = 7;
-            this.cbImage.SelectedIndexChanged += new System.EventHandler(this.cbImage_SelectedIndexChanged);
-            // 
-            // btnReduceColors
-            // 
-            this.btnReduceColors.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.btnReduceColors.Location = new System.Drawing.Point(3, 105);
-            this.btnReduceColors.Name = "btnReduceColors";
-            this.btnReduceColors.Size = new System.Drawing.Size(129, 28);
-            this.btnReduceColors.TabIndex = 3;
-            this.btnReduceColors.Text = "Quantitative color reduction";
-            this.btnReduceColors.UseVisualStyleBackColor = true;
-            this.btnReduceColors.Click += new System.EventHandler(this.btnReduceColors_Click);
-            // 
-            // numericUpDown1
-            // 
-            this.numericUpDown1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.numericUpDown1.Increment = new decimal(new int[] {
+            this.nudColorsWanted.Increment = new decimal(new int[] {
             8,
             0,
             0,
             0});
-            this.numericUpDown1.Location = new System.Drawing.Point(138, 37);
-            this.numericUpDown1.Maximum = new decimal(new int[] {
+            this.nudColorsWanted.Location = new System.Drawing.Point(138, 7);
+            this.nudColorsWanted.Maximum = new decimal(new int[] {
             256,
             0,
             0,
             0});
-            this.numericUpDown1.Minimum = new decimal(new int[] {
+            this.nudColorsWanted.Minimum = new decimal(new int[] {
             2,
             0,
             0,
             0});
-            this.numericUpDown1.Name = "numericUpDown1";
-            this.numericUpDown1.Size = new System.Drawing.Size(65, 23);
-            this.numericUpDown1.TabIndex = 2;
-            this.numericUpDown1.Value = new decimal(new int[] {
+            this.nudColorsWanted.Name = "nudColorsWanted";
+            this.nudColorsWanted.Size = new System.Drawing.Size(65, 23);
+            this.nudColorsWanted.TabIndex = 2;
+            this.nudColorsWanted.Value = new decimal(new int[] {
             16,
             0,
             0,
             0});
             // 
-            // label1
+            // label2
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(3, 0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(72, 15);
-            this.label1.TabIndex = 8;
-            this.label1.Text = "Show Image";
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(3, 9);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(80, 15);
+            this.label2.TabIndex = 10;
+            this.label2.Text = "Color Wanted";
             // 
-            // btnReduceColorCluster
+            // panel7
             // 
-            this.btnReduceColorCluster.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.btnReduceColorCluster.Location = new System.Drawing.Point(3, 173);
-            this.btnReduceColorCluster.Name = "btnReduceColorCluster";
-            this.btnReduceColorCluster.Size = new System.Drawing.Size(129, 28);
-            this.btnReduceColorCluster.TabIndex = 5;
-            this.btnReduceColorCluster.Text = "Clustering color reduction";
-            this.btnReduceColorCluster.UseVisualStyleBackColor = true;
-            this.btnReduceColorCluster.Click += new System.EventHandler(this.btnReduceColorCluster_Click);
+            this.panel7.Controls.Add(this.label6);
+            this.panel7.Controls.Add(this.nudClusterLoop);
+            this.panel7.Controls.Add(this.btnReduceColorCluster);
+            this.panel7.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel7.Location = new System.Drawing.Point(0, 204);
+            this.panel7.Margin = new System.Windows.Forms.Padding(0);
+            this.panel7.Name = "panel7";
+            this.panel7.Size = new System.Drawing.Size(354, 48);
+            this.panel7.TabIndex = 33;
+            // 
+            // label6
+            // 
+            this.label6.Location = new System.Drawing.Point(217, 8);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(51, 30);
+            this.label6.TabIndex = 20;
+            this.label6.Text = "Train epochs";
             // 
             // nudClusterLoop
             // 
-            this.nudClusterLoop.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.nudClusterLoop.Location = new System.Drawing.Point(138, 173);
+            this.nudClusterLoop.Location = new System.Drawing.Point(274, 13);
             this.nudClusterLoop.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -456,50 +502,227 @@
             0,
             0});
             // 
-            // btnReduceColorsScanline
+            // btnReduceColorCluster
             // 
-            this.btnReduceColorsScanline.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.btnReduceColorsScanline.Location = new System.Drawing.Point(3, 139);
-            this.btnReduceColorsScanline.Name = "btnReduceColorsScanline";
-            this.btnReduceColorsScanline.Size = new System.Drawing.Size(129, 28);
-            this.btnReduceColorsScanline.TabIndex = 9;
-            this.btnReduceColorsScanline.Text = "Scanline color reduction";
-            this.btnReduceColorsScanline.UseVisualStyleBackColor = true;
-            this.btnReduceColorsScanline.Click += new System.EventHandler(this.btnReduceColorsScanline_Click);
+            this.btnReduceColorCluster.Location = new System.Drawing.Point(3, -1);
+            this.btnReduceColorCluster.Name = "btnReduceColorCluster";
+            this.btnReduceColorCluster.Size = new System.Drawing.Size(129, 50);
+            this.btnReduceColorCluster.TabIndex = 5;
+            this.btnReduceColorCluster.Text = "Clustering Reduction";
+            this.btnReduceColorCluster.UseVisualStyleBackColor = true;
+            this.btnReduceColorCluster.Click += new System.EventHandler(this.btnReduceColorCluster_Click);
             // 
-            // pbBkColor
+            // panel6
             // 
-            this.pbBkColor.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbBkColor.Location = new System.Drawing.Point(138, 71);
-            this.pbBkColor.Name = "pbBkColor";
-            this.pbBkColor.Size = new System.Drawing.Size(65, 28);
-            this.pbBkColor.TabIndex = 12;
-            this.pbBkColor.TabStop = false;
-            this.pbBkColor.DoubleClick += new System.EventHandler(this.pbBkColor_DoubleClick);
+            this.panel6.Controls.Add(this.label7);
+            this.panel6.Controls.Add(this.numericUpDown2);
+            this.panel6.Controls.Add(this.chkScanLineCluster);
+            this.panel6.Controls.Add(this.btnReduceColorsScanline);
+            this.panel6.Location = new System.Drawing.Point(0, 252);
+            this.panel6.Margin = new System.Windows.Forms.Padding(0);
+            this.panel6.Name = "panel6";
+            this.panel6.Size = new System.Drawing.Size(354, 48);
+            this.panel6.TabIndex = 32;
+            // 
+            // label7
+            // 
+            this.label7.Location = new System.Drawing.Point(217, 8);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(51, 30);
+            this.label7.TabIndex = 22;
+            this.label7.Text = "Train epochs";
+            // 
+            // numericUpDown2
+            // 
+            this.numericUpDown2.Location = new System.Drawing.Point(274, 13);
+            this.numericUpDown2.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.numericUpDown2.Minimum = new decimal(new int[] {
+            30,
+            0,
+            0,
+            0});
+            this.numericUpDown2.Name = "numericUpDown2";
+            this.numericUpDown2.Size = new System.Drawing.Size(65, 23);
+            this.numericUpDown2.TabIndex = 21;
+            this.numericUpDown2.Value = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
             // 
             // chkScanLineCluster
             // 
-            this.chkScanLineCluster.AutoSize = true;
-            this.chkScanLineCluster.Location = new System.Drawing.Point(138, 139);
+            this.chkScanLineCluster.Location = new System.Drawing.Point(138, 5);
             this.chkScanLineCluster.Name = "chkScanLineCluster";
-            this.chkScanLineCluster.Size = new System.Drawing.Size(65, 19);
+            this.chkScanLineCluster.Size = new System.Drawing.Size(83, 37);
             this.chkScanLineCluster.TabIndex = 13;
             this.chkScanLineCluster.Text = "Clustering Scanline";
             this.chkScanLineCluster.UseVisualStyleBackColor = true;
             // 
-            // button1
+            // btnReduceColorsScanline
             // 
-            this.button1.Location = new System.Drawing.Point(3, 207);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 14;
-            this.button1.Text = "To ZX";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.btnReduceColorsScanline.Location = new System.Drawing.Point(3, 0);
+            this.btnReduceColorsScanline.Name = "btnReduceColorsScanline";
+            this.btnReduceColorsScanline.Size = new System.Drawing.Size(129, 48);
+            this.btnReduceColorsScanline.TabIndex = 9;
+            this.btnReduceColorsScanline.Text = "Scanline Reduction";
+            this.btnReduceColorsScanline.UseVisualStyleBackColor = true;
+            this.btnReduceColorsScanline.Click += new System.EventHandler(this.btnReduceColorsScanline_Click);
+            // 
+            // panel5
+            // 
+            this.panel5.Controls.Add(this.nudDitheringStrenght);
+            this.panel5.Controls.Add(this.tbDitherStrenght);
+            this.panel5.Controls.Add(this.label5);
+            this.panel5.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel5.Location = new System.Drawing.Point(0, 102);
+            this.panel5.Margin = new System.Windows.Forms.Padding(0);
+            this.panel5.Name = "panel5";
+            this.panel5.Size = new System.Drawing.Size(354, 54);
+            this.panel5.TabIndex = 31;
+            // 
+            // nudDitheringStrenght
+            // 
+            this.nudDitheringStrenght.DecimalPlaces = 2;
+            this.nudDitheringStrenght.Increment = new decimal(new int[] {
+            5,
+            0,
+            0,
+            131072});
+            this.nudDitheringStrenght.Location = new System.Drawing.Point(274, 10);
+            this.nudDitheringStrenght.Maximum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.nudDitheringStrenght.Name = "nudDitheringStrenght";
+            this.nudDitheringStrenght.Size = new System.Drawing.Size(65, 23);
+            this.nudDitheringStrenght.TabIndex = 21;
+            this.nudDitheringStrenght.ThousandsSeparator = true;
+            this.nudDitheringStrenght.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.nudDitheringStrenght.ValueChanged += new System.EventHandler(this.nudDitheringStrenght_ValueChanged);
+            // 
+            // tbDitherStrenght
+            // 
+            this.tbDitherStrenght.Location = new System.Drawing.Point(71, 3);
+            this.tbDitherStrenght.Maximum = 100;
+            this.tbDitherStrenght.Name = "tbDitherStrenght";
+            this.tbDitherStrenght.Size = new System.Drawing.Size(197, 45);
+            this.tbDitherStrenght.TabIndex = 11;
+            this.tbDitherStrenght.TickFrequency = 10;
+            this.tbDitherStrenght.TickStyle = System.Windows.Forms.TickStyle.Both;
+            this.tbDitherStrenght.Value = 100;
+            this.tbDitherStrenght.Scroll += new System.EventHandler(this.tbDitherStrenght_Scroll);
+            // 
+            // label5
+            // 
+            this.label5.Location = new System.Drawing.Point(3, 5);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(62, 40);
+            this.label5.TabIndex = 20;
+            this.label5.Text = "Dithering Strenght";
+            // 
+            // panel4
+            // 
+            this.panel4.Controls.Add(this.btnReduceColors);
+            this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel4.Location = new System.Drawing.Point(0, 156);
+            this.panel4.Margin = new System.Windows.Forms.Padding(0);
+            this.panel4.Name = "panel4";
+            this.panel4.Size = new System.Drawing.Size(354, 48);
+            this.panel4.TabIndex = 30;
+            // 
+            // btnReduceColors
+            // 
+            this.btnReduceColors.Location = new System.Drawing.Point(3, -1);
+            this.btnReduceColors.Name = "btnReduceColors";
+            this.btnReduceColors.Size = new System.Drawing.Size(129, 49);
+            this.btnReduceColors.TabIndex = 3;
+            this.btnReduceColors.Text = "Quantitative color reduction";
+            this.btnReduceColors.UseVisualStyleBackColor = true;
+            this.btnReduceColors.Click += new System.EventHandler(this.btnReduceColors_Click);
+            // 
+            // panel8
+            // 
+            this.panel8.Controls.Add(this.btnReduceColorsEga);
+            this.panel8.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel8.Location = new System.Drawing.Point(0, 300);
+            this.panel8.Margin = new System.Windows.Forms.Padding(0);
+            this.panel8.Name = "panel8";
+            this.panel8.Size = new System.Drawing.Size(354, 48);
+            this.panel8.TabIndex = 34;
+            // 
+            // btnReduceColorsEga
+            // 
+            this.btnReduceColorsEga.Location = new System.Drawing.Point(3, 0);
+            this.btnReduceColorsEga.Name = "btnReduceColorsEga";
+            this.btnReduceColorsEga.Size = new System.Drawing.Size(129, 48);
+            this.btnReduceColorsEga.TabIndex = 15;
+            this.btnReduceColorsEga.Text = "To EGA";
+            this.btnReduceColorsEga.UseVisualStyleBackColor = true;
+            this.btnReduceColorsEga.Click += new System.EventHandler(this.btnReduceColorsEga_Click);
+            // 
+            // panel9
+            // 
+            this.panel9.Controls.Add(this.btnReduceColorsC64v1);
+            this.panel9.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel9.Location = new System.Drawing.Point(0, 348);
+            this.panel9.Margin = new System.Windows.Forms.Padding(0);
+            this.panel9.Name = "panel9";
+            this.panel9.Size = new System.Drawing.Size(354, 48);
+            this.panel9.TabIndex = 35;
+            // 
+            // btnReduceColorsC64v1
+            // 
+            this.btnReduceColorsC64v1.Location = new System.Drawing.Point(3, 0);
+            this.btnReduceColorsC64v1.Name = "btnReduceColorsC64v1";
+            this.btnReduceColorsC64v1.Size = new System.Drawing.Size(129, 48);
+            this.btnReduceColorsC64v1.TabIndex = 18;
+            this.btnReduceColorsC64v1.Text = "To C64";
+            this.btnReduceColorsC64v1.UseVisualStyleBackColor = true;
+            this.btnReduceColorsC64v1.Click += new System.EventHandler(this.BtnReduceColorsC64v1_Click);
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.numericUpDownZXH);
+            this.panel1.Controls.Add(this.numericUpDownZXL);
+            this.panel1.Controls.Add(this.label1);
+            this.panel1.Controls.Add(this.label4);
+            this.panel1.Controls.Add(this.btnReduceColorsZx);
+            this.panel1.Location = new System.Drawing.Point(0, 396);
+            this.panel1.Margin = new System.Windows.Forms.Padding(0);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(354, 60);
+            this.panel1.TabIndex = 27;
+            // 
+            // numericUpDownZXH
+            // 
+            this.numericUpDownZXH.Location = new System.Drawing.Point(195, 34);
+            this.numericUpDownZXH.Maximum = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+            this.numericUpDownZXH.Name = "numericUpDownZXH";
+            this.numericUpDownZXH.Size = new System.Drawing.Size(65, 23);
+            this.numericUpDownZXH.TabIndex = 17;
+            this.numericUpDownZXH.Value = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
             // 
             // numericUpDownZXL
             // 
-            this.numericUpDownZXL.Location = new System.Drawing.Point(138, 207);
+            this.numericUpDownZXL.Location = new System.Drawing.Point(195, 5);
             this.numericUpDownZXL.Maximum = new decimal(new int[] {
             255,
             0,
@@ -514,40 +737,51 @@
             0,
             0});
             // 
-            // numericUpDownZXH
+            // label1
             // 
-            this.numericUpDownZXH.Location = new System.Drawing.Point(209, 207);
-            this.numericUpDownZXH.Maximum = new decimal(new int[] {
-            255,
-            0,
-            0,
-            0});
-            this.numericUpDownZXH.Name = "numericUpDownZXH";
-            this.numericUpDownZXH.Size = new System.Drawing.Size(59, 23);
-            this.numericUpDownZXH.TabIndex = 17;
-            this.numericUpDownZXH.Value = new decimal(new int[] {
-            255,
-            0,
-            0,
-            0});
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(138, 7);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(51, 15);
+            this.label1.TabIndex = 18;
+            this.label1.Text = "ColorLO";
             // 
-            // splitContainer2
+            // label4
             // 
-            this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer2.Location = new System.Drawing.Point(0, 0);
-            this.splitContainer2.Name = "splitContainer2";
-            this.splitContainer2.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(138, 37);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(48, 15);
+            this.label4.TabIndex = 19;
+            this.label4.Text = "ColorHI";
             // 
-            // splitContainer2.Panel1
+            // btnReduceColorsZx
             // 
-            this.splitContainer2.Panel1.Controls.Add(this.pictureBoxSrc);
+            this.btnReduceColorsZx.Location = new System.Drawing.Point(3, 0);
+            this.btnReduceColorsZx.Name = "btnReduceColorsZx";
+            this.btnReduceColorsZx.Size = new System.Drawing.Size(129, 60);
+            this.btnReduceColorsZx.TabIndex = 14;
+            this.btnReduceColorsZx.Text = "To ZX";
+            this.btnReduceColorsZx.UseVisualStyleBackColor = true;
+            this.btnReduceColorsZx.Click += new System.EventHandler(this.button1_Click);
             // 
-            // splitContainer2.Panel2
+            // scLayout
             // 
-            this.splitContainer2.Panel2.Controls.Add(this.pictureBoxProc);
-            this.splitContainer2.Size = new System.Drawing.Size(740, 646);
-            this.splitContainer2.SplitterDistance = 336;
-            this.splitContainer2.TabIndex = 0;
+            this.scLayout.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.scLayout.Location = new System.Drawing.Point(0, 0);
+            this.scLayout.Name = "scLayout";
+            this.scLayout.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // scLayout.Panel1
+            // 
+            this.scLayout.Panel1.Controls.Add(this.pictureBoxSrc);
+            // 
+            // scLayout.Panel2
+            // 
+            this.scLayout.Panel2.Controls.Add(this.pictureBoxProc);
+            this.scLayout.Size = new System.Drawing.Size(657, 646);
+            this.scLayout.SplitterDistance = 323;
+            this.scLayout.TabIndex = 0;
             // 
             // pictureBoxSrc
             // 
@@ -555,7 +789,7 @@
             this.pictureBoxSrc.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pictureBoxSrc.Location = new System.Drawing.Point(0, 0);
             this.pictureBoxSrc.Name = "pictureBoxSrc";
-            this.pictureBoxSrc.Size = new System.Drawing.Size(740, 336);
+            this.pictureBoxSrc.Size = new System.Drawing.Size(657, 323);
             this.pictureBoxSrc.TabIndex = 0;
             this.pictureBoxSrc.TabStop = false;
             this.pictureBoxSrc.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseDoubleClick);
@@ -566,7 +800,7 @@
             this.pictureBoxProc.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pictureBoxProc.Location = new System.Drawing.Point(0, 0);
             this.pictureBoxProc.Name = "pictureBoxProc";
-            this.pictureBoxProc.Size = new System.Drawing.Size(740, 306);
+            this.pictureBoxProc.Size = new System.Drawing.Size(657, 319);
             this.pictureBoxProc.TabIndex = 0;
             this.pictureBoxProc.TabStop = false;
             // 
@@ -624,7 +858,7 @@
             this.oColorTransformer.ColorQuantizationMode = ColourClashNet.Colors.ColorQuantizationMode.Unknown;
             this.oColorTransformer.ColorsMax = 16;
             this.oColorTransformer.ColorTransformAlgorithm = ColourClashNet.Colors.ColorTransform.None;
-            this.oColorTransformer.DiteringStrenght = 1D;
+            this.oColorTransformer.DitheringStrenght = 1D;
             this.oColorTransformer.DitheringAlgorithm = ColourClashNet.Colors.ColorDithering.Ordered_4x4;
             this.oColorTransformer.ScanlineClustering = true;
             this.oColorTransformer.ZxEqColorHI = 255;
@@ -638,29 +872,44 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.splitContainer1);
+            this.Controls.Add(this.scMain);
             this.Controls.Add(this.menuStrip1);
             this.Name = "ColorAnalyzer";
             this.Size = new System.Drawing.Size(1021, 670);
             this.Load += new System.EventHandler(this.ColorAnalyzer_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
-            this.splitContainer1.Panel1.ResumeLayout(false);
-            this.splitContainer1.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
-            this.splitContainer1.ResumeLayout(false);
+            this.scMain.Panel1.ResumeLayout(false);
+            this.scMain.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.scMain)).EndInit();
+            this.scMain.ResumeLayout(false);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel2.ResumeLayout(false);
-            this.tableLayoutPanel2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudClusterLoop)).EndInit();
+            this.panel2.ResumeLayout(false);
+            this.panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbBkColor)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZXL)).EndInit();
+            this.panel3.ResumeLayout(false);
+            this.panel3.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudColorsWanted)).EndInit();
+            this.panel7.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.nudClusterLoop)).EndInit();
+            this.panel6.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();
+            this.panel5.ResumeLayout(false);
+            this.panel5.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudDitheringStrenght)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.tbDitherStrenght)).EndInit();
+            this.panel4.ResumeLayout(false);
+            this.panel8.ResumeLayout(false);
+            this.panel9.ResumeLayout(false);
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZXH)).EndInit();
-            this.splitContainer2.Panel1.ResumeLayout(false);
-            this.splitContainer2.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
-            this.splitContainer2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZXL)).EndInit();
+            this.scLayout.Panel1.ResumeLayout(false);
+            this.scLayout.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.scLayout)).EndInit();
+            this.scLayout.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSrc)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxProc)).EndInit();
             this.ResumeLayout(false);
@@ -675,17 +924,15 @@
         private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem newToolStripMenuItem;
         private ToolStripMenuItem openToolStripMenuItem;
-        private SplitContainer splitContainer1;
+        private SplitContainer scMain;
         private PictureBox pictureBoxSrc;
         private ToolStripMenuItem exportToolStripMenuItem;
         private TableLayoutPanel tableLayoutPanel1;
         private PropertyGrid propertyGrid1;
         private TableLayoutPanel tableLayoutPanel2;
         private Label label2;
-        private ComboBox cbImage;
         private Button btnReduceColors;
-        private NumericUpDown numericUpDown1;
-        private Label label1;
+        private NumericUpDown nudColorsWanted;
         private Button btnReduceColorCluster;
         private NumericUpDown nudClusterLoop;
         private Button btnReduceColorsScanline;
@@ -705,18 +952,38 @@
         private ToolStripMenuItem sourceCodeToolStripMenuItem;
         private ToolStripMenuItem rawBitplaneAndOCSCopperlistToolStripMenuItem;
         private ToolStripMenuItem toolStripMenuItem1;
-        private SplitContainer splitContainer2;
+        private SplitContainer scLayout;
         private PictureBox pictureBoxProc;
         private Controls.BitmapRender bitmapRender1;
         private Controls.BitmapRender bitmapRender2;
         private Controls.BitmapRender oBitmapRenderDest;
         private SaveFileDialog sfdExportImage;
-        private Button button1;
+        private Button btnReduceColorsZx;
         private Controls.ColorTransformer oColorTransformer;
-        private Button button2;
         private ToolStripMenuItem ditheringToolStripMenuItem;
         private ToolStripMenuItem colorModeToolStripMenuItem;
         private NumericUpDown numericUpDownZXL;
         private NumericUpDown numericUpDownZXH;
+        private Button btnReduceColorsC64v1;
+        private Button btnReduceColorsEga;
+        private Label label1;
+        private Label label4;
+        private Panel panel1;
+        private Panel panel2;
+        private Panel panel3;
+        private Panel panel4;
+        private Panel panel5;
+        private NumericUpDown nudDitheringStrenght;
+        private TrackBar tbDitherStrenght;
+        private Label label5;
+        private Panel panel6;
+        private Panel panel7;
+        private Label label6;
+        private Label label7;
+        private NumericUpDown numericUpDown2;
+        private Panel panel8;
+        private Panel panel9;
+        private RadioButton rbLayoutH;
+        private RadioButton gbLayoutV;
     }
 }

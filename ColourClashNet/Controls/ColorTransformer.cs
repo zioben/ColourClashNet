@@ -1,4 +1,6 @@
 ﻿using ColourClashNet.Colors;
+using ColourClashNet.Colors.Dithering;
+using ColourClashNet.Colors.Transformation;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -51,9 +53,9 @@ namespace ColourClashNet.Controls
         #endregion
 
         #region Properties
-        public int ImageSourceColors => oTrIdentity?.ColorsUsed ?? 0;
-        public int ImageQuantizedColors => oTrQuantization?.ColorsUsed ?? 0;
-        public int ImageProcessedColors => lTransform.LastOrDefault()?.ColorsUsed ?? 0;
+        public int ImageSourceColors => oTrIdentity?.Colors ?? 0;
+        public int ImageQuantizedColors => oTrQuantization?.Colors ?? 0;
+        public int ImageProcessedColors => lTransform.LastOrDefault()?.Colors ?? 0;
         public int ImageWidth => ImageSource?.Width ?? 0;
         public int ImageHeight => ImageSource?.Height ?? 0;
 
@@ -86,7 +88,7 @@ namespace ColourClashNet.Controls
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
         public ColorQuantizationMode ColorQuantizationMode { get; set; } = ColorQuantizationMode.Unknown;
         public ColorDithering DitheringAlgorithm { get; set; } = ColorDithering.FloydSteinberg;
-        public double DiteringStrenght { get; set; } = 1.0;
+        public double DitheringStrenght { get; set; } = 1.0;
         public List<int> BackgroundColorList { get; set; } = new List<int>();
         public int BackgroundColorReplacement { get; set; } = 0;
         public int ZxEqColorLO { get; set; } = 0x80;
@@ -212,7 +214,7 @@ namespace ColourClashNet.Controls
 
         private void ColorTransformer_OnProcess(object? sender, EventArgsTransformation e)
         {
-            ToPalette(lTransform.LastOrDefault()?.ColorTransformationMap.Select(X=>X.Value).ToList());
+            ToPalette(lTransform.LastOrDefault()?.ColorTransformationMap.rgbTransformationMap.Select(X=>X.Value).ToList());
             RebuildImageOutput();
         }
 
@@ -298,47 +300,47 @@ namespace ColourClashNet.Controls
             ImageProcessed = ToBitmap(mDataProcessed);
         }
 
-        ColorDitherInterface? CreateDithering()
+        DitherInterface? CreateDithering()
         {
-            ColorDitherInterface Dithering;
+            DitherInterface Dithering;
             switch (DitheringAlgorithm)
             {
                 case ColorDithering.Atkinson:
-                    Dithering = new ColorDitherAtkinson();
+                    Dithering = new DitherAtkinson();
                     break;
                 case ColorDithering.Burkes:
-                    Dithering = new ColorDitherBurkes();
+                    Dithering = new DitherBurkes();
                     break;
                 case ColorDithering.FloydSteinberg:
-                    Dithering = new ColorDitherFloydSteinberg();
+                    Dithering = new DitherFloydSteinberg();
                     break;
                 case ColorDithering.JarvisJudiceNinke:
-                    Dithering = new ColorDitherJJS();
+                    Dithering = new DitherJarvisJudiceNinke();
                     break;
                 case ColorDithering.None:
-                    Dithering = new ColorDitherIdentity();
+                    Dithering = new DitherIdentity();
                     break;
                 case ColorDithering.Ordered_2x2:
-                    Dithering = new ColorDitherOrdered() { Size = 2 };
+                    Dithering = new DitherOrdered() { Size = 2 };
                     break;
                 case ColorDithering.Ordered_4x4:
-                    Dithering = new ColorDitherOrdered() { Size = 4 };
+                    Dithering = new DitherOrdered() { Size = 4 };
                     break;
                 case ColorDithering.Ordered_8x8:
-                    Dithering = new ColorDitherOrdered() { Size = 8 };
+                    Dithering = new DitherOrdered() { Size = 8 };
                     break;
                 case ColorDithering.Sierra:
-                    Dithering = new ColorDitherSierra();
+                    Dithering = new DitherSierra();
                     break;
                 case ColorDithering.Stucki:
-                    Dithering = new ColorDitherStucki();
+                    Dithering = new DitherStucki();
                     break;
                 default:
                     return null;
             }
             if (Dithering != null)
             {
-                Dithering.DitheringStrenght = DiteringStrenght;
+                Dithering.DitheringStrenght = DitheringStrenght;
                 Dithering.Create();
             }
             return Dithering;
@@ -403,11 +405,19 @@ namespace ColourClashNet.Controls
                     break;
                 case ColorTransform.ColorReductionEga:
                 {
-                        var oTrasf = new ColorTransformReductionEga();
+                        var oTrasf = new ColorTransformReductionEGA();
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
                         oTrI = oTrasf;
                     }
                     break;
+                case ColorTransform.ColorReductionCBM64:
+                    {
+                        var oTrasf = new ColorTransformReductionC64();
+                        oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
+                        oTrI = oTrasf;
+                    }
+                    break;
+
                 case ColorTransform.ColorReductionMedianCut:
                     {
                         var oTrasf = new ColorTransformReductionMedianCut();
@@ -496,7 +506,7 @@ namespace ColourClashNet.Controls
             }
             else
             {
-                ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oTrLast.ColorTransformationPalette.ToList(), eWidthAlignMode, bInterleaveData);
+                ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oTrLast.ColorPalette.ToList(), eWidthAlignMode, bInterleaveData);
             }
         }
 
