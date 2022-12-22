@@ -22,7 +22,6 @@ namespace ColourClashNet
             InitializeComponent();
             oColorTransformer.BackgroundColorList = GetBkgColors();
             oColorTransformer.ColorQuantizationMode = ColorQuantizationMode.RGB888;//GetQuantizationMode();
-            cbImage.SelectedIndex = 2;
             pbBkColor.BackColor = Color.Transparent;
             InitMenu();
         }
@@ -125,17 +124,8 @@ namespace ColourClashNet
 
         void ShowImage()
         {
-            var id = cbImage.SelectedIndex;
             oBitmapRenderSource.Image = oColorTransformer.ImageSource;
-            switch (id)
-            {
-                case 1:
-                    oBitmapRenderDest.Image = oColorTransformer.ImageQuantized;
-                    break;
-                default:
-                    oBitmapRenderDest.Image = oColorTransformer.ImageProcessed; 
-                    break;
-            }
+            oBitmapRenderDest.Image = oColorTransformer.ImageProcessed; 
             Invalidate();
         }
 
@@ -261,29 +251,30 @@ namespace ColourClashNet
         //    oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
         //}
 
+        private void SetToControl()
+        {
+            oColorTransformer.ColorsMax = (int)nudColorsWanted.Value;
+            oColorTransformer.ScanlineClustering = chkScanLineCluster.Checked;
+            oColorTransformer.ClusteringTrainingLoop = (int)nudClusterLoop.Value;
+            oColorTransformer.ClusteringUseMeanColor = true;
+            oColorTransformer.DitheringStrenght = (double)nudDitheringStrenght.Value;
+        }
+
         private void btnReduceColors_Click(object sender, EventArgs e)
         {
-            oColorTransformer.ColorsMax = (int)numericUpDown1.Value;
+            SetToControl();
             oColorTransformer.ColorTranform(ColorTransform.ColorReductionMedianCut);
         }
         private void btnReduceColorsScanline_Click(object sender, EventArgs e)
         {
-            oColorTransformer.ColorsMax = (int)numericUpDown1.Value;
-            oColorTransformer.ScanlineClustering = chkScanLineCluster.Checked;
+            SetToControl();
             oColorTransformer.ColorTranform(ColorTransform.ColorReductionScanline);
         }
 
         private void btnReduceColorCluster_Click(object sender, EventArgs e)
         {
-            oColorTransformer.ColorsMax = (int)numericUpDown1.Value;
-            oColorTransformer.ClusteringTrainingLoop = (int)nudClusterLoop.Value;
-            oColorTransformer.ClusteringUseMeanColor = true;
+            SetToControl();
             oColorTransformer.ColorTranform(ColorTransform.ColorReductionClustering);
-        }
-
-        private void cbImage_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            ShowImage();
         }
 
         private void pbBkColor_DoubleClick(object sender, EventArgs e)
@@ -360,6 +351,7 @@ namespace ColourClashNet
 
         private void button1_Click(object sender, EventArgs e)
         {
+            SetToControl();
             oColorTransformer.ZxEqColorLO = (int)numericUpDownZXL.Value;
             oColorTransformer.ZxEqColorHI = (int)numericUpDownZXH.Value;
             oColorTransformer.ColorTranform( ColorTransform.ColorReductionZxSpectrum );
@@ -370,9 +362,45 @@ namespace ColourClashNet
             oColorTransformer.DitheringAlgorithm = ColorDithering.FloydSteinberg;
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void btnReduceColorsEga_Click(object sender, EventArgs e)
         {
+            SetToControl();
             oColorTransformer.ColorTranform(ColorTransform.ColorReductionEga);
+        }
+
+        private void BtnReduceColorsC64v1_Click(object sender, EventArgs e)
+        {
+            SetToControl();
+            oColorTransformer.ColorTranform(ColorTransform.ColorReductionCBM64);
+        }
+
+        bool bDitherStrenghtUpdating = false;
+        private void tbDitherStrenght_Scroll(object sender, EventArgs e)
+        {
+            if (bDitherStrenghtUpdating)
+                return;
+            bDitherStrenghtUpdating = true;
+            nudDitheringStrenght.Value = (decimal)tbDitherStrenght.Value / 100.0M;
+            bDitherStrenghtUpdating = false;
+        }
+
+        private void nudDitheringStrenght_ValueChanged(object sender, EventArgs e)
+        {
+            if (bDitherStrenghtUpdating)
+                return;
+            bDitherStrenghtUpdating = true;
+            tbDitherStrenght.Value = (int)Math.Max(0,Math.Min(100,nudDitheringStrenght.Value * 100));
+            bDitherStrenghtUpdating = false;
+        }
+
+        private void gbLayoutV_CheckedChanged(object sender, EventArgs e)
+        {
+            scLayout.Orientation = Orientation.Vertical;
+        }
+
+        private void rbLayoutH_CheckedChanged(object sender, EventArgs e)
+        {
+            scLayout.Orientation = Orientation.Horizontal;
         }
     }
 }
