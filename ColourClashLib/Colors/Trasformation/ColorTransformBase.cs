@@ -17,6 +17,11 @@ namespace ColourClashNet.Colors.Transformation
         public ColorTransform Type { get; protected init; }
         public string Description { get; protected set; } = "";
 
+        //---------------- Source properties --------------------------------------
+        public ColorHistogram SourceColorHistogram { get; protected set; } = new ColorHistogram();
+        public ColorPalette SourceColorPalette { get; protected set; } = new ColorPalette();
+        public int SourceColors => SourceColorPalette?.Colors ?? 0;
+
         //---------------- Transformation properties------------------------------
         public ColorHistogram ColorHistogram { get; protected set; } = new ColorHistogram();
         public ColorPalette ColorPalette { get; protected set; } = new ColorPalette();

@@ -1,8 +1,10 @@
 ﻿using ColourClashLib.Color;
+using ColourClashLib.Colors;
 using ColourClashNet.Colors;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel.Design.Serialization;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Security.Cryptography.X509Certificates;
@@ -261,7 +263,6 @@ namespace ColourClashNet.Colors.Transformation
                         }
                     }
                 });
-
             //return oRet;
             //int c00 = ColorIntExt.FromRGB(0, 0, ColL);
             //int c01 = ColorIntExt.FromRGB(ColL, 0, 0);
@@ -279,7 +280,7 @@ namespace ColourClashNet.Colors.Transformation
             //int c13 = ColorIntExt.FromRGB(ColL, ColL, ColL);
             //int c14 = ColorIntExt.FromRGB(ColH, ColH, ColH);
             ColorTransformationMap.Reset();
-            var lPalette =  ColorPalette.ToList();
+            var lPalette = ColorPalette.ToList();
             ColorTransformationMap.Add(lPalette[0], ColorIntExt.FromRGB(0, 0, iColOutL));
             ColorTransformationMap.Add(lPalette[1], ColorIntExt.FromRGB(iColOutL, 0, 0));
             ColorTransformationMap.Add(lPalette[2], ColorIntExt.FromRGB(iColOutL, 0, iColOutL));

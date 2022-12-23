@@ -60,13 +60,10 @@ namespace ColourClashNet.Colors.Transformation
                     lR[rgb.ToR()]++;
                     lG[rgb.ToG()]++;
                     lB[rgb.ToB()]++;
-                    //lR[rgb.ToR()]=1;
-                    //lG[rgb.ToG()]=1;
-                    //lB[rgb.ToB()]=1;
                 }
                 int ird = GetRange(lR);
-                int igd = GetRange(lG);// lG.IndexOf(lG.LastOrDefault(X => X != 0)) - lG.IndexOf(lG.FirstOrDefault(X => X != 0));
-                int ibd = GetRange(lB); //lB.IndexOf(lB.LastOrDefault(X => X != 0)) - lB.IndexOf(lB.FirstOrDefault(X => X != 0));
+                int igd = GetRange(lG);
+                int ibd = GetRange(lB);
                 ColorPalette hInf = new ColorPalette();
                 ColorPalette hSup = new ColorPalette();
                 if (ird > igd && ird > ibd)
@@ -110,7 +107,7 @@ namespace ColourClashNet.Colors.Transformation
             {
                 if (oPalette.Colors == 0)
                     return;
-                var iRGB = ColorIntExt.GetColorMean(ColorPalette, ColorMeanMode.UseColorPalette);
+                var iRGB = ColorIntExt.GetColorMean(oPalette, ColorMeanMode.UseColorPalette);
                 foreach (var rgb in oPalette.rgbPalette)
                 {
                     if (!ColorTransformationMap.rgbTransformationMap.ContainsKey(rgb))
@@ -133,6 +130,7 @@ namespace ColourClashNet.Colors.Transformation
             }
             int iColorsMax = Math.Min(256, Math.Max(2, ColorsMax));
             Partition(ColorHistogram.ToColorPalette(), iColorsMax / 2);
+            ColorPalette = ColorTransformationMap.ToColorPalette();
         }
 
 

@@ -70,9 +70,9 @@ namespace ColourClashLib.Color
             var oCP = new ColorPalette();
             foreach (var kvp in rgbTransformationMap)
             {
-                if (kvp.Key < 0)
+                if (kvp.Value < 0)
                     continue;
-                oCP.Add(kvp.Key);
+                oCP.Add(kvp.Value);
             }
             return oCP; 
         }

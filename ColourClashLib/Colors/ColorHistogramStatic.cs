@@ -32,13 +32,18 @@ namespace ColourClashLib.Color
                         }
                     }
                 }
+                for (int rgb = 0; rgb < oColorArray.Length; rgb++)
+                {
+                    if (oColorArray[rgb] > 0)
+                        oHist.Add(rgb, oColorArray[rgb]);
+                }
             }
         }
-        static void CreateColorHistDirect(int[,] oDataSource, ColorHistogram oHist)
+        static bool CreateColorHistDirect(int[,] oDataSource, ColorHistogram oHist)
         {
+
             int R = oDataSource.GetLength(0);
             int C = oDataSource.GetLength(1);
-            var ListPixels = new List<int>(R * C);
             for (int r = 0; r < R; r++)
             {
                 for (int c = 0; c < C; c++)
@@ -46,15 +51,11 @@ namespace ColourClashLib.Color
                     var rgb = oDataSource[r, c];
                     if (rgb < 0)
                         continue;
-                    ListPixels.Add(rgb);
+                    oHist.Add(rgb, 1);
                 }
             }
-            var oPalette = oHist.ToColorPalette();
-            foreach (var item in oPalette.rgbPalette)
-            {
-                oHist.rgbHistogram.Add(item, ListPixels.Count(X => X == item));
-            }
-        }
+            return true;
+        } 
 
         static bool CreateColorHist(int[,] oDataSource, ColorHistogram oHist)
         {
