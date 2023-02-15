@@ -13,14 +13,14 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Colors.Transformation
 {
-    public class ColorTransformReductionZxSpectrum : ColorTransformToPalette
+    public class ColorTransformReductionZxSpectrumOld : ColorTransformToPalette
     {
 
         static int iArea = 8;
         static int iTile = 8;
         static int iOffS = iArea - iTile;
 
-        public ColorTransformReductionZxSpectrum()
+        public ColorTransformReductionZxSpectrumOld()
         {
             Type = ColorTransform.ColorReductionZxSpectrum;
             Description = "Reduce color to ZX Spectrum color map and apply Colourclash reduction";
@@ -28,19 +28,159 @@ namespace ColourClashNet.Colors.Transformation
 
         HashSet<int> hPalette = new HashSet<int>();
 
-        public int ColTH { get; set; } = 0x00AA;
+        public int ColL { get; set; } = 0x00AA;
+        public int ColH { get; set; } = 0x00FF;
+      //  public bool AutoEqualize { get; set; } = true;
 
         int iColOutL = 0x00CC;
         int iColOutH = 0x00FF;
 
+        void OtsuXX(double[] oHist, out int iValLo, out int iValHi)
+        {
+            iValHi = 0;
+            iValLo = 0;
+            double sum1 = 0;
+            double total = 0;
+            for (int i = 0; i < oHist.Length; i++)
+            {
+                sum1 += i * oHist[i];
+                total += oHist[i];
+            }
+
+            double maximum = 0;
+            int level = 0;
+            double sumB = 0;
+            double wB = 0;
+
+            for (int ii = 1; ii < oHist.Length; ii++)
+            {
+                double wF = total - wB;
+                if (wB > 0 && wF > 0)
+                {
+                    double mF = (sum1 - sumB) / wF;
+                    double val = wB * wF * (sumB / wB - mF) * (sumB / wB - mF);
+                    if (val >= maximum)
+                    {
+                        level = ii;
+                        maximum = val;
+                    }
+                }
+                wB = wB + oHist[ii];
+                sumB = sumB + (ii - 1) * oHist[ii];
+            }
+
+            {
+                double s = 0;
+                double w = 0;
+                for (int i = 0; i < level; i++)
+                {
+                    s += oHist[i];
+                    w += i * oHist[i];
+                }
+                iValLo = s > 0 ? (int)(w / s) : 0;
+            }
+            {
+                double s = 0;
+                double w = 0;
+                for (int i = level; i < oHist.Length; i++)
+                {
+                    s += oHist[i];
+                    w += i * oHist[i];
+                }
+                iValHi = s > 0 ? (int)(w / s) : 0;
+            }
+        }
+
+        public int GetOtsuThreshold(double[] aHistData)
+        {
+            double HistogramAccu = 0;
+            for (int i = 0; i < aHistData.Length; i++)
+            {
+                HistogramAccu += aHistData[i];
+            }
+            if (HistogramAccu > 0)
+            {
+                double sum = 0;
+                for (int i = 0; i < 256; i++)
+                {
+                    sum += i * aHistData[i];
+                }
+                double sumB = 0;
+                double wB = 0;
+                double wF = 0;
+                double mB;
+                double mF;
+                double max = 0;
+                double between = 0;
+                int iTH1 = 0;
+                int iTH2 = 0;
+                for (int i = 0; i < 256; i++)
+                {
+                    wB += aHistData[i];
+                    if (wB == 0)
+                        continue;
+                    wF = HistogramAccu - wB;
+                    if (wF == 0)
+                        break;
+                    sumB += i * aHistData[i];
+                    mB = sumB / wB;
+                    mF = (sum - sumB) / wF;
+                    between = wB * wF * (mB - mF) * (mB - mF);
+                    if (between >= max)
+                    {
+                        iTH1 = i;
+                        if (between > max)
+                        {
+                            iTH2 = i;
+                        }
+                        max = between;
+                    }
+                }
+                int iTH = (iTH1 + iTH2) / 2;
+                return iTH;
+            }
+            return 0;
+        }
+
+
+
+        void Otsu(double[] oHist, out int iValLo, out int iValHi)
+        {
+            iValLo = 128;
+            iValHi = 255;
+            int level = GetOtsuThreshold(oHist);
+            {
+                double s = 0;
+                double w = 0;
+                for (int i = 0; i < level; i++)
+                {
+                    s += oHist[i];
+                    w += i * oHist[i];
+                }
+                iValLo = s > 0 ? (int)(w / s) : 0;
+            }
+            {
+                double s = 0;
+                double w = 0;
+                for (int i = level; i < oHist.Length; i++)
+                {
+                    s += oHist[i];
+                    w += i * oHist[i];
+                }
+                iValHi = s > 0 ? (int)(w / s) : 0;
+            }
+            iValLo = level;
+        }
+
+
         protected override void CreateTrasformationMap()
         {
-            int iColLR = ColTH/2;
-            int iColLG = ColTH/2;
-            int iColLB = ColTH/2;
-            int iColHR = (255 + ColTH)/2;
-            int iColHG = (255 + ColTH)/2;
-            int iColHB = (255 + ColTH)/2;
+            int iColLR = ColL;
+            int iColLG = ColL;
+            int iColLB = ColL;
+            int iColHR = ColH;
+            int iColHG = ColH;
+            int iColHB = ColH;
 
             ColorPalette oPal = new ColorPalette();        
             oPal.Add( ColorIntExt.FromRGB(0, 0, iColLB));

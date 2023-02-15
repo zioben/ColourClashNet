@@ -398,8 +398,7 @@ namespace ColourClashNet.Controls
                     {
                         var oTrasf = new ColorTransformReductionZxSpectrum();
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
-                        oTrasf.ColL = ZxEqColorLO;
-                        oTrasf.ColH = ZxEqColorHI;
+                        oTrasf.ColTH = ZxEqColorLO;
                         oTrI = oTrasf;
                     }
                     break;
