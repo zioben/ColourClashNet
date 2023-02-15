@@ -20,7 +20,7 @@ namespace ColourClashNet.Colors
             ColorDistanceEvaluationMode = ColorDistanceEvaluationMode.RGB,
             ColorsMax = 2,
             UseClusterColorMean = false,
-            TrainingLoop = 2,
+            TrainingLoop = 6,
         };
 
         internal int[,] Process(DitherInterface oDither)

@@ -28,7 +28,7 @@ namespace ColourClashNet.Colors.Transformation
 
         HashSet<int> hPalette = new HashSet<int>();
 
-        public int ColL { get; set; } = 0x00AA;
+        public int ColL { get; set; } = 0x0080;
         public int ColH { get; set; } = 0x00FF;
       //  public bool AutoEqualize { get; set; } = true;
 

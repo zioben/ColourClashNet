@@ -258,6 +258,7 @@ namespace ColourClashNet
             oColorTransformer.ClusteringTrainingLoop = (int)nudClusterLoop.Value;
             oColorTransformer.ClusteringUseMeanColor = true;
             oColorTransformer.DitheringStrenght = (double)nudDitheringStrenght.Value;
+            oColorTransformer.SaturationLevels = (int)nudSatLevels.Value;
         }
 
         private void btnReduceColors_Click(object sender, EventArgs e)
@@ -374,6 +375,12 @@ namespace ColourClashNet
             oColorTransformer.ColorTranform(ColorTransform.ColorReductionCBM64);
         }
 
+        private void btnChromaAdapt_Click(object sender, EventArgs e)
+        {
+            SetToControl();
+            oColorTransformer.ColorTranform(ColorTransform.ColorReductionSaturation);
+        }
+
         bool bDitherStrenghtUpdating = false;
         private void tbDitherStrenght_Scroll(object sender, EventArgs e)
         {
@@ -402,5 +409,7 @@ namespace ColourClashNet
         {
             scLayout.Orientation = Orientation.Horizontal;
         }
+
+
     }
 }
