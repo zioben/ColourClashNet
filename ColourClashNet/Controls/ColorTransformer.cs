@@ -69,7 +69,9 @@ namespace ColourClashNet.Controls
             }
         }
 
-        public int SaturationLevels { get; set; } = 2;
+        public double SaturationEnhancement { get; set; } = 1;
+        public double BrightnessEnhancement { get; set; } = 1;
+        public double HueOffset { get; set; } = 0;
 
         int iTrainLoop = 30;
         public int ClusteringTrainingLoop
@@ -430,8 +432,10 @@ namespace ColourClashNet.Controls
                     break;
                 case ColorTransform.ColorReductionSaturation:
                     {
-                        var oTrasf = new ColorTransformReductionChromaEnhancer();
-                        oTrasf.LuminanceLevels = SaturationLevels;
+                        var oTrasf = new ColorTransformLumSat();
+                        oTrasf.SaturationFactor = SaturationEnhancement;
+                        oTrasf.BrightnessFactor = BrightnessEnhancement;
+                        oTrasf.HueChange = HueOffset;
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
                         oTrI = oTrasf;
                     }

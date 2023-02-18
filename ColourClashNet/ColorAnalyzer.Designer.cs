@@ -53,6 +53,10 @@
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
+            this.panel10 = new System.Windows.Forms.Panel();
+            this.nudSat = new System.Windows.Forms.NumericUpDown();
+            this.label8 = new System.Windows.Forms.Label();
+            this.btnChromaAdapt = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
             this.rbLayoutH = new System.Windows.Forms.RadioButton();
             this.gbLayoutV = new System.Windows.Forms.RadioButton();
@@ -95,10 +99,9 @@
             this.oBitmapRenderDest = new ColourClashNet.Controls.BitmapRender(this.components);
             this.sfdExportImage = new System.Windows.Forms.SaveFileDialog();
             this.oColorTransformer = new ColourClashNet.Controls.ColorTransformer(this.components);
-            this.panel10 = new System.Windows.Forms.Panel();
-            this.nudSatLevels = new System.Windows.Forms.NumericUpDown();
-            this.label8 = new System.Windows.Forms.Label();
-            this.btnChromaAdapt = new System.Windows.Forms.Button();
+            this.label9 = new System.Windows.Forms.Label();
+            this.nudBright = new System.Windows.Forms.NumericUpDown();
+            this.nudHue = new System.Windows.Forms.NumericUpDown();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.scMain)).BeginInit();
             this.scMain.Panel1.SuspendLayout();
@@ -106,6 +109,8 @@
             this.scMain.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
+            this.panel10.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudSat)).BeginInit();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbBkColor)).BeginInit();
             this.panel3.SuspendLayout();
@@ -129,8 +134,8 @@
             this.scLayout.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSrc)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxProc)).BeginInit();
-            this.panel10.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nudSatLevels)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudBright)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudHue)).BeginInit();
             this.SuspendLayout();
             // 
             // openFileDialog1
@@ -364,6 +369,57 @@
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel2.Size = new System.Drawing.Size(354, 597);
             this.tableLayoutPanel2.TabIndex = 8;
+            // 
+            // panel10
+            // 
+            this.panel10.Controls.Add(this.nudHue);
+            this.panel10.Controls.Add(this.nudBright);
+            this.panel10.Controls.Add(this.label9);
+            this.panel10.Controls.Add(this.nudSat);
+            this.panel10.Controls.Add(this.label8);
+            this.panel10.Controls.Add(this.btnChromaAdapt);
+            this.panel10.Location = new System.Drawing.Point(0, 464);
+            this.panel10.Margin = new System.Windows.Forms.Padding(0);
+            this.panel10.Name = "panel10";
+            this.panel10.Size = new System.Drawing.Size(354, 60);
+            this.panel10.TabIndex = 28;
+            // 
+            // nudSat
+            // 
+            this.nudSat.DecimalPlaces = 2;
+            this.nudSat.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.nudSat.Location = new System.Drawing.Point(205, 7);
+            this.nudSat.Name = "nudSat";
+            this.nudSat.Size = new System.Drawing.Size(65, 23);
+            this.nudSat.TabIndex = 16;
+            this.nudSat.Value = new decimal(new int[] {
+            15,
+            0,
+            0,
+            65536});
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(138, 9);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(61, 15);
+            this.label8.TabIndex = 18;
+            this.label8.Text = "Saturation";
+            // 
+            // btnChromaAdapt
+            // 
+            this.btnChromaAdapt.Location = new System.Drawing.Point(3, 0);
+            this.btnChromaAdapt.Name = "btnChromaAdapt";
+            this.btnChromaAdapt.Size = new System.Drawing.Size(129, 57);
+            this.btnChromaAdapt.TabIndex = 14;
+            this.btnChromaAdapt.Text = "Chroma Adapter";
+            this.btnChromaAdapt.UseVisualStyleBackColor = true;
+            this.btnChromaAdapt.Click += new System.EventHandler(this.btnChromaAdapt_Click);
             // 
             // panel2
             // 
@@ -859,6 +915,7 @@
             // 
             this.oColorTransformer.BackgroundColorList = ((System.Collections.Generic.List<int>)(resources.GetObject("oColorTransformer.BackgroundColorList")));
             this.oColorTransformer.BackgroundColorReplacement = 0;
+            this.oColorTransformer.BrightnessEnhancement = 1D;
             this.oColorTransformer.ClusteringTrainingLoop = 30;
             this.oColorTransformer.ClusteringUseMeanColor = true;
             this.oColorTransformer.ColorDistanceEvaluationMode = ColourClashNet.Colors.ColorDistanceEvaluationMode.RGB;
@@ -867,6 +924,7 @@
             this.oColorTransformer.ColorTransformAlgorithm = ColourClashNet.Colors.ColorTransform.None;
             this.oColorTransformer.DitheringAlgorithm = ColourClashNet.Colors.ColorDithering.Ordered_4x4;
             this.oColorTransformer.DitheringStrenght = 1D;
+            this.oColorTransformer.SaturationEnhancement = 1.5D;
             this.oColorTransformer.ScanlineClustering = true;
             this.oColorTransformer.ZxEqColorHI = 255;
             this.oColorTransformer.ZxEqColorLO = 128;
@@ -875,52 +933,49 @@
             this.oColorTransformer.OnQuantize += new System.EventHandler<ColourClashNet.Controls.ColorTransformer.EventArgsTransformation>(this.oColorTransformer_OnQuantize);
             this.oColorTransformer.OnProcess += new System.EventHandler<ColourClashNet.Controls.ColorTransformer.EventArgsTransformation>(this.oColorTransformer_OnProcess);
             // 
-            // panel10
+            // label9
             // 
-            this.panel10.Controls.Add(this.nudSatLevels);
-            this.panel10.Controls.Add(this.label8);
-            this.panel10.Controls.Add(this.btnChromaAdapt);
-            this.panel10.Location = new System.Drawing.Point(0, 464);
-            this.panel10.Margin = new System.Windows.Forms.Padding(0);
-            this.panel10.Name = "panel10";
-            this.panel10.Size = new System.Drawing.Size(354, 60);
-            this.panel10.TabIndex = 28;
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(138, 33);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(62, 15);
+            this.label9.TabIndex = 19;
+            this.label9.Text = "Brightness";
             // 
-            // nudSatLevels
+            // nudBright
             // 
-            this.nudSatLevels.Location = new System.Drawing.Point(274, 7);
-            this.nudSatLevels.Maximum = new decimal(new int[] {
-            255,
+            this.nudBright.DecimalPlaces = 2;
+            this.nudBright.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.nudBright.Location = new System.Drawing.Point(205, 31);
+            this.nudBright.Name = "nudBright";
+            this.nudBright.Size = new System.Drawing.Size(65, 23);
+            this.nudBright.TabIndex = 20;
+            this.nudBright.Value = new decimal(new int[] {
+            1,
             0,
             0,
             0});
-            this.nudSatLevels.Name = "nudSatLevels";
-            this.nudSatLevels.Size = new System.Drawing.Size(65, 23);
-            this.nudSatLevels.TabIndex = 16;
-            this.nudSatLevels.Value = new decimal(new int[] {
-            2,
+            // 
+            // nudHue
+            // 
+            this.nudHue.Increment = new decimal(new int[] {
+            30,
             0,
             0,
             0});
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(138, 9);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(96, 15);
-            this.label8.TabIndex = 18;
-            this.label8.Text = "Saturation Levels";
-            // 
-            // btnChromaAdapt
-            // 
-            this.btnChromaAdapt.Location = new System.Drawing.Point(3, 0);
-            this.btnChromaAdapt.Name = "btnChromaAdapt";
-            this.btnChromaAdapt.Size = new System.Drawing.Size(129, 57);
-            this.btnChromaAdapt.TabIndex = 14;
-            this.btnChromaAdapt.Text = "Chroma Adapter";
-            this.btnChromaAdapt.UseVisualStyleBackColor = true;
-            this.btnChromaAdapt.Click += new System.EventHandler(this.btnChromaAdapt_Click);
+            this.nudHue.Location = new System.Drawing.Point(276, 19);
+            this.nudHue.Maximum = new decimal(new int[] {
+            360,
+            0,
+            0,
+            0});
+            this.nudHue.Name = "nudHue";
+            this.nudHue.Size = new System.Drawing.Size(65, 23);
+            this.nudHue.TabIndex = 21;
             // 
             // ColorAnalyzer
             // 
@@ -939,6 +994,9 @@
             this.scMain.ResumeLayout(false);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel2.ResumeLayout(false);
+            this.panel10.ResumeLayout(false);
+            this.panel10.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudSat)).EndInit();
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbBkColor)).EndInit();
@@ -966,9 +1024,8 @@
             this.scLayout.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSrc)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxProc)).EndInit();
-            this.panel10.ResumeLayout(false);
-            this.panel10.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nudSatLevels)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudBright)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudHue)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1043,8 +1100,11 @@
         private RadioButton rbLayoutH;
         private RadioButton gbLayoutV;
         private Panel panel10;
-        private NumericUpDown nudSatLevels;
+        private NumericUpDown nudSat;
         private Label label8;
         private Button btnChromaAdapt;
+        private NumericUpDown nudHue;
+        private NumericUpDown nudBright;
+        private Label label9;
     }
 }

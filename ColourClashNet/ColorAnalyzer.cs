@@ -258,7 +258,10 @@ namespace ColourClashNet
             oColorTransformer.ClusteringTrainingLoop = (int)nudClusterLoop.Value;
             oColorTransformer.ClusteringUseMeanColor = true;
             oColorTransformer.DitheringStrenght = (double)nudDitheringStrenght.Value;
-            oColorTransformer.SaturationLevels = (int)nudSatLevels.Value;
+            oColorTransformer.SaturationEnhancement = (double)nudSat.Value;
+            oColorTransformer.BrightnessEnhancement = (double)nudBright.Value;
+            oColorTransformer.HueOffset = (double)nudHue.Value;
+
         }
 
         private void btnReduceColors_Click(object sender, EventArgs e)

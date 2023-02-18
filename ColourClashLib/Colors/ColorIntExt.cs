@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Diagnostics.Metrics;
 using System.Runtime.CompilerServices;
 using ColourClashLib.Color;
+using System.Runtime.InteropServices;
 
 namespace ColourClashNet.Colors
 {
@@ -37,28 +38,99 @@ namespace ColourClashNet.Colors
             return i >= 0 ? (i >> 0) & 0x00ff : -1;
         }
 
+        public static int ToHSV(this int i)
+        {
+            float r = i.ToR() / 255f;
+            float g = i.ToG() / 255f;
+            float b = i.ToB() / 255f;
+            float max = Math.Max(Math.Max(r, g), b);
+            float min = Math.Min(Math.Min(r, g), b);
+            float delta = max - min;
+            float v = max*100f;
+            float s = 0;
+            float h = 0;
+            if (delta > 0)
+            {
+                s = (int)Math.Min(100, delta / max * 100);
+                if (r >= g && r >= b)
+                {
+                    h = (g - b) / delta;
+                    if (h < 0)
+                        h += 6;
+                }
+                else if (g >= r && g >= b)
+                {
+                    h = ((b - r) / delta) + 2;
+                }
+                else
+                {
+                    h = ((r - g) / delta) + 4;
+                }
+                h *= 60;
+            }
+            return ((int)Math.Round(h))<<24|((int)Math.Round(s))<<8|((int)Math.Round(v));
+        }
+
+
         public static float ToH(this int i)
         {
             if (i < 0)
                 return float.MaxValue;
-            var Col = ToDrawingColor(i);
-            return Col.GetHue();
+            float r = i.ToR() / 255f;
+            float g = i.ToG() / 255f;
+            float b = i.ToB() / 255f;
+            float max = Math.Max(Math.Max(r, g), b);
+            float min = Math.Min(Math.Min(r, g), b);
+            if (max == min)
+                return 0;
+            float delta= max- min;
+            float h = 0;
+            if (r >= g && r >= b)
+            {
+                h = (g - b) / delta;
+                if (h < 0)
+                    h += 6;
+            }
+            else if (g >= r && g >= b)
+            {
+                h = ((b - r) / delta) + 2;
+            }
+            else
+            {
+                h = ((r - g) / delta) + 4;
+            }
+            return h * 60;
+        }
+
+        public static float DistanceH(float hA, float hB)
+        {
+            // hA -> [0-360] + 2k*Pi
+            // hB -> [0-360] + 2k*Pi
+            return Math.Min(Math.Abs(hA - hB), Math.Abs(hA + 360 - hB));
         }
 
         public static float ToS(this int i)
         {
             if (i < 0)
                 return float.MaxValue;
-            var Col = ToDrawingColor(i);
-            return Col.GetSaturation() * 100.0f;
+            int r = i.ToR();
+            int g = i.ToG();
+            int b = i.ToB();
+            float max = Math.Max(Math.Max(r, g), b);
+            float min = Math.Min(Math.Min(r, g), b);
+            if (max == min)
+                return 0;
+            return   (1f -  min / max) * 100;
         }
 
         public static float ToV(this int i)
         {
             if (i < 0)
                 return float.MaxValue;
-            var Col = ToDrawingColor(i);
-            return Col.GetBrightness() * 100.0f;
+            int r = i.ToR();
+            int g = i.ToG();
+            int b = i.ToB();
+            return Math.Max(Math.Max(r, g), b)/255f*100f;
         }
 
 
@@ -73,11 +145,18 @@ namespace ColourClashNet.Colors
                         int R = i.ToR() - j.ToR();
                         int G = i.ToG() - j.ToG();
                         int B = i.ToB() - j.ToB();
+                        return R * R + G * G + B * B; // + (R-G)*(R-G) + (R-B)*(R-B) + (G-B)*(G-B);
+                    }
+                case ColorDistanceEvaluationMode.RGBalt:
+                    {
+                        int R = i.ToR() - j.ToR();
+                        int G = i.ToG() - j.ToG();
+                        int B = i.ToB() - j.ToB();
                         return R * R + G * G + B * B + (R-G)*(R-G) + (R-B)*(R-B) + (G-B)*(G-B);
                     }
                 case ColorDistanceEvaluationMode.HSV:
                     {
-                        var H = i.ToH() - j.ToH();
+                        var H = DistanceH(i.ToH() , j.ToH());
                         var S = i.ToS() - j.ToS();
                         var V = i.ToV() - j.ToV();
                         return H * H + S * S + V * V;
@@ -87,9 +166,9 @@ namespace ColourClashNet.Colors
                         int R = i.ToR() - j.ToR();
                         int G = i.ToG() - j.ToG();
                         int B = i.ToB() - j.ToB();
-                        var H = i.ToH() - j.ToH();
-                        var S = i.ToS() - j.ToS();
-                        var V = i.ToV() - j.ToV();
+                        var H = (DistanceH(i.ToH(), j.ToH())) / 360f * 255f;
+                        var S = (i.ToS() - j.ToS()) / 100f * 255f;
+                        var V = (i.ToV() - j.ToV()) / 100f * 255f;
                         return R * R + G * G + B * B + H * H + S * S + V * V;
                     }
                 default:
@@ -107,6 +186,57 @@ namespace ColourClashNet.Colors
         public static int FromRGB(double dr, double dg, double db)
         {
             return FromRGB((int)dr, (int)dg, (int)db);
+        }
+
+        public static int FromHSV(float fh, float fs, float fv)
+        {
+            fv /= 100;
+            fs /= 100;
+            var fc = fv * fs;
+            var fx = fc * (1-Math.Abs( ((fh / 60f) % 2f)- 1 ));
+            var fm = fv - fc;
+            var r = 0f;
+            var g = 0f;
+            var b = 0f;
+            if (fh < 60)
+            {
+                r = fc;
+                g = fx;
+            }
+            else if (fh >= 60 && fh < 120)
+            {
+                r = fx;
+                g = fc;
+            }
+            else if (fh >= 120 && fh < 180)
+            {
+                g = fc;
+                b = fx;
+            }
+            else if (fh >= 180 && fh < 240)
+            {
+                g = fx;
+                b = fc;
+            }
+            else if (fh >= 240 && fh < 300)
+            {
+                r = fx;
+                b = fc;
+            }
+            else if (fh >= 300)
+            {
+                r = fc;
+                b = fx;
+            }
+            int R = Math.Min(255, (int)((r + fm) * 255));
+            int G = Math.Min(255, (int)((g + fm) * 255));
+            int B = Math.Min(255, (int)((b + fm) * 255));
+            return FromRGB(R,G,B);
+        }
+
+        public static int FromHSV(double dh, double ds, double dv)
+        {
+            return FromRGB((float)dh, (float)ds, (float)dv);
         }
 
         public static int FromDrawingColor(System.Drawing.Color oColor)

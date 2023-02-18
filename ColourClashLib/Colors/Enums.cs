@@ -30,6 +30,7 @@ namespace ColourClashNet.Colors
     {
         All,
         RGB,
+        RGBalt,
         HSV,
     }
 

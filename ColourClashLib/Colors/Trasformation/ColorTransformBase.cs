@@ -2,6 +2,7 @@
 using ColourClashNet.Colors.Dithering;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
@@ -100,6 +101,15 @@ namespace ColourClashNet.Colors.Transformation
             }
             var oDataTrasf = ExecuteTransform(oDataSource);
             if (oDataTrasf == null || Dithering == null || BypassDithering)
+            {
+                return oDataTrasf;
+            }
+            var oh = new HashSet<int>();
+            foreach (var rgb in oDataTrasf)
+            {
+                oh.Add(rgb);
+            }
+            if( oh.Count >= 256 ) 
             {
                 return oDataTrasf;
             }
