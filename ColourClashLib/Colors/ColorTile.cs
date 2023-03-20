@@ -14,20 +14,23 @@ namespace ColourClashNet.Colors
         internal int c { get; set; }
         internal int[,] TileData { get; set; }
         //internal int[,] TileDataProc { get; set; }
+        internal double Error { get; private set; }
 
         internal ColorTransformReductionCluster oReduction = new ColorTransformReductionCluster()
         {
             ColorDistanceEvaluationMode = ColorDistanceEvaluationMode.RGB,
             ColorsMax = 2,
             UseClusterColorMean = false,
-            TrainingLoop = 6,
+            TrainingLoop = 3,
         };
 
         internal int[,] Process(DitherInterface oDither)
         {
             oReduction.Create(TileData);
             oReduction.Dithering = oDither;
-            return oReduction.TransformAndDither(TileData);
+            var oRet = oReduction.TransformAndDither(TileData);
+            Error = ColorTransformBase.Error(oRet, TileData, oReduction.ColorDistanceEvaluationMode);
+            return oRet;
         }
 
     }

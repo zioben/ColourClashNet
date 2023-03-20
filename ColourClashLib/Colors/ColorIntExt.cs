@@ -123,6 +123,16 @@ namespace ColourClashNet.Colors
             return   (1f -  min / max) * 100;
         }
 
+        public static float ToY(this int i)
+        {
+            if (i < 0)
+                return float.MaxValue;
+            int r = i.ToR();
+            int g = i.ToG();
+            int b = i.ToB();
+            return (r + b + g) / 3;
+        }
+
         public static float ToV(this int i)
         {
             if (i < 0)
@@ -188,10 +198,11 @@ namespace ColourClashNet.Colors
             return FromRGB((int)dr, (int)dg, (int)db);
         }
 
-        public static int FromHSV(float fh, float fs, float fv)
+        public static int FromHSV(float fValh, float fVals, float fValv)
         {
-            fv /= 100;
-            fs /= 100;
+            var fv = fValv / 100f;
+            var fs = fVals / 100f;
+            var fh = fValh;
             var fc = fv * fs;
             var fx = fc * (1-Math.Abs( ((fh / 60f) % 2f)- 1 ));
             var fm = fv - fc;

@@ -1,6 +1,5 @@
 ﻿using ColourClashLib.Color;
 using ColourClashLib.Colors;
-using ColourClashLib.Colors.Tile;
 using ColourClashNet.Colors;
 using System;
 using System.Collections.Concurrent;
@@ -15,8 +14,12 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Colors.Transformation
 {
-    public class ColorTransformReductionZxSpectrum : ColorTransformReductionPalette
+    public class ColorTransformReductionZxSpectrumV2 : ColorTransformReductionPalette
     {
+
+        static int iArea = 10;
+        static int iTile = 8;
+        static int iOffS = iArea - iTile;
 
         public enum ZxPaletteMode
         { 
@@ -25,7 +28,7 @@ namespace ColourClashNet.Colors.Transformation
             Both = 2,
         }
 
-        public ColorTransformReductionZxSpectrum()
+        public ColorTransformReductionZxSpectrumV2()
         {
             Type = ColorTransform.ColorReductionZxSpectrum;
             Description = "Reduce color to ZX Spectrum color map and apply Colourclash reduction";
@@ -107,28 +110,76 @@ namespace ColourClashNet.Colors.Transformation
 
             BypassDithering = true;
 
-            TileManager oTileManagerL = new TileManager();
-            TileManager oTileManagerH = new TileManager();
-
-            oTileManagerL.Create(oTmpDataLo, 8, 8, 2, null);
-            var oRetL = oTileManagerL.TransformAndDither(oTmpDataLo);
-            oTileManagerH.Create(oTmpDataHi, 8, 8, 2, null);
-            var oRetH = oTileManagerH.TransformAndDither(oTmpDataHi);
-
+         //   return oTmpDataLo;
+          
+            
             int R = oDataSource.GetLength(0);
             int C = oDataSource.GetLength(1);
-            var oRet = new int[R, C];
+            int[,] oRet = new int[R, C];
 
-            int RT = oTileManagerL.TileData.GetLength(0);
-            int CT = oTileManagerL.TileData.GetLength(1);
+//            List<ColorTile> lDataBlock = new List<ColorTile>();
+            List<ColorTile> lDataBlockLo = new List<ColorTile>();
+            List<ColorTile> lDataBlockHi = new List<ColorTile>();
 
-            for (int r = 0; r < RT; r++)
+            //Parallel.For(0, R / 8, r =>
+            for (int r = 0; r < R / iTile; r++)
             {
-                for( int c = 0; c < CT; c++)
+                for (int c = 0; c < C / iTile; c++)
+                //  Parallel.For(0, C / 8, c =>
                 {
-                    TileBase.MergeData(oRet, oTileManagerL.TileData[r, c], oTileManagerL.TileData[r, c]);
+                    ColorTile oTileLo = new ColorTile()
+                    {
+                        r = r,
+                        c = c,
+                        TileData = new int[iArea, iArea],
+                    };
+                    ColorTile oTileHi = new ColorTile()
+                    {
+                        r = r,
+                        c = c,
+                        TileData = new int[iArea, iArea],
+                    };
+                    for (int rr = 0; rr < iArea; rr++)
+                    {
+                        var rPos = Math.Min(R - 1, Math.Max(0, rr - iOffS + r * iTile));
+                        for (int cc = 0; cc < iArea; cc++)
+                        {
+                            var cPos = Math.Min(C - 1, Math.Max(0, cc - iOffS + c * iTile));
+                            var rgbLo = oTmpDataLo[rPos, cPos];
+                            var rgbHi = oTmpDataHi[rPos, cPos];
+                            oTileLo.TileData[rr, cc] = rgbLo;
+                            oTileHi.TileData[rr, cc] = rgbHi;
+                        }
+                    }
+                    lDataBlockLo.Add(oTileLo);
+                    lDataBlockHi.Add(oTileHi);
                 }
             }
+
+
+            Parallel.For( 0, lDataBlockLo.Count, i =>
+                {
+                    var oTileLo = lDataBlockLo[i];
+                    var oTileHi = lDataBlockHi[i];
+                    var TileDataProcLo = oTileLo.Process(null);
+                    var TileDataProcHi = oTileHi.Process(null);
+                    int[,] TileDataProc = null;
+                    if (oTileLo.Error < oTileHi.Error)
+                    {
+                        TileDataProc = TileDataProcLo;
+                    }
+                    else
+                    {
+                        TileDataProc = TileDataProcHi;
+                    }
+                    for (int rr = 0; rr < iTile; rr++)
+                    {
+                        for (int cc = 0; cc < iTile; cc++)
+                        {
+                            oRet[oTileLo.r * iTile + rr, oTileLo.c * iTile + cc] = TileDataProc[rr + iOffS, cc + iOffS];
+                        }
+                    }
+                });
           
             ColorTransformationMap.Reset();
             //
@@ -148,7 +199,7 @@ namespace ColourClashNet.Colors.Transformation
             ColorTransformationMap.Add(ColorIntExt.FromRGB(0, ColH, ColH), ColorIntExt.FromRGB(0, iColOutH, iColOutH));
             ColorTransformationMap.Add(ColorIntExt.FromRGB(ColH, ColH, 0 ), ColorIntExt.FromRGB(iColOutH, iColOutH, 0));
             ColorTransformationMap.Add(ColorIntExt.FromRGB(ColH, ColH, ColH), ColorIntExt.FromRGB(iColOutH, iColOutH, iColOutH));
-            var oZxRet = ExecuteStdTransform(oRetL, this);
+            var oZxRet = ExecuteStdTransform(oRet, this);
             return oZxRet;
         }
     }

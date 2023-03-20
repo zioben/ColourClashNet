@@ -43,11 +43,13 @@ namespace ColourClashNet.Colors
         ColorReductionFast,
         ColorReductionClustering,
         ColorReductionScanline,
+        ColorReductionGenericPalette,
         ColorReductionEga,
         ColorReductionZxSpectrum,
         ColorReductionCBM64,
         ColorReductionMedianCut,
         ColorReductionSaturation,
+        ColorReductionTileBase,
     }
 
     public enum ColorDithering

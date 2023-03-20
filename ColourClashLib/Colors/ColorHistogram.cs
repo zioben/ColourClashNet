@@ -49,6 +49,21 @@ namespace ColourClashLib.Color
             return true;
         }
 
+        public bool Create(List<ColorPalette> lPalette)
+        {
+            Reset();
+            if (lPalette == null || lPalette.Count<=0 )
+                return false;
+            lPalette.ForEach(pal =>
+            {
+                foreach (var rgb in pal.rgbPalette)
+                {
+                    Add(rgb, 0);
+                }
+            });
+            return true;
+        }
+
         public int Colors => rgbHistogram.Count;
 
         public ColorPalette ToColorPalette()

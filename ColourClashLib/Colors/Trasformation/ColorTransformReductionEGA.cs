@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Colors.Transformation
 {
-    public class ColorTransformReductionEGA : ColorTransformToPalette
+    public class ColorTransformReductionEGA : ColorTransformReductionPalette
     {
 
 

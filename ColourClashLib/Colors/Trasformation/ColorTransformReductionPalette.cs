@@ -3,23 +3,37 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ColourClashLib.Colors.Tile;
 using ColourClashNet.Colors;
 
 namespace ColourClashNet.Colors.Transformation
 {
-    public abstract class ColorTransformToPalette : ColorTransformBase
+    public class ColorTransformReductionPalette : ColorTransformBase
     {
 
-        public ColorTransformToPalette()
+        //-------------------------------------------------------------
+        // Generic FIxed Palette injecct 
+        //-------------------------------------------------------------
+        public ColorTransformReductionPalette()
         {
+            Type = ColorTransform.ColorReductionGenericPalette;
             Description = "Color palette trasformation";
+        }
+
+        protected override void CreateTrasformationMap()
+        {
         }
 
         protected override int[,]? ExecuteTransform(int[,]? oDataSource)
         {
+            if (ColorPalette == null ) 
+            {
+                return null;    
+            }
             if (oDataSource == null)
+            {
                 return null;
-
+            }
             var oHashSet = new HashSet<int>();
             foreach (var rgb in oDataSource)
             {

@@ -1,4 +1,5 @@
 ﻿using ColourClashLib.Color;
+using ColourClashLib.Colors.Tile;
 using ColourClashNet.Colors;
 using System;
 using System.Collections.Generic;
@@ -8,12 +9,22 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Colors.Transformation
 {
-    public class ColorTransformReductionC64 : ColorTransformToPalette
+    public class ColorTransformReductionC64 : ColorTransformReductionPalette
     {
 
         static int iArea = 8;
         static int iTile = 8;
         static int iOffS = iArea - iTile;
+
+        public enum C64ScreenMode
+        {
+            HiRes,
+            HiResEnhancedPalette,
+            Multicolor,
+            MulticolorCaroline,
+        }
+
+        public C64ScreenMode ScreenMode { get; set; }= C64ScreenMode.HiResEnhancedPalette;
 
         public ColorTransformReductionC64()
         {
@@ -38,36 +49,48 @@ namespace ColourClashNet.Colors.Transformation
             ColorPalette.Add(0x00808080);
             ColorPalette.Add(0x00ACEA88);
             ColorPalette.Add(0x00ABABAB);
+
+            //if (ScreenMode == C64ScreenMode.HiResEnhancedPalette)
+            //{
+            //    var lRGB = ColorPalette.ToList();
+            //    for (int i = 0; i < lRGB.Count-1; i++)
+            //    {
+            //        for (int j = i+1; j < lRGB.Count; j++)
+            //        {
+            //            var irgb = lRGB[i];
+            //            var jrgb = lRGB[j];
+            //            var iS = irgb.ToS();
+            //            var jS = jrgb.ToS();
+            //            if (iS == jS)
+            //            {
+            //                int ir = (irgb.ToR() + jrgb.ToR()) / 2;
+            //                int ig = (irgb.ToG() + jrgb.ToG()) / 2;
+            //                int ib = (irgb.ToB() + jrgb.ToB()) / 2;
+            //                ColorPalette.Add(ColorIntExt.FromRGB(ir, ig, ib));
+            //            }
+            //        }
+            //    }
+            //}
         }
 
-
-        protected override int[,]? ExecuteTransform(int[,]? oDataSource)
+        int[,]? TohiRes(int[,]? oDataSource)
         {
-            if (oDataSource == null)
-                return null;
+            //ColorHistogram.Create(ColorPalette);
+            //ColorPalette = ColorHistogram.ToColorPalette();
+            //var oTmpData = base.ExecuteTransform(oDataSource);
+            //if (Dithering != null)
+            //{
+            //    oTmpData = Dithering.Dither(oDataSource, oTmpData, ColorPalette, ColorDistanceEvaluationMode);
+            //}
+            //BypassDithering = true;
 
-            var oTmpData = base.ExecuteTransform(oDataSource);
-            if (Dithering != null)
+            ColorTransformReductionPalette oPreprocess = new ColorTransformReductionPalette()
             {
-                oTmpData = Dithering.Dither(oDataSource, oTmpData, ColorPalette, ColorDistanceEvaluationMode);
-            }
-            BypassDithering = true;
-
-
-            var oTrasform = new ColorTransformReductionMedianCut()
-            {
-                ColorDistanceEvaluationMode = ColorDistanceEvaluationMode,
-                ColorsMax = 4,
-                Dithering = Dithering
+                ColorPalette = ColorPalette,
             };
-            oTrasform.Create(oTmpData);
-            var oTmpData2 = oTrasform.TransformAndDither(oDataSource);
-            BypassDithering = true;
-            return oTmpData2;
-            //   return oTmpData;
 
-            int R = oTmpData.GetLength(0);
-            int C = oTmpData.GetLength(1);
+            int R = oDataSource.GetLength(0);
+            int C = oDataSource.GetLength(1);
             int[,] oRet = new int[R, C];
 
             List<ColorTile> lDataBlock = new List<ColorTile>();
@@ -90,7 +113,7 @@ namespace ColourClashNet.Colors.Transformation
                         for (int cc = 0; cc < iArea; cc++)
                         {
                             var cPos = Math.Min(C - 1, Math.Max(0, cc - iOffS + c * iTile));
-                            var rgb = oTmpData[rPos, cPos];
+                            var rgb = oDataSource[rPos, cPos];
                             oTile.TileData[rr, cc] = rgb;
                         }
                     }
@@ -98,11 +121,11 @@ namespace ColourClashNet.Colors.Transformation
                 }
             }
 
-            Parallel.ForEach(lDataBlock, oTile =>
+
+            Parallel.For(0, lDataBlock.Count, i =>
             {
-
+                var oTile = lDataBlock[i];
                 var TileDataProc = oTile.Process(null);
-
                 for (int rr = 0; rr < iTile; rr++)
                 {
                     for (int cc = 0; cc < iTile; cc++)
@@ -113,6 +136,28 @@ namespace ColourClashNet.Colors.Transformation
             });
 
             return oRet;
+        }
+
+        protected override int[,]? ExecuteTransform(int[,]? oDataSource)
+        {
+            if (oDataSource == null)
+                return null;
+
+            var oTmpData = base.ExecuteTransform(oDataSource);
+            if (Dithering != null)
+            {
+                oTmpData = Dithering.Dither(oDataSource, oTmpData, ColorPalette, ColorDistanceEvaluationMode);
+            }
+            BypassDithering = true;
+
+            switch (ScreenMode)
+            {
+                case C64ScreenMode.HiRes:
+                    return TohiRes(oTmpData);
+                case C64ScreenMode.HiResEnhancedPalette:
+                    return TohiRes(oTmpData);
+                default: return oTmpData;
+            }
         }
     }
 }
