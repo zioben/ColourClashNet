@@ -14,8 +14,8 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformReductionMedianCut()
         {
-            Type = ColorTransform.ColorReductionMedianCut;
-            Description = "Median partition color reduction";
+            type = ColorTransform.ColorReductionMedianCut;
+            description = "Median partition color reduction";
         }
 
         public int ColorsMax { get; set; } = -1;
@@ -110,9 +110,9 @@ namespace ColourClashNet.Colors.Transformation
                 var iRGB = ColorIntExt.GetColorMean(oPalette, ColorMeanMode.UseColorPalette);
                 foreach (var rgb in oPalette.rgbPalette)
                 {
-                    if (!ColorTransformationMap.rgbTransformationMap.ContainsKey(rgb))
+                    if (!colorTransformationMap.rgbTransformationMap.ContainsKey(rgb))
                     {
-                        ColorTransformationMap.Add(rgb, iRGB);
+                        colorTransformationMap.Add(rgb, iRGB);
                     }
                 }
             }
@@ -120,17 +120,17 @@ namespace ColourClashNet.Colors.Transformation
 
         protected override void CreateTrasformationMap()
         {
-            if (ColorHistogram.ToColorPalette().Colors < ColorsMax)
+            if (colorHistogram.ToColorPalette().Colors < ColorsMax)
             {
-                foreach (var kvp in ColorHistogram.rgbHistogram)
+                foreach (var kvp in colorHistogram.rgbHistogram)
                 {
-                    ColorTransformationMap.rgbTransformationMap[kvp.Key] = kvp.Key;
+                    colorTransformationMap.rgbTransformationMap[kvp.Key] = kvp.Key;
                 }
                 return;
             }
             int iColorsMax = Math.Min(256, Math.Max(2, ColorsMax));
-            Partition(ColorHistogram.ToColorPalette(), iColorsMax / 2);
-            ColorPalette = ColorTransformationMap.ToColorPalette();
+            Partition(colorHistogram.ToColorPalette(), iColorsMax / 2);
+            colorPalette = colorTransformationMap.ToColorPalette();
         }
 
 

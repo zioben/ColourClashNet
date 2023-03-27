@@ -28,115 +28,37 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformReductionC64()
         {
-            Type = ColorTransform.ColorReductionCBM64;
-            Description = "Reduce color to C64 palette";
+            type = ColorTransform.ColorReductionCBM64;
+            description = "Reduce color to C64 palette";
         }
         protected override void CreateTrasformationMap()
         {
-            ColorPalette = new ColorPalette(); 
-            ColorPalette.Add(0x00000000);
-            ColorPalette.Add(0x00FFFFFF);
-            ColorPalette.Add(0x00894036);
-            ColorPalette.Add(0x007ABFC7);
-            ColorPalette.Add(0x008A46AE);
-            ColorPalette.Add(0x0068A941);
-            ColorPalette.Add(0x003E31A2);
-            ColorPalette.Add(0x00D0DC71);
-            ColorPalette.Add(0x00905F25);
-            ColorPalette.Add(0x005C4700);
-            ColorPalette.Add(0x00BB776D);
-            ColorPalette.Add(0x00555555);
-            ColorPalette.Add(0x00808080);
-            ColorPalette.Add(0x00ACEA88);
-            ColorPalette.Add(0x00ABABAB);
-
-            //if (ScreenMode == C64ScreenMode.HiResEnhancedPalette)
-            //{
-            //    var lRGB = ColorPalette.ToList();
-            //    for (int i = 0; i < lRGB.Count-1; i++)
-            //    {
-            //        for (int j = i+1; j < lRGB.Count; j++)
-            //        {
-            //            var irgb = lRGB[i];
-            //            var jrgb = lRGB[j];
-            //            var iS = irgb.ToS();
-            //            var jS = jrgb.ToS();
-            //            if (iS == jS)
-            //            {
-            //                int ir = (irgb.ToR() + jrgb.ToR()) / 2;
-            //                int ig = (irgb.ToG() + jrgb.ToG()) / 2;
-            //                int ib = (irgb.ToB() + jrgb.ToB()) / 2;
-            //                ColorPalette.Add(ColorIntExt.FromRGB(ir, ig, ib));
-            //            }
-            //        }
-            //    }
-            //}
+            colorPalette = new ColorPalette(); 
+            colorPalette.Add(0x00000000);
+            colorPalette.Add(0x00FFFFFF);
+            colorPalette.Add(0x00894036);
+            colorPalette.Add(0x007ABFC7);
+            colorPalette.Add(0x008A46AE);
+            colorPalette.Add(0x0068A941);
+            colorPalette.Add(0x003E31A2);
+            colorPalette.Add(0x00D0DC71);
+            colorPalette.Add(0x00905F25);
+            colorPalette.Add(0x005C4700);
+            colorPalette.Add(0x00BB776D);
+            colorPalette.Add(0x00555555);
+            colorPalette.Add(0x00808080);
+            colorPalette.Add(0x00ACEA88);
+            colorPalette.Add(0x00ABABAB);       
         }
 
-        int[,]? TohiRes(int[,]? oDataSource)
+        int[,]? TohiRes(int[,]? oTmpDataSource)
         {
-            //ColorHistogram.Create(ColorPalette);
-            //ColorPalette = ColorHistogram.ToColorPalette();
-            //var oTmpData = base.ExecuteTransform(oDataSource);
-            //if (Dithering != null)
-            //{
-            //    oTmpData = Dithering.Dither(oDataSource, oTmpData, ColorPalette, ColorDistanceEvaluationMode);
-            //}
-            //BypassDithering = true;
-
-            ColorTransformReductionPalette oPreprocess = new ColorTransformReductionPalette()
-            {
-                ColorPalette = ColorPalette,
-            };
-
-            int R = oDataSource.GetLength(0);
-            int C = oDataSource.GetLength(1);
-            int[,] oRet = new int[R, C];
-
-            List<ColorTile> lDataBlock = new List<ColorTile>();
-
-            //Parallel.For(0, R / 8, r =>
-            for (int r = 0; r < R / iTile; r++)
-            {
-                for (int c = 0; c < C / iTile; c++)
-                //  Parallel.For(0, C / 8, c =>
-                {
-                    ColorTile oTile = new ColorTile()
-                    {
-                        r = r,
-                        c = c,
-                        TileData = new int[iArea, iArea],
-                    };
-                    for (int rr = 0; rr < iArea; rr++)
-                    {
-                        var rPos = Math.Min(R - 1, Math.Max(0, rr - iOffS + r * iTile));
-                        for (int cc = 0; cc < iArea; cc++)
-                        {
-                            var cPos = Math.Min(C - 1, Math.Max(0, cc - iOffS + c * iTile));
-                            var rgb = oDataSource[rPos, cPos];
-                            oTile.TileData[rr, cc] = rgb;
-                        }
-                    }
-                    lDataBlock.Add(oTile);
-                }
-            }
-
-
-            Parallel.For(0, lDataBlock.Count, i =>
-            {
-                var oTile = lDataBlock[i];
-                var TileDataProc = oTile.Process(null);
-                for (int rr = 0; rr < iTile; rr++)
-                {
-                    for (int cc = 0; cc < iTile; cc++)
-                    {
-                        oRet[oTile.r * iTile + rr, oTile.c * iTile + cc] = TileDataProc[rr + iOffS, cc + iOffS];
-                    }
-                }
-            });
-
+            TileManager oManager = new TileManager();
+            oManager.Create(oTmpDataSource, 8, 8, 2, colorPalette.ToList(), TileBase.EnumColorReductionMode.Detailed);
+            var oRet = oManager.TransformAndDither(oTmpDataSource);
             return oRet;
         }
+
 
         protected override int[,]? ExecuteTransform(int[,]? oDataSource)
         {
@@ -144,9 +66,9 @@ namespace ColourClashNet.Colors.Transformation
                 return null;
 
             var oTmpData = base.ExecuteTransform(oDataSource);
-            if (Dithering != null)
+            if (dithering != null)
             {
-                oTmpData = Dithering.Dither(oDataSource, oTmpData, ColorPalette, ColorDistanceEvaluationMode);
+                oTmpData = dithering.Dither(oDataSource, oTmpData, colorPalette, ColorDistanceEvaluationMode);
             }
             BypassDithering = true;
 

@@ -9,31 +9,29 @@ namespace ColourClashNet.Colors.Transformation
 {
     public class ColorTransformReductionEGA : ColorTransformReductionPalette
     {
-
-
         public ColorTransformReductionEGA()
         {
-            Type = ColorTransform.ColorReductionEga;
-            Description = "Reduce color to EGA palette";
+            type = ColorTransform.ColorReductionEga;
+            description = "Reduce color to EGA palette";
         }
         protected override void CreateTrasformationMap()
         {
-            ColorPalette.Reset();
-            ColorPalette.Add(0x00000000);
-            ColorPalette.Add(0x000000AA);
-            ColorPalette.Add(0x0000AA00);
-            ColorPalette.Add(0x0000AAAA);
-            ColorPalette.Add(0x00AA0000);
-            ColorPalette.Add(0x00AA00AA);
-            ColorPalette.Add(0x00AA5500);
-            ColorPalette.Add(0x00AAAAAA);
-            ColorPalette.Add(0x00555555);
-            ColorPalette.Add(0x005555FF);
-            ColorPalette.Add(0x0055FF55);
-            ColorPalette.Add(0x00FF5555);
-            ColorPalette.Add(0x00FF55FF);
-            ColorPalette.Add(0x00FFFF55);
-            ColorPalette.Add(0x00FFFFFF);
+            colorPalette.Reset();
+            colorPalette.Add(0x00000000);
+            colorPalette.Add(0x000000AA);
+            colorPalette.Add(0x0000AA00);
+            colorPalette.Add(0x0000AAAA);
+            colorPalette.Add(0x00AA0000);
+            colorPalette.Add(0x00AA00AA);
+            colorPalette.Add(0x00AA5500);
+            colorPalette.Add(0x00AAAAAA);
+            colorPalette.Add(0x00555555);
+            colorPalette.Add(0x005555FF);
+            colorPalette.Add(0x0055FF55);
+            colorPalette.Add(0x00FF5555);
+            colorPalette.Add(0x00FF55FF);
+            colorPalette.Add(0x00FFFF55);
+            colorPalette.Add(0x00FFFFFF);
         }
 
     }

@@ -16,6 +16,9 @@ namespace ColourClashLib.Colors.Tile
         public int TileW { get; set; } = 8;
         public int TileH { get; set; } = 8;
 
+        public ColorPalette FixedColorPalette { get; set; } = new ColorPalette();
+
+        TileBase.EnumColorReductionMode ColorReductionMode { get; set; } = TileBase.EnumColorReductionMode.Fast;
         public int MaxColors { get; set; } = 2;
 
         void Free()
@@ -27,7 +30,7 @@ namespace ColourClashLib.Colors.Tile
         }
 
 
-        public bool Create(int[,]? oDataSource, int iTileW, int iTileH, int iMaxTileColors, List<int> lFixedColors )
+        public bool Create(int[,]? oDataSource, int iTileW, int iTileH, int iMaxTileColors, ColorPalette oFixedColorPalette, TileBase.EnumColorReductionMode eColorReductionMode )
         {
             Free();
             if (oDataSource == null)
@@ -40,6 +43,8 @@ namespace ColourClashLib.Colors.Tile
             }
             TileW = iTileW;
             TileH = iTileH;
+            ColorReductionMode = eColorReductionMode;
+            FixedColorPalette = oFixedColorPalette;
             MaxColors = iMaxTileColors;
             int R = (oDataSource.GetLength(0)+TileH-1)/TileH;
             int C = (oDataSource.GetLength(1)+TileW-1)/TileW;
@@ -52,7 +57,9 @@ namespace ColourClashLib.Colors.Tile
                     {
                         TileW = TileW,
                         TileH = TileH,
-                        MaxColors = iMaxTileColors,                        
+                        TileMaxColors = MaxColors,
+                        ColorReductionMode = ColorReductionMode,
+                        FixedPalette = FixedColorPalette,
                     };
                 }
             }
@@ -75,23 +82,26 @@ namespace ColourClashLib.Colors.Tile
             }
             int RT = TileData.GetLength(0);
             int CT = TileData.GetLength(1);
-            for (int r = 0; r < RT; r++)
             {
-                for (int c = 0; c < CT; c++)
+                Parallel.For(0, RT, r =>
                 {
-                    TileData[r, c].ExecuteTrasform(oDataSource,r*TileH, c*TileW);
-                }
+                    Parallel.For(0, CT, c =>
+                    {
+                        TileData[r, c].ExecuteTrasform(oDataSource, r * TileH, c * TileW);
+                    });
+                });
             }
-
             var R = oDataSource.GetLength(0);
             var C = oDataSource.GetLength(1);
             var oRet = new int[R, C];
-            for (int r = 0; r < RT; r++)
             {
-                for (int c = 0; c < CT; c++)
+                Parallel.For(0, RT, r =>
                 {
-                    TileData[r, c].MergeData(oRet);
-                }
+                    Parallel.For(0, CT, c =>
+                    {
+                        TileData[r, c].MergeData(oRet);
+                    });
+                });
             }
             return oRet;
         }

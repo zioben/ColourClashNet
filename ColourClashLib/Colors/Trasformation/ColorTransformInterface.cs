@@ -13,18 +13,18 @@ namespace ColourClashNet.Colors.Transformation
     {
 
         //------------------------------------------------------------
-        ColorHistogram ColorHistogram { get; }
-        ColorPalette ColorPalette { get; }
-        int Colors { get; }
-        ColorTransformationMap ColorTransformationMap { get; }
+        ColorHistogram colorHistogram { get; }
+        ColorPalette colorPalette { get; }
+        int colors { get; }
+        ColorTransformationMap colorTransformationMap { get; }
 
         //------------------------------------------------------------
-        ColorTransform Type { get; }
-        string Description { get; }
-        bool Create(int[,]? oDataSource);
-        bool Create(ColorHistogram? oColorHistogramSource);
-        bool Create(ColorPalette? oColorPaletteSource);
-        DitherInterface? Dithering { get; set; }
+        ColorTransform type { get; }
+        string description { get; }
+        bool Create(int[,]? oDataSource, ColorPalette? oFixedPaletteSource );
+        bool Create(ColorHistogram? oColorHistogramSource, ColorPalette? oFixedPaletteSource);
+        bool Create(ColorPalette? oColorPaletteSource, ColorPalette? oFixedPaletteSource);
+        DitherInterface? dithering { get; set; }
         int[,]? TransformAndDither(int[,]? oSource);
     }
 }

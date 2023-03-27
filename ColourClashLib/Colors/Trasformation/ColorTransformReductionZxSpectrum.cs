@@ -27,8 +27,8 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformReductionZxSpectrum()
         {
-            Type = ColorTransform.ColorReductionZxSpectrum;
-            Description = "Reduce color to ZX Spectrum color map and apply Colourclash reduction";
+            type = ColorTransform.ColorReductionZxSpectrum;
+            description = "Reduce color to ZX Spectrum color map and apply Colourclash reduction";
         }
 
         HashSet<int> hPalette = new HashSet<int>();
@@ -70,12 +70,12 @@ namespace ColourClashNet.Colors.Transformation
         int[,]? CreateImage(int[,]? oDataSource, int iCol)
         {
             var oPalette = CreatePalette(iCol);
-            ColorHistogram.Create(oPalette);
-            ColorPalette = ColorHistogram.ToColorPalette();
+            colorHistogram.Create(oPalette);
+            colorPalette = colorHistogram.ToColorPalette();
             var oTmpData = base.ExecuteTransform(oDataSource);
-            if (Dithering != null)
+            if (dithering != null)
             {
-                oTmpData = Dithering.Dither(oDataSource, oTmpData, oPalette, ColorDistanceEvaluationMode);
+                oTmpData = dithering.Dither(oDataSource, oTmpData, oPalette, ColorDistanceEvaluationMode);
             }
             return oTmpData;
         }
@@ -110,9 +110,9 @@ namespace ColourClashNet.Colors.Transformation
             TileManager oTileManagerL = new TileManager();
             TileManager oTileManagerH = new TileManager();
 
-            oTileManagerL.Create(oTmpDataLo, 8, 8, 2, null);
+            oTileManagerL.Create(oTmpDataLo, 8, 8, 2, null, TileBase.EnumColorReductionMode.Detailed);
             var oRetL = oTileManagerL.TransformAndDither(oTmpDataLo);
-            oTileManagerH.Create(oTmpDataHi, 8, 8, 2, null);
+            oTileManagerH.Create(oTmpDataHi, 8, 8, 2, null, TileBase.EnumColorReductionMode.Detailed);
             var oRetH = oTileManagerH.TransformAndDither(oTmpDataHi);
 
             int R = oDataSource.GetLength(0);
@@ -130,24 +130,24 @@ namespace ColourClashNet.Colors.Transformation
                 }
             }
           
-            ColorTransformationMap.Reset();
+            colorTransformationMap.Reset();
             //
-            ColorTransformationMap.Add(ColorIntExt.FromRGB(0, 0, 0), ColorIntExt.FromRGB(0, 0, 0));
-            ColorTransformationMap.Add(ColorIntExt.FromRGB(0, 0, ColL), ColorIntExt.FromRGB(0, 0, iColOutL));
-            ColorTransformationMap.Add(ColorIntExt.FromRGB(ColL,0,0), ColorIntExt.FromRGB(iColOutL, 0, 0));
-            ColorTransformationMap.Add(ColorIntExt.FromRGB(ColL, 0, ColL), ColorIntExt.FromRGB(iColOutL, 0, iColOutL));
-            ColorTransformationMap.Add(ColorIntExt.FromRGB(0, ColL,0 ), ColorIntExt.FromRGB(0, iColOutL, 0));
-            ColorTransformationMap.Add(ColorIntExt.FromRGB(0, ColL,ColL), ColorIntExt.FromRGB(0, iColOutL, iColOutL));
-            ColorTransformationMap.Add(ColorIntExt.FromRGB(ColL, ColL,0), ColorIntExt.FromRGB(iColOutL, iColOutL, 0));
-            ColorTransformationMap.Add(ColorIntExt.FromRGB(ColL, ColL, ColL), ColorIntExt.FromRGB(iColOutL, iColOutL, iColOutL));
+            colorTransformationMap.Add(ColorIntExt.FromRGB(0, 0, 0), ColorIntExt.FromRGB(0, 0, 0));
+            colorTransformationMap.Add(ColorIntExt.FromRGB(0, 0, ColL), ColorIntExt.FromRGB(0, 0, iColOutL));
+            colorTransformationMap.Add(ColorIntExt.FromRGB(ColL,0,0), ColorIntExt.FromRGB(iColOutL, 0, 0));
+            colorTransformationMap.Add(ColorIntExt.FromRGB(ColL, 0, ColL), ColorIntExt.FromRGB(iColOutL, 0, iColOutL));
+            colorTransformationMap.Add(ColorIntExt.FromRGB(0, ColL,0 ), ColorIntExt.FromRGB(0, iColOutL, 0));
+            colorTransformationMap.Add(ColorIntExt.FromRGB(0, ColL,ColL), ColorIntExt.FromRGB(0, iColOutL, iColOutL));
+            colorTransformationMap.Add(ColorIntExt.FromRGB(ColL, ColL,0), ColorIntExt.FromRGB(iColOutL, iColOutL, 0));
+            colorTransformationMap.Add(ColorIntExt.FromRGB(ColL, ColL, ColL), ColorIntExt.FromRGB(iColOutL, iColOutL, iColOutL));
             //
-            ColorTransformationMap.Add(ColorIntExt.FromRGB(0, 0, ColH), ColorIntExt.FromRGB(0, 0, iColOutH));
-            ColorTransformationMap.Add(ColorIntExt.FromRGB(ColH, 0, 0), ColorIntExt.FromRGB(iColOutH, 0, 0));
-            ColorTransformationMap.Add(ColorIntExt.FromRGB(ColH, 0, ColH), ColorIntExt.FromRGB(iColOutH, 0, iColOutH));
-            ColorTransformationMap.Add(ColorIntExt.FromRGB(0 , ColH, 0), ColorIntExt.FromRGB(0, iColOutH, 0));
-            ColorTransformationMap.Add(ColorIntExt.FromRGB(0, ColH, ColH), ColorIntExt.FromRGB(0, iColOutH, iColOutH));
-            ColorTransformationMap.Add(ColorIntExt.FromRGB(ColH, ColH, 0 ), ColorIntExt.FromRGB(iColOutH, iColOutH, 0));
-            ColorTransformationMap.Add(ColorIntExt.FromRGB(ColH, ColH, ColH), ColorIntExt.FromRGB(iColOutH, iColOutH, iColOutH));
+            colorTransformationMap.Add(ColorIntExt.FromRGB(0, 0, ColH), ColorIntExt.FromRGB(0, 0, iColOutH));
+            colorTransformationMap.Add(ColorIntExt.FromRGB(ColH, 0, 0), ColorIntExt.FromRGB(iColOutH, 0, 0));
+            colorTransformationMap.Add(ColorIntExt.FromRGB(ColH, 0, ColH), ColorIntExt.FromRGB(iColOutH, 0, iColOutH));
+            colorTransformationMap.Add(ColorIntExt.FromRGB(0 , ColH, 0), ColorIntExt.FromRGB(0, iColOutH, 0));
+            colorTransformationMap.Add(ColorIntExt.FromRGB(0, ColH, ColH), ColorIntExt.FromRGB(0, iColOutH, iColOutH));
+            colorTransformationMap.Add(ColorIntExt.FromRGB(ColH, ColH, 0 ), ColorIntExt.FromRGB(iColOutH, iColOutH, 0));
+            colorTransformationMap.Add(ColorIntExt.FromRGB(ColH, ColH, ColH), ColorIntExt.FromRGB(iColOutH, iColOutH, iColOutH));
             var oZxRet = ExecuteStdTransform(oRetL, this);
             return oZxRet;
         }

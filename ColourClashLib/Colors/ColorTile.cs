@@ -26,8 +26,8 @@ namespace ColourClashNet.Colors
 
         internal int[,] Process(DitherInterface oDither)
         {
-            oReduction.Create(TileData);
-            oReduction.Dithering = oDither;
+            oReduction.Create(TileData,null);
+            oReduction.dithering = oDither;
             var oRet = oReduction.TransformAndDither(TileData);
             Error = ColorTransformBase.Error(oRet, TileData, oReduction.ColorDistanceEvaluationMode);
             return oRet;

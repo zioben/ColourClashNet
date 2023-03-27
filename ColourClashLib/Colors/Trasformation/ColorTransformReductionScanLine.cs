@@ -11,8 +11,8 @@ namespace ColourClashNet.Colors.Transformation
     {
         public ColorTransformReductionScanLine()
         {
-            Type = ColorTransform.ColorReductionScanline;
-            Description = "Raster line color reduction";
+            type = ColorTransform.ColorReductionScanline;
+            description = "Raster line color reduction";
         }
         public int ColorsMax { get; set; } = -1;
 
@@ -63,7 +63,7 @@ namespace ColourClashNet.Colors.Transformation
                 {
                     oCols[0, c] = oSource[r, c];
                 }
-                oTrasf.Create(oCols);
+                oTrasf.Create(oCols, FixedColorPalette);
                 var oColsTrasf = oTrasf.TransformAndDither(oCols);
                 if (oColsTrasf == null)
                 {
@@ -81,7 +81,7 @@ namespace ColourClashNet.Colors.Transformation
                 }
 
                 oRowColors.Clear();
-                foreach (var kvp in oTrasf.ColorTransformationMap.rgbTransformationMap)
+                foreach (var kvp in oTrasf.colorTransformationMap.rgbTransformationMap)
                 {
                     oRowColors.Add(kvp.Value);
                 }
