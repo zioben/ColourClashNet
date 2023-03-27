@@ -11,8 +11,39 @@ namespace ColourClashLib.Color
 {
     public class ColorPalette
     {
-        public HashSet<int> rgbPalette { get; private init; } = new HashSet<int>();
+        public static ColorPalette MergeColorPalette(List<ColorPalette> lSourcePalette)
+        {
+            if (lSourcePalette == null )
+                return null;
+            var oRet = new ColorPalette();
+            foreach (var oPal in lSourcePalette)
+            {
+                if( oPal == null) 
+                    continue;
+                foreach (var iRGB in oPal.rgbPalette)
+                {
+                    oRet.Add(iRGB);
+                }
+            }
+            if (oRet.Colors > 0)
+            {
+                return oRet;
+            }
+            return null;
+        }
 
+        public static ColorPalette MergeColorPalette(ColorPalette oSourcePaletteA, ColorPalette oSourcePaletteB)
+        {
+            return MergeColorPalette(new List<ColorPalette> { oSourcePaletteA, oSourcePaletteB });
+        }
+
+        public static ColorPalette CreateColorPalette(ColorPalette oSourcePalette)
+        {
+            return MergeColorPalette(new List<ColorPalette> { oSourcePalette } );
+        }
+
+
+        public HashSet<int> rgbPalette { get; private init; } = new HashSet<int>();
         public int Colors => rgbPalette.Count;
         public void Add(int iRGB ) => rgbPalette.Add( iRGB );
         public void Remove(int iRGB) => rgbPalette.Remove(iRGB);
@@ -23,6 +54,8 @@ namespace ColourClashLib.Color
         {
             rgbPalette.Clear(); 
         }
+
+        
 
     }
 }

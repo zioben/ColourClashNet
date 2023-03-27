@@ -53,9 +53,9 @@ namespace ColourClashNet.Controls
         #endregion
 
         #region Properties
-        public int ImageSourceColors => oTrIdentity?.Colors ?? 0;
-        public int ImageQuantizedColors => oTrQuantization?.Colors ?? 0;
-        public int ImageProcessedColors => lTransform.LastOrDefault()?.Colors ?? 0;
+        public int ImageSourceColors => oTrIdentity?.colors ?? 0;
+        public int ImageQuantizedColors => oTrQuantization?.colors ?? 0;
+        public int ImageProcessedColors => lTransform.LastOrDefault()?.colors ?? 0;
         public int ImageWidth => ImageSource?.Width ?? 0;
         public int ImageHeight => ImageSource?.Height ?? 0;
 
@@ -218,7 +218,7 @@ namespace ColourClashNet.Controls
 
         private void ColorTransformer_OnProcess(object? sender, EventArgsTransformation e)
         {
-            ToPalette(lTransform.LastOrDefault()?.ColorTransformationMap.rgbTransformationMap.Select(X=>X.Value).ToList());
+            ToPalette(lTransform.LastOrDefault()?.colorTransformationMap.rgbTransformationMap.Select(X=>X.Value).ToList());
             RebuildImageOutput();
         }
 
@@ -249,7 +249,7 @@ namespace ColourClashNet.Controls
                 using (Graphics g = Graphics.FromImage(ImageSource))
                     g.DrawImage(oImage, 0, 0, ImageWidth, ImageHeight);
                 mDataSource = ToMatrix(ImageSource as Bitmap );
-                oTrIdentity.Create(mDataSource);
+                oTrIdentity.Create(mDataSource,null);
                 OnCreate?.Invoke(this, EventArgs.Empty);
                 ProcessBase();
             }
@@ -266,7 +266,7 @@ namespace ColourClashNet.Controls
             var oTrBkgRemover = new ColorTransformBkgRemover();
             oTrBkgRemover.ColorBackgroundList = BackgroundColorList;
             oTrBkgRemover.ColorBackground = BackgroundColorReplacement;
-            oTrBkgRemover.Create(oTrIdentity.ColorHistogram);
+            oTrBkgRemover.Create(oTrIdentity.colorHistogram,null);
             var mDataBkgRemoved = oTrBkgRemover.TransformAndDither(mDataSource);
             return mDataBkgRemoved;
         }
@@ -278,11 +278,11 @@ namespace ColourClashNet.Controls
             var oTrBkgRemover = new ColorTransformBkgRemover();
             oTrBkgRemover.ColorBackgroundList = BackgroundColorList;
             oTrBkgRemover.ColorBackground = BackgroundColorReplacement;
-            oTrBkgRemover.Create(oTrIdentity.ColorHistogram);
+            oTrBkgRemover.Create(oTrIdentity.colorHistogram, null);
             lTransform.Add(oTrBkgRemover);
 
             oTrQuantization.QuantizationMode = ColorQuantizationMode;
-            oTrQuantization.Create(oTrBkgRemover.ColorHistogram);
+            oTrQuantization.Create(oTrBkgRemover.colorHistogram, null);
             //oTrQuantization.Dithering = CreateDithering();
             lTransform.Add(oTrQuantization);
 
@@ -360,8 +360,8 @@ namespace ColourClashNet.Controls
                 return null;
             if (oDataOriginal == null)
                 return null;
-            oTransform.Create(oDataOriginal);
-            oTransform.Dithering = CreateDithering();
+            oTransform.Create(oDataOriginal, null);
+            oTransform.dithering = CreateDithering();
             lTransform.Add(oTransform);
             var oRet = oTransform.TransformAndDither(oDataOriginal);
             return oRet;
@@ -523,7 +523,7 @@ namespace ColourClashNet.Controls
             }
             else
             {
-                ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oTrLast.ColorPalette.ToList(), eWidthAlignMode, bInterleaveData);
+                ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oTrLast.colorPalette.ToList(), eWidthAlignMode, bInterleaveData);
             }
         }
 

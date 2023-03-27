@@ -14,8 +14,8 @@ namespace ColourClashNet.Colors.Transformation
         static string sClass = nameof(ColorTransformBkgRemover);
         public ColorTransformBkgRemover()
         {
-            Type = ColorTransform.ColorRemover;
-            Description = "Substitute a colorlist with a single color";
+            type = ColorTransform.ColorRemover;
+            description = "Substitute a colorlist with a single color";
         }
 
         public List<int> ColorBackgroundList { get; set; } = new List<int>();
@@ -24,22 +24,22 @@ namespace ColourClashNet.Colors.Transformation
         protected override void CreateTrasformationMap()
         {
             string sMethod = nameof(CreateTrasformationMap);
-            Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
-            foreach (var rgb in ColorPalette.rgbPalette)
+            Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Creating trasformation map");
+            foreach (var rgb in colorPalette.rgbPalette)
             {
                 if (rgb < 0)
                     continue;
-                ColorTransformationMap.Add(rgb, rgb);
+                colorTransformationMap.Add(rgb, rgb);
             }
 
-            foreach (var rgb in ColorPalette.rgbPalette)
+            foreach (var rgb in colorPalette.rgbPalette)
             {
                 if (rgb < 0)
                     continue;
                 if (ColorBackgroundList.Any(X => X.Equals(rgb)))
                 {
-                    ColorPalette.Remove(rgb);
-                    ColorTransformationMap.rgbTransformationMap[rgb] = ColorBackground;
+                    colorPalette.Remove(rgb);
+                    colorTransformationMap.rgbTransformationMap[rgb] = ColorBackground;
                 }
             }
         }

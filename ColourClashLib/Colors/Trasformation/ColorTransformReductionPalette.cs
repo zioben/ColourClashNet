@@ -16,8 +16,8 @@ namespace ColourClashNet.Colors.Transformation
         //-------------------------------------------------------------
         public ColorTransformReductionPalette()
         {
-            Type = ColorTransform.ColorReductionGenericPalette;
-            Description = "Color palette trasformation";
+            type = ColorTransform.ColorReductionGenericPalette;
+            description = "Color palette trasformation";
         }
 
         protected override void CreateTrasformationMap()
@@ -26,7 +26,7 @@ namespace ColourClashNet.Colors.Transformation
 
         protected override int[,]? ExecuteTransform(int[,]? oDataSource)
         {
-            if (ColorPalette == null ) 
+            if (colorPalette == null ) 
             {
                 return null;    
             }
@@ -42,11 +42,11 @@ namespace ColourClashNet.Colors.Transformation
             oHashSet.RemoveWhere(X => X < 0);
             foreach (var rgb in oHashSet)
             {
-                ColorTransformationMap.Add(rgb, rgb);
+                colorTransformationMap.Add(rgb, rgb);
             }
             Parallel.ForEach(oHashSet, rgb =>
             {
-                ColorTransformationMap.rgbTransformationMap[rgb] = ColorIntExt.GetNearestColor(rgb, ColorPalette, ColorDistanceEvaluationMode);
+                colorTransformationMap.rgbTransformationMap[rgb] = ColorIntExt.GetNearestColor(rgb, colorPalette, ColorDistanceEvaluationMode);
             });
 
             return base.ExecuteTransform(oDataSource);

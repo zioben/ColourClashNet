@@ -50,37 +50,7 @@ namespace ColourClashNet.Colors.Dithering
         double dDivider = 4;
         double[,] oThMat = null;
 
-        //double[,] BuildNextThMatrix(double[,] oMatrix)
-        //{
-        //    int R = oMatrix.GetLength(0);
-        //    double[,] oNext = new double[R*2,R*2];
-        //    for (int r = 0; r < R; r++)
-        //    {
-        //        for (int c = 0; c < R; c++)
-        //        {
-        //            oNext[R + r, R + c] = oNext[r, R + c] = oNext[R + r, c] = oNext[r, c] = oMatrix[r, c];
-        //        }
-        //    }
-
-        //    for (int r = 0; r < R*2; r++)
-        //    {
-        //        for (int c = 0; c < R*2; c++)
-        //        {
-        //            if (c % 2 == 1 || r % 2 == 1)
-        //            {
-        //                oNext[r, c] *= R*2;
-        //            }
-        //        }
-        //    }
-        //    for (int r = 0; r < R * 2; r++)
-        //    {
-        //        for (int c = 0; c < R * 2; c++)
-        //        {
-        //            oNext[r, c] += oMatrix[r/2,c/2];
-        //        }
-        //    }
-        //    return oNext;
-        //}
+      
 
         double[,] BuildNextThMatrix(double[,] oMatrix)
         {

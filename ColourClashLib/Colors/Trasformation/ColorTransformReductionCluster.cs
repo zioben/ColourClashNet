@@ -21,36 +21,43 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformReductionCluster()
         {
-            Type = ColorTransform.ColorReductionClustering;
-            Description = "Reduces color bit spectrum";
+            type = ColorTransform.ColorReductionClustering;
+            description = "Reduces color bit spectrum";
         }
 
         protected override void CreateTrasformationMap()
         {
             string sMethod = nameof(CreateTrasformationMap);
-            ColorHistogram.SortColorsDescending();
-            ColorPalette = ColorHistogram.ToColorPalette();
-            if (ColorHistogram.rgbHistogram.Count < ColorsMax)
+            colorHistogram.SortColorsDescending();
+            //FixedColorPalette = new ColorPalette();
+            //FixedColorPalette.Add(0x00000000);
+            //FixedColorPalette.Add(0x00ff0000);
+            //FixedColorPalette.Add(0x0000ff00);
+            //FixedColorPalette.Add(0x000000ff);
+            //FixedColorPalette.Add(0x00ffffff);
+            var oTempPalette = ColorPalette.MergeColorPalette(FixedColorPalette, colorHistogram.ToColorPalette());
+            if (oTempPalette.Colors < ColorsMax)
             {
-                foreach (var kvp in ColorHistogram.rgbHistogram )
+                foreach (var kvp in colorHistogram.rgbHistogram)
                 {
-                    ColorTransformationMap.Add(kvp.Key,kvp.Key);
+                    colorPalette.Add(kvp.Key);
+                    colorTransformationMap.rgbTransformationMap[kvp.Key] = kvp.Key;
                 }
-                ColorPalette = ColorTransformationMap.ToColorPalette();   
                 return;
             }
 
             // Init Set
             // We need <List<ColorMeanOfTheCluster>,<Dictionary<ColorOfTheCluster,ColorOccurrences>>
-            List<Tuple<List<int>, Dictionary<int, int>>> lColorCluster = new List<Tuple<List<int>, Dictionary<int, int>>>();
+            // ColorReference, with evolution -> Cluster of colors
+            // ytryt
+            List<Tuple<List<int>, Dictionary<int, int>>> lTupleColorCluster = new List<Tuple<List<int>, Dictionary<int, int>>>();
 
             // initial population of the cluster, with base max color occurrences 
             int i = 0;
-            int iRGB = 0;
-            foreach (var kvp in ColorHistogram.rgbHistogram )
+            int iRGB = 0;           
+            foreach (var rgb in oTempPalette.rgbPalette )//colorHistogram.rgbHistogram )
             {
-                lColorCluster.Add(Tuple.Create(new List<int> { kvp.Key }, new Dictionary<int, int>()));
-                //lColorCluster.Add(Tuple.Create(new List<int> { iRGB }, new Dictionary<int, int>()));
+                lTupleColorCluster.Add(Tuple.Create(new List<int> { rgb }, new Dictionary<int, int>()));
                 if (++i == ColorsMax)
                     break;
             }
@@ -59,31 +66,41 @@ namespace ColourClashNet.Colors.Transformation
             for (int train = 0; train < TrainingLoop; train++)
             {
                 // Reset Set
-                lColorCluster.ForEach(X => X.Item2.Clear()); ;
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Train {train}");
+                lTupleColorCluster.ForEach(X => X.Item2.Clear()); ;
+                Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Train {train}");
                 // Aggregate :  Assign every color to the cluster of appartenence 
-                foreach (var kvp in ColorHistogram.rgbHistogram )
+                foreach (var kvp in colorHistogram.rgbHistogram )
                 {
                     // Evaluate minimum distance from every color to cluster
-                    var dMin = lColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
-                    var oTupleCluster = lColorCluster.FirstOrDefault(X => X.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
+                    var dMin = lTupleColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
+                    var oTupleCluster = lTupleColorCluster.FirstOrDefault(X => X.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
                     oTupleCluster?.Item2.Add(kvp.Key, kvp.Value);
                 };
                 // Update the Color Mean for each cluster
                 {
-                    lColorCluster.ForEach(oTuple =>
+                    lTupleColorCluster.ForEach(oTuple =>
                     {
-                        var iRgbMean = ColorIntExt.GetColorMean(oTuple.Item2, ColorMeanMode.UseMean);
+                        // If color is in FixedColorPalette, block evolution evolution
+                        var iRgbMean = oTuple.Item1.Last();
+                        if (FixedColorPalette?.rgbPalette.Any(X => X == iRgbMean) ?? false)
+                        {
+                            Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Color {iRgbMean} is fixed, skipping evolution");
+                        }
+                        // else evaluate color mean
+                        else
+                        {
+                            iRgbMean = ColorIntExt.GetColorMean(oTuple.Item2, ColorMeanMode.UseMean);
+                        }
                         oTuple.Item1.Add(iRgbMean);
                     });
                 }
             }
 
-            ColorPalette = new ColorPalette();
-            foreach (var kvp in ColorHistogram.rgbHistogram )
+            colorPalette = new ColorPalette();
+            foreach (var kvp in colorHistogram.rgbHistogram )
             {
-                var dMin = lColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
-                var oItem = lColorCluster.FirstOrDefault(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
+                var dMin = lTupleColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
+                var oItem = lTupleColorCluster.FirstOrDefault(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
                 var iCol = -1;
                 if (UseClusterColorMean)
                 {
@@ -94,8 +111,8 @@ namespace ColourClashNet.Colors.Transformation
                     var Max = oItem?.Item2.Max(X => X.Value);
                     iCol = oItem?.Item2.FirstOrDefault(X => X.Value == Max).Key ?? -1;
                 }
-                ColorPalette.Add(iCol);
-                ColorTransformationMap.Add(kvp.Key,iCol); // Item1.Last()??-1;
+                colorPalette.Add(iCol);
+                colorTransformationMap.Add(kvp.Key,iCol); // Item1.Last()??-1;
             };
         }
 

@@ -13,18 +13,18 @@ namespace ColourClashNet.Colors.Transformation
         static string sClass = nameof(ColorTransformIdentity);
         public ColorTransformIdentity()
         {
-            Type = ColorTransform.ColorIdentity;
-            Description = "1:1 Color transformation";
+            type = ColorTransform.ColorIdentity;
+            description = "1:1 Color transformation";
         }
 
         protected override void CreateTrasformationMap()
         {
             string sMethod = nameof(CreateTrasformationMap);
-            Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
+            Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Creating trasformation map");
 
-            foreach (var kvp in ColorHistogram.rgbHistogram)
+            foreach (var kvp in colorHistogram.rgbHistogram)
             {
-                ColorTransformationMap.Add(kvp.Key, kvp.Key);
+                colorTransformationMap.Add(kvp.Key, kvp.Key);
             }
         }
     }

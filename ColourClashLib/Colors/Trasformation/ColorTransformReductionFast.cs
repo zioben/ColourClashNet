@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Colors;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Colors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,33 +13,36 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformReductionFast()
         {
-            Type = ColorTransform.ColorReductionFast;
-            Description = "Quantitative color reduction";
+            type = ColorTransform.ColorReductionFast;
+            description = "Quantitative color reduction";
         }
 
         public int ColorsMax { get; set; } = -1;
 
         protected override void CreateTrasformationMap()
         {
-            ColorPalette.Reset();
-            ColorHistogram.SortColorsDescending();
-            if (ColorHistogram.rgbHistogram.Count < ColorsMax)
+            colorPalette.Reset();
+            colorHistogram.SortColorsDescending();
+            var oTempPalette = ColorPalette.MergeColorPalette(FixedColorPalette, colorHistogram.ToColorPalette());
+            if (oTempPalette.Colors < ColorsMax)
             {
-                foreach (var kvp in ColorHistogram.rgbHistogram )
+                foreach (var kvp in colorHistogram.rgbHistogram )
                 {
-                    ColorPalette.Add(kvp.Key);
-                    ColorTransformationMap.rgbTransformationMap[kvp.Key] = kvp.Key;
+                    colorPalette.Add(kvp.Key);
+                    colorTransformationMap.rgbTransformationMap[kvp.Key] = kvp.Key;
                 }
                 return;
             }
-            var listAll = ColorHistogram.rgbHistogram.Select(X => X.Key).ToList();
+            //var listAll = colorHistogram.ToColorPalette().ToList();
+            //var listMax = oTempPalette.Take(ColorsMax).ToList();
+            var listAll = oTempPalette.ToList();
             var listMax = listAll.Take(ColorsMax).ToList();
             listAll.ForEach(X =>
             {
                 var dMin = listMax.Min(Y => Y.Distance(X, ColorDistanceEvaluationMode));
                 var oItem = listMax.FirstOrDefault(Y => Y.Distance(X, ColorDistanceEvaluationMode) == dMin);
-                ColorPalette.Add(oItem);
-                ColorTransformationMap.rgbTransformationMap[X] = oItem;
+                colorPalette.Add(oItem);
+                colorTransformationMap.rgbTransformationMap[X] = oItem;
             });
         }
 

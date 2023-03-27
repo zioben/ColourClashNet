@@ -16,23 +16,23 @@ namespace ColourClashNet.Colors.Transformation
     public abstract partial class ColorTransformBase : ColorTransformInterface
     {
         //---------------- Base description ---------------------------------
-        public ColorTransform Type { get; protected init; }
-        public string Description { get; protected set; } = "";
+        public ColorTransform type { get; protected init; }
+        public string description { get; protected set; } = "";
 
         //---------------- Source properties --------------------------------------
         public ColorHistogram SourceColorHistogram { get; protected set; } = new ColorHistogram();
-        public ColorPalette SourceColorPalette { get; protected set; } = new ColorPalette();
-        public int SourceColors => SourceColorPalette?.Colors ?? 0;
+        public ColorPalette FixedColorPalette { get; protected set; } = new ColorPalette();
+        protected int FixedColors => FixedColorPalette?.Colors ?? 0;
 
         //---------------- Transformation properties------------------------------
-        public ColorHistogram ColorHistogram { get; protected set; } = new ColorHistogram();
-        public ColorPalette ColorPalette { get; set; } = new ColorPalette();
-        public int Colors => ColorPalette?.Colors ?? 0;
-        public ColorTransformationMap ColorTransformationMap { get; protected set; } = new  ColorTransformationMap();
+        public ColorHistogram colorHistogram { get; protected set; } = new ColorHistogram();
+        public ColorPalette colorPalette { get; set; } = new ColorPalette();
+        public int colors => colorPalette?.Colors ?? 0;
+        public ColorTransformationMap colorTransformationMap { get; protected set; } = new  ColorTransformationMap();
 
         //---------------- Useful objects ------------------------------
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.All;
-        public DitherInterface? Dithering { get; set; } = null;
+        public DitherInterface? dithering { get; set; } = null;
         protected bool BypassDithering { get; set; }
         protected abstract void CreateTrasformationMap();
 
@@ -43,53 +43,56 @@ namespace ColourClashNet.Colors.Transformation
 
         void Reset()
         {
-            ColorPalette.Reset();
-            ColorHistogram.Reset();
-            ColorTransformationMap.Reset();
+            colorPalette.Reset();
+            colorHistogram.Reset();
+            colorTransformationMap.Reset();
         }
 
 
-        public bool Create(int[,]? oDataSource )
+        public bool Create(int[,]? oDataSource, ColorPalette? oFixedColorPalette )
         {
             Reset();
             if (oDataSource == null)
             {
                 return false;
             }
-            ColorHistogram.Create(oDataSource);
-            ColorPalette = ColorHistogram.ToColorPalette();
+            FixedColorPalette = oFixedColorPalette;
+            colorHistogram.Create(oDataSource);
+            colorPalette = colorHistogram.ToColorPalette();
             CreateTrasformationMap();
             return true;    
         }
 
-        public bool Create(ColorHistogram oSourceColorHistogram)
+        public bool Create(ColorHistogram oSourceColorHistogram, ColorPalette? oFixedColorPalette)
         {
             Reset();
             if (oSourceColorHistogram == null )
             {
                 return false;
             }
+            FixedColorPalette = oFixedColorPalette;
             foreach (var kvp in oSourceColorHistogram.rgbHistogram)
             {
-                ColorHistogram.rgbHistogram.Add(kvp.Key, kvp.Value);
+                colorHistogram.rgbHistogram.Add(kvp.Key, kvp.Value);
             }
-            ColorPalette = ColorHistogram.ToColorPalette();
+            colorPalette = colorHistogram.ToColorPalette();
             CreateTrasformationMap();
             return true;    
         }
 
-        public bool Create(ColorPalette oSourceColorPalette)
+        public bool Create(ColorPalette oSourceColorPalette, ColorPalette? oFixedColorPalette)
         {
             Reset();
             if (oSourceColorPalette == null)
             {
                 return false;
             }
+            FixedColorPalette = oFixedColorPalette;
             foreach (var rgb in oSourceColorPalette.rgbPalette)
             {
-                ColorHistogram.rgbHistogram.Add(rgb, 0);
+                colorHistogram.rgbHistogram.Add(rgb, 0);
             }
-            ColorPalette = ColorHistogram.ToColorPalette();
+            colorPalette = colorHistogram.ToColorPalette();
             CreateTrasformationMap();
             return true;
         }
@@ -101,7 +104,7 @@ namespace ColourClashNet.Colors.Transformation
                 return null;
             }
             var oDataTrasf = ExecuteTransform(oDataSource);
-            if (oDataTrasf == null || Dithering == null || BypassDithering)
+            if (oDataTrasf == null || dithering == null || BypassDithering)
             {
                 return oDataTrasf;
             }
@@ -114,7 +117,7 @@ namespace ColourClashNet.Colors.Transformation
             {
                 return oDataTrasf;
             }
-            var oProcDither = Dithering.Dither(oDataSource, oDataTrasf, ColorPalette, ColorDistanceEvaluationMode);
+            var oProcDither = dithering.Dither(oDataSource, oDataTrasf, colorPalette, ColorDistanceEvaluationMode);
             return oProcDither;
         }
 

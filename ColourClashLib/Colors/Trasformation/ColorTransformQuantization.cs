@@ -16,8 +16,8 @@ namespace ColourClashNet.Colors.Transformation
         static string sClass = nameof(ColorTransformQuantization);
         public ColorTransformQuantization()
         {
-            Type = ColorTransform.ColorReductionQuantization;
-            Description = "Reduces color bit spectrum";
+            type = ColorTransform.ColorReductionQuantization;
+            description = "Reduces color bit spectrum";
         }
 
         public ColorQuantizationMode QuantizationMode { get; set; }
@@ -95,12 +95,12 @@ namespace ColourClashNet.Colors.Transformation
         {
 
             string sMethod = nameof(CreateTrasformationMap);
-            Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
+            Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Creating trasformation map");
 
-            foreach (var kvp in ColorHistogram.rgbHistogram)
+            foreach (var kvp in colorHistogram.rgbHistogram)
             {
                 int iCol = QuantizeColor(kvp.Value);
-                ColorTransformationMap.Add(kvp.Key, iCol);
+                colorTransformationMap.Add(kvp.Key, iCol);
             }
         }
 
@@ -113,13 +113,13 @@ namespace ColourClashNet.Colors.Transformation
             var C = oSource.GetLength(1);
             var oRet = new int[R, C];
             var oCols = new int[1, C];
-            ColorPalette = new ColorPalette();
+            colorPalette = new ColorPalette();
             for (int r = 0; r < R; r++)
             {
                 for (int c = 0; c < C; c++)
                 {
                     var col = QuantizeColor(oSource[r, c]);
-                    ColorPalette.Add(col);
+                    colorPalette.Add(col);
                     oRet[r, c] = col;
                 }
             }
