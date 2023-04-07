@@ -44,7 +44,7 @@ namespace ColourClashLib.Colors.Tile
             TileW = iTileW;
             TileH = iTileH;
             ColorReductionMode = eColorReductionMode;
-            FixedColorPalette = oFixedColorPalette;
+            FixedColorPalette = oFixedColorPalette ?? new ColorPalette();
             MaxColors = iMaxTileColors;
             int R = (oDataSource.GetLength(0)+TileH-1)/TileH;
             int C = (oDataSource.GetLength(1)+TileW-1)/TileW;

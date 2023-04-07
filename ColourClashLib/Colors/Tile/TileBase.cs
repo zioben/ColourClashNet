@@ -77,7 +77,7 @@ namespace ColourClashLib.Colors.Tile
         /// <returns>int[,] processed data or null on error</returns>
         public int[,]? ExecuteTrasform(int[,]? oDataSource, int iSourceR, int iSourceC )
         {
-            DataSource = new int[TileW, TileH];
+            DataSource = new int[TileH, TileW];
             DataSourceC = iSourceC; 
             DataSourceR = iSourceR;
             if (oDataSource == null)
