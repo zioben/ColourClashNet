@@ -98,6 +98,9 @@ namespace ColourClashNet.Controls
         public int ZxEqColorLO { get; set; } = 0x80;
         public int ZxEqColorHI { get; set; } = 0xFF;
 
+        public ColorTransformReductionC64.C64ScreenMode C64ScreenMode { get; set; } = ColorTransformReductionC64.C64ScreenMode.Multicolor;
+        public ColorTransformReductionCPC.CPCScreenMode CPCScreenMode { get; set; } = ColorTransformReductionCPC.CPCScreenMode.Mode0;
+
         #endregion
 
         #region Trasformations
@@ -422,6 +425,16 @@ namespace ColourClashNet.Controls
                     {
                         var oTrasf = new ColorTransformReductionC64();
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
+                        oTrasf.ScreenMode = C64ScreenMode;
+                        oTrI = oTrasf;
+                    }
+                    break;
+
+                case ColorTransform.ColorReductionCPC:
+                    {
+                        var oTrasf = new ColorTransformReductionCPC();
+                        oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
+                        oTrasf.ScreenMode = CPCScreenMode;
                         oTrI = oTrasf;
                     }
                     break;

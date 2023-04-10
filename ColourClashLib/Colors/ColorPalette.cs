@@ -42,6 +42,15 @@ namespace ColourClashLib.Color
             return MergeColorPalette(new List<ColorPalette> { oSourcePalette } );
         }
 
+        public static ColorPalette CreateColorPalette(List<int>? oSourcePalette)
+        {
+            if (oSourcePalette == null || oSourcePalette.Count == 0)
+                return null;
+            var oRet = new ColorPalette();
+            oSourcePalette.ForEach(X => oRet.Add(X));
+            return oRet;    
+        }
+
 
         public HashSet<int> rgbPalette { get; private init; } = new HashSet<int>();
         public int Colors => rgbPalette.Count;

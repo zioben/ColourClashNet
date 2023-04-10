@@ -1,4 +1,5 @@
 ﻿using ColourClashNet.Colors;
+using ColourClashNet.Colors.Transformation;
 using ColourClashNet.Controls;
 using ColourClashNet.ImageTools;
 using System;
@@ -17,29 +18,35 @@ namespace ColourClashNet
 {
     public partial class ColorAnalyzer : UserControl
     {
+
+        int Panel1MaxWidth = 400;
+
         public ColorAnalyzer()
         {
             InitializeComponent();
             oColorTransformer.BackgroundColorList = GetBkgColors();
             oColorTransformer.ColorQuantizationMode = ColorQuantizationMode.RGB888;//GetQuantizationMode();
+            oColorTransformer.DitheringAlgorithm = ColorDithering.FloydSteinberg;
             pbBkColor.BackColor = Color.Transparent;
             InitMenu();
+            CreateComboBox(cbC64VideoMode, Enum.GetNames(typeof(ColorTransformReductionC64.C64ScreenMode)).ToList());
+            CreateComboBox(cbCpcVideoMode, Enum.GetNames(typeof(ColorTransformReductionCPC.CPCScreenMode)).ToList());
         }
 
 
         List<System.Drawing.Color> lBkgColor = new List<System.Drawing.Color>();
-        List<ToolStripMenuItem>lTsItems= new List<ToolStripMenuItem>();
+        List<ToolStripMenuItem> lTsItems = new List<ToolStripMenuItem>();
 
         void RebulidSetCheck(string sItem)
         {
-            var ts = lTsItems.FirstOrDefault(X => X.Tag.ToString() == sItem );
-            if( ts != null)
-                ts.Checked = true;  
+            var ts = lTsItems.FirstOrDefault(X => X.Tag.ToString() == sItem);
+            if (ts != null)
+                ts.Checked = true;
         }
 
         void RebuildChecks()
         {
-            lTsItems.ForEach(X=>X.Checked = false);
+            lTsItems.ForEach(X => X.Checked = false);
             RebulidSetCheck(oColorTransformer.ColorQuantizationMode.ToString());
             RebulidSetCheck(oColorTransformer.ColorDistanceEvaluationMode.ToString());
             RebulidSetCheck(oColorTransformer.DitheringAlgorithm.ToString());
@@ -66,7 +73,7 @@ namespace ColourClashNet
         }
 
 
-        void CreateMenuItem(ToolStripMenuItem oTsBase, object oItem )
+        void CreateMenuItem(ToolStripMenuItem oTsBase, object oItem)
         {
             if (oItem.ToString() == "Unknown")
                 return;
@@ -81,10 +88,17 @@ namespace ColourClashNet
             lTsItems.Add(tsItem);
         }
 
+        void CreateComboBox(ComboBox ocb, List<string> lItems)
+        {
+            ocb.Items.Clear();
+            lItems.ForEach(X => ocb.Items.Add(X));
+            ocb.SelectedIndex = 0;
+        }
+
         void InitMenu<T>(ToolStripMenuItem oTsBase) where T : System.Enum
         {
-             var lColorMode = Enum.GetValues(typeof(T));
-            foreach(var X in lColorMode )
+            var lColorMode = Enum.GetValues(typeof(T));
+            foreach (var X in lColorMode)
             {
                 CreateMenuItem(oTsBase, X);
             };
@@ -103,16 +117,16 @@ namespace ColourClashNet
             pbBkColor.Image = null;
             if (lBkgColor.Count > 0)
             {
-                Bitmap oBmp = new Bitmap(lBkgColor.Count*16, 16);
+                Bitmap oBmp = new Bitmap(lBkgColor.Count * 16, 16);
                 using (var g = Graphics.FromImage(oBmp))
                 {
                     int index = 0;
-                    for( int i = 0; i < lBkgColor.Count; i++ )
+                    for (int i = 0; i < lBkgColor.Count; i++)
                     {
                         var item = lBkgColor[i];
                         using (var oBrush = new SolidBrush(item))
                         {
-                            g.FillRectangle(oBrush, i*16, 0, 16, 16);
+                            g.FillRectangle(oBrush, i * 16, 0, 16, 16);
                         }
                         index++;
                     };
@@ -125,7 +139,7 @@ namespace ColourClashNet
         void ShowImage()
         {
             oBitmapRenderSource.Image = oColorTransformer.ImageSource;
-            oBitmapRenderDest.Image = oColorTransformer.ImageProcessed; 
+            oBitmapRenderDest.Image = oColorTransformer.ImageProcessed;
             Invalidate();
         }
 
@@ -143,8 +157,8 @@ namespace ColourClashNet
                 var oBmp = Bitmap.FromFile(openFileDialog1.FileName) as Bitmap;
                 oColorTransformer.BackgroundColorList = new List<int> { ColorIntExt.FromDrawingColor(pbBkColor.BackColor) };
                 oColorTransformer.BackgroundColorReplacement = 0;
-             //   oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
-             //   oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
+                //   oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
+                //   oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
                 oColorTransformer.Create(oBmp);
             }
         }
@@ -194,62 +208,7 @@ namespace ColourClashNet
             return ImageWidthAlignMode.MultiplePixel16;
         }
 
-        //ColorQuantizationMode GetQuantizationMode()
-        //{
-        //    if (fullColorToolStripMenuItem.Checked)
-        //        return ColorQuantizationMode.RGB888;
-        //    if (rGB3ToolStripMenuItem.Checked)
-        //        return ColorQuantizationMode.RGB333;
-        //    if (rGB4ToolStripMenuItem.Checked)
-        //        return ColorQuantizationMode.RGB444;
-        //    if (rGB5ToolStripMenuItem.Checked)
-        //        return ColorQuantizationMode.RGB555;
-        //    if (hiColorToolStripMenuItem.Checked)
-        //        return ColorQuantizationMode.RGB565;
-        //    return ColorQuantizationMode.RGB888;
-        //}
 
-        //ColorDistanceEvaluationMode GetColorDistanceMode()
-        //{
-        //    if (rGBToolStripMenuItem.Checked)
-        //        return ColorDistanceEvaluationMode.RGB;
-        //    if( hSVToolStripMenuItem.Checked)
-        //        return ColorDistanceEvaluationMode.HSV;
-        //    if (aLLToolStripMenuItem.Checked)
-        //        return ColorDistanceEvaluationMode.All;
-        //    return ColorDistanceEvaluationMode.RGB;
-        //}
-
-        //void ResetTsColor(object sender, EventArgs e)
-        //{
-        //    ToolStripMenuItem oItem = sender as ToolStripMenuItem;
-        //    if ( oItem != fullColorToolStripMenuItem )
-        //        fullColorToolStripMenuItem.Checked = false;
-        //    if (oItem != rGB3ToolStripMenuItem)
-        //        rGB3ToolStripMenuItem.Checked = false;
-        //    if (oItem != rGB4ToolStripMenuItem)
-        //        rGB4ToolStripMenuItem.Checked = false;
-        //    if (oItem != rGB5ToolStripMenuItem)
-        //        rGB5ToolStripMenuItem.Checked = false;
-        //    if (oItem != hiColorToolStripMenuItem)
-        //        rGB5ToolStripMenuItem.Checked = false;
-        //    oItem.Checked = true;
-        //    Reprocess();
-        //}
-
-        //void ResetTsColorDistance(object sender, EventArgs e)
-        //{
-        //    ToolStripMenuItem oItem = sender as ToolStripMenuItem;
-        //    if (oItem != rGBToolStripMenuItem)
-        //        rGBToolStripMenuItem.Checked = false;
-        //    if (oItem != hSVToolStripMenuItem)
-        //        hSVToolStripMenuItem.Checked = false;
-        //    if (oItem != aLLToolStripMenuItem)
-        //        aLLToolStripMenuItem.Checked = false;
-        //    oItem.Checked = true;
-
-        //    oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
-        //}
 
         private void SetToControl()
         {
@@ -261,7 +220,8 @@ namespace ColourClashNet
             oColorTransformer.SaturationEnhancement = (double)nudSat.Value;
             oColorTransformer.BrightnessEnhancement = (double)nudBright.Value;
             oColorTransformer.HueOffset = (double)nudHue.Value;
-
+            oColorTransformer.C64ScreenMode = (ColorTransformReductionC64.C64ScreenMode)Enum.Parse(typeof(ColorTransformReductionC64.C64ScreenMode), cbC64VideoMode.SelectedItem.ToString());
+            oColorTransformer.CPCScreenMode = (ColorTransformReductionCPC.CPCScreenMode)Enum.Parse(typeof(ColorTransformReductionCPC.CPCScreenMode), cbCpcVideoMode.SelectedItem.ToString());
         }
 
         private void btnReduceColors_Click(object sender, EventArgs e)
@@ -353,18 +313,14 @@ namespace ColourClashNet
             RefreshData();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void btnReduceColorsZx_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ZxEqColorLO = (int)numericUpDownZXL.Value;
-            oColorTransformer.ZxEqColorHI = (int)numericUpDownZXH.Value;
-            oColorTransformer.ColorTranform( ColorTransform.ColorReductionZxSpectrum );
+            oColorTransformer.ZxEqColorLO = (int)nudZxColorLO.Value;
+            oColorTransformer.ZxEqColorHI = (int)nudZxColorHI.Value;
+            oColorTransformer.ColorTranform(ColorTransform.ColorReductionZxSpectrum);
         }
 
-        private void ColorAnalyzer_Load(object sender, EventArgs e)
-        {
-            oColorTransformer.DitheringAlgorithm = ColorDithering.FloydSteinberg;
-        }
 
         private void btnReduceColorsEga_Click(object sender, EventArgs e)
         {
@@ -376,6 +332,12 @@ namespace ColourClashNet
         {
             SetToControl();
             oColorTransformer.ColorTranform(ColorTransform.ColorReductionCBM64);
+        }
+
+        private void btnReduceColorCPC_Click(object sender, EventArgs e)
+        {
+            SetToControl();
+            oColorTransformer.ColorTranform(ColorTransform.ColorReductionCPC);
         }
 
         private void btnChromaAdapt_Click(object sender, EventArgs e)
@@ -399,7 +361,7 @@ namespace ColourClashNet
             if (bDitherStrenghtUpdating)
                 return;
             bDitherStrenghtUpdating = true;
-            tbDitherStrenght.Value = (int)Math.Max(0,Math.Min(100,nudDitheringStrenght.Value * 100));
+            tbDitherStrenght.Value = (int)Math.Max(0, Math.Min(100, nudDitheringStrenght.Value * 100));
             bDitherStrenghtUpdating = false;
         }
 
@@ -413,6 +375,22 @@ namespace ColourClashNet
             scLayout.Orientation = Orientation.Horizontal;
         }
 
+        private void scMain_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            if (scMain.Panel1.Width > Panel1MaxWidth)
+            {
+                scMain.SplitterDistance = Panel1MaxWidth;
+            }
+        }
 
+        private void scMain_SizeChanged(object sender, EventArgs e)
+        {
+            if (scMain.Panel1.Width > Panel1MaxWidth)
+            {
+                scMain.SplitterDistance = Panel1MaxWidth;
+            }
+        }
+
+       
     }
 }

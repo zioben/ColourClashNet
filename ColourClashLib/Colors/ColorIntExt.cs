@@ -46,7 +46,7 @@ namespace ColourClashNet.Colors
             float max = Math.Max(Math.Max(r, g), b);
             float min = Math.Min(Math.Min(r, g), b);
             float delta = max - min;
-            float v = max*100f;
+            float v = max * 100f;
             float s = 0;
             float h = 0;
             if (delta > 0)
@@ -68,7 +68,7 @@ namespace ColourClashNet.Colors
                 }
                 h *= 60;
             }
-            return ((int)Math.Round(h))<<24|((int)Math.Round(s))<<8|((int)Math.Round(v));
+            return ((int)Math.Round(h)) << 24 | ((int)Math.Round(s)) << 8 | ((int)Math.Round(v));
         }
 
 
@@ -83,7 +83,7 @@ namespace ColourClashNet.Colors
             float min = Math.Min(Math.Min(r, g), b);
             if (max == min)
                 return 0;
-            float delta= max- min;
+            float delta = max - min;
             float h = 0;
             if (r >= g && r >= b)
             {
@@ -120,7 +120,7 @@ namespace ColourClashNet.Colors
             float min = Math.Min(Math.Min(r, g), b);
             if (max == min)
                 return 0;
-            return   (1f -  min / max) * 100;
+            return (1f - min / max) * 100;
         }
 
         public static float ToY(this int i)
@@ -140,7 +140,7 @@ namespace ColourClashNet.Colors
             int r = i.ToR();
             int g = i.ToG();
             int b = i.ToB();
-            return Math.Max(Math.Max(r, g), b)/255f*100f;
+            return Math.Max(Math.Max(r, g), b) / 255f * 100f;
         }
 
 
@@ -162,11 +162,11 @@ namespace ColourClashNet.Colors
                         int R = i.ToR() - j.ToR();
                         int G = i.ToG() - j.ToG();
                         int B = i.ToB() - j.ToB();
-                        return R * R + G * G + B * B + (R-G)*(R-G) + (R-B)*(R-B) + (G-B)*(G-B);
+                        return R * R + G * G + B * B + (R - G) * (R - G) + (R - B) * (R - B) + (G - B) * (G - B);
                     }
                 case ColorDistanceEvaluationMode.HSV:
                     {
-                        var H = DistanceH(i.ToH() , j.ToH());
+                        var H = DistanceH(i.ToH(), j.ToH());
                         var S = i.ToS() - j.ToS();
                         var V = i.ToV() - j.ToV();
                         return H * H + S * S + V * V;
@@ -204,7 +204,7 @@ namespace ColourClashNet.Colors
             var fs = fVals / 100f;
             var fh = fValh;
             var fc = fv * fs;
-            var fx = fc * (1-Math.Abs( ((fh / 60f) % 2f)- 1 ));
+            var fx = fc * (1 - Math.Abs(((fh / 60f) % 2f) - 1));
             var fm = fv - fc;
             var r = 0f;
             var g = 0f;
@@ -242,7 +242,7 @@ namespace ColourClashNet.Colors
             int R = Math.Min(255, (int)((r + fm) * 255));
             int G = Math.Min(255, (int)((g + fm) * 255));
             int B = Math.Min(255, (int)((b + fm) * 255));
-            return FromRGB(R,G,B);
+            return FromRGB(R, G, B);
         }
 
         public static int FromHSV(double dh, double ds, double dv)
@@ -266,7 +266,7 @@ namespace ColourClashNet.Colors
             return oPalette.rgbPalette.LastOrDefault(X => X.Distance(iColor, eMode) == dmin);
         }
 
-        public static int GetColorMean(  Dictionary<int,int> lColorHistogram, ColorMeanMode eMeanMode )
+        public static int GetColorMean(Dictionary<int, int> lColorHistogram, ColorMeanMode eMeanMode)
         {
             if (lColorHistogram == null || lColorHistogram.Count == 0)
                 return -1;
@@ -275,7 +275,7 @@ namespace ColourClashNet.Colors
                 case ColorMeanMode.UseColorPalette:
                     {
                         var max = lColorHistogram.Max(X => X.Value);
-                        var kvp = lColorHistogram.FirstOrDefault(X=>X.Value== max);   
+                        var kvp = lColorHistogram.FirstOrDefault(X => X.Value == max);
                         return kvp.Key;
                     }
                 case ColorMeanMode.UseMean:
@@ -320,16 +320,33 @@ namespace ColourClashNet.Colors
             R /= oPalette.Colors;
             G /= oPalette.Colors;
             B /= oPalette.Colors;
-            var iMean =  ColorIntExt.FromRGB(R, G, B);
+            var iMean = ColorIntExt.FromRGB(R, G, B);
             switch (eMeanMode)
             {
                 case ColorMeanMode.UseMean:
                     return iMean;
                 case ColorMeanMode.UseColorPalette:
                     return GetNearestColor(iMean, oPalette, ColorDistanceEvaluationMode.RGB);
-                default: 
+                default:
                     return -1;
             }
         }
+
+        public static int GetColorMean(int rgbA, int rgbB)
+        {
+            if (rgbA < 0)
+            {
+                return rgbB;
+            }
+            if (rgbB < 0)
+            {
+                return rgbA;
+            }
+            int R = (rgbA.ToR() + rgbB.ToR()) / 2;
+            int G = (rgbA.ToG() + rgbB.ToG()) / 2;
+            int B = (rgbA.ToB() + rgbB.ToB()) / 2;
+            return FromRGB(R, G, B);
+        }
+
     }
 }

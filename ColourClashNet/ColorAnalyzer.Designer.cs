@@ -28,1007 +28,983 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ColorAnalyzer));
-            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.bitmapIndexedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.indexedPNGToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.bitmapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.pNGToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.amigaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.iFFILBMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.bitplaneToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.rawBitplaneAndOCSCopperlistToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.sourceCodeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.colorModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.colorDistanceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ditheringToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.scMain = new System.Windows.Forms.SplitContainer();
-            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
-            this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
-            this.panel10 = new System.Windows.Forms.Panel();
-            this.nudSat = new System.Windows.Forms.NumericUpDown();
-            this.label8 = new System.Windows.Forms.Label();
-            this.btnChromaAdapt = new System.Windows.Forms.Button();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.rbLayoutH = new System.Windows.Forms.RadioButton();
-            this.gbLayoutV = new System.Windows.Forms.RadioButton();
-            this.pbBkColor = new System.Windows.Forms.PictureBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.panel3 = new System.Windows.Forms.Panel();
-            this.nudColorsWanted = new System.Windows.Forms.NumericUpDown();
-            this.label2 = new System.Windows.Forms.Label();
-            this.panel7 = new System.Windows.Forms.Panel();
-            this.label6 = new System.Windows.Forms.Label();
-            this.nudClusterLoop = new System.Windows.Forms.NumericUpDown();
-            this.btnReduceColorCluster = new System.Windows.Forms.Button();
-            this.panel6 = new System.Windows.Forms.Panel();
-            this.label7 = new System.Windows.Forms.Label();
-            this.numericUpDown2 = new System.Windows.Forms.NumericUpDown();
-            this.chkScanLineCluster = new System.Windows.Forms.CheckBox();
-            this.btnReduceColorsScanline = new System.Windows.Forms.Button();
-            this.panel5 = new System.Windows.Forms.Panel();
-            this.nudDitheringStrenght = new System.Windows.Forms.NumericUpDown();
-            this.tbDitherStrenght = new System.Windows.Forms.TrackBar();
-            this.label5 = new System.Windows.Forms.Label();
-            this.panel4 = new System.Windows.Forms.Panel();
-            this.btnReduceColors = new System.Windows.Forms.Button();
-            this.panel8 = new System.Windows.Forms.Panel();
-            this.btnReduceColorsEga = new System.Windows.Forms.Button();
-            this.panel9 = new System.Windows.Forms.Panel();
-            this.btnReduceColorsC64v1 = new System.Windows.Forms.Button();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.numericUpDownZXH = new System.Windows.Forms.NumericUpDown();
-            this.numericUpDownZXL = new System.Windows.Forms.NumericUpDown();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.btnReduceColorsZx = new System.Windows.Forms.Button();
-            this.scLayout = new System.Windows.Forms.SplitContainer();
-            this.pictureBoxSrc = new System.Windows.Forms.PictureBox();
-            this.pictureBoxProc = new System.Windows.Forms.PictureBox();
-            this.oBitmapRenderSource = new ColourClashNet.Controls.BitmapRender(this.components);
-            this.bitmapRender1 = new ColourClashNet.Controls.BitmapRender(this.components);
-            this.bitmapRender2 = new ColourClashNet.Controls.BitmapRender(this.components);
-            this.oBitmapRenderDest = new ColourClashNet.Controls.BitmapRender(this.components);
-            this.sfdExportImage = new System.Windows.Forms.SaveFileDialog();
-            this.oColorTransformer = new ColourClashNet.Controls.ColorTransformer(this.components);
-            this.label9 = new System.Windows.Forms.Label();
-            this.nudBright = new System.Windows.Forms.NumericUpDown();
-            this.nudHue = new System.Windows.Forms.NumericUpDown();
-            this.menuStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.scMain)).BeginInit();
-            this.scMain.Panel1.SuspendLayout();
-            this.scMain.Panel2.SuspendLayout();
-            this.scMain.SuspendLayout();
-            this.tableLayoutPanel1.SuspendLayout();
-            this.tableLayoutPanel2.SuspendLayout();
-            this.panel10.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nudSat)).BeginInit();
-            this.panel2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbBkColor)).BeginInit();
-            this.panel3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nudColorsWanted)).BeginInit();
-            this.panel7.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nudClusterLoop)).BeginInit();
-            this.panel6.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
-            this.panel5.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nudDitheringStrenght)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.tbDitherStrenght)).BeginInit();
-            this.panel4.SuspendLayout();
-            this.panel8.SuspendLayout();
-            this.panel9.SuspendLayout();
-            this.panel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZXH)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZXL)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.scLayout)).BeginInit();
-            this.scLayout.Panel1.SuspendLayout();
-            this.scLayout.Panel2.SuspendLayout();
-            this.scLayout.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSrc)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxProc)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudBright)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudHue)).BeginInit();
-            this.SuspendLayout();
+            openFileDialog1 = new OpenFileDialog();
+            menuStrip1 = new MenuStrip();
+            fileToolStripMenuItem = new ToolStripMenuItem();
+            newToolStripMenuItem = new ToolStripMenuItem();
+            openToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem1 = new ToolStripMenuItem();
+            exportToolStripMenuItem = new ToolStripMenuItem();
+            bitmapIndexedToolStripMenuItem = new ToolStripMenuItem();
+            indexedPNGToolStripMenuItem = new ToolStripMenuItem();
+            bitmapToolStripMenuItem = new ToolStripMenuItem();
+            pNGToolStripMenuItem = new ToolStripMenuItem();
+            amigaToolStripMenuItem = new ToolStripMenuItem();
+            iFFILBMToolStripMenuItem = new ToolStripMenuItem();
+            bitplaneToolStripMenuItem1 = new ToolStripMenuItem();
+            rawBitplaneAndOCSCopperlistToolStripMenuItem = new ToolStripMenuItem();
+            sourceCodeToolStripMenuItem = new ToolStripMenuItem();
+            colorModeToolStripMenuItem = new ToolStripMenuItem();
+            colorDistanceToolStripMenuItem = new ToolStripMenuItem();
+            ditheringToolStripMenuItem = new ToolStripMenuItem();
+            scMain = new SplitContainer();
+            tableLayoutPanel1 = new TableLayoutPanel();
+            propertyGrid1 = new PropertyGrid();
+            tableLayoutPanel2 = new TableLayoutPanel();
+            panel2 = new Panel();
+            rbLayoutH = new RadioButton();
+            gbLayoutV = new RadioButton();
+            pbBkColor = new PictureBox();
+            label3 = new Label();
+            panel3 = new Panel();
+            nudColorsWanted = new NumericUpDown();
+            label2 = new Label();
+            panClustering = new Panel();
+            label6 = new Label();
+            nudClusterLoop = new NumericUpDown();
+            btnReduceColorCluster = new Button();
+            panScanline = new Panel();
+            label7 = new Label();
+            nudScanlineTrainEpochs = new NumericUpDown();
+            chkScanLineCluster = new CheckBox();
+            btnReduceColorsScanline = new Button();
+            panel5 = new Panel();
+            nudDitheringStrenght = new NumericUpDown();
+            tbDitherStrenght = new TrackBar();
+            label5 = new Label();
+            panQuantitative = new Panel();
+            btnReduceColors = new Button();
+            panEGA = new Panel();
+            btnReduceColorsEga = new Button();
+            panC64 = new Panel();
+            lblC64VideoMode = new Label();
+            cbC64VideoMode = new ComboBox();
+            btnReduceColorsC64v1 = new Button();
+            panZX = new Panel();
+            nudZxColorHI = new NumericUpDown();
+            nudZxColorLO = new NumericUpDown();
+            label1 = new Label();
+            label4 = new Label();
+            btnReduceColorsZx = new Button();
+            panCPC = new Panel();
+            lblCpcVideoMode = new Label();
+            cbCpcVideoMode = new ComboBox();
+            btnReduceColorCPC = new Button();
+            panel10 = new Panel();
+            lblHue = new Label();
+            nudHue = new NumericUpDown();
+            nudBright = new NumericUpDown();
+            lblBright = new Label();
+            nudSat = new NumericUpDown();
+            lblSat = new Label();
+            btnChromaAdapt = new Button();
+            scLayout = new SplitContainer();
+            pictureBoxSrc = new PictureBox();
+            pictureBoxProc = new PictureBox();
+            oBitmapRenderSource = new Controls.BitmapRender(components);
+            bitmapRender1 = new Controls.BitmapRender(components);
+            bitmapRender2 = new Controls.BitmapRender(components);
+            oBitmapRenderDest = new Controls.BitmapRender(components);
+            sfdExportImage = new SaveFileDialog();
+            oColorTransformer = new Controls.ColorTransformer(components);
+            menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)scMain).BeginInit();
+            scMain.Panel1.SuspendLayout();
+            scMain.Panel2.SuspendLayout();
+            scMain.SuspendLayout();
+            tableLayoutPanel1.SuspendLayout();
+            tableLayoutPanel2.SuspendLayout();
+            panel2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pbBkColor).BeginInit();
+            panel3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)nudColorsWanted).BeginInit();
+            panClustering.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)nudClusterLoop).BeginInit();
+            panScanline.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)nudScanlineTrainEpochs).BeginInit();
+            panel5.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)nudDitheringStrenght).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)tbDitherStrenght).BeginInit();
+            panQuantitative.SuspendLayout();
+            panEGA.SuspendLayout();
+            panC64.SuspendLayout();
+            panZX.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)nudZxColorHI).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)nudZxColorLO).BeginInit();
+            panCPC.SuspendLayout();
+            panel10.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)nudHue).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)nudBright).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)nudSat).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)scLayout).BeginInit();
+            scLayout.Panel1.SuspendLayout();
+            scLayout.Panel2.SuspendLayout();
+            scLayout.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBoxSrc).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBoxProc).BeginInit();
+            SuspendLayout();
             // 
             // openFileDialog1
             // 
-            this.openFileDialog1.Filter = "Bmp|*.bmp|Png|*.png|Jpg|*.jpg|All Files|*.*";
-            this.openFileDialog1.FilterIndex = 4;
-            this.openFileDialog1.Title = "Load Image";
+            openFileDialog1.Filter = "Bmp|*.bmp|Png|*.png|Jpg|*.jpg|All Files|*.*";
+            openFileDialog1.FilterIndex = 4;
+            openFileDialog1.Title = "Load Image";
             // 
             // menuStrip1
             // 
-            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileToolStripMenuItem,
-            this.colorModeToolStripMenuItem,
-            this.colorDistanceToolStripMenuItem,
-            this.ditheringToolStripMenuItem});
-            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
-            this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1021, 24);
-            this.menuStrip1.TabIndex = 0;
-            this.menuStrip1.Text = "menuStrip1";
+            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, colorModeToolStripMenuItem, colorDistanceToolStripMenuItem, ditheringToolStripMenuItem });
+            menuStrip1.Location = new Point(0, 0);
+            menuStrip1.Name = "menuStrip1";
+            menuStrip1.Size = new Size(1134, 24);
+            menuStrip1.TabIndex = 0;
+            menuStrip1.Text = "menuStrip1";
             // 
             // fileToolStripMenuItem
             // 
-            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.newToolStripMenuItem,
-            this.openToolStripMenuItem,
-            this.toolStripMenuItem1,
-            this.exportToolStripMenuItem});
-            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
-            this.fileToolStripMenuItem.Text = "&File";
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newToolStripMenuItem, openToolStripMenuItem, toolStripMenuItem1, exportToolStripMenuItem });
+            fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            fileToolStripMenuItem.Size = new Size(37, 20);
+            fileToolStripMenuItem.Text = "&File";
             // 
             // newToolStripMenuItem
             // 
-            this.newToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("newToolStripMenuItem.Image")));
-            this.newToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.newToolStripMenuItem.Name = "newToolStripMenuItem";
-            this.newToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
-            this.newToolStripMenuItem.Text = "&New";
-            this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
+            newToolStripMenuItem.Image = (Image)resources.GetObject("newToolStripMenuItem.Image");
+            newToolStripMenuItem.ImageTransparentColor = Color.Magenta;
+            newToolStripMenuItem.Name = "newToolStripMenuItem";
+            newToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.N;
+            newToolStripMenuItem.Size = new Size(146, 22);
+            newToolStripMenuItem.Text = "&New";
+            newToolStripMenuItem.Click += newToolStripMenuItem_Click;
             // 
             // openToolStripMenuItem
             // 
-            this.openToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("openToolStripMenuItem.Image")));
-            this.openToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
-            this.openToolStripMenuItem.Text = "&Open";
-            this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
+            openToolStripMenuItem.Image = (Image)resources.GetObject("openToolStripMenuItem.Image");
+            openToolStripMenuItem.ImageTransparentColor = Color.Magenta;
+            openToolStripMenuItem.Name = "openToolStripMenuItem";
+            openToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.O;
+            openToolStripMenuItem.Size = new Size(146, 22);
+            openToolStripMenuItem.Text = "&Open";
+            openToolStripMenuItem.Click += openToolStripMenuItem_Click;
             // 
             // toolStripMenuItem1
             // 
-            this.toolStripMenuItem1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripMenuItem1.Image")));
-            this.toolStripMenuItem1.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(146, 22);
-            this.toolStripMenuItem1.Text = "&Save";
-            this.toolStripMenuItem1.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
+            toolStripMenuItem1.Image = (Image)resources.GetObject("toolStripMenuItem1.Image");
+            toolStripMenuItem1.ImageTransparentColor = Color.Magenta;
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.ShortcutKeys = Keys.Control | Keys.S;
+            toolStripMenuItem1.Size = new Size(146, 22);
+            toolStripMenuItem1.Text = "&Save";
+            toolStripMenuItem1.Click += toolStripMenuItem1_Click;
             // 
             // exportToolStripMenuItem
             // 
-            this.exportToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.bitmapIndexedToolStripMenuItem,
-            this.indexedPNGToolStripMenuItem,
-            this.bitmapToolStripMenuItem,
-            this.pNGToolStripMenuItem,
-            this.amigaToolStripMenuItem});
-            this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            this.exportToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
-            this.exportToolStripMenuItem.Text = "Export";
+            exportToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { bitmapIndexedToolStripMenuItem, indexedPNGToolStripMenuItem, bitmapToolStripMenuItem, pNGToolStripMenuItem, amigaToolStripMenuItem });
+            exportToolStripMenuItem.Name = "exportToolStripMenuItem";
+            exportToolStripMenuItem.Size = new Size(146, 22);
+            exportToolStripMenuItem.Text = "Export";
             // 
             // bitmapIndexedToolStripMenuItem
             // 
-            this.bitmapIndexedToolStripMenuItem.Name = "bitmapIndexedToolStripMenuItem";
-            this.bitmapIndexedToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
-            this.bitmapIndexedToolStripMenuItem.Text = "Bitmap Indexed";
-            this.bitmapIndexedToolStripMenuItem.Click += new System.EventHandler(this.bitmapIndexedToolStripMenuItem_Click);
+            bitmapIndexedToolStripMenuItem.Name = "bitmapIndexedToolStripMenuItem";
+            bitmapIndexedToolStripMenuItem.Size = new Size(157, 22);
+            bitmapIndexedToolStripMenuItem.Text = "Bitmap Indexed";
+            bitmapIndexedToolStripMenuItem.Click += bitmapIndexedToolStripMenuItem_Click;
             // 
             // indexedPNGToolStripMenuItem
             // 
-            this.indexedPNGToolStripMenuItem.Name = "indexedPNGToolStripMenuItem";
-            this.indexedPNGToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
-            this.indexedPNGToolStripMenuItem.Text = "PNG Indexed";
+            indexedPNGToolStripMenuItem.Name = "indexedPNGToolStripMenuItem";
+            indexedPNGToolStripMenuItem.Size = new Size(157, 22);
+            indexedPNGToolStripMenuItem.Text = "PNG Indexed";
             // 
             // bitmapToolStripMenuItem
             // 
-            this.bitmapToolStripMenuItem.Name = "bitmapToolStripMenuItem";
-            this.bitmapToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
-            this.bitmapToolStripMenuItem.Text = "Bitmap";
-            this.bitmapToolStripMenuItem.Click += new System.EventHandler(this.bitmapToolStripMenuItem_Click);
+            bitmapToolStripMenuItem.Name = "bitmapToolStripMenuItem";
+            bitmapToolStripMenuItem.Size = new Size(157, 22);
+            bitmapToolStripMenuItem.Text = "Bitmap";
+            bitmapToolStripMenuItem.Click += bitmapToolStripMenuItem_Click;
             // 
             // pNGToolStripMenuItem
             // 
-            this.pNGToolStripMenuItem.Name = "pNGToolStripMenuItem";
-            this.pNGToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
-            this.pNGToolStripMenuItem.Text = "PNG";
-            this.pNGToolStripMenuItem.Click += new System.EventHandler(this.pNGToolStripMenuItem_Click);
+            pNGToolStripMenuItem.Name = "pNGToolStripMenuItem";
+            pNGToolStripMenuItem.Size = new Size(157, 22);
+            pNGToolStripMenuItem.Text = "PNG";
+            pNGToolStripMenuItem.Click += pNGToolStripMenuItem_Click;
             // 
             // amigaToolStripMenuItem
             // 
-            this.amigaToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.iFFILBMToolStripMenuItem,
-            this.bitplaneToolStripMenuItem1,
-            this.rawBitplaneAndOCSCopperlistToolStripMenuItem,
-            this.sourceCodeToolStripMenuItem});
-            this.amigaToolStripMenuItem.Name = "amigaToolStripMenuItem";
-            this.amigaToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
-            this.amigaToolStripMenuItem.Text = "Amiga";
+            amigaToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { iFFILBMToolStripMenuItem, bitplaneToolStripMenuItem1, rawBitplaneAndOCSCopperlistToolStripMenuItem, sourceCodeToolStripMenuItem });
+            amigaToolStripMenuItem.Name = "amigaToolStripMenuItem";
+            amigaToolStripMenuItem.Size = new Size(157, 22);
+            amigaToolStripMenuItem.Text = "Amiga";
             // 
             // iFFILBMToolStripMenuItem
             // 
-            this.iFFILBMToolStripMenuItem.Name = "iFFILBMToolStripMenuItem";
-            this.iFFILBMToolStripMenuItem.Size = new System.Drawing.Size(224, 22);
-            this.iFFILBMToolStripMenuItem.Text = "IFF-ILBM";
+            iFFILBMToolStripMenuItem.Name = "iFFILBMToolStripMenuItem";
+            iFFILBMToolStripMenuItem.Size = new Size(224, 22);
+            iFFILBMToolStripMenuItem.Text = "IFF-ILBM";
             // 
             // bitplaneToolStripMenuItem1
             // 
-            this.bitplaneToolStripMenuItem1.Name = "bitplaneToolStripMenuItem1";
-            this.bitplaneToolStripMenuItem1.Size = new System.Drawing.Size(224, 22);
-            this.bitplaneToolStripMenuItem1.Text = "Raw Bitplane";
-            this.bitplaneToolStripMenuItem1.Click += new System.EventHandler(this.bitplaneToolStripMenuItem1_Click);
+            bitplaneToolStripMenuItem1.Name = "bitplaneToolStripMenuItem1";
+            bitplaneToolStripMenuItem1.Size = new Size(224, 22);
+            bitplaneToolStripMenuItem1.Text = "Raw Bitplane";
+            bitplaneToolStripMenuItem1.Click += bitplaneToolStripMenuItem1_Click;
             // 
             // rawBitplaneAndOCSCopperlistToolStripMenuItem
             // 
-            this.rawBitplaneAndOCSCopperlistToolStripMenuItem.Name = "rawBitplaneAndOCSCopperlistToolStripMenuItem";
-            this.rawBitplaneAndOCSCopperlistToolStripMenuItem.Size = new System.Drawing.Size(224, 22);
-            this.rawBitplaneAndOCSCopperlistToolStripMenuItem.Text = "Raw Bitplane And Copperlist";
+            rawBitplaneAndOCSCopperlistToolStripMenuItem.Name = "rawBitplaneAndOCSCopperlistToolStripMenuItem";
+            rawBitplaneAndOCSCopperlistToolStripMenuItem.Size = new Size(224, 22);
+            rawBitplaneAndOCSCopperlistToolStripMenuItem.Text = "Raw Bitplane And Copperlist";
             // 
             // sourceCodeToolStripMenuItem
             // 
-            this.sourceCodeToolStripMenuItem.Name = "sourceCodeToolStripMenuItem";
-            this.sourceCodeToolStripMenuItem.Size = new System.Drawing.Size(224, 22);
-            this.sourceCodeToolStripMenuItem.Text = "SourceCode";
+            sourceCodeToolStripMenuItem.Name = "sourceCodeToolStripMenuItem";
+            sourceCodeToolStripMenuItem.Size = new Size(224, 22);
+            sourceCodeToolStripMenuItem.Text = "SourceCode";
             // 
             // colorModeToolStripMenuItem
             // 
-            this.colorModeToolStripMenuItem.Name = "colorModeToolStripMenuItem";
-            this.colorModeToolStripMenuItem.Size = new System.Drawing.Size(87, 20);
-            this.colorModeToolStripMenuItem.Tag = "FullColor";
-            this.colorModeToolStripMenuItem.Text = "Quantization";
+            colorModeToolStripMenuItem.Name = "colorModeToolStripMenuItem";
+            colorModeToolStripMenuItem.Size = new Size(87, 20);
+            colorModeToolStripMenuItem.Tag = "FullColor";
+            colorModeToolStripMenuItem.Text = "Quantization";
             // 
             // colorDistanceToolStripMenuItem
             // 
-            this.colorDistanceToolStripMenuItem.Name = "colorDistanceToolStripMenuItem";
-            this.colorDistanceToolStripMenuItem.Size = new System.Drawing.Size(93, 20);
-            this.colorDistanceToolStripMenuItem.Text = "ColorDistance";
+            colorDistanceToolStripMenuItem.Name = "colorDistanceToolStripMenuItem";
+            colorDistanceToolStripMenuItem.Size = new Size(93, 20);
+            colorDistanceToolStripMenuItem.Text = "ColorDistance";
             // 
             // ditheringToolStripMenuItem
             // 
-            this.ditheringToolStripMenuItem.Name = "ditheringToolStripMenuItem";
-            this.ditheringToolStripMenuItem.Size = new System.Drawing.Size(68, 20);
-            this.ditheringToolStripMenuItem.Text = "Dithering";
+            ditheringToolStripMenuItem.Name = "ditheringToolStripMenuItem";
+            ditheringToolStripMenuItem.Size = new Size(68, 20);
+            ditheringToolStripMenuItem.Text = "Dithering";
             // 
             // scMain
             // 
-            this.scMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.scMain.Location = new System.Drawing.Point(0, 24);
-            this.scMain.Name = "scMain";
+            scMain.Dock = DockStyle.Fill;
+            scMain.Location = new Point(0, 24);
+            scMain.Name = "scMain";
             // 
             // scMain.Panel1
             // 
-            this.scMain.Panel1.Controls.Add(this.tableLayoutPanel1);
+            scMain.Panel1.Controls.Add(tableLayoutPanel1);
             // 
             // scMain.Panel2
             // 
-            this.scMain.Panel2.Controls.Add(this.scLayout);
-            this.scMain.Size = new System.Drawing.Size(1021, 646);
-            this.scMain.SplitterDistance = 360;
-            this.scMain.TabIndex = 1;
+            scMain.Panel2.Controls.Add(scLayout);
+            scMain.Size = new Size(1134, 791);
+            scMain.SplitterDistance = 368;
+            scMain.TabIndex = 1;
+            scMain.SplitterMoved += scMain_SplitterMoved;
+            scMain.SizeChanged += scMain_SizeChanged;
             // 
             // tableLayoutPanel1
             // 
-            this.tableLayoutPanel1.ColumnCount = 1;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.Controls.Add(this.propertyGrid1, 0, 1);
-            this.tableLayoutPanel1.Controls.Add(this.tableLayoutPanel2, 0, 0);
-            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
-            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 2;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 603F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(360, 646);
-            this.tableLayoutPanel1.TabIndex = 0;
+            tableLayoutPanel1.ColumnCount = 1;
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tableLayoutPanel1.Controls.Add(propertyGrid1, 0, 1);
+            tableLayoutPanel1.Controls.Add(tableLayoutPanel2, 0, 0);
+            tableLayoutPanel1.Dock = DockStyle.Fill;
+            tableLayoutPanel1.Location = new Point(0, 0);
+            tableLayoutPanel1.Name = "tableLayoutPanel1";
+            tableLayoutPanel1.RowCount = 2;
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 603F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel1.Size = new Size(368, 791);
+            tableLayoutPanel1.TabIndex = 0;
             // 
             // propertyGrid1
             // 
-            this.propertyGrid1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.propertyGrid1.Location = new System.Drawing.Point(3, 606);
-            this.propertyGrid1.Name = "propertyGrid1";
-            this.propertyGrid1.Size = new System.Drawing.Size(354, 37);
-            this.propertyGrid1.TabIndex = 0;
+            propertyGrid1.Dock = DockStyle.Fill;
+            propertyGrid1.Location = new Point(3, 606);
+            propertyGrid1.Name = "propertyGrid1";
+            propertyGrid1.Size = new Size(362, 182);
+            propertyGrid1.TabIndex = 0;
             // 
             // tableLayoutPanel2
             // 
-            this.tableLayoutPanel2.ColumnCount = 1;
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel2.Controls.Add(this.panel10, 0, 10);
-            this.tableLayoutPanel2.Controls.Add(this.panel2, 0, 0);
-            this.tableLayoutPanel2.Controls.Add(this.panel3, 0, 1);
-            this.tableLayoutPanel2.Controls.Add(this.panel7, 0, 4);
-            this.tableLayoutPanel2.Controls.Add(this.panel6, 0, 5);
-            this.tableLayoutPanel2.Controls.Add(this.panel5, 0, 2);
-            this.tableLayoutPanel2.Controls.Add(this.panel4, 0, 3);
-            this.tableLayoutPanel2.Controls.Add(this.panel8, 0, 6);
-            this.tableLayoutPanel2.Controls.Add(this.panel9, 0, 7);
-            this.tableLayoutPanel2.Controls.Add(this.panel1, 0, 8);
-            this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(3, 3);
-            this.tableLayoutPanel2.Name = "tableLayoutPanel2";
-            this.tableLayoutPanel2.RowCount = 12;
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 54F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 48F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 54F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 48F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 48F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 48F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 48F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 48F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 8F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 70F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(354, 597);
-            this.tableLayoutPanel2.TabIndex = 8;
-            // 
-            // panel10
-            // 
-            this.panel10.Controls.Add(this.nudHue);
-            this.panel10.Controls.Add(this.nudBright);
-            this.panel10.Controls.Add(this.label9);
-            this.panel10.Controls.Add(this.nudSat);
-            this.panel10.Controls.Add(this.label8);
-            this.panel10.Controls.Add(this.btnChromaAdapt);
-            this.panel10.Location = new System.Drawing.Point(0, 464);
-            this.panel10.Margin = new System.Windows.Forms.Padding(0);
-            this.panel10.Name = "panel10";
-            this.panel10.Size = new System.Drawing.Size(354, 60);
-            this.panel10.TabIndex = 28;
-            // 
-            // nudSat
-            // 
-            this.nudSat.DecimalPlaces = 2;
-            this.nudSat.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            65536});
-            this.nudSat.Location = new System.Drawing.Point(205, 7);
-            this.nudSat.Name = "nudSat";
-            this.nudSat.Size = new System.Drawing.Size(65, 23);
-            this.nudSat.TabIndex = 16;
-            this.nudSat.Value = new decimal(new int[] {
-            15,
-            0,
-            0,
-            65536});
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(138, 9);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(61, 15);
-            this.label8.TabIndex = 18;
-            this.label8.Text = "Saturation";
-            // 
-            // btnChromaAdapt
-            // 
-            this.btnChromaAdapt.Location = new System.Drawing.Point(3, 0);
-            this.btnChromaAdapt.Name = "btnChromaAdapt";
-            this.btnChromaAdapt.Size = new System.Drawing.Size(129, 57);
-            this.btnChromaAdapt.TabIndex = 14;
-            this.btnChromaAdapt.Text = "Chroma Adapter";
-            this.btnChromaAdapt.UseVisualStyleBackColor = true;
-            this.btnChromaAdapt.Click += new System.EventHandler(this.btnChromaAdapt_Click);
+            tableLayoutPanel2.ColumnCount = 1;
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tableLayoutPanel2.Controls.Add(panel2, 0, 0);
+            tableLayoutPanel2.Controls.Add(panel3, 0, 1);
+            tableLayoutPanel2.Controls.Add(panClustering, 0, 4);
+            tableLayoutPanel2.Controls.Add(panScanline, 0, 5);
+            tableLayoutPanel2.Controls.Add(panel5, 0, 2);
+            tableLayoutPanel2.Controls.Add(panQuantitative, 0, 3);
+            tableLayoutPanel2.Controls.Add(panEGA, 0, 6);
+            tableLayoutPanel2.Controls.Add(panC64, 0, 7);
+            tableLayoutPanel2.Controls.Add(panZX, 0, 8);
+            tableLayoutPanel2.Controls.Add(panCPC, 0, 9);
+            tableLayoutPanel2.Controls.Add(panel10, 0, 10);
+            tableLayoutPanel2.Dock = DockStyle.Fill;
+            tableLayoutPanel2.Location = new Point(3, 3);
+            tableLayoutPanel2.Name = "tableLayoutPanel2";
+            tableLayoutPanel2.RowCount = 11;
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel2.Size = new Size(362, 597);
+            tableLayoutPanel2.TabIndex = 8;
             // 
             // panel2
             // 
-            this.panel2.Controls.Add(this.rbLayoutH);
-            this.panel2.Controls.Add(this.gbLayoutV);
-            this.panel2.Controls.Add(this.pbBkColor);
-            this.panel2.Controls.Add(this.label3);
-            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel2.Location = new System.Drawing.Point(0, 0);
-            this.panel2.Margin = new System.Windows.Forms.Padding(0);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(354, 54);
-            this.panel2.TabIndex = 28;
+            panel2.Controls.Add(rbLayoutH);
+            panel2.Controls.Add(gbLayoutV);
+            panel2.Controls.Add(pbBkColor);
+            panel2.Controls.Add(label3);
+            panel2.Dock = DockStyle.Fill;
+            panel2.Location = new Point(0, 0);
+            panel2.Margin = new Padding(0);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(362, 54);
+            panel2.TabIndex = 28;
             // 
             // rbLayoutH
             // 
-            this.rbLayoutH.AutoSize = true;
-            this.rbLayoutH.Checked = true;
-            this.rbLayoutH.Location = new System.Drawing.Point(237, 28);
-            this.rbLayoutH.Name = "rbLayoutH";
-            this.rbLayoutH.Size = new System.Drawing.Size(119, 19);
-            this.rbLayoutH.TabIndex = 14;
-            this.rbLayoutH.TabStop = true;
-            this.rbLayoutH.Text = "Horizontal Layout";
-            this.rbLayoutH.UseVisualStyleBackColor = true;
-            this.rbLayoutH.CheckedChanged += new System.EventHandler(this.rbLayoutH_CheckedChanged);
+            rbLayoutH.AutoSize = true;
+            rbLayoutH.Checked = true;
+            rbLayoutH.Location = new Point(237, 28);
+            rbLayoutH.Name = "rbLayoutH";
+            rbLayoutH.Size = new Size(119, 19);
+            rbLayoutH.TabIndex = 14;
+            rbLayoutH.TabStop = true;
+            rbLayoutH.Text = "Horizontal Layout";
+            rbLayoutH.UseVisualStyleBackColor = true;
+            rbLayoutH.CheckedChanged += rbLayoutH_CheckedChanged;
             // 
             // gbLayoutV
             // 
-            this.gbLayoutV.AutoSize = true;
-            this.gbLayoutV.Location = new System.Drawing.Point(237, 3);
-            this.gbLayoutV.Name = "gbLayoutV";
-            this.gbLayoutV.Size = new System.Drawing.Size(102, 19);
-            this.gbLayoutV.TabIndex = 13;
-            this.gbLayoutV.Text = "Vertical Layout";
-            this.gbLayoutV.UseVisualStyleBackColor = true;
-            this.gbLayoutV.CheckedChanged += new System.EventHandler(this.gbLayoutV_CheckedChanged);
+            gbLayoutV.AutoSize = true;
+            gbLayoutV.Location = new Point(237, 3);
+            gbLayoutV.Name = "gbLayoutV";
+            gbLayoutV.Size = new Size(102, 19);
+            gbLayoutV.TabIndex = 13;
+            gbLayoutV.Text = "Vertical Layout";
+            gbLayoutV.UseVisualStyleBackColor = true;
+            gbLayoutV.CheckedChanged += gbLayoutV_CheckedChanged;
             // 
             // pbBkColor
             // 
-            this.pbBkColor.Location = new System.Drawing.Point(138, 3);
-            this.pbBkColor.Name = "pbBkColor";
-            this.pbBkColor.Size = new System.Drawing.Size(47, 48);
-            this.pbBkColor.TabIndex = 12;
-            this.pbBkColor.TabStop = false;
-            this.pbBkColor.DoubleClick += new System.EventHandler(this.pbBkColor_DoubleClick);
+            pbBkColor.Location = new Point(138, 3);
+            pbBkColor.Name = "pbBkColor";
+            pbBkColor.Size = new Size(47, 48);
+            pbBkColor.TabIndex = 12;
+            pbBkColor.TabStop = false;
+            pbBkColor.DoubleClick += pbBkColor_DoubleClick;
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(3, 18);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(103, 15);
-            this.label3.TabIndex = 11;
-            this.label3.Text = "Background Color";
+            label3.AutoSize = true;
+            label3.Location = new Point(3, 18);
+            label3.Name = "label3";
+            label3.Size = new Size(103, 15);
+            label3.TabIndex = 11;
+            label3.Text = "Background Color";
             // 
             // panel3
             // 
-            this.panel3.Controls.Add(this.nudColorsWanted);
-            this.panel3.Controls.Add(this.label2);
-            this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel3.Location = new System.Drawing.Point(0, 54);
-            this.panel3.Margin = new System.Windows.Forms.Padding(0);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(354, 48);
-            this.panel3.TabIndex = 29;
+            panel3.Controls.Add(nudColorsWanted);
+            panel3.Controls.Add(label2);
+            panel3.Dock = DockStyle.Fill;
+            panel3.Location = new Point(0, 54);
+            panel3.Margin = new Padding(0);
+            panel3.Name = "panel3";
+            panel3.Size = new Size(362, 54);
+            panel3.TabIndex = 29;
             // 
             // nudColorsWanted
             // 
-            this.nudColorsWanted.Increment = new decimal(new int[] {
-            8,
-            0,
-            0,
-            0});
-            this.nudColorsWanted.Location = new System.Drawing.Point(138, 7);
-            this.nudColorsWanted.Maximum = new decimal(new int[] {
-            256,
-            0,
-            0,
-            0});
-            this.nudColorsWanted.Minimum = new decimal(new int[] {
-            2,
-            0,
-            0,
-            0});
-            this.nudColorsWanted.Name = "nudColorsWanted";
-            this.nudColorsWanted.Size = new System.Drawing.Size(65, 23);
-            this.nudColorsWanted.TabIndex = 2;
-            this.nudColorsWanted.Value = new decimal(new int[] {
-            16,
-            0,
-            0,
-            0});
+            nudColorsWanted.Increment = new decimal(new int[] { 8, 0, 0, 0 });
+            nudColorsWanted.Location = new Point(138, 7);
+            nudColorsWanted.Maximum = new decimal(new int[] { 256, 0, 0, 0 });
+            nudColorsWanted.Minimum = new decimal(new int[] { 2, 0, 0, 0 });
+            nudColorsWanted.Name = "nudColorsWanted";
+            nudColorsWanted.Size = new Size(65, 23);
+            nudColorsWanted.TabIndex = 2;
+            nudColorsWanted.Value = new decimal(new int[] { 16, 0, 0, 0 });
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(3, 9);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(80, 15);
-            this.label2.TabIndex = 10;
-            this.label2.Text = "Color Wanted";
+            label2.AutoSize = true;
+            label2.Location = new Point(3, 9);
+            label2.Name = "label2";
+            label2.Size = new Size(80, 15);
+            label2.TabIndex = 10;
+            label2.Text = "Color Wanted";
             // 
-            // panel7
+            // panClustering
             // 
-            this.panel7.Controls.Add(this.label6);
-            this.panel7.Controls.Add(this.nudClusterLoop);
-            this.panel7.Controls.Add(this.btnReduceColorCluster);
-            this.panel7.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel7.Location = new System.Drawing.Point(0, 204);
-            this.panel7.Margin = new System.Windows.Forms.Padding(0);
-            this.panel7.Name = "panel7";
-            this.panel7.Size = new System.Drawing.Size(354, 48);
-            this.panel7.TabIndex = 33;
+            panClustering.Controls.Add(label6);
+            panClustering.Controls.Add(nudClusterLoop);
+            panClustering.Controls.Add(btnReduceColorCluster);
+            panClustering.Dock = DockStyle.Fill;
+            panClustering.Location = new Point(0, 216);
+            panClustering.Margin = new Padding(0);
+            panClustering.Name = "panClustering";
+            panClustering.Size = new Size(362, 54);
+            panClustering.TabIndex = 33;
             // 
             // label6
             // 
-            this.label6.Location = new System.Drawing.Point(217, 8);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(51, 30);
-            this.label6.TabIndex = 20;
-            this.label6.Text = "Train epochs";
+            label6.Location = new Point(217, 8);
+            label6.Name = "label6";
+            label6.Size = new Size(51, 30);
+            label6.TabIndex = 20;
+            label6.Text = "Train epochs";
             // 
             // nudClusterLoop
             // 
-            this.nudClusterLoop.Location = new System.Drawing.Point(274, 13);
-            this.nudClusterLoop.Maximum = new decimal(new int[] {
-            1000,
-            0,
-            0,
-            0});
-            this.nudClusterLoop.Minimum = new decimal(new int[] {
-            30,
-            0,
-            0,
-            0});
-            this.nudClusterLoop.Name = "nudClusterLoop";
-            this.nudClusterLoop.Size = new System.Drawing.Size(65, 23);
-            this.nudClusterLoop.TabIndex = 6;
-            this.nudClusterLoop.Value = new decimal(new int[] {
-            100,
-            0,
-            0,
-            0});
+            nudClusterLoop.Location = new Point(274, 13);
+            nudClusterLoop.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
+            nudClusterLoop.Minimum = new decimal(new int[] { 30, 0, 0, 0 });
+            nudClusterLoop.Name = "nudClusterLoop";
+            nudClusterLoop.Size = new Size(65, 23);
+            nudClusterLoop.TabIndex = 6;
+            nudClusterLoop.Value = new decimal(new int[] { 100, 0, 0, 0 });
             // 
             // btnReduceColorCluster
             // 
-            this.btnReduceColorCluster.Location = new System.Drawing.Point(3, -1);
-            this.btnReduceColorCluster.Name = "btnReduceColorCluster";
-            this.btnReduceColorCluster.Size = new System.Drawing.Size(129, 50);
-            this.btnReduceColorCluster.TabIndex = 5;
-            this.btnReduceColorCluster.Text = "Clustering Reduction";
-            this.btnReduceColorCluster.UseVisualStyleBackColor = true;
-            this.btnReduceColorCluster.Click += new System.EventHandler(this.btnReduceColorCluster_Click);
+            btnReduceColorCluster.Location = new Point(3, -1);
+            btnReduceColorCluster.Name = "btnReduceColorCluster";
+            btnReduceColorCluster.Size = new Size(129, 50);
+            btnReduceColorCluster.TabIndex = 5;
+            btnReduceColorCluster.Text = "Clustering Reduction";
+            btnReduceColorCluster.UseVisualStyleBackColor = true;
+            btnReduceColorCluster.Click += btnReduceColorCluster_Click;
             // 
-            // panel6
+            // panScanline
             // 
-            this.panel6.Controls.Add(this.label7);
-            this.panel6.Controls.Add(this.numericUpDown2);
-            this.panel6.Controls.Add(this.chkScanLineCluster);
-            this.panel6.Controls.Add(this.btnReduceColorsScanline);
-            this.panel6.Location = new System.Drawing.Point(0, 252);
-            this.panel6.Margin = new System.Windows.Forms.Padding(0);
-            this.panel6.Name = "panel6";
-            this.panel6.Size = new System.Drawing.Size(354, 48);
-            this.panel6.TabIndex = 32;
+            panScanline.Controls.Add(label7);
+            panScanline.Controls.Add(nudScanlineTrainEpochs);
+            panScanline.Controls.Add(chkScanLineCluster);
+            panScanline.Controls.Add(btnReduceColorsScanline);
+            panScanline.Dock = DockStyle.Fill;
+            panScanline.Location = new Point(0, 270);
+            panScanline.Margin = new Padding(0);
+            panScanline.Name = "panScanline";
+            panScanline.Size = new Size(362, 54);
+            panScanline.TabIndex = 32;
             // 
             // label7
             // 
-            this.label7.Location = new System.Drawing.Point(217, 8);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(51, 30);
-            this.label7.TabIndex = 22;
-            this.label7.Text = "Train epochs";
+            label7.Location = new Point(217, 8);
+            label7.Name = "label7";
+            label7.Size = new Size(51, 30);
+            label7.TabIndex = 22;
+            label7.Text = "Train epochs";
             // 
-            // numericUpDown2
+            // nudScanlineTrainEpochs
             // 
-            this.numericUpDown2.Location = new System.Drawing.Point(274, 13);
-            this.numericUpDown2.Maximum = new decimal(new int[] {
-            1000,
-            0,
-            0,
-            0});
-            this.numericUpDown2.Minimum = new decimal(new int[] {
-            30,
-            0,
-            0,
-            0});
-            this.numericUpDown2.Name = "numericUpDown2";
-            this.numericUpDown2.Size = new System.Drawing.Size(65, 23);
-            this.numericUpDown2.TabIndex = 21;
-            this.numericUpDown2.Value = new decimal(new int[] {
-            100,
-            0,
-            0,
-            0});
+            nudScanlineTrainEpochs.Location = new Point(274, 13);
+            nudScanlineTrainEpochs.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
+            nudScanlineTrainEpochs.Minimum = new decimal(new int[] { 30, 0, 0, 0 });
+            nudScanlineTrainEpochs.Name = "nudScanlineTrainEpochs";
+            nudScanlineTrainEpochs.Size = new Size(65, 23);
+            nudScanlineTrainEpochs.TabIndex = 21;
+            nudScanlineTrainEpochs.Value = new decimal(new int[] { 100, 0, 0, 0 });
             // 
             // chkScanLineCluster
             // 
-            this.chkScanLineCluster.Location = new System.Drawing.Point(138, 5);
-            this.chkScanLineCluster.Name = "chkScanLineCluster";
-            this.chkScanLineCluster.Size = new System.Drawing.Size(83, 37);
-            this.chkScanLineCluster.TabIndex = 13;
-            this.chkScanLineCluster.Text = "Clustering Scanline";
-            this.chkScanLineCluster.UseVisualStyleBackColor = true;
+            chkScanLineCluster.Location = new Point(138, 5);
+            chkScanLineCluster.Name = "chkScanLineCluster";
+            chkScanLineCluster.Size = new Size(83, 37);
+            chkScanLineCluster.TabIndex = 13;
+            chkScanLineCluster.Text = "Clustering Scanline";
+            chkScanLineCluster.UseVisualStyleBackColor = true;
             // 
             // btnReduceColorsScanline
             // 
-            this.btnReduceColorsScanline.Location = new System.Drawing.Point(3, 0);
-            this.btnReduceColorsScanline.Name = "btnReduceColorsScanline";
-            this.btnReduceColorsScanline.Size = new System.Drawing.Size(129, 48);
-            this.btnReduceColorsScanline.TabIndex = 9;
-            this.btnReduceColorsScanline.Text = "Scanline Reduction";
-            this.btnReduceColorsScanline.UseVisualStyleBackColor = true;
-            this.btnReduceColorsScanline.Click += new System.EventHandler(this.btnReduceColorsScanline_Click);
+            btnReduceColorsScanline.Location = new Point(3, 0);
+            btnReduceColorsScanline.Name = "btnReduceColorsScanline";
+            btnReduceColorsScanline.Size = new Size(129, 48);
+            btnReduceColorsScanline.TabIndex = 9;
+            btnReduceColorsScanline.Text = "Scanline Reduction";
+            btnReduceColorsScanline.UseVisualStyleBackColor = true;
+            btnReduceColorsScanline.Click += btnReduceColorsScanline_Click;
             // 
             // panel5
             // 
-            this.panel5.Controls.Add(this.nudDitheringStrenght);
-            this.panel5.Controls.Add(this.tbDitherStrenght);
-            this.panel5.Controls.Add(this.label5);
-            this.panel5.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel5.Location = new System.Drawing.Point(0, 102);
-            this.panel5.Margin = new System.Windows.Forms.Padding(0);
-            this.panel5.Name = "panel5";
-            this.panel5.Size = new System.Drawing.Size(354, 54);
-            this.panel5.TabIndex = 31;
+            panel5.Controls.Add(nudDitheringStrenght);
+            panel5.Controls.Add(tbDitherStrenght);
+            panel5.Controls.Add(label5);
+            panel5.Dock = DockStyle.Fill;
+            panel5.Location = new Point(0, 108);
+            panel5.Margin = new Padding(0);
+            panel5.Name = "panel5";
+            panel5.Size = new Size(362, 54);
+            panel5.TabIndex = 31;
             // 
             // nudDitheringStrenght
             // 
-            this.nudDitheringStrenght.DecimalPlaces = 2;
-            this.nudDitheringStrenght.Increment = new decimal(new int[] {
-            5,
-            0,
-            0,
-            131072});
-            this.nudDitheringStrenght.Location = new System.Drawing.Point(274, 10);
-            this.nudDitheringStrenght.Maximum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.nudDitheringStrenght.Name = "nudDitheringStrenght";
-            this.nudDitheringStrenght.Size = new System.Drawing.Size(65, 23);
-            this.nudDitheringStrenght.TabIndex = 21;
-            this.nudDitheringStrenght.ThousandsSeparator = true;
-            this.nudDitheringStrenght.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.nudDitheringStrenght.ValueChanged += new System.EventHandler(this.nudDitheringStrenght_ValueChanged);
+            nudDitheringStrenght.DecimalPlaces = 2;
+            nudDitheringStrenght.Increment = new decimal(new int[] { 5, 0, 0, 131072 });
+            nudDitheringStrenght.Location = new Point(274, 10);
+            nudDitheringStrenght.Maximum = new decimal(new int[] { 1, 0, 0, 0 });
+            nudDitheringStrenght.Name = "nudDitheringStrenght";
+            nudDitheringStrenght.Size = new Size(65, 23);
+            nudDitheringStrenght.TabIndex = 21;
+            nudDitheringStrenght.ThousandsSeparator = true;
+            nudDitheringStrenght.Value = new decimal(new int[] { 1, 0, 0, 0 });
+            nudDitheringStrenght.ValueChanged += nudDitheringStrenght_ValueChanged;
             // 
             // tbDitherStrenght
             // 
-            this.tbDitherStrenght.Location = new System.Drawing.Point(71, 3);
-            this.tbDitherStrenght.Maximum = 100;
-            this.tbDitherStrenght.Name = "tbDitherStrenght";
-            this.tbDitherStrenght.Size = new System.Drawing.Size(197, 45);
-            this.tbDitherStrenght.TabIndex = 11;
-            this.tbDitherStrenght.TickFrequency = 10;
-            this.tbDitherStrenght.TickStyle = System.Windows.Forms.TickStyle.Both;
-            this.tbDitherStrenght.Value = 100;
-            this.tbDitherStrenght.Scroll += new System.EventHandler(this.tbDitherStrenght_Scroll);
+            tbDitherStrenght.Location = new Point(71, 3);
+            tbDitherStrenght.Maximum = 100;
+            tbDitherStrenght.Name = "tbDitherStrenght";
+            tbDitherStrenght.Size = new Size(197, 45);
+            tbDitherStrenght.TabIndex = 11;
+            tbDitherStrenght.TickFrequency = 10;
+            tbDitherStrenght.TickStyle = TickStyle.Both;
+            tbDitherStrenght.Value = 100;
+            tbDitherStrenght.Scroll += tbDitherStrenght_Scroll;
             // 
             // label5
             // 
-            this.label5.Location = new System.Drawing.Point(3, 5);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(62, 40);
-            this.label5.TabIndex = 20;
-            this.label5.Text = "Dithering Strenght";
+            label5.Location = new Point(3, 5);
+            label5.Name = "label5";
+            label5.Size = new Size(62, 40);
+            label5.TabIndex = 20;
+            label5.Text = "Dithering Strenght";
             // 
-            // panel4
+            // panQuantitative
             // 
-            this.panel4.Controls.Add(this.btnReduceColors);
-            this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel4.Location = new System.Drawing.Point(0, 156);
-            this.panel4.Margin = new System.Windows.Forms.Padding(0);
-            this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(354, 48);
-            this.panel4.TabIndex = 30;
+            panQuantitative.Controls.Add(btnReduceColors);
+            panQuantitative.Dock = DockStyle.Fill;
+            panQuantitative.Location = new Point(0, 162);
+            panQuantitative.Margin = new Padding(0);
+            panQuantitative.Name = "panQuantitative";
+            panQuantitative.Size = new Size(362, 54);
+            panQuantitative.TabIndex = 30;
             // 
             // btnReduceColors
             // 
-            this.btnReduceColors.Location = new System.Drawing.Point(3, -1);
-            this.btnReduceColors.Name = "btnReduceColors";
-            this.btnReduceColors.Size = new System.Drawing.Size(129, 49);
-            this.btnReduceColors.TabIndex = 3;
-            this.btnReduceColors.Text = "Quantitative color reduction";
-            this.btnReduceColors.UseVisualStyleBackColor = true;
-            this.btnReduceColors.Click += new System.EventHandler(this.btnReduceColors_Click);
+            btnReduceColors.Location = new Point(3, -1);
+            btnReduceColors.Name = "btnReduceColors";
+            btnReduceColors.Size = new Size(129, 49);
+            btnReduceColors.TabIndex = 3;
+            btnReduceColors.Text = "Quantitative color reduction";
+            btnReduceColors.UseVisualStyleBackColor = true;
+            btnReduceColors.Click += btnReduceColors_Click;
             // 
-            // panel8
+            // panEGA
             // 
-            this.panel8.Controls.Add(this.btnReduceColorsEga);
-            this.panel8.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel8.Location = new System.Drawing.Point(0, 300);
-            this.panel8.Margin = new System.Windows.Forms.Padding(0);
-            this.panel8.Name = "panel8";
-            this.panel8.Size = new System.Drawing.Size(354, 48);
-            this.panel8.TabIndex = 34;
+            panEGA.Controls.Add(btnReduceColorsEga);
+            panEGA.Dock = DockStyle.Fill;
+            panEGA.Location = new Point(0, 324);
+            panEGA.Margin = new Padding(0);
+            panEGA.Name = "panEGA";
+            panEGA.Size = new Size(362, 54);
+            panEGA.TabIndex = 34;
             // 
             // btnReduceColorsEga
             // 
-            this.btnReduceColorsEga.Location = new System.Drawing.Point(3, 0);
-            this.btnReduceColorsEga.Name = "btnReduceColorsEga";
-            this.btnReduceColorsEga.Size = new System.Drawing.Size(129, 48);
-            this.btnReduceColorsEga.TabIndex = 15;
-            this.btnReduceColorsEga.Text = "To EGA";
-            this.btnReduceColorsEga.UseVisualStyleBackColor = true;
-            this.btnReduceColorsEga.Click += new System.EventHandler(this.btnReduceColorsEga_Click);
+            btnReduceColorsEga.Location = new Point(3, 0);
+            btnReduceColorsEga.Name = "btnReduceColorsEga";
+            btnReduceColorsEga.Size = new Size(129, 48);
+            btnReduceColorsEga.TabIndex = 15;
+            btnReduceColorsEga.Text = "To EGA";
+            btnReduceColorsEga.UseVisualStyleBackColor = true;
+            btnReduceColorsEga.Click += btnReduceColorsEga_Click;
             // 
-            // panel9
+            // panC64
             // 
-            this.panel9.Controls.Add(this.btnReduceColorsC64v1);
-            this.panel9.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel9.Location = new System.Drawing.Point(0, 348);
-            this.panel9.Margin = new System.Windows.Forms.Padding(0);
-            this.panel9.Name = "panel9";
-            this.panel9.Size = new System.Drawing.Size(354, 48);
-            this.panel9.TabIndex = 35;
+            panC64.Controls.Add(lblC64VideoMode);
+            panC64.Controls.Add(cbC64VideoMode);
+            panC64.Controls.Add(btnReduceColorsC64v1);
+            panC64.Dock = DockStyle.Fill;
+            panC64.Location = new Point(0, 378);
+            panC64.Margin = new Padding(0);
+            panC64.Name = "panC64";
+            panC64.Size = new Size(362, 54);
+            panC64.TabIndex = 35;
+            // 
+            // lblC64VideoMode
+            // 
+            lblC64VideoMode.Location = new Point(140, 16);
+            lblC64VideoMode.Name = "lblC64VideoMode";
+            lblC64VideoMode.Size = new Size(83, 21);
+            lblC64VideoMode.TabIndex = 23;
+            lblC64VideoMode.Text = "Video Mode";
+            // 
+            // cbC64VideoMode
+            // 
+            cbC64VideoMode.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbC64VideoMode.FormattingEnabled = true;
+            cbC64VideoMode.Location = new Point(230, 14);
+            cbC64VideoMode.Name = "cbC64VideoMode";
+            cbC64VideoMode.Size = new Size(121, 23);
+            cbC64VideoMode.TabIndex = 19;
             // 
             // btnReduceColorsC64v1
             // 
-            this.btnReduceColorsC64v1.Location = new System.Drawing.Point(3, 0);
-            this.btnReduceColorsC64v1.Name = "btnReduceColorsC64v1";
-            this.btnReduceColorsC64v1.Size = new System.Drawing.Size(129, 48);
-            this.btnReduceColorsC64v1.TabIndex = 18;
-            this.btnReduceColorsC64v1.Text = "To C64";
-            this.btnReduceColorsC64v1.UseVisualStyleBackColor = true;
-            this.btnReduceColorsC64v1.Click += new System.EventHandler(this.BtnReduceColorsC64v1_Click);
+            btnReduceColorsC64v1.Location = new Point(3, 0);
+            btnReduceColorsC64v1.Name = "btnReduceColorsC64v1";
+            btnReduceColorsC64v1.Size = new Size(129, 48);
+            btnReduceColorsC64v1.TabIndex = 18;
+            btnReduceColorsC64v1.Text = "To C64";
+            btnReduceColorsC64v1.UseVisualStyleBackColor = true;
+            btnReduceColorsC64v1.Click += BtnReduceColorsC64v1_Click;
             // 
-            // panel1
+            // panZX
             // 
-            this.panel1.Controls.Add(this.numericUpDownZXH);
-            this.panel1.Controls.Add(this.numericUpDownZXL);
-            this.panel1.Controls.Add(this.label1);
-            this.panel1.Controls.Add(this.label4);
-            this.panel1.Controls.Add(this.btnReduceColorsZx);
-            this.panel1.Location = new System.Drawing.Point(0, 396);
-            this.panel1.Margin = new System.Windows.Forms.Padding(0);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(354, 60);
-            this.panel1.TabIndex = 27;
+            panZX.Controls.Add(nudZxColorHI);
+            panZX.Controls.Add(nudZxColorLO);
+            panZX.Controls.Add(label1);
+            panZX.Controls.Add(label4);
+            panZX.Controls.Add(btnReduceColorsZx);
+            panZX.Dock = DockStyle.Fill;
+            panZX.Location = new Point(0, 432);
+            panZX.Margin = new Padding(0);
+            panZX.Name = "panZX";
+            panZX.Size = new Size(362, 54);
+            panZX.TabIndex = 27;
             // 
-            // numericUpDownZXH
+            // nudZxColorHI
             // 
-            this.numericUpDownZXH.Location = new System.Drawing.Point(195, 34);
-            this.numericUpDownZXH.Maximum = new decimal(new int[] {
-            255,
-            0,
-            0,
-            0});
-            this.numericUpDownZXH.Name = "numericUpDownZXH";
-            this.numericUpDownZXH.Size = new System.Drawing.Size(65, 23);
-            this.numericUpDownZXH.TabIndex = 17;
-            this.numericUpDownZXH.Value = new decimal(new int[] {
-            255,
-            0,
-            0,
-            0});
+            nudZxColorHI.Location = new Point(301, 5);
+            nudZxColorHI.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
+            nudZxColorHI.Name = "nudZxColorHI";
+            nudZxColorHI.Size = new Size(50, 23);
+            nudZxColorHI.TabIndex = 17;
+            nudZxColorHI.Value = new decimal(new int[] { 255, 0, 0, 0 });
             // 
-            // numericUpDownZXL
+            // nudZxColorLO
             // 
-            this.numericUpDownZXL.Location = new System.Drawing.Point(195, 5);
-            this.numericUpDownZXL.Maximum = new decimal(new int[] {
-            255,
-            0,
-            0,
-            0});
-            this.numericUpDownZXL.Name = "numericUpDownZXL";
-            this.numericUpDownZXL.Size = new System.Drawing.Size(65, 23);
-            this.numericUpDownZXL.TabIndex = 16;
-            this.numericUpDownZXL.Value = new decimal(new int[] {
-            127,
-            0,
-            0,
-            0});
+            nudZxColorLO.Location = new Point(195, 5);
+            nudZxColorLO.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
+            nudZxColorLO.Name = "nudZxColorLO";
+            nudZxColorLO.Size = new Size(46, 23);
+            nudZxColorLO.TabIndex = 16;
+            nudZxColorLO.Value = new decimal(new int[] { 200, 0, 0, 0 });
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(138, 7);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(51, 15);
-            this.label1.TabIndex = 18;
-            this.label1.Text = "ColorLO";
+            label1.AutoSize = true;
+            label1.Location = new Point(138, 7);
+            label1.Name = "label1";
+            label1.Size = new Size(51, 15);
+            label1.TabIndex = 18;
+            label1.Text = "ColorLO";
             // 
             // label4
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(138, 37);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(48, 15);
-            this.label4.TabIndex = 19;
-            this.label4.Text = "ColorHI";
+            label4.AutoSize = true;
+            label4.Location = new Point(247, 7);
+            label4.Name = "label4";
+            label4.Size = new Size(48, 15);
+            label4.TabIndex = 19;
+            label4.Text = "ColorHI";
             // 
             // btnReduceColorsZx
             // 
-            this.btnReduceColorsZx.Location = new System.Drawing.Point(3, 0);
-            this.btnReduceColorsZx.Name = "btnReduceColorsZx";
-            this.btnReduceColorsZx.Size = new System.Drawing.Size(129, 60);
-            this.btnReduceColorsZx.TabIndex = 14;
-            this.btnReduceColorsZx.Text = "To ZX";
-            this.btnReduceColorsZx.UseVisualStyleBackColor = true;
-            this.btnReduceColorsZx.Click += new System.EventHandler(this.button1_Click);
+            btnReduceColorsZx.Location = new Point(3, 0);
+            btnReduceColorsZx.Name = "btnReduceColorsZx";
+            btnReduceColorsZx.Size = new Size(129, 48);
+            btnReduceColorsZx.TabIndex = 14;
+            btnReduceColorsZx.Text = "To ZX";
+            btnReduceColorsZx.UseVisualStyleBackColor = true;
+            btnReduceColorsZx.Click += btnReduceColorsZx_Click;
             // 
-            // scLayout
+            // panCPC
             // 
-            this.scLayout.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.scLayout.Location = new System.Drawing.Point(0, 0);
-            this.scLayout.Name = "scLayout";
-            this.scLayout.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            panCPC.Controls.Add(lblCpcVideoMode);
+            panCPC.Controls.Add(cbCpcVideoMode);
+            panCPC.Controls.Add(btnReduceColorCPC);
+            panCPC.Dock = DockStyle.Fill;
+            panCPC.Location = new Point(0, 486);
+            panCPC.Margin = new Padding(0);
+            panCPC.Name = "panCPC";
+            panCPC.Size = new Size(362, 54);
+            panCPC.TabIndex = 36;
             // 
-            // scLayout.Panel1
+            // lblCpcVideoMode
             // 
-            this.scLayout.Panel1.Controls.Add(this.pictureBoxSrc);
+            lblCpcVideoMode.Location = new Point(140, 16);
+            lblCpcVideoMode.Name = "lblCpcVideoMode";
+            lblCpcVideoMode.Size = new Size(83, 21);
+            lblCpcVideoMode.TabIndex = 23;
+            lblCpcVideoMode.Text = "Video Mode";
             // 
-            // scLayout.Panel2
+            // cbCpcVideoMode
             // 
-            this.scLayout.Panel2.Controls.Add(this.pictureBoxProc);
-            this.scLayout.Size = new System.Drawing.Size(657, 646);
-            this.scLayout.SplitterDistance = 323;
-            this.scLayout.TabIndex = 0;
+            cbCpcVideoMode.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbCpcVideoMode.FormattingEnabled = true;
+            cbCpcVideoMode.Location = new Point(230, 14);
+            cbCpcVideoMode.Name = "cbCpcVideoMode";
+            cbCpcVideoMode.Size = new Size(121, 23);
+            cbCpcVideoMode.TabIndex = 19;
             // 
-            // pictureBoxSrc
+            // btnReduceColorCPC
             // 
-            this.pictureBoxSrc.BackColor = System.Drawing.Color.Black;
-            this.pictureBoxSrc.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pictureBoxSrc.Location = new System.Drawing.Point(0, 0);
-            this.pictureBoxSrc.Name = "pictureBoxSrc";
-            this.pictureBoxSrc.Size = new System.Drawing.Size(657, 323);
-            this.pictureBoxSrc.TabIndex = 0;
-            this.pictureBoxSrc.TabStop = false;
-            this.pictureBoxSrc.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseDoubleClick);
+            btnReduceColorCPC.Location = new Point(3, 0);
+            btnReduceColorCPC.Name = "btnReduceColorCPC";
+            btnReduceColorCPC.Size = new Size(129, 48);
+            btnReduceColorCPC.TabIndex = 18;
+            btnReduceColorCPC.Text = "To Amstrad CPC";
+            btnReduceColorCPC.UseVisualStyleBackColor = true;
+            btnReduceColorCPC.Click += btnReduceColorCPC_Click;
             // 
-            // pictureBoxProc
+            // panel10
             // 
-            this.pictureBoxProc.BackColor = System.Drawing.Color.Black;
-            this.pictureBoxProc.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pictureBoxProc.Location = new System.Drawing.Point(0, 0);
-            this.pictureBoxProc.Name = "pictureBoxProc";
-            this.pictureBoxProc.Size = new System.Drawing.Size(657, 319);
-            this.pictureBoxProc.TabIndex = 0;
-            this.pictureBoxProc.TabStop = false;
+            panel10.Controls.Add(lblHue);
+            panel10.Controls.Add(nudHue);
+            panel10.Controls.Add(nudBright);
+            panel10.Controls.Add(lblBright);
+            panel10.Controls.Add(nudSat);
+            panel10.Controls.Add(lblSat);
+            panel10.Controls.Add(btnChromaAdapt);
+            panel10.Dock = DockStyle.Fill;
+            panel10.Location = new Point(0, 540);
+            panel10.Margin = new Padding(0);
+            panel10.Name = "panel10";
+            panel10.Size = new Size(362, 57);
+            panel10.TabIndex = 28;
             // 
-            // oBitmapRenderSource
+            // lblHue
             // 
-            this.oBitmapRenderSource.Control = this.pictureBoxSrc;
-            this.oBitmapRenderSource.Image = null;
-            this.oBitmapRenderSource.ImageBlockScroll = false;
-            this.oBitmapRenderSource.ImageMoveOverControlBorder = true;
-            this.oBitmapRenderSource.ImageZoomManual = 1F;
-            this.oBitmapRenderSource.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
-            this.oBitmapRenderSource.MouseMovingButton = System.Windows.Forms.MouseButtons.Left;
-            // 
-            // bitmapRender1
-            // 
-            this.bitmapRender1.Control = this.pictureBoxSrc;
-            this.bitmapRender1.Image = null;
-            this.bitmapRender1.ImageBlockScroll = false;
-            this.bitmapRender1.ImageMoveOverControlBorder = true;
-            this.bitmapRender1.ImageZoomManual = 1F;
-            this.bitmapRender1.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
-            this.bitmapRender1.MouseMovingButton = System.Windows.Forms.MouseButtons.Left;
-            // 
-            // bitmapRender2
-            // 
-            this.bitmapRender2.Control = this.pictureBoxSrc;
-            this.bitmapRender2.Image = null;
-            this.bitmapRender2.ImageBlockScroll = false;
-            this.bitmapRender2.ImageMoveOverControlBorder = true;
-            this.bitmapRender2.ImageZoomManual = 1F;
-            this.bitmapRender2.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
-            this.bitmapRender2.MouseMovingButton = System.Windows.Forms.MouseButtons.Left;
-            // 
-            // oBitmapRenderDest
-            // 
-            this.oBitmapRenderDest.Control = this.pictureBoxProc;
-            this.oBitmapRenderDest.Image = null;
-            this.oBitmapRenderDest.ImageBlockScroll = false;
-            this.oBitmapRenderDest.ImageMoveOverControlBorder = true;
-            this.oBitmapRenderDest.ImageZoomManual = 1F;
-            this.oBitmapRenderDest.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
-            this.oBitmapRenderDest.MouseMovingButton = System.Windows.Forms.MouseButtons.Left;
-            // 
-            // sfdExportImage
-            // 
-            this.sfdExportImage.AddExtension = false;
-            // 
-            // oColorTransformer
-            // 
-            this.oColorTransformer.BackgroundColorList = ((System.Collections.Generic.List<int>)(resources.GetObject("oColorTransformer.BackgroundColorList")));
-            this.oColorTransformer.BackgroundColorReplacement = 0;
-            this.oColorTransformer.BrightnessEnhancement = 1D;
-            this.oColorTransformer.ClusteringTrainingLoop = 30;
-            this.oColorTransformer.ClusteringUseMeanColor = true;
-            this.oColorTransformer.ColorDistanceEvaluationMode = ColourClashNet.Colors.ColorDistanceEvaluationMode.RGB;
-            this.oColorTransformer.ColorQuantizationMode = ColourClashNet.Colors.ColorQuantizationMode.Unknown;
-            this.oColorTransformer.ColorsMax = 16;
-            this.oColorTransformer.ColorTransformAlgorithm = ColourClashNet.Colors.ColorTransform.None;
-            this.oColorTransformer.DitheringAlgorithm = ColourClashNet.Colors.ColorDithering.Ordered_4x4;
-            this.oColorTransformer.DitheringStrenght = 1D;
-            this.oColorTransformer.SaturationEnhancement = 1.5D;
-            this.oColorTransformer.ScanlineClustering = true;
-            this.oColorTransformer.ZxEqColorHI = 255;
-            this.oColorTransformer.ZxEqColorLO = 128;
-            this.oColorTransformer.OnReset += new System.EventHandler(this.oColorTransformer_OnReset);
-            this.oColorTransformer.OnCreate += new System.EventHandler(this.oColorTransformer_OnCreate);
-            this.oColorTransformer.OnQuantize += new System.EventHandler<ColourClashNet.Controls.ColorTransformer.EventArgsTransformation>(this.oColorTransformer_OnQuantize);
-            this.oColorTransformer.OnProcess += new System.EventHandler<ColourClashNet.Controls.ColorTransformer.EventArgsTransformation>(this.oColorTransformer_OnProcess);
-            // 
-            // label9
-            // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(138, 33);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(62, 15);
-            this.label9.TabIndex = 19;
-            this.label9.Text = "Brightness";
-            // 
-            // nudBright
-            // 
-            this.nudBright.DecimalPlaces = 2;
-            this.nudBright.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            65536});
-            this.nudBright.Location = new System.Drawing.Point(205, 31);
-            this.nudBright.Name = "nudBright";
-            this.nudBright.Size = new System.Drawing.Size(65, 23);
-            this.nudBright.TabIndex = 20;
-            this.nudBright.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
+            lblHue.AutoSize = true;
+            lblHue.Location = new Point(286, 9);
+            lblHue.Name = "lblHue";
+            lblHue.Size = new Size(29, 15);
+            lblHue.TabIndex = 22;
+            lblHue.Text = "Hue";
             // 
             // nudHue
             // 
-            this.nudHue.Increment = new decimal(new int[] {
-            30,
-            0,
-            0,
-            0});
-            this.nudHue.Location = new System.Drawing.Point(276, 19);
-            this.nudHue.Maximum = new decimal(new int[] {
-            360,
-            0,
-            0,
-            0});
-            this.nudHue.Name = "nudHue";
-            this.nudHue.Size = new System.Drawing.Size(65, 23);
-            this.nudHue.TabIndex = 21;
+            nudHue.Increment = new decimal(new int[] { 30, 0, 0, 0 });
+            nudHue.Location = new Point(286, 31);
+            nudHue.Maximum = new decimal(new int[] { 360, 0, 0, 0 });
+            nudHue.Name = "nudHue";
+            nudHue.Size = new Size(65, 23);
+            nudHue.TabIndex = 21;
+            // 
+            // nudBright
+            // 
+            nudBright.DecimalPlaces = 2;
+            nudBright.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
+            nudBright.Location = new Point(205, 31);
+            nudBright.Name = "nudBright";
+            nudBright.Size = new Size(65, 23);
+            nudBright.TabIndex = 20;
+            nudBright.Value = new decimal(new int[] { 1, 0, 0, 0 });
+            // 
+            // lblBright
+            // 
+            lblBright.AutoSize = true;
+            lblBright.Location = new Point(138, 33);
+            lblBright.Name = "lblBright";
+            lblBright.Size = new Size(62, 15);
+            lblBright.TabIndex = 19;
+            lblBright.Text = "Brightness";
+            // 
+            // nudSat
+            // 
+            nudSat.DecimalPlaces = 2;
+            nudSat.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
+            nudSat.Location = new Point(205, 7);
+            nudSat.Name = "nudSat";
+            nudSat.Size = new Size(65, 23);
+            nudSat.TabIndex = 16;
+            nudSat.Value = new decimal(new int[] { 15, 0, 0, 65536 });
+            // 
+            // lblSat
+            // 
+            lblSat.AutoSize = true;
+            lblSat.Location = new Point(138, 9);
+            lblSat.Name = "lblSat";
+            lblSat.Size = new Size(61, 15);
+            lblSat.TabIndex = 18;
+            lblSat.Text = "Saturation";
+            // 
+            // btnChromaAdapt
+            // 
+            btnChromaAdapt.Location = new Point(3, 0);
+            btnChromaAdapt.Name = "btnChromaAdapt";
+            btnChromaAdapt.Size = new Size(129, 54);
+            btnChromaAdapt.TabIndex = 14;
+            btnChromaAdapt.Text = "Chroma Adapter";
+            btnChromaAdapt.UseVisualStyleBackColor = true;
+            btnChromaAdapt.Click += btnChromaAdapt_Click;
+            // 
+            // scLayout
+            // 
+            scLayout.Dock = DockStyle.Fill;
+            scLayout.Location = new Point(0, 0);
+            scLayout.Name = "scLayout";
+            scLayout.Orientation = Orientation.Horizontal;
+            // 
+            // scLayout.Panel1
+            // 
+            scLayout.Panel1.Controls.Add(pictureBoxSrc);
+            // 
+            // scLayout.Panel2
+            // 
+            scLayout.Panel2.Controls.Add(pictureBoxProc);
+            scLayout.Size = new Size(762, 791);
+            scLayout.SplitterDistance = 395;
+            scLayout.TabIndex = 0;
+            // 
+            // pictureBoxSrc
+            // 
+            pictureBoxSrc.BackColor = Color.Black;
+            pictureBoxSrc.Dock = DockStyle.Fill;
+            pictureBoxSrc.Location = new Point(0, 0);
+            pictureBoxSrc.Name = "pictureBoxSrc";
+            pictureBoxSrc.Size = new Size(762, 395);
+            pictureBoxSrc.TabIndex = 0;
+            pictureBoxSrc.TabStop = false;
+            pictureBoxSrc.MouseDoubleClick += pictureBox1_MouseDoubleClick;
+            // 
+            // pictureBoxProc
+            // 
+            pictureBoxProc.BackColor = Color.Black;
+            pictureBoxProc.Dock = DockStyle.Fill;
+            pictureBoxProc.Location = new Point(0, 0);
+            pictureBoxProc.Name = "pictureBoxProc";
+            pictureBoxProc.Size = new Size(762, 392);
+            pictureBoxProc.TabIndex = 0;
+            pictureBoxProc.TabStop = false;
+            // 
+            // oBitmapRenderSource
+            // 
+            oBitmapRenderSource.Control = pictureBoxSrc;
+            oBitmapRenderSource.Image = null;
+            oBitmapRenderSource.ImageBlockScroll = false;
+            oBitmapRenderSource.ImageMoveOverControlBorder = true;
+            oBitmapRenderSource.ImageZoomManual = 1F;
+            oBitmapRenderSource.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
+            oBitmapRenderSource.MouseMovingButton = MouseButtons.Left;
+            // 
+            // bitmapRender1
+            // 
+            bitmapRender1.Control = pictureBoxSrc;
+            bitmapRender1.Image = null;
+            bitmapRender1.ImageBlockScroll = false;
+            bitmapRender1.ImageMoveOverControlBorder = true;
+            bitmapRender1.ImageZoomManual = 1F;
+            bitmapRender1.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
+            bitmapRender1.MouseMovingButton = MouseButtons.Left;
+            // 
+            // bitmapRender2
+            // 
+            bitmapRender2.Control = pictureBoxSrc;
+            bitmapRender2.Image = null;
+            bitmapRender2.ImageBlockScroll = false;
+            bitmapRender2.ImageMoveOverControlBorder = true;
+            bitmapRender2.ImageZoomManual = 1F;
+            bitmapRender2.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
+            bitmapRender2.MouseMovingButton = MouseButtons.Left;
+            // 
+            // oBitmapRenderDest
+            // 
+            oBitmapRenderDest.Control = pictureBoxProc;
+            oBitmapRenderDest.Image = null;
+            oBitmapRenderDest.ImageBlockScroll = false;
+            oBitmapRenderDest.ImageMoveOverControlBorder = true;
+            oBitmapRenderDest.ImageZoomManual = 1F;
+            oBitmapRenderDest.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
+            oBitmapRenderDest.MouseMovingButton = MouseButtons.Left;
+            // 
+            // sfdExportImage
+            // 
+            sfdExportImage.AddExtension = false;
+            // 
+            // oColorTransformer
+            // 
+            oColorTransformer.BackgroundColorList = (List<int>)resources.GetObject("oColorTransformer.BackgroundColorList");
+            oColorTransformer.BackgroundColorReplacement = 0;
+            oColorTransformer.BrightnessEnhancement = 1D;
+            oColorTransformer.C64ScreenMode = Colors.Transformation.ColorTransformReductionC64.C64ScreenMode.Multicolor;
+            oColorTransformer.ClusteringTrainingLoop = 30;
+            oColorTransformer.ClusteringUseMeanColor = true;
+            oColorTransformer.ColorDistanceEvaluationMode = Colors.ColorDistanceEvaluationMode.RGB;
+            oColorTransformer.ColorQuantizationMode = Colors.ColorQuantizationMode.Unknown;
+            oColorTransformer.ColorsMax = 16;
+            oColorTransformer.ColorTransformAlgorithm = Colors.ColorTransform.None;
+            oColorTransformer.CPCScreenMode = Colors.Transformation.ColorTransformReductionCPC.CPCScreenMode.Mode0;
+            oColorTransformer.DitheringAlgorithm = Colors.ColorDithering.Ordered_4x4;
+            oColorTransformer.DitheringStrenght = 1D;
+            oColorTransformer.HueOffset = 0D;
+            oColorTransformer.SaturationEnhancement = 1.5D;
+            oColorTransformer.ScanlineClustering = true;
+            oColorTransformer.ZxEqColorHI = 255;
+            oColorTransformer.ZxEqColorLO = 128;
+            oColorTransformer.OnReset += oColorTransformer_OnReset;
+            oColorTransformer.OnCreate += oColorTransformer_OnCreate;
+            oColorTransformer.OnQuantize += oColorTransformer_OnQuantize;
+            oColorTransformer.OnProcess += oColorTransformer_OnProcess;
             // 
             // ColorAnalyzer
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.scMain);
-            this.Controls.Add(this.menuStrip1);
-            this.Name = "ColorAnalyzer";
-            this.Size = new System.Drawing.Size(1021, 670);
-            this.Load += new System.EventHandler(this.ColorAnalyzer_Load);
-            this.menuStrip1.ResumeLayout(false);
-            this.menuStrip1.PerformLayout();
-            this.scMain.Panel1.ResumeLayout(false);
-            this.scMain.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.scMain)).EndInit();
-            this.scMain.ResumeLayout(false);
-            this.tableLayoutPanel1.ResumeLayout(false);
-            this.tableLayoutPanel2.ResumeLayout(false);
-            this.panel10.ResumeLayout(false);
-            this.panel10.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nudSat)).EndInit();
-            this.panel2.ResumeLayout(false);
-            this.panel2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbBkColor)).EndInit();
-            this.panel3.ResumeLayout(false);
-            this.panel3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nudColorsWanted)).EndInit();
-            this.panel7.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.nudClusterLoop)).EndInit();
-            this.panel6.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();
-            this.panel5.ResumeLayout(false);
-            this.panel5.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nudDitheringStrenght)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.tbDitherStrenght)).EndInit();
-            this.panel4.ResumeLayout(false);
-            this.panel8.ResumeLayout(false);
-            this.panel9.ResumeLayout(false);
-            this.panel1.ResumeLayout(false);
-            this.panel1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZXH)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZXL)).EndInit();
-            this.scLayout.Panel1.ResumeLayout(false);
-            this.scLayout.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.scLayout)).EndInit();
-            this.scLayout.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSrc)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxProc)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudBright)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.nudHue)).EndInit();
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            Controls.Add(scMain);
+            Controls.Add(menuStrip1);
+            Name = "ColorAnalyzer";
+            Size = new Size(1134, 815);
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
+            scMain.Panel1.ResumeLayout(false);
+            scMain.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)scMain).EndInit();
+            scMain.ResumeLayout(false);
+            tableLayoutPanel1.ResumeLayout(false);
+            tableLayoutPanel2.ResumeLayout(false);
+            panel2.ResumeLayout(false);
+            panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pbBkColor).EndInit();
+            panel3.ResumeLayout(false);
+            panel3.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)nudColorsWanted).EndInit();
+            panClustering.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)nudClusterLoop).EndInit();
+            panScanline.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)nudScanlineTrainEpochs).EndInit();
+            panel5.ResumeLayout(false);
+            panel5.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)nudDitheringStrenght).EndInit();
+            ((System.ComponentModel.ISupportInitialize)tbDitherStrenght).EndInit();
+            panQuantitative.ResumeLayout(false);
+            panEGA.ResumeLayout(false);
+            panC64.ResumeLayout(false);
+            panZX.ResumeLayout(false);
+            panZX.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)nudZxColorHI).EndInit();
+            ((System.ComponentModel.ISupportInitialize)nudZxColorLO).EndInit();
+            panCPC.ResumeLayout(false);
+            panel10.ResumeLayout(false);
+            panel10.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)nudHue).EndInit();
+            ((System.ComponentModel.ISupportInitialize)nudBright).EndInit();
+            ((System.ComponentModel.ISupportInitialize)nudSat).EndInit();
+            scLayout.Panel1.ResumeLayout(false);
+            scLayout.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)scLayout).EndInit();
+            scLayout.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)pictureBoxSrc).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBoxProc).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -1053,7 +1029,7 @@
         private Label label3;
         private PictureBox pbBkColor;
         private Controls.BitmapRender oBitmapRenderSource;
-       
+
         private CheckBox chkScanLineCluster;
         private ToolStripMenuItem colorDistanceToolStripMenuItem;
         private ToolStripMenuItem bitmapIndexedToolStripMenuItem;
@@ -1076,35 +1052,42 @@
         private Controls.ColorTransformer oColorTransformer;
         private ToolStripMenuItem ditheringToolStripMenuItem;
         private ToolStripMenuItem colorModeToolStripMenuItem;
-        private NumericUpDown numericUpDownZXL;
-        private NumericUpDown numericUpDownZXH;
+        private NumericUpDown nudZxColorLO;
+        private NumericUpDown nudZxColorHI;
         private Button btnReduceColorsC64v1;
         private Button btnReduceColorsEga;
         private Label label1;
         private Label label4;
-        private Panel panel1;
+        private Panel panZX;
         private Panel panel2;
         private Panel panel3;
-        private Panel panel4;
+        private Panel panQuantitative;
         private Panel panel5;
         private NumericUpDown nudDitheringStrenght;
         private TrackBar tbDitherStrenght;
         private Label label5;
-        private Panel panel6;
-        private Panel panel7;
+        private Panel panScanline;
+        private Panel panClustering;
         private Label label6;
         private Label label7;
-        private NumericUpDown numericUpDown2;
-        private Panel panel8;
-        private Panel panel9;
+        private NumericUpDown nudScanlineTrainEpochs;
+        private Panel panEGA;
+        private Panel panC64;
         private RadioButton rbLayoutH;
         private RadioButton gbLayoutV;
+        private Label lblC64VideoMode;
+        private ComboBox cbC64VideoMode;
+        private Panel panCPC;
+        private Label lblCpcVideoMode;
+        private ComboBox cbCpcVideoMode;
+        private Button btnReduceColorCPC;
         private Panel panel10;
-        private NumericUpDown nudSat;
-        private Label label8;
-        private Button btnChromaAdapt;
         private NumericUpDown nudHue;
         private NumericUpDown nudBright;
-        private Label label9;
+        private Label lblBright;
+        private NumericUpDown nudSat;
+        private Label lblSat;
+        private Button btnChromaAdapt;
+        private Label lblHue;
     }
 }

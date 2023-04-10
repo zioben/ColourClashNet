@@ -47,6 +47,7 @@ namespace ColourClashNet.Colors
         ColorReductionEga,
         ColorReductionZxSpectrum,
         ColorReductionCBM64,
+        ColorReductionCPC,
         ColorReductionMedianCut,
         ColorReductionSaturation,
         ColorReductionTileBase,

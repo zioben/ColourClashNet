@@ -28,27 +28,26 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.colorAnalyzer1 = new ColourClashNet.ColorAnalyzer();
-            this.SuspendLayout();
+            colorAnalyzer1 = new ColorAnalyzer();
+            SuspendLayout();
             // 
             // colorAnalyzer1
             // 
-            this.colorAnalyzer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.colorAnalyzer1.Location = new System.Drawing.Point(0, 0);
-            this.colorAnalyzer1.Name = "colorAnalyzer1";
-            this.colorAnalyzer1.Size = new System.Drawing.Size(962, 533);
-            this.colorAnalyzer1.TabIndex = 0;
+            colorAnalyzer1.Dock = DockStyle.Fill;
+            colorAnalyzer1.Location = new Point(0, 0);
+            colorAnalyzer1.Name = "colorAnalyzer1";
+            colorAnalyzer1.Size = new Size(1184, 817);
+            colorAnalyzer1.TabIndex = 0;
             // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(962, 533);
-            this.Controls.Add(this.colorAnalyzer1);
-            this.Name = "Form1";
-            this.Text = "Form1";
-            this.ResumeLayout(false);
-
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(1184, 817);
+            Controls.Add(colorAnalyzer1);
+            Name = "Form1";
+            Text = "Form1";
+            ResumeLayout(false);
         }
 
         #endregion
