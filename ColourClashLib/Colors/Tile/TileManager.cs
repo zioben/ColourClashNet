@@ -18,7 +18,7 @@ namespace ColourClashLib.Colors.Tile
 
         public ColorPalette FixedColorPalette { get; set; } = new ColorPalette();
 
-        TileBase.EnumColorReductionMode ColorReductionMode { get; set; } = TileBase.EnumColorReductionMode.Fast;
+        TileBase.EnumColorReductionMode ColorReductionMode { get; set; } = TileBase.EnumColorReductionMode.Detailed;
         public int MaxColors { get; set; } = 2;
 
         void Free()
