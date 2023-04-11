@@ -67,7 +67,7 @@ namespace ColourClashNet.Colors.Transformation
             {
                 // Reset Set
                 lTupleColorCluster.ForEach(X => X.Item2.Clear()); ;
-                Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Train {train}");
+                // Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Train {train}");
                 // Aggregate :  Assign every color to the cluster of appartenence 
                 foreach (var kvp in colorHistogram.rgbHistogram )
                 {

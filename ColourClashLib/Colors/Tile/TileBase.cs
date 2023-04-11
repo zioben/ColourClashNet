@@ -19,6 +19,12 @@ namespace ColourClashLib.Colors.Tile
             Detailed,
         }
 
+        public enum EnumErrorSourceMode
+        {
+            TrasformationError,
+            ExternaImageError,
+        }
+
         static ColorDistanceEvaluationMode eColorMode = ColorDistanceEvaluationMode.RGB;
 
         /// <summary>
@@ -59,14 +65,47 @@ namespace ColourClashLib.Colors.Tile
         /// <summary>
         /// Color error evaluation between source and destination tile
         /// </summary>
-        public double Error { get; private set; } = Double.MaxValue;
+        public double TrasformationError { get; private set; } = Double.MaxValue;
+
+        /// <summary>
+        /// Color error evaluation between source and destination tile
+        /// </summary>
+        public double ExternalImageError { get; private set; } = Double.MaxValue;
 
         /// <summary>
         /// Prioritary colors
         /// </summary>
         public ColorPalette FixedPalette { get; set; } = new ColorPalette();
 
-        public EnumColorReductionMode ColorReductionMode { get; internal set; } =  EnumColorReductionMode.Fast; 
+        public EnumColorReductionMode ColorReductionMode { get; internal set; } =  EnumColorReductionMode.Fast;
+
+
+        static int[,]? GetDataTile(int[,]? oDataSource, int iSourceR, int iSourceC, int iTileW, int iTileH )
+        {
+            if (oDataSource == null)
+            {
+                return null;
+            }
+            if (iTileW <= 0 || iTileH <= 0 )
+            {
+                return null;
+            }
+
+            var oDataTile = new int[iTileH, iTileW];
+            int R = oDataSource.GetLength(0);
+            int C = oDataSource.GetLength(1);
+            int CC = Math.Max(0, Math.Min(C, iSourceC + iTileW));
+            int RR = Math.Max(0, Math.Min(R, iSourceR + iTileH));
+            // Get tile data
+            for (int sr = iSourceR, r = 0; sr < RR; sr++, r++)
+            {
+                for (int sc = iSourceC, c = 0; sc < CC; sc++, c++)
+                {
+                    oDataTile[r, c] = oDataSource[sr, sc];
+                }
+            }
+            return oDataTile;
+        }
 
         /// <summary>
         /// Create a int[TileW,TileH] Tile and process it 
@@ -77,7 +116,6 @@ namespace ColourClashLib.Colors.Tile
         /// <returns>int[,] processed data or null on error</returns>
         public int[,]? ExecuteTrasform(int[,]? oDataSource, int iSourceR, int iSourceC )
         {
-            DataSource = new int[TileH, TileW];
             DataSourceC = iSourceC; 
             DataSourceR = iSourceR;
             if (oDataSource == null)
@@ -88,23 +126,7 @@ namespace ColourClashLib.Colors.Tile
             {
                 return null;
             }
-
-            int R = oDataSource.GetLength(0);
-            int C = oDataSource.GetLength(1);
-            int CC = Math.Max(0, Math.Min(C, DataSourceC + TileW));
-            int RR = Math.Max(0, Math.Min(R, DataSourceR + TileH));
-
-            Trace.TraceInformation($"R={iSourceR}->{RR}, C={iSourceC}->{CC}");
-
-            // Get tile data
-            for (int sr = DataSourceR, r=0; sr<RR; sr++, r++ )
-            {
-                for (int sc = DataSourceC, c=0 ; sc <CC; sc++, c++)
-                {
-                    DataSource[r, c] = oDataSource[sr,sc];
-                }
-            }
-
+            DataSource = GetDataTile(oDataSource,iSourceR, iSourceC, TileW,TileH);
             // Process colors
             ColorTransformInterface oColorReduction;
 
@@ -136,7 +158,7 @@ namespace ColourClashLib.Colors.Tile
             DataProcessed = oColorReduction.TransformAndDither(DataSource);
 
             // Evaluate error
-            Error = ColorTransformBase.Error(DataSource, DataProcessed, eColorMode);
+            TrasformationError = ColorTransformBase.Error(DataSource, DataProcessed, eColorMode);
             return DataProcessed;
         }
 
@@ -178,7 +200,7 @@ namespace ColourClashLib.Colors.Tile
         /// <param name="oTileA"></param>
         /// <param name="oTileB"></param>
         /// <returns>true if data</returns>
-        public static bool MergeData(int[,]? oDestinationData, TileBase oTileA, TileBase oTileB)
+        public static bool MergeData(int[,]? oDestinationData, TileBase oTileA, TileBase oTileB, EnumErrorSourceMode eErrorMode )
         {
             if (oDestinationData == null)
             {
@@ -196,7 +218,25 @@ namespace ColourClashLib.Colors.Tile
             {
                 return oTileB.MergeData(oDestinationData);
             }
-            if (oTileA.Error < oTileB.Error)
+            double dErrorA=0, dErrorB=0;
+            switch (eErrorMode)
+            {
+                case EnumErrorSourceMode.TrasformationError:
+                    {
+                        dErrorA = oTileA.TrasformationError;
+                        dErrorB = oTileB.TrasformationError;
+                    }
+                    break;
+                case EnumErrorSourceMode.ExternaImageError:
+                    {
+                        dErrorA = oTileA.ExternalImageError;
+                        dErrorB = oTileB.ExternalImageError;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            if (dErrorA <= dErrorB)
             {
                 return oTileA.MergeData(oDestinationData);
             }
@@ -212,7 +252,7 @@ namespace ColourClashLib.Colors.Tile
         /// <param name="oDestinationData"></param>
         /// <param name="lTiles">List to tiles to compare</param>
         /// <returns></returns>
-        public static bool MergeData(int[,]? oDestinationData, List<TileBase> lTiles)
+        public static bool MergeData(int[,]? oDestinationData, List<TileBase> lTiles, EnumErrorSourceMode eErrorMode)
         {
             if (oDestinationData == null)
             {
@@ -222,12 +262,28 @@ namespace ColourClashLib.Colors.Tile
             {
                 return false;
             }
-            var oTile = lTiles.Where(X => X.Error == lTiles.Min(Y => Y.Error)).FirstOrDefault();
+            var oTile = lTiles.Where(X => X.TrasformationError == lTiles.Min(Y => Y.TrasformationError)).FirstOrDefault();
             if (oTile == null)
             {
                 return false;
             }
             return oTile.MergeData(oDestinationData);
+        }
+
+        public  bool CalcExternalImageError(int[,]? oDestinationData)
+        {
+            var oDataTile = GetDataTile(oDestinationData, DataSourceR, DataSourceC, TileW, TileH);
+            if (oDataTile == null)
+            {
+                ExternalImageError = double.MaxValue;
+            }
+            ExternalImageError = ColorTransformBase.Error(oDataTile, DataProcessed, eColorMode);
+            return true;
+        }
+
+        public override string ToString()
+        {
+            return $"R={DataSourceR}:C={DataSourceC}:H={TileH}:W={TileW} : TE={TrasformationError} : IE={ExternalImageError}";
         }
     }
 }

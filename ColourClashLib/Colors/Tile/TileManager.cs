@@ -106,5 +106,34 @@ namespace ColourClashLib.Colors.Tile
             return oRet;
         }
 
+        public bool CalcExternalImageError(int[,]? oDataSource)
+        {
+            if (oDataSource == null)
+            {
+                return false;
+            }
+            if (TileW == 0 || TileH == 0)
+            {
+                return false;
+            }
+            if (TileData == null)
+            {
+                return false;
+            }
+            int RT = TileData.GetLength(0);
+            int CT = TileData.GetLength(1);
+            {
+                Parallel.For(0, RT, r =>
+                {
+                    Parallel.For(0, CT, c =>
+                    {
+                        TileData[r, c].CalcExternalImageError(oDataSource);
+                    });
+                });
+            }
+            return true;
+        }
+
+
     }
 }
