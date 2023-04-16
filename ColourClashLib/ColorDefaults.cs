@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashLib.Colors
+namespace ColourClashLib
 {
     public static class ColorDefaults
     {
-      //  public static bool ParallelExecution { get; set; } = false; 
+        public static bool Trace { get; set; }
     }
 }

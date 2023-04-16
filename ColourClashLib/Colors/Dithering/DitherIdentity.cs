@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ColourClashLib;
 using ColourClashLib.Color;
 using ColourClashNet.Colors;
 
@@ -35,9 +36,11 @@ namespace ColourClashNet.Colors.Dithering
                     Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Invalid input data");
                     return null;
                 }
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering");
+                if (ColorDefaults.Trace)
+                    Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering");
                 var oRet = oDataProcessed.Clone() as int[,];
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering completed");
+                if (ColorDefaults.Trace)
+                    Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering completed");
                 return oRet;
 
             }

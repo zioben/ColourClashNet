@@ -1,4 +1,5 @@
-﻿using ColourClashLib.Color;
+﻿using ColourClashLib;
+using ColourClashLib.Color;
 using ColourClashNet.Colors;
 using System;
 using System.Collections.Generic;
@@ -67,7 +68,8 @@ namespace ColourClashNet.Colors.Transformation
             {
                 // Reset Set
                 lTupleColorCluster.ForEach(X => X.Item2.Clear()); ;
-                // Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Train {train}");
+                if (ColorDefaults.Trace) 
+                    Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Train {train}");
                 // Aggregate :  Assign every color to the cluster of appartenence 
                 foreach (var kvp in colorHistogram.rgbHistogram )
                 {
@@ -84,7 +86,8 @@ namespace ColourClashNet.Colors.Transformation
                         var iRgbMean = oTuple.Item1.Last();
                         if (FixedColorPalette?.rgbPalette.Any(X => X == iRgbMean) ?? false)
                         {
-                            Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Color {iRgbMean} is fixed, skipping evolution");
+                            if (ColorDefaults.Trace)
+                                Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Color {iRgbMean} is fixed, skipping evolution");
                         }
                         // else evaluate color mean
                         else

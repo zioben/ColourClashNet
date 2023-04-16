@@ -22,7 +22,7 @@ namespace ColourClashLib.Colors.Tile
         public enum EnumErrorSourceMode
         {
             TrasformationError,
-            ExternaImageError,
+            ExternalImageError,
         }
 
         static ColorDistanceEvaluationMode eColorMode = ColorDistanceEvaluationMode.RGB;
@@ -227,7 +227,7 @@ namespace ColourClashLib.Colors.Tile
                         dErrorB = oTileB.TrasformationError;
                     }
                     break;
-                case EnumErrorSourceMode.ExternaImageError:
+                case EnumErrorSourceMode.ExternalImageError:
                     {
                         dErrorA = oTileA.ExternalImageError;
                         dErrorB = oTileB.ExternalImageError;
@@ -238,10 +238,12 @@ namespace ColourClashLib.Colors.Tile
             }
             if (dErrorA <= dErrorB)
             {
+                //Trace.TraceInformation("A");
                 return oTileA.MergeData(oDestinationData);
             }
             else
             {
+                //Trace.TraceInformation("B");
                 return oTileB.MergeData(oDestinationData);
             }
         }
@@ -262,12 +264,33 @@ namespace ColourClashLib.Colors.Tile
             {
                 return false;
             }
-            var oTile = lTiles.Where(X => X.TrasformationError == lTiles.Min(Y => Y.TrasformationError)).FirstOrDefault();
-            if (oTile == null)
+            switch (eErrorMode)
             {
-                return false;
+                case EnumErrorSourceMode.TrasformationError:
+                    {
+                        var oTile = lTiles.Where(X => X.TrasformationError == lTiles.Min(Y => Y.TrasformationError)).FirstOrDefault();
+                        if (oTile == null)
+                        {
+                            return false;
+                        }
+                        return oTile.MergeData(oDestinationData);
+                    }
+                    break;
+                case EnumErrorSourceMode.ExternalImageError:
+                    {
+                        var oTile = lTiles.Where(X => X.ExternalImageError == lTiles.Min(Y => Y.ExternalImageError)).FirstOrDefault();
+                        if (oTile == null)
+                        {
+                            return false;
+                        }
+                        return oTile.MergeData(oDestinationData);
+                    }
+                    break;
+                default:
+                    {
+                        return false;
+                    }
             }
-            return oTile.MergeData(oDestinationData);
         }
 
         public  bool CalcExternalImageError(int[,]? oDestinationData)

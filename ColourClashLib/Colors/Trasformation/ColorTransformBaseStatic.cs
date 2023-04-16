@@ -1,4 +1,5 @@
-﻿using ColourClashLib.Color;
+﻿using ColourClashLib;
+using ColourClashLib.Color;
 using ColourClashNet.Colors.Dithering;
 using System;
 using System.Collections.Generic;
@@ -28,7 +29,8 @@ namespace ColourClashNet.Colors.Transformation
                 return null;
             }
             // var lListList = ToListList(oSource);
-            Trace.TraceInformation($"{sClass}.{sMethod} : Apply default trasformatiion");
+            if (ColorDefaults.Trace)
+                Trace.TraceInformation($"{sClass}.{sMethod} : Apply default trasformatiion");
             var R = oSource.GetLength(0);
             var C = oSource.GetLength(1);
             var oRet = new int[R, C];

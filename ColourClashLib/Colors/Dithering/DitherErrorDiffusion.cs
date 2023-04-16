@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
+using ColourClashLib;
 using ColourClashLib.Color;
 using ColourClashNet.Colors;
 
@@ -72,7 +73,8 @@ namespace ColourClashNet.Colors.Dithering
                     return null;
                 }
 
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering");
+                if (ColorDefaults.Trace) 
+                    Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering");
 
                 int R = oDataOriginal.GetLength(0);
                 int C = oDataOriginal.GetLength(1);
@@ -146,7 +148,8 @@ namespace ColourClashNet.Colors.Dithering
                     }
                 }
 
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering completed");
+                if (ColorDefaults.Trace) 
+                    Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering completed");
                 return oDataRet;
 
             }

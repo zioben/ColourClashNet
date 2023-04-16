@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ColourClashLib;
 using ColourClashLib.Color;
 using ColourClashNet.Colors;
 
@@ -116,8 +117,8 @@ namespace ColourClashNet.Colors.Dithering
                     Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Creation error");
                     return null;
                 }
-
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering");
+                if (ColorDefaults.Trace)
+                    Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering");
                 int S = oThMat.GetLength(0);
 
                 double spread = 127.0;

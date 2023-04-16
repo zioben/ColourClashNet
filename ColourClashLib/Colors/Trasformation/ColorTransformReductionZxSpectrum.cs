@@ -49,6 +49,12 @@ namespace ColourClashNet.Colors.Transformation
             int iColR = iCol;
             int iColG = iCol;
             int iColB = iCol;
+            if( iCol > 128  ) 
+            {
+                iColR = iCol;
+                iColG = iCol;
+                iColB = iCol;
+            }
             ColorPalette oPalette = new ColorPalette();
             oPalette.Add(ColorIntExt.FromRGB(0, 0, 0));
             oPalette.Add(ColorIntExt.FromRGB(0, 0, iColB));
@@ -104,6 +110,7 @@ namespace ColourClashNet.Colors.Transformation
 
             var oPaletteLO = CreatePalette(icl);
             var oPaletteHI = CreatePalette(ich);
+
             var oPaletteZX = new ColorPalette();
 
             foreach (var rgb in oPaletteLO.rgbPalette)
@@ -123,21 +130,21 @@ namespace ColourClashNet.Colors.Transformation
                 oTmpData = dithering.Dither(oDataSource, oTmpData, oPaletteZX, ColorDistanceEvaluationMode);
             }
 
-
             BypassDithering = true;
 
             var oTmpDataLo = CreateImage(oDataSource, icl);
             TileManager oTileManagerL = new TileManager();
             oTileManagerL.Create(oTmpDataLo, 8, 8, 2, null, TileBase.EnumColorReductionMode.Detailed);
             var oRetL = oTileManagerL.TransformAndDither(oTmpDataLo);
-            oTileManagerL.CalcExternalImageError(oTmpData);
 
             var oTmpDataHi = CreateImage(oDataSource, ich);
             TileManager oTileManagerH = new TileManager();
             oTileManagerH.Create(oTmpDataHi, 8, 8, 2, null, TileBase.EnumColorReductionMode.Detailed);
             var oRetH = oTileManagerH.TransformAndDither(oTmpDataHi);
-            oTileManagerH.CalcExternalImageError(oTmpData);
 
+            oTileManagerL.CalcExternalImageError(oTmpData);
+            oTileManagerH.CalcExternalImageError(oTmpData);
+        
             int R = oDataSource.GetLength(0);
             int C = oDataSource.GetLength(1);
             var oRet = new int[R, C];
@@ -149,7 +156,7 @@ namespace ColourClashNet.Colors.Transformation
             {
                 for( int c = 0; c < CT; c++)
                 {
-                    TileBase.MergeData(oRet, oTileManagerL.TileData[r, c], oTileManagerH.TileData[r, c], TileBase.EnumErrorSourceMode.ExternaImageError);
+                    TileBase.MergeData(oRet, oTileManagerL.TileData[r, c], oTileManagerH.TileData[r, c], TileBase.EnumErrorSourceMode.ExternalImageError);
                 }
             }
           
@@ -171,7 +178,7 @@ namespace ColourClashNet.Colors.Transformation
             colorTransformationMap.Add(ColorIntExt.FromRGB(0, ColH, ColH), ColorIntExt.FromRGB(0, iColOutH, iColOutH));
             colorTransformationMap.Add(ColorIntExt.FromRGB(ColH, ColH, 0 ), ColorIntExt.FromRGB(iColOutH, iColOutH, 0));
             colorTransformationMap.Add(ColorIntExt.FromRGB(ColH, ColH, ColH), ColorIntExt.FromRGB(iColOutH, iColOutH, iColOutH));
-            var oZxRet = ExecuteStdTransform(oRetL, this);
+            var oZxRet = ExecuteStdTransform(oRet, this);
             return oZxRet;
         }
     }

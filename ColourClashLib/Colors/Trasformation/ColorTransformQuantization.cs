@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using ColourClashLib;
 using ColourClashLib.Color;
 using ColourClashNet.Colors;
 
@@ -95,7 +96,8 @@ namespace ColourClashNet.Colors.Transformation
         {
 
             string sMethod = nameof(CreateTrasformationMap);
-            Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Creating trasformation map");
+            if (ColorDefaults.Trace)
+                Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Creating trasformation map");
 
             foreach (var kvp in colorHistogram.rgbHistogram)
             {

@@ -72,12 +72,14 @@ namespace ColourClashLib.Color
                 int C = oDataSource.GetLength(1);
                 if (R * C > 64 * 64)
                 {
-                    Trace.TraceInformation($"{sClass}.{sMethod} : call CreateColorHistArray");
+                    if (ColorDefaults.Trace)
+                        Trace.TraceInformation($"{sClass}.{sMethod} : call CreateColorHistArray");
                     CreateColorHistArray(oDataSource, oHist);
                 }
                 else
                 {
-                    Trace.TraceInformation($"{sClass}.{sMethod} : creating HashColorHistogram");
+                    if (ColorDefaults.Trace)
+                        Trace.TraceInformation($"{sClass}.{sMethod} : creating HashColorHistogram");
                     CreateColorHistDirect(oDataSource, oHist);
                 }
                 return true;
