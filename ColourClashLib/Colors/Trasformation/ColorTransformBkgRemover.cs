@@ -27,20 +27,20 @@ namespace ColourClashNet.Colors.Transformation
             string sMethod = nameof(CreateTrasformationMap);
             if (ColorDefaults.Trace)
                 Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Creating trasformation map");
-            foreach (var rgb in colorPalette.rgbPalette)
+            foreach (var rgb in oPalette.rgbPalette)
             {
                 if (rgb < 0)
                     continue;
                 colorTransformationMap.Add(rgb, rgb);
             }
 
-            foreach (var rgb in colorPalette.rgbPalette)
+            foreach (var rgb in oPalette.rgbPalette)
             {
                 if (rgb < 0)
                     continue;
                 if (ColorBackgroundList.Any(X => X.Equals(rgb)))
                 {
-                    colorPalette.Remove(rgb);
+                    oPalette.Remove(rgb);
                     colorTransformationMap.rgbTransformationMap[rgb] = ColorBackground;
                 }
             }

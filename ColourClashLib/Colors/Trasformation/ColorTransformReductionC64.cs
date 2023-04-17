@@ -30,22 +30,22 @@ namespace ColourClashNet.Colors.Transformation
         }
         protected override void CreateTrasformationMap()
         {
-            colorPalette = new ColorPalette(); 
-            colorPalette.Add(0x00000000);
-            colorPalette.Add(0x00FFFFFF);
-            colorPalette.Add(0x00894036);
-            colorPalette.Add(0x007ABFC7);
-            colorPalette.Add(0x008A46AE);
-            colorPalette.Add(0x0068A941);
-            colorPalette.Add(0x003E31A2);
-            colorPalette.Add(0x00D0DC71);
-            colorPalette.Add(0x00905F25);
-            colorPalette.Add(0x005C4700);
-            colorPalette.Add(0x00BB776D);
-            colorPalette.Add(0x00555555);
-            colorPalette.Add(0x00808080);
-            colorPalette.Add(0x00ACEA88);
-            colorPalette.Add(0x00ABABAB);       
+            oPalette = new ColorPalette(); 
+            oPalette.Add(0x00000000);
+            oPalette.Add(0x00FFFFFF);
+            oPalette.Add(0x00894036);
+            oPalette.Add(0x007ABFC7);
+            oPalette.Add(0x008A46AE);
+            oPalette.Add(0x0068A941);
+            oPalette.Add(0x003E31A2);
+            oPalette.Add(0x00D0DC71);
+            oPalette.Add(0x00905F25);
+            oPalette.Add(0x005C4700);
+            oPalette.Add(0x00BB776D);
+            oPalette.Add(0x00555555);
+            oPalette.Add(0x00808080);
+            oPalette.Add(0x00ACEA88);
+            oPalette.Add(0x00ABABAB);       
         }
 
 
@@ -61,7 +61,7 @@ namespace ColourClashNet.Colors.Transformation
             var oTmpData = base.ExecuteTransform(oTmp);
             if (dithering != null)
             {
-                oTmpData = dithering.Dither(oTmp, oTmpData, colorPalette, ColorDistanceEvaluationMode);
+                oTmpData = dithering.Dither(oTmp, oTmpData, oPalette, ColorDistanceEvaluationMode);
             }
             BypassDithering = true;
             return oTmpData;
@@ -100,7 +100,7 @@ namespace ColourClashNet.Colors.Transformation
                         var cg = (a.ToG() + b.ToG()) / 2;
                         var cb = (a.ToB() + b.ToB()) / 2;
                         var col = ColorIntExt.FromRGB(cr, cg, cb);
-                        var res = ColorIntExt.GetNearestColor(col, colorPalette, ColorDistanceEvaluationMode);
+                        var res = ColorIntExt.GetNearestColor(col, oPalette, ColorDistanceEvaluationMode);
                         if (ColorIntExt.Distance(res, a, ColorDistanceEvaluationMode) < ColorIntExt.Distance(res, b, ColorDistanceEvaluationMode))
                         {
                             oRet[r, c] = a;

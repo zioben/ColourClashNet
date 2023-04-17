@@ -14,7 +14,7 @@ namespace ColourClashNet.Colors.Transformation
 
         //------------------------------------------------------------
         ColorHistogram colorHistogram { get; }
-        ColorPalette colorPalette { get; }
+        ColorPalette oPalette { get; }
         int colors { get; }
         ColorTransformationMap colorTransformationMap { get; }
 

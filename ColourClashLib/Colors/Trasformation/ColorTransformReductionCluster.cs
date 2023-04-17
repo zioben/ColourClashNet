@@ -41,7 +41,7 @@ namespace ColourClashNet.Colors.Transformation
             {
                 foreach (var kvp in colorHistogram.rgbHistogram)
                 {
-                    colorPalette.Add(kvp.Key);
+                    oPalette.Add(kvp.Key);
                     colorTransformationMap.rgbTransformationMap[kvp.Key] = kvp.Key;
                 }
                 return;
@@ -99,7 +99,7 @@ namespace ColourClashNet.Colors.Transformation
                 }
             }
 
-            colorPalette = new ColorPalette();
+            oPalette = new ColorPalette();
             foreach (var kvp in colorHistogram.rgbHistogram )
             {
                 var dMin = lTupleColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
@@ -114,7 +114,7 @@ namespace ColourClashNet.Colors.Transformation
                     var Max = oItem?.Item2.Max(X => X.Value);
                     iCol = oItem?.Item2.FirstOrDefault(X => X.Value == Max).Key ?? -1;
                 }
-                colorPalette.Add(iCol);
+                oPalette.Add(iCol);
                 colorTransformationMap.Add(kvp.Key,iCol); // Item1.Last()??-1;
             };
         }

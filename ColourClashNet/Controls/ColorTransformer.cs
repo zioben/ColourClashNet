@@ -536,7 +536,7 @@ namespace ColourClashNet.Controls
             }
             else
             {
-                ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oTrLast.colorPalette.ToList(), eWidthAlignMode, bInterleaveData);
+                ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oTrLast.oPalette.ToList(), eWidthAlignMode, bInterleaveData);
             }
         }
 

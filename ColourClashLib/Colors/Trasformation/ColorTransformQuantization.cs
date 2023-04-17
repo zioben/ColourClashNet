@@ -115,13 +115,13 @@ namespace ColourClashNet.Colors.Transformation
             var C = oSource.GetLength(1);
             var oRet = new int[R, C];
             var oCols = new int[1, C];
-            colorPalette = new ColorPalette();
+            oPalette = new ColorPalette();
             for (int r = 0; r < R; r++)
             {
                 for (int c = 0; c < C; c++)
                 {
                     var col = QuantizeColor(oSource[r, c]);
-                    colorPalette.Add(col);
+                    oPalette.Add(col);
                     oRet[r, c] = col;
                 }
             }

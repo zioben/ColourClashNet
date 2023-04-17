@@ -16,22 +16,22 @@ namespace ColourClashNet.Colors.Transformation
         }
         protected override void CreateTrasformationMap()
         {
-            colorPalette.Reset();
-            colorPalette.Add(0x00000000);
-            colorPalette.Add(0x000000AA);
-            colorPalette.Add(0x0000AA00);
-            colorPalette.Add(0x0000AAAA);
-            colorPalette.Add(0x00AA0000);
-            colorPalette.Add(0x00AA00AA);
-            colorPalette.Add(0x00AA5500);
-            colorPalette.Add(0x00AAAAAA);
-            colorPalette.Add(0x00555555);
-            colorPalette.Add(0x005555FF);
-            colorPalette.Add(0x0055FF55);
-            colorPalette.Add(0x00FF5555);
-            colorPalette.Add(0x00FF55FF);
-            colorPalette.Add(0x00FFFF55);
-            colorPalette.Add(0x00FFFFFF);
+            oPalette.Reset();
+            oPalette.Add(0x00000000);
+            oPalette.Add(0x000000AA);
+            oPalette.Add(0x0000AA00);
+            oPalette.Add(0x0000AAAA);
+            oPalette.Add(0x00AA0000);
+            oPalette.Add(0x00AA00AA);
+            oPalette.Add(0x00AA5500);
+            oPalette.Add(0x00AAAAAA);
+            oPalette.Add(0x00555555);
+            oPalette.Add(0x005555FF);
+            oPalette.Add(0x0055FF55);
+            oPalette.Add(0x00FF5555);
+            oPalette.Add(0x00FF55FF);
+            oPalette.Add(0x00FFFF55);
+            oPalette.Add(0x00FFFFFF);
         }
 
     }

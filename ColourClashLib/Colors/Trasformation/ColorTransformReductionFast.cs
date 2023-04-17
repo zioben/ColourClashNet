@@ -21,14 +21,14 @@ namespace ColourClashNet.Colors.Transformation
 
         protected override void CreateTrasformationMap()
         {
-            colorPalette.Reset();
+            oPalette.Reset();
             colorHistogram.SortColorsDescending();
             var oTempPalette = ColorPalette.MergeColorPalette(FixedColorPalette, colorHistogram.ToColorPalette());
             if (oTempPalette.Colors < ColorsMax)
             {
                 foreach (var kvp in colorHistogram.rgbHistogram )
                 {
-                    colorPalette.Add(kvp.Key);
+                    oPalette.Add(kvp.Key);
                     colorTransformationMap.rgbTransformationMap[kvp.Key] = kvp.Key;
                 }
                 return;
@@ -41,7 +41,7 @@ namespace ColourClashNet.Colors.Transformation
             {
                 var dMin = listMax.Min(Y => Y.Distance(X, ColorDistanceEvaluationMode));
                 var oItem = listMax.FirstOrDefault(Y => Y.Distance(X, ColorDistanceEvaluationMode) == dMin);
-                colorPalette.Add(oItem);
+                oPalette.Add(oItem);
                 colorTransformationMap.rgbTransformationMap[X] = oItem;
             });
         }

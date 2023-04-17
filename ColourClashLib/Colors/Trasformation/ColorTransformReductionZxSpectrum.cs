@@ -36,48 +36,45 @@ namespace ColourClashNet.Colors.Transformation
         public int ColL { get; set; } = 0x0080;
         public int ColH { get; set; } = 0x00FF;
         public ZxPaletteMode PaletteMode { get; set; } = ZxPaletteMode.Both;
-      //  public bool AutoEqualize { get; set; } = true;
 
         int iColOutL = 0x00D8;
         int iColOutH = 0x00FF;
 
-       // ColorPalette oPaletteLo;
-       // ColorPalette oPaletteHi;
-
-        ColorPalette CreatePalette(int iCol)
+        ColorTransformationMap  CreateZxMap(int iCol, int iColOut)
         {
             int iColR = iCol;
-            int iColG = iCol;
-            int iColB = iCol;
-            if( iCol > 128  ) 
+            int iColG = iCol+1;
+            int iColB = iCol+2;
+            if (iCol > 128)
             {
                 iColR = iCol;
-                iColG = iCol;
-                iColB = iCol;
+                iColG = iCol-1;
+                iColB = iCol-2;
             }
-            ColorPalette oPalette = new ColorPalette();
-            oPalette.Add(ColorIntExt.FromRGB(0, 0, 0));
-            oPalette.Add(ColorIntExt.FromRGB(0, 0, iColB));
-            oPalette.Add(ColorIntExt.FromRGB(iColR, 0, 0));
-            oPalette.Add(ColorIntExt.FromRGB(iColR, 0, iColB));
-            oPalette.Add(ColorIntExt.FromRGB(0, iColG, 0));
-            oPalette.Add(ColorIntExt.FromRGB(0, iColG, iColB));
-            oPalette.Add(ColorIntExt.FromRGB(iColR, iColG, 0));
-            oPalette.Add(ColorIntExt.FromRGB(iColR, iColG, iColB));
-            return oPalette;
+            ColorTransformationMap oMap = new ColorTransformationMap();
+            oMap.Add(ColorIntExt.FromRGB(0, 0, 0), ColorIntExt.FromRGB(0, 0, 0) );
+            oMap.Add(ColorIntExt.FromRGB(0, 0, iColB), ColorIntExt.FromRGB(0, 0, iColOut));
+            oMap.Add(ColorIntExt.FromRGB(iColR, 0, 0), ColorIntExt.FromRGB(iColOut, 0, 0));
+            oMap.Add(ColorIntExt.FromRGB(iColR, 0, iColB), ColorIntExt.FromRGB(iColOut, 0, iColOut));
+            oMap.Add(ColorIntExt.FromRGB(0, iColG, 0), ColorIntExt.FromRGB(0, iColOut, 0));
+            oMap.Add(ColorIntExt.FromRGB(0, iColG, iColB), ColorIntExt.FromRGB(0, iColOut, iColOut));
+            oMap.Add(ColorIntExt.FromRGB(iColR, iColG, 0), ColorIntExt.FromRGB(iColOut, iColOut, 0));
+            oMap.Add(ColorIntExt.FromRGB(iColR, iColG, iColB), ColorIntExt.FromRGB(iColOut, iColOut, iColOut));
+            return oMap;
         }
-
-
 
         protected override void CreateTrasformationMap()
         {
         }
 
-        int[,]? CreateImage(int[,]? oDataSource, int iCol)
+        int[,]? CreateImage(int[,]? oDataSource, int iCol, int iColOut)
         {
-            var oPalette = CreatePalette(iCol);
-            colorHistogram.Create(oPalette);
-            colorPalette = colorHistogram.ToColorPalette();
+            var oMap = CreateZxMap(iCol,iColOut);
+            oPalette = new ColorPalette();
+            foreach (var rgb in oMap.rgbTransformationMap)
+            {
+                oPalette.Add(rgb.Key);
+            }
             var oTmpData = base.ExecuteTransform(oDataSource);
             if (dithering != null)
             {
@@ -95,56 +92,55 @@ namespace ColourClashNet.Colors.Transformation
 
             var icl = ColL;
             var ich = ColH;
+            int iol = iColOutL;
+            int ioh = iColOutH;
             switch (PaletteMode)
             {
                 case ZxPaletteMode.PaletteHi:
                     icl = ColH;
+                    iol = iColOutH;
                     break;
                 case ZxPaletteMode.PaletteLo:
                     ich = ColL;
+                    ioh = iColOutL;
                     break;
                 default: 
                     break;
 
             }
 
-            var oPaletteLO = CreatePalette(icl);
-            var oPaletteHI = CreatePalette(ich);
-
-            var oPaletteZX = new ColorPalette();
-
-            foreach (var rgb in oPaletteLO.rgbPalette)
+            var oZxMapLO = CreateZxMap(icl, iol);
+            var oZxMapHI = CreateZxMap(ich, ioh);
+            oPalette = new ColorPalette();
+            foreach (var rgb in oZxMapLO.rgbTransformationMap)
             {
-                oPaletteZX.Add(rgb);
+                oPalette.Add(rgb.Key);
             }
-            foreach (var rgb in oPaletteHI.rgbPalette)
+            foreach (var rgb in oZxMapHI.rgbTransformationMap)
             {
-                oPaletteZX.Add(rgb);
+                oPalette.Add(rgb.Key);
             }
 
-            colorHistogram.Create(oPaletteZX);
-            colorPalette = colorHistogram.ToColorPalette();
             var oTmpData = base.ExecuteTransform(oDataSource);
             if (dithering != null)
             {
-                oTmpData = dithering.Dither(oDataSource, oTmpData, oPaletteZX, ColorDistanceEvaluationMode);
+                oTmpData = dithering.Dither(oDataSource, oTmpData, oPalette, ColorDistanceEvaluationMode);
             }
-
             BypassDithering = true;
 
-            var oTmpDataLo = CreateImage(oDataSource, icl);
+            var oTmpDataLo = CreateImage(oDataSource, icl,iol);
             TileManager oTileManagerL = new TileManager();
             oTileManagerL.Create(oTmpDataLo, 8, 8, 2, null, TileBase.EnumColorReductionMode.Detailed);
             var oRetL = oTileManagerL.TransformAndDither(oTmpDataLo);
-
-            var oTmpDataHi = CreateImage(oDataSource, ich);
+            var oTmpDataHi = CreateImage(oDataSource, ich, ioh);
             TileManager oTileManagerH = new TileManager();
             oTileManagerH.Create(oTmpDataHi, 8, 8, 2, null, TileBase.EnumColorReductionMode.Detailed);
             var oRetH = oTileManagerH.TransformAndDither(oTmpDataHi);
+            return oRetH;
 
             oTileManagerL.CalcExternalImageError(oTmpData);
             oTileManagerH.CalcExternalImageError(oTmpData);
-        
+
             int R = oDataSource.GetLength(0);
             int C = oDataSource.GetLength(1);
             var oRet = new int[R, C];
@@ -161,23 +157,15 @@ namespace ColourClashNet.Colors.Transformation
             }
           
             colorTransformationMap.Reset();
-            //
-            colorTransformationMap.Add(ColorIntExt.FromRGB(0, 0, 0), ColorIntExt.FromRGB(0, 0, 0));
-            colorTransformationMap.Add(ColorIntExt.FromRGB(0, 0, ColL), ColorIntExt.FromRGB(0, 0, iColOutL));
-            colorTransformationMap.Add(ColorIntExt.FromRGB(ColL,0,0), ColorIntExt.FromRGB(iColOutL, 0, 0));
-            colorTransformationMap.Add(ColorIntExt.FromRGB(ColL, 0, ColL), ColorIntExt.FromRGB(iColOutL, 0, iColOutL));
-            colorTransformationMap.Add(ColorIntExt.FromRGB(0, ColL,0 ), ColorIntExt.FromRGB(0, iColOutL, 0));
-            colorTransformationMap.Add(ColorIntExt.FromRGB(0, ColL,ColL), ColorIntExt.FromRGB(0, iColOutL, iColOutL));
-            colorTransformationMap.Add(ColorIntExt.FromRGB(ColL, ColL,0), ColorIntExt.FromRGB(iColOutL, iColOutL, 0));
-            colorTransformationMap.Add(ColorIntExt.FromRGB(ColL, ColL, ColL), ColorIntExt.FromRGB(iColOutL, iColOutL, iColOutL));
-            //
-            colorTransformationMap.Add(ColorIntExt.FromRGB(0, 0, ColH), ColorIntExt.FromRGB(0, 0, iColOutH));
-            colorTransformationMap.Add(ColorIntExt.FromRGB(ColH, 0, 0), ColorIntExt.FromRGB(iColOutH, 0, 0));
-            colorTransformationMap.Add(ColorIntExt.FromRGB(ColH, 0, ColH), ColorIntExt.FromRGB(iColOutH, 0, iColOutH));
-            colorTransformationMap.Add(ColorIntExt.FromRGB(0 , ColH, 0), ColorIntExt.FromRGB(0, iColOutH, 0));
-            colorTransformationMap.Add(ColorIntExt.FromRGB(0, ColH, ColH), ColorIntExt.FromRGB(0, iColOutH, iColOutH));
-            colorTransformationMap.Add(ColorIntExt.FromRGB(ColH, ColH, 0 ), ColorIntExt.FromRGB(iColOutH, iColOutH, 0));
-            colorTransformationMap.Add(ColorIntExt.FromRGB(ColH, ColH, ColH), ColorIntExt.FromRGB(iColOutH, iColOutH, iColOutH));
+            foreach (var rgb in oZxMapLO.rgbTransformationMap)
+            {
+                colorTransformationMap.Add(rgb.Key, rgb.Value);
+            }
+            foreach (var rgb in oZxMapHI.rgbTransformationMap)
+            {
+                colorTransformationMap.Add(rgb.Key, rgb.Value);
+            }
+
             var oZxRet = ExecuteStdTransform(oRet, this);
             return oZxRet;
         }
