@@ -31,6 +31,7 @@ namespace ColourClashNet
             InitMenu();
             CreateComboBox(cbC64VideoMode, Enum.GetNames(typeof(ColorTransformReductionC64.C64ScreenMode)).ToList());
             CreateComboBox(cbCpcVideoMode, Enum.GetNames(typeof(ColorTransformReductionCPC.CPCScreenMode)).ToList());
+            CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformReductionAmiga.EnumVideoMode)).ToList());
         }
 
 
@@ -222,6 +223,11 @@ namespace ColourClashNet
             oColorTransformer.HueOffset = (double)nudHue.Value;
             oColorTransformer.C64ScreenMode = (ColorTransformReductionC64.C64ScreenMode)Enum.Parse(typeof(ColorTransformReductionC64.C64ScreenMode), cbC64VideoMode.SelectedItem.ToString());
             oColorTransformer.CPCScreenMode = (ColorTransformReductionCPC.CPCScreenMode)Enum.Parse(typeof(ColorTransformReductionCPC.CPCScreenMode), cbCpcVideoMode.SelectedItem.ToString());
+            oColorTransformer.ZxEqColorLO = (int)nudZxColorLO.Value;
+            oColorTransformer.ZxEqColorHI = (int)nudZxColorHI.Value;
+            oColorTransformer.ZxEqBlackHI = chkZxBlackHI.Checked;
+            oColorTransformer.ZxEqDitherHI = chkZxDitherHI.Checked;
+            oColorTransformer.AmigaVideoMode = (ColorTransformReductionAmiga.EnumVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumVideoMode), cbAmigaVideoMode.SelectedItem.ToString());
         }
 
         private void btnReduceColors_Click(object sender, EventArgs e)
@@ -316,8 +322,6 @@ namespace ColourClashNet
         private void btnReduceColorsZx_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ZxEqColorLO = (int)nudZxColorLO.Value;
-            oColorTransformer.ZxEqColorHI = (int)nudZxColorHI.Value;
             oColorTransformer.ColorTranform(ColorTransform.ColorReductionZxSpectrum);
         }
 
@@ -344,6 +348,12 @@ namespace ColourClashNet
         {
             SetToControl();
             oColorTransformer.ColorTranform(ColorTransform.ColorReductionSaturation);
+        }
+
+        private void btnReduceHam_Click(object sender, EventArgs e)
+        {
+            SetToControl();
+            oColorTransformer.ColorTranform(ColorTransform.ColorReductionHam);
         }
 
         bool bDitherStrenghtUpdating = false;
@@ -391,6 +401,6 @@ namespace ColourClashNet
             }
         }
 
-       
+
     }
 }

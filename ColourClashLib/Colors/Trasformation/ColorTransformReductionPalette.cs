@@ -26,7 +26,7 @@ namespace ColourClashNet.Colors.Transformation
 
         protected override int[,]? ExecuteTransform(int[,]? oDataSource)
         {
-            if (oPalette == null ) 
+            if (colorPalette == null ) 
             {
                 return null;    
             }
@@ -46,7 +46,7 @@ namespace ColourClashNet.Colors.Transformation
             }
             Parallel.ForEach(oHashSet, rgb =>
             {
-                colorTransformationMap.rgbTransformationMap[rgb] = ColorIntExt.GetNearestColor(rgb, oPalette, ColorDistanceEvaluationMode);
+                colorTransformationMap.rgbTransformationMap[rgb] = ColorIntExt.GetNearestColor(rgb, colorPalette, ColorDistanceEvaluationMode);
             });
 
             return base.ExecuteTransform(oDataSource);

@@ -10,6 +10,7 @@ namespace ColourClashNet.Colors
     {
         Unknown = 0,
         RGB888,
+        RGB666,
         RGB565,
         RGB555,
         RGB444,
@@ -28,7 +29,6 @@ namespace ColourClashNet.Colors
 
     public enum ColorDistanceEvaluationMode
     {
-        All,
         RGB,
         RGBalt,
         HSV,
@@ -42,6 +42,7 @@ namespace ColourClashNet.Colors
         ColorReductionQuantization,
         ColorReductionFast,
         ColorReductionClustering,
+        ColorReductionHam,
         ColorReductionScanline,
         ColorReductionGenericPalette,
         ColorReductionEga,

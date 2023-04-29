@@ -26,12 +26,12 @@ namespace ColourClashNet.Colors.Transformation
 
         //---------------- Transformation properties------------------------------
         public ColorHistogram colorHistogram { get; protected set; } = new ColorHistogram();
-        public ColorPalette oPalette { get; set; } = new ColorPalette();
-        public int colors => oPalette?.Colors ?? 0;
+        public ColorPalette colorPalette { get; set; } = new ColorPalette();
+        public int colors => colorPalette?.Colors ?? 0;
         public ColorTransformationMap colorTransformationMap { get; protected set; } = new  ColorTransformationMap();
 
         //---------------- Useful objects ------------------------------
-        public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.All;
+        public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
         public DitherInterface? dithering { get; set; } = null;
         protected bool BypassDithering { get; set; }
         protected abstract void CreateTrasformationMap();
@@ -43,7 +43,7 @@ namespace ColourClashNet.Colors.Transformation
 
         void Reset()
         {
-            oPalette.Reset();
+            colorPalette.Reset();
             colorHistogram.Reset();
             colorTransformationMap.Reset();
         }
@@ -58,7 +58,7 @@ namespace ColourClashNet.Colors.Transformation
             }
             FixedColorPalette = oFixedColorPalette;
             colorHistogram.Create(oDataSource);
-            oPalette = colorHistogram.ToColorPalette();
+            colorPalette = colorHistogram.ToColorPalette();
             CreateTrasformationMap();
             return true;    
         }
@@ -75,7 +75,7 @@ namespace ColourClashNet.Colors.Transformation
             {
                 colorHistogram.rgbHistogram.Add(kvp.Key, kvp.Value);
             }
-            oPalette = colorHistogram.ToColorPalette();
+            colorPalette = colorHistogram.ToColorPalette();
             CreateTrasformationMap();
             return true;    
         }
@@ -92,7 +92,7 @@ namespace ColourClashNet.Colors.Transformation
             {
                 colorHistogram.rgbHistogram.Add(rgb, 0);
             }
-            oPalette = colorHistogram.ToColorPalette();
+            colorPalette = colorHistogram.ToColorPalette();
             CreateTrasformationMap();
             return true;
         }
@@ -117,7 +117,7 @@ namespace ColourClashNet.Colors.Transformation
             {
                 return oDataTrasf;
             }
-            var oProcDither = dithering.Dither(oDataSource, oDataTrasf, oPalette, ColorDistanceEvaluationMode);
+            var oProcDither = dithering.Dither(oDataSource, oDataTrasf, colorPalette, ColorDistanceEvaluationMode);
             return oProcDither;
         }
 

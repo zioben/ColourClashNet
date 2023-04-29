@@ -25,7 +25,10 @@ namespace ColourClashLib.Colors.Tile
             ExternalImageError,
         }
 
-        static ColorDistanceEvaluationMode eColorMode = ColorDistanceEvaluationMode.RGB;
+        /// <summary>
+        /// Color distance model
+        /// </summary>
+        public ColorDistanceEvaluationMode ColorDistanceMode { get; set; } = ColorDistanceEvaluationMode.RGB;
 
         /// <summary>
         /// Tile Width
@@ -137,7 +140,7 @@ namespace ColourClashLib.Colors.Tile
                     {
                         oColorReduction = new ColorTransformReductionFast()
                             {
-                                ColorDistanceEvaluationMode = ColorDistanceEvaluationMode.RGB,
+                                ColorDistanceEvaluationMode = ColorDistanceMode,
                                 ColorsMax = TileMaxColors,
                             };
                     }
@@ -148,7 +151,7 @@ namespace ColourClashLib.Colors.Tile
                         {
                             TrainingLoop = 6,
                             UseClusterColorMean = false,
-                            ColorDistanceEvaluationMode = ColorDistanceEvaluationMode.RGB,
+                            ColorDistanceEvaluationMode = ColorDistanceMode,
                             ColorsMax = TileMaxColors,
                         };
                     }
@@ -158,7 +161,7 @@ namespace ColourClashLib.Colors.Tile
             DataProcessed = oColorReduction.TransformAndDither(DataSource);
 
             // Evaluate error
-            TrasformationError = ColorTransformBase.Error(DataSource, DataProcessed, eColorMode);
+            TrasformationError = ColorTransformBase.Error(DataSource, DataProcessed, ColorDistanceMode);
             return DataProcessed;
         }
 
@@ -300,7 +303,7 @@ namespace ColourClashLib.Colors.Tile
             {
                 ExternalImageError = double.MaxValue;
             }
-            ExternalImageError = ColorTransformBase.Error(oDataTile, DataProcessed, eColorMode);
+            ExternalImageError = ColorTransformBase.Error(oDataTile, DataProcessed, ColorDistanceMode);
             return true;
         }
 

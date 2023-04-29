@@ -59,6 +59,11 @@ namespace ColourClashNet.Colors.Transformation
                     dG = Math.Round(dG / 4) * 4;
                     dB = Math.Round(dB / 8) * 8;
                     break;
+                case ColorQuantizationMode.RGB666:
+                    dR = Math.Round(dR / 4) * 4;
+                    dG = Math.Round(dG / 4) * 4;
+                    dB = Math.Round(dB / 4) * 4;
+                    break;
                 default:
                     return -1;
             }
@@ -86,6 +91,8 @@ namespace ColourClashNet.Colors.Transformation
                     return iRGB & 0x00F8F8F8;
                 case ColorQuantizationMode.RGB565:
                     return iRGB & 0x00F8FCF8;
+                case ColorQuantizationMode.RGB666:
+                    return iRGB & 0x00FCFCFC;
                 default:
                     return -1;
             }
@@ -115,13 +122,13 @@ namespace ColourClashNet.Colors.Transformation
             var C = oSource.GetLength(1);
             var oRet = new int[R, C];
             var oCols = new int[1, C];
-            oPalette = new ColorPalette();
+            colorPalette = new ColorPalette();
             for (int r = 0; r < R; r++)
             {
                 for (int c = 0; c < C; c++)
                 {
                     var col = QuantizeColor(oSource[r, c]);
-                    oPalette.Add(col);
+                    colorPalette.Add(col);
                     oRet[r, c] = col;
                 }
             }

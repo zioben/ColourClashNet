@@ -130,7 +130,7 @@ namespace ColourClashNet.Colors.Transformation
             }
             int iColorsMax = Math.Min(256, Math.Max(2, ColorsMax));
             Partition(colorHistogram.ToColorPalette(), iColorsMax / 2);
-            oPalette = colorTransformationMap.ToColorPalette();
+            colorPalette = colorTransformationMap.ToColorPalette();
         }
 
 

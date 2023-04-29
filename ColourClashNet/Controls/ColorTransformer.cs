@@ -97,7 +97,9 @@ namespace ColourClashNet.Controls
         public int BackgroundColorReplacement { get; set; } = 0;
         public int ZxEqColorLO { get; set; } = 0x80;
         public int ZxEqColorHI { get; set; } = 0xFF;
-
+        public bool ZxEqBlackHI { get; set; } = true;
+        public bool ZxEqDitherHI { get; set; } = true;
+        public ColorTransformReductionAmiga.EnumVideoMode AmigaVideoMode { get; set; } = ColorTransformReductionAmiga.EnumVideoMode.Ham6;
         public ColorTransformReductionC64.C64ScreenMode C64ScreenMode { get; set; } = ColorTransformReductionC64.C64ScreenMode.Multicolor;
         public ColorTransformReductionCPC.CPCScreenMode CPCScreenMode { get; set; } = ColorTransformReductionCPC.CPCScreenMode.Mode0;
 
@@ -411,6 +413,8 @@ namespace ColourClashNet.Controls
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
                         oTrasf.ColL = ZxEqColorLO;
                         oTrasf.ColH = ZxEqColorHI;
+                        oTrasf.DitherHighColor = ZxEqDitherHI;
+                        oTrasf.IncludeBlackInHighColor = ZxEqBlackHI;
                         oTrI = oTrasf;
                     }
                     break;
@@ -454,6 +458,14 @@ namespace ColourClashNet.Controls
                         oTrasf.BrightnessFactor = BrightnessEnhancement;
                         oTrasf.HueChange = HueOffset;
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
+                        oTrI = oTrasf;
+                    }
+                    break;
+                case ColorTransform.ColorReductionHam:
+                    {
+                        var oTrasf = new ColorTransformReductionAmiga();
+                        oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
+                        oTrasf.VideoMode = AmigaVideoMode;
                         oTrI = oTrasf;
                     }
                     break;
@@ -536,7 +548,7 @@ namespace ColourClashNet.Controls
             }
             else
             {
-                ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oTrLast.oPalette.ToList(), eWidthAlignMode, bInterleaveData);
+                ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oTrLast.colorPalette.ToList(), eWidthAlignMode, bInterleaveData);
             }
         }
 

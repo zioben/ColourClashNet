@@ -37,20 +37,23 @@ namespace ColourClashNet.Colors.Transformation
         public int ColL { get; set; } = 0x0080;
         public int ColH { get; set; } = 0x00FF;
         public ZxPaletteMode PaletteMode { get; set; } = ZxPaletteMode.Both;
+        public bool IncludeBlackInHighColor { get; set; } = true;
+        public bool DitherHighColor { get; set; } = true;
 
         int iColOutL = 0x00D8;
         int iColOutH = 0x00FF;
 
         ColorTransformationMap  CreateZxMap(int iCol, int iColOut, bool bUseBlack )
         {
-            int iColR = iCol;
-            int iColG = iCol+10;
-            int iColB = iCol+20;
+            int iOffset = 0;
+            int iColR = iCol + 0 * iOffset;
+            int iColG = iCol + 1 * iOffset;
+            int iColB = iCol + 2 * iOffset;
             if (iCol > 128)
             {
-                iColR = iCol;
-                iColG = iCol-10;
-                iColB = iCol-20;
+                iColR = iCol - 0 * iOffset;
+                iColG = iCol - 1 * iOffset;
+                iColB = iCol - 2 * iOffset;
             }
             ColorTransformationMap oMap = new ColorTransformationMap();
             if (bUseBlack)
@@ -71,23 +74,34 @@ namespace ColourClashNet.Colors.Transformation
         {
         }
 
-        int[,]? CreateImage(int[,]? oDataSource, int iCol, int iColOut, bool bUseBlack, bool bDither )
+        int[,]? CreateImage(int[,]? oDataSource, int iCol, int iColOut, bool bUseBlack, bool bDither, ColorDistanceEvaluationMode eColorMode )
         {
             var oMap = CreateZxMap(iCol,iColOut, bUseBlack);
-            oPalette = new ColorPalette();
+            colorPalette = new ColorPalette();
             foreach (var rgb in oMap.rgbTransformationMap)
             {
-                oPalette.Add(rgb.Key);
+                colorPalette.Add(rgb.Key);
             }
-            var oTmpData = base.ExecuteTransform(oDataSource);            
+            var oOld = ColorDistanceEvaluationMode;
+            ColorDistanceEvaluationMode = eColorMode;
+            var oTmpData = base.ExecuteTransform(oDataSource);
+            ColorDistanceEvaluationMode = oOld;
             if (bDither && dithering != null)
             {
-                oTmpData = dithering.Dither(oDataSource, oTmpData, oPalette, ColorDistanceEvaluationMode);
+                oTmpData = dithering.Dither(oDataSource, oTmpData, colorPalette, eColorMode);
             }
             return oTmpData;
         }
 
-
+        TileManager CreateTiles(int[,]? oDataSource, int iCol, int iColOut, bool bUseBlack, bool bDither, ColorDistanceEvaluationMode eColorMode)
+        { 
+            TileManager oTileManager = new TileManager();
+            var oTmpData = CreateImage(oDataSource, iCol, iColOut, bUseBlack, bDither, eColorMode);
+            oTileManager.Init(oTmpData, 8, 8, 2, null, eColorMode, TileBase.EnumColorReductionMode.Detailed);
+            oTileManager.CreateTiles(oTmpData);
+            oTileManager.CalcExternalImageError(oDataSource);
+            return oTileManager;
+        }
 
         protected override int[,]? ExecuteTransform(int[,]? oDataSource)
         {
@@ -113,50 +127,38 @@ namespace ColourClashNet.Colors.Transformation
 
             }
 
-            var oZxMapLO = CreateZxMap(icl, iol, false);
+            var oZxMapLO = CreateZxMap(icl, iol, true);
             var oZxMapHI = CreateZxMap(ich, ioh, true);
-            oPalette = new ColorPalette();
-            foreach (var rgb in oZxMapLO.rgbTransformationMap)
-            {
-                oPalette.Add(rgb.Key);
-            }
-            foreach (var rgb in oZxMapHI.rgbTransformationMap)
-            {
-                oPalette.Add(rgb.Key);
-            }
+            //oPalette = new ColorPalette();
+            //foreach (var rgb in oZxMapLO.rgbTransformationMap)
+            //{
+            //    oPalette.Add(rgb.Key);
+            //}
+            //foreach (var rgb in oZxMapHI.rgbTransformationMap)
+            //{
+            //    oPalette.Add(rgb.Key);
+            //}
 
-            var oTmpData = base.ExecuteTransform(oDataSource);
-            if (dithering != null)
-            {
-                oTmpData = dithering.Dither(oDataSource, oTmpData, oPalette, ColorDistanceEvaluationMode);
-            }
+            //var oTmpData = base.ExecuteTransform(oDataSource);
+            //if (dithering != null)
+            //{
+            //    oTmpData = dithering.Dither(oDataSource, oTmpData, oPalette, ColorDistanceEvaluationMode);
+            //}
             BypassDithering = true;
+            List<TileManager> lTM = new List<TileManager>();
+            TileManager oTileManagerL1 = CreateTiles(oDataSource, icl, iol, true, true, ColorDistanceEvaluationMode);
+            TileManager oTileManagerH1 = CreateTiles(oDataSource, ich, ioh, IncludeBlackInHighColor, DitherHighColor, ColorDistanceEvaluationMode);
+            lTM.Add(oTileManagerL1);    
+            lTM.Add(oTileManagerH1);
+            //if (ColorDistanceEvaluationMode != ColorDistanceEvaluationMode.RGBalt)
+            //{
+            //    TileManager oTileManagerL2 = CreateTiles(oDataSource, icl, iol, true, true, ColorDistanceEvaluationMode.RGBalt);
+            //    TileManager oTileManagerH2 = CreateTiles(oDataSource, ich, ioh, IncludeBlackInHighColor, DitherHighColor, ColorDistanceEvaluationMode.RGBalt);
+            //    lTM.Add(oTileManagerL2);
+            //    lTM.Add(oTileManagerH2);
+            //}
 
-            var oTmpDataLo = CreateImage(oDataSource, icl,iol, true, true);
-            TileManager oTileManagerL = new TileManager();
-            oTileManagerL.Create(oTmpDataLo, 8, 8, 2, null, TileBase.EnumColorReductionMode.Detailed);
-            var oRetL = oTileManagerL.TransformAndDither(oTmpDataLo);
-            var oTmpDataHi = CreateImage(oDataSource, ich, ioh, false, true);
-            TileManager oTileManagerH = new TileManager();
-            oTileManagerH.Create(oTmpDataHi, 8, 8, 2, null, TileBase.EnumColorReductionMode.Detailed);
-            var oRetH = oTileManagerH.TransformAndDither(oTmpDataHi);
-            oTileManagerL.CalcExternalImageError(oTmpData);
-            oTileManagerH.CalcExternalImageError(oTmpData);
-
-            int R = oDataSource.GetLength(0);
-            int C = oDataSource.GetLength(1);
-            var oRet = new int[R, C];
-
-            int RT = oTileManagerL.TileData.GetLength(0);
-            int CT = oTileManagerL.TileData.GetLength(1);
-
-            for (int r = 0; r < RT; r++)
-            {
-                for( int c = 0; c < CT; c++)
-                {
-                    TileBase.MergeData(oRet, oTileManagerL.TileData[r, c], oTileManagerH.TileData[r, c], TileBase.EnumErrorSourceMode.ExternalImageError);
-                }
-            }
+            var oTileRet = TileManager.MergeData(oDataSource, lTM, TileBase.EnumErrorSourceMode.ExternalImageError);
           
             colorTransformationMap.Reset();
             foreach (var rgb in oZxMapLO.rgbTransformationMap)
@@ -168,8 +170,13 @@ namespace ColourClashNet.Colors.Transformation
                 colorTransformationMap.Add(rgb.Key, rgb.Value);
             }
 
-            var oZxRet = ExecuteStdTransform(oRet, this);
-            return oZxRet;
+            var oRet = ExecuteStdTransform(oTileRet, this);
+            return oRet;
+        }
+
+        private object CreateZxMap(int ich, int ioh, object includeBlackInHighColor)
+        {
+            throw new NotImplementedException();
         }
     }
 }

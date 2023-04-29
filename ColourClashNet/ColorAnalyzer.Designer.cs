@@ -83,6 +83,8 @@
             cbC64VideoMode = new ComboBox();
             btnReduceColorsC64v1 = new Button();
             panZX = new Panel();
+            chkZxDitherHI = new CheckBox();
+            chkZxBlackHI = new CheckBox();
             nudZxColorHI = new NumericUpDown();
             nudZxColorLO = new NumericUpDown();
             label1 = new Label();
@@ -100,6 +102,10 @@
             nudSat = new NumericUpDown();
             lblSat = new Label();
             btnChromaAdapt = new Button();
+            panel1 = new Panel();
+            label8 = new Label();
+            cbAmigaVideoMode = new ComboBox();
+            btnReduceAmiga = new Button();
             scLayout = new SplitContainer();
             pictureBoxSrc = new PictureBox();
             pictureBoxProc = new PictureBox();
@@ -138,6 +144,7 @@
             ((System.ComponentModel.ISupportInitialize)nudHue).BeginInit();
             ((System.ComponentModel.ISupportInitialize)nudBright).BeginInit();
             ((System.ComponentModel.ISupportInitialize)nudSat).BeginInit();
+            panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)scLayout).BeginInit();
             scLayout.Panel1.SuspendLayout();
             scLayout.Panel2.SuspendLayout();
@@ -312,7 +319,7 @@
             tableLayoutPanel1.Location = new Point(0, 0);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 2;
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 603F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 683F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
@@ -325,9 +332,9 @@
             // propertyGrid1
             // 
             propertyGrid1.Dock = DockStyle.Fill;
-            propertyGrid1.Location = new Point(3, 606);
+            propertyGrid1.Location = new Point(3, 686);
             propertyGrid1.Name = "propertyGrid1";
-            propertyGrid1.Size = new Size(362, 182);
+            propertyGrid1.Size = new Size(362, 102);
             propertyGrid1.TabIndex = 0;
             // 
             // tableLayoutPanel2
@@ -344,11 +351,12 @@
             tableLayoutPanel2.Controls.Add(panC64, 0, 7);
             tableLayoutPanel2.Controls.Add(panZX, 0, 8);
             tableLayoutPanel2.Controls.Add(panCPC, 0, 9);
-            tableLayoutPanel2.Controls.Add(panel10, 0, 10);
+            tableLayoutPanel2.Controls.Add(panel1, 0, 10);
+            tableLayoutPanel2.Controls.Add(panel10, 0, 11);
             tableLayoutPanel2.Dock = DockStyle.Fill;
             tableLayoutPanel2.Location = new Point(3, 3);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
-            tableLayoutPanel2.RowCount = 11;
+            tableLayoutPanel2.RowCount = 13;
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
@@ -359,10 +367,10 @@
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel2.Size = new Size(362, 597);
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 54F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tableLayoutPanel2.Size = new Size(362, 677);
             tableLayoutPanel2.TabIndex = 8;
             // 
             // panel2
@@ -650,9 +658,9 @@
             // 
             cbC64VideoMode.DropDownStyle = ComboBoxStyle.DropDownList;
             cbC64VideoMode.FormattingEnabled = true;
-            cbC64VideoMode.Location = new Point(230, 14);
+            cbC64VideoMode.Location = new Point(250, 14);
             cbC64VideoMode.Name = "cbC64VideoMode";
-            cbC64VideoMode.Size = new Size(121, 23);
+            cbC64VideoMode.Size = new Size(101, 23);
             cbC64VideoMode.TabIndex = 19;
             // 
             // btnReduceColorsC64v1
@@ -667,6 +675,8 @@
             // 
             // panZX
             // 
+            panZX.Controls.Add(chkZxDitherHI);
+            panZX.Controls.Add(chkZxBlackHI);
             panZX.Controls.Add(nudZxColorHI);
             panZX.Controls.Add(nudZxColorLO);
             panZX.Controls.Add(label1);
@@ -679,9 +689,33 @@
             panZX.Size = new Size(362, 54);
             panZX.TabIndex = 27;
             // 
+            // chkZxDitherHI
+            // 
+            chkZxDitherHI.AutoSize = true;
+            chkZxDitherHI.Checked = true;
+            chkZxDitherHI.CheckState = CheckState.Checked;
+            chkZxDitherHI.Location = new Point(250, 31);
+            chkZxDitherHI.Name = "chkZxDitherHI";
+            chkZxDitherHI.Size = new Size(109, 19);
+            chkZxDitherHI.TabIndex = 21;
+            chkZxDitherHI.Text = "Dither Image HI";
+            chkZxDitherHI.UseVisualStyleBackColor = true;
+            // 
+            // chkZxBlackHI
+            // 
+            chkZxBlackHI.AutoSize = true;
+            chkZxBlackHI.Checked = true;
+            chkZxBlackHI.CheckState = CheckState.Checked;
+            chkZxBlackHI.Location = new Point(250, 5);
+            chkZxBlackHI.Name = "chkZxBlackHI";
+            chkZxBlackHI.Size = new Size(94, 19);
+            chkZxBlackHI.TabIndex = 20;
+            chkZxBlackHI.Text = "Use Black HI ";
+            chkZxBlackHI.UseVisualStyleBackColor = true;
+            // 
             // nudZxColorHI
             // 
-            nudZxColorHI.Location = new Point(301, 5);
+            nudZxColorHI.Location = new Point(194, 29);
             nudZxColorHI.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
             nudZxColorHI.Name = "nudZxColorHI";
             nudZxColorHI.Size = new Size(50, 23);
@@ -690,17 +724,17 @@
             // 
             // nudZxColorLO
             // 
-            nudZxColorLO.Location = new Point(195, 5);
+            nudZxColorLO.Location = new Point(195, 3);
             nudZxColorLO.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
             nudZxColorLO.Name = "nudZxColorLO";
-            nudZxColorLO.Size = new Size(46, 23);
+            nudZxColorLO.Size = new Size(49, 23);
             nudZxColorLO.TabIndex = 16;
-            nudZxColorLO.Value = new decimal(new int[] { 200, 0, 0, 0 });
+            nudZxColorLO.Value = new decimal(new int[] { 190, 0, 0, 0 });
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(138, 7);
+            label1.Location = new Point(138, 5);
             label1.Name = "label1";
             label1.Size = new Size(51, 15);
             label1.TabIndex = 18;
@@ -709,7 +743,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(247, 7);
+            label4.Location = new Point(140, 31);
             label4.Name = "label4";
             label4.Size = new Size(48, 15);
             label4.TabIndex = 19;
@@ -749,9 +783,9 @@
             // 
             cbCpcVideoMode.DropDownStyle = ComboBoxStyle.DropDownList;
             cbCpcVideoMode.FormattingEnabled = true;
-            cbCpcVideoMode.Location = new Point(230, 14);
+            cbCpcVideoMode.Location = new Point(250, 14);
             cbCpcVideoMode.Name = "cbCpcVideoMode";
-            cbCpcVideoMode.Size = new Size(121, 23);
+            cbCpcVideoMode.Size = new Size(101, 23);
             cbCpcVideoMode.TabIndex = 19;
             // 
             // btnReduceColorCPC
@@ -774,16 +808,16 @@
             panel10.Controls.Add(lblSat);
             panel10.Controls.Add(btnChromaAdapt);
             panel10.Dock = DockStyle.Fill;
-            panel10.Location = new Point(0, 540);
+            panel10.Location = new Point(0, 594);
             panel10.Margin = new Padding(0);
             panel10.Name = "panel10";
-            panel10.Size = new Size(362, 57);
+            panel10.Size = new Size(362, 54);
             panel10.TabIndex = 28;
             // 
             // lblHue
             // 
             lblHue.AutoSize = true;
-            lblHue.Location = new Point(286, 9);
+            lblHue.Location = new Point(287, 8);
             lblHue.Name = "lblHue";
             lblHue.Size = new Size(29, 15);
             lblHue.TabIndex = 22;
@@ -792,7 +826,7 @@
             // nudHue
             // 
             nudHue.Increment = new decimal(new int[] { 30, 0, 0, 0 });
-            nudHue.Location = new Point(286, 31);
+            nudHue.Location = new Point(286, 29);
             nudHue.Maximum = new decimal(new int[] { 360, 0, 0, 0 });
             nudHue.Name = "nudHue";
             nudHue.Size = new Size(65, 23);
@@ -802,7 +836,7 @@
             // 
             nudBright.DecimalPlaces = 2;
             nudBright.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
-            nudBright.Location = new Point(205, 31);
+            nudBright.Location = new Point(205, 30);
             nudBright.Name = "nudBright";
             nudBright.Size = new Size(65, 23);
             nudBright.TabIndex = 20;
@@ -811,7 +845,7 @@
             // lblBright
             // 
             lblBright.AutoSize = true;
-            lblBright.Location = new Point(138, 33);
+            lblBright.Location = new Point(138, 32);
             lblBright.Name = "lblBright";
             lblBright.Size = new Size(62, 15);
             lblBright.TabIndex = 19;
@@ -821,7 +855,7 @@
             // 
             nudSat.DecimalPlaces = 2;
             nudSat.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
-            nudSat.Location = new Point(205, 7);
+            nudSat.Location = new Point(205, 5);
             nudSat.Name = "nudSat";
             nudSat.Size = new Size(65, 23);
             nudSat.TabIndex = 16;
@@ -830,7 +864,7 @@
             // lblSat
             // 
             lblSat.AutoSize = true;
-            lblSat.Location = new Point(138, 9);
+            lblSat.Location = new Point(138, 7);
             lblSat.Name = "lblSat";
             lblSat.Size = new Size(61, 15);
             lblSat.TabIndex = 18;
@@ -845,6 +879,45 @@
             btnChromaAdapt.Text = "Chroma Adapter";
             btnChromaAdapt.UseVisualStyleBackColor = true;
             btnChromaAdapt.Click += btnChromaAdapt_Click;
+            // 
+            // panel1
+            // 
+            panel1.Controls.Add(label8);
+            panel1.Controls.Add(cbAmigaVideoMode);
+            panel1.Controls.Add(btnReduceAmiga);
+            panel1.Dock = DockStyle.Fill;
+            panel1.Location = new Point(0, 540);
+            panel1.Margin = new Padding(0);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(362, 54);
+            panel1.TabIndex = 37;
+            // 
+            // label8
+            // 
+            label8.Location = new Point(138, 17);
+            label8.Name = "label8";
+            label8.Size = new Size(83, 21);
+            label8.TabIndex = 23;
+            label8.Text = "Video Mode";
+            // 
+            // cbAmigaVideoMode
+            // 
+            cbAmigaVideoMode.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbAmigaVideoMode.FormattingEnabled = true;
+            cbAmigaVideoMode.Location = new Point(250, 14);
+            cbAmigaVideoMode.Name = "cbAmigaVideoMode";
+            cbAmigaVideoMode.Size = new Size(101, 23);
+            cbAmigaVideoMode.TabIndex = 19;
+            // 
+            // btnReduceAmiga
+            // 
+            btnReduceAmiga.Location = new Point(3, 0);
+            btnReduceAmiga.Name = "btnReduceAmiga";
+            btnReduceAmiga.Size = new Size(129, 48);
+            btnReduceAmiga.TabIndex = 18;
+            btnReduceAmiga.Text = "To Amiga";
+            btnReduceAmiga.UseVisualStyleBackColor = true;
+            btnReduceAmiga.Click += btnReduceHam_Click;
             // 
             // scLayout
             // 
@@ -931,6 +1004,7 @@
             // 
             // oColorTransformer
             // 
+            oColorTransformer.AmigaVideoMode = Colors.Transformation.ColorTransformReductionAmiga.EnumVideoMode.Ham6;
             oColorTransformer.BackgroundColorList = (List<int>)resources.GetObject("oColorTransformer.BackgroundColorList");
             oColorTransformer.BackgroundColorReplacement = 0;
             oColorTransformer.BrightnessEnhancement = 1D;
@@ -947,8 +1021,10 @@
             oColorTransformer.HueOffset = 0D;
             oColorTransformer.SaturationEnhancement = 1.5D;
             oColorTransformer.ScanlineClustering = true;
+            oColorTransformer.ZxEqBlackHI = true;
             oColorTransformer.ZxEqColorHI = 255;
             oColorTransformer.ZxEqColorLO = 128;
+            oColorTransformer.ZxEqDitherHI = true;
             oColorTransformer.OnReset += oColorTransformer_OnReset;
             oColorTransformer.OnCreate += oColorTransformer_OnCreate;
             oColorTransformer.OnQuantize += oColorTransformer_OnQuantize;
@@ -997,6 +1073,7 @@
             ((System.ComponentModel.ISupportInitialize)nudHue).EndInit();
             ((System.ComponentModel.ISupportInitialize)nudBright).EndInit();
             ((System.ComponentModel.ISupportInitialize)nudSat).EndInit();
+            panel1.ResumeLayout(false);
             scLayout.Panel1.ResumeLayout(false);
             scLayout.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)scLayout).EndInit();
@@ -1089,5 +1166,11 @@
         private Label lblSat;
         private Button btnChromaAdapt;
         private Label lblHue;
+        private CheckBox chkZxDitherHI;
+        private CheckBox chkZxBlackHI;
+        private Panel panel1;
+        private Label label8;
+        private ComboBox cbAmigaVideoMode;
+        private Button btnReduceAmiga;
     }
 }

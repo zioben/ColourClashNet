@@ -162,7 +162,7 @@ namespace ColourClashNet.Colors
                         int R = i.ToR() - j.ToR();
                         int G = i.ToG() - j.ToG();
                         int B = i.ToB() - j.ToB();
-                        return R * R + G * G + B * B + (R - G) * (R - G) + (R - B) * (R - B) + (G - B) * (G - B);
+                        return (R * R + G * G + B * B + (R - G) * (R - G) + (R - B) * (R - B) + (G - B) * (G - B));
                     }
                 case ColorDistanceEvaluationMode.HSV:
                     {
@@ -170,16 +170,6 @@ namespace ColourClashNet.Colors
                         var S = i.ToS() - j.ToS();
                         var V = i.ToV() - j.ToV();
                         return H * H + S * S + V * V;
-                    }
-                case ColorDistanceEvaluationMode.All:
-                    {
-                        int R = i.ToR() - j.ToR();
-                        int G = i.ToG() - j.ToG();
-                        int B = i.ToB() - j.ToB();
-                        var H = (DistanceH(i.ToH(), j.ToH())) / 360f * 255f;
-                        var S = (i.ToS() - j.ToS()) / 100f * 255f;
-                        var V = (i.ToV() - j.ToV()) / 100f * 255f;
-                        return R * R + G * G + B * B + H * H + S * S + V * V;
                     }
                 default:
                     return double.PositiveInfinity;

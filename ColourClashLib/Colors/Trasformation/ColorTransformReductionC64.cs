@@ -30,22 +30,22 @@ namespace ColourClashNet.Colors.Transformation
         }
         protected override void CreateTrasformationMap()
         {
-            oPalette = new ColorPalette(); 
-            oPalette.Add(0x00000000);
-            oPalette.Add(0x00FFFFFF);
-            oPalette.Add(0x00894036);
-            oPalette.Add(0x007ABFC7);
-            oPalette.Add(0x008A46AE);
-            oPalette.Add(0x0068A941);
-            oPalette.Add(0x003E31A2);
-            oPalette.Add(0x00D0DC71);
-            oPalette.Add(0x00905F25);
-            oPalette.Add(0x005C4700);
-            oPalette.Add(0x00BB776D);
-            oPalette.Add(0x00555555);
-            oPalette.Add(0x00808080);
-            oPalette.Add(0x00ACEA88);
-            oPalette.Add(0x00ABABAB);       
+            colorPalette = new ColorPalette(); 
+            colorPalette.Add(0x00000000);
+            colorPalette.Add(0x00FFFFFF);
+            colorPalette.Add(0x00894036);
+            colorPalette.Add(0x007ABFC7);
+            colorPalette.Add(0x008A46AE);
+            colorPalette.Add(0x0068A941);
+            colorPalette.Add(0x003E31A2);
+            colorPalette.Add(0x00D0DC71);
+            colorPalette.Add(0x00905F25);
+            colorPalette.Add(0x005C4700);
+            colorPalette.Add(0x00BB776D);
+            colorPalette.Add(0x00555555);
+            colorPalette.Add(0x00808080);
+            colorPalette.Add(0x00ACEA88);
+            colorPalette.Add(0x00ABABAB);       
         }
 
 
@@ -61,7 +61,7 @@ namespace ColourClashNet.Colors.Transformation
             var oTmpData = base.ExecuteTransform(oTmp);
             if (dithering != null)
             {
-                oTmpData = dithering.Dither(oTmp, oTmpData, oPalette, ColorDistanceEvaluationMode);
+                oTmpData = dithering.Dither(oTmp, oTmpData, colorPalette, ColorDistanceEvaluationMode);
             }
             BypassDithering = true;
             return oTmpData;
@@ -71,7 +71,7 @@ namespace ColourClashNet.Colors.Transformation
         {
             var oTmpData = PreProcess(oTmpDataSource, false);
             TileManager oManager = new TileManager();
-            oManager.Create(oTmpData, 8, 8, 2, null, TileBase.EnumColorReductionMode.Detailed);
+            oManager.Init(oTmpData, 8, 8, 2, null, ColorDistanceEvaluationMode, TileBase.EnumColorReductionMode.Detailed);
             var oRet = oManager.TransformAndDither(oTmpData);
             BypassDithering = true;
             return oRet;
@@ -100,7 +100,7 @@ namespace ColourClashNet.Colors.Transformation
                         var cg = (a.ToG() + b.ToG()) / 2;
                         var cb = (a.ToB() + b.ToB()) / 2;
                         var col = ColorIntExt.FromRGB(cr, cg, cb);
-                        var res = ColorIntExt.GetNearestColor(col, oPalette, ColorDistanceEvaluationMode);
+                        var res = ColorIntExt.GetNearestColor(col, colorPalette, ColorDistanceEvaluationMode);
                         if (ColorIntExt.Distance(res, a, ColorDistanceEvaluationMode) < ColorIntExt.Distance(res, b, ColorDistanceEvaluationMode))
                         {
                             oRet[r, c] = a;
@@ -129,7 +129,7 @@ namespace ColourClashNet.Colors.Transformation
             oFixedColor.Add(oBGK);
             TileManager oManager = new TileManager();
 
-            oManager.Create(oTmpData, 4, 8, 4, oFixedColor, TileBase.EnumColorReductionMode.Detailed);
+            oManager.Init(oTmpData, 4, 8, 4, oFixedColor, ColorDistanceEvaluationMode, TileBase.EnumColorReductionMode.Detailed);
             var oTmpHalfProc = oManager.TransformAndDither(oTmpData);
             var oRet = DoubleHorizontalRes(oTmpHalfProc);
             return oRet;
@@ -145,7 +145,7 @@ namespace ColourClashNet.Colors.Transformation
             var oFixedColor = new ColorPalette();
             oFixedColor.Add(oBGK);
             TileManager oManager = new TileManager();
-            oManager.Create(oTmpData, 4, 1, 4, oFixedColor, TileBase.EnumColorReductionMode.Detailed);
+            oManager.Init(oTmpData, 4, 1, 4, oFixedColor, ColorDistanceEvaluationMode, TileBase.EnumColorReductionMode.Detailed);
             var oTmpHalfProc = oManager.TransformAndDither(oTmpData);
             var oRet = DoubleHorizontalRes(oTmpHalfProc);
             return oRet;
