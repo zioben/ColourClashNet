@@ -71,7 +71,7 @@ namespace ColourClashNet.Colors.Transformation
             return iRGBOut;
         }
 
-        public int QuantizeColor(int iRGB)
+        public int QuantizeColor1(int iRGB)
         {
             if (iRGB < 0)
                 return iRGB;
@@ -93,6 +93,199 @@ namespace ColourClashNet.Colors.Transformation
                     return iRGB & 0x00F8FCF8;
                 case ColorQuantizationMode.RGB666:
                     return iRGB & 0x00FCFCFC;
+                default:
+                    return -1;
+            }
+        }
+
+        public int QuantizeColor2(int iRGB)
+        {
+            if (iRGB < 0)
+                return iRGB;
+            switch (QuantizationMode)
+            {
+                case ColorQuantizationMode.RGB888:
+                    return iRGB;
+                case ColorQuantizationMode.RGB111:
+                    {
+                        int r = iRGB.ToR() > 127 ? 0xFF : 0;
+                        int g = iRGB.ToG() > 127 ? 0xFF : 0;
+                        int b = iRGB.ToB() > 127 ? 0xFF : 0;
+                        return ColorIntExt.FromRGB(r, g, b);
+                    }
+                case ColorQuantizationMode.RGB222:
+                    {
+                        // 1100.0000
+                        // 1122.0000
+                        // 1122.3333
+                        int r = iRGB.ToR() & 0xC0;
+                        int g = iRGB.ToG() & 0xC0;
+                        int b = iRGB.ToB() & 0xC0;
+                        r |= r >> 2;
+                        r |= r >> 4;
+                        g |= g >> 2;
+                        g |= g >> 4;
+                        b |= b >> 2;
+                        b |= b >> 4;
+                        return ColorIntExt.FromRGB(r, g, b);
+                        //int rgb = iRGB & 0x00C0C0C0;
+                        //rgb |= rgb >> 2;
+                        //rgb |= rgb >> 4;
+                        //return rgb;
+                    }
+                case ColorQuantizationMode.RGB333:
+                    {
+                        // R         G         B
+                        // 1110.0000 1110.0000 ....
+                        // 1112.2200 1112.2200 ....
+                        // 1112.2223.3312.2233 <- need mask to preserve G color channel
+                        //           ^^
+                        int r = iRGB.ToR() & 0xE0;
+                        int g = iRGB.ToG() & 0xE0;
+                        int b = iRGB.ToB() & 0xE0;
+                        r |= r >> 3;
+                        r |= r >> 6;
+                        g |= g >> 3;
+                        g |= g >> 6;
+                        b |= b >> 3;
+                        b |= b >> 6;
+                        return ColorIntExt.FromRGB(r, g, b);
+                        //int rgb = iRGB & 0x00E0E0E0;
+                        //rgb |= rgb >> 3;
+                        //rgb |= ((rgb >> 6) & 0x00010101);
+                        //return rgb;
+                    }
+                case ColorQuantizationMode.RGB444:
+                    {
+                        // 1111.0000
+                        // 1111.2222
+                        int r = iRGB.ToR() & 0xF0;
+                        int g = iRGB.ToG() & 0xF0;
+                        int b = iRGB.ToB() & 0xF0;
+                        r |= r >> 4;
+                        g |= g >> 4;
+                        b |= b >> 4;
+                        return ColorIntExt.FromRGB(r, g, b);
+                        //int rgb = iRGB & 0x00F0F0F0;
+                        //rgb |= rgb >> 4;
+                        //return rgb;
+                    }
+                case ColorQuantizationMode.RGB555:
+                    {
+                        // 1111.1000
+                        // 1111.1222.22 <- need mask to preserve G color channel
+                        int r = iRGB.ToR() & 0xF8;
+                        int g = iRGB.ToG() & 0xF8;
+                        int b = iRGB.ToB() & 0xF8;
+                        r |= r >> 5;
+                        g |= g >> 5;
+                        b |= b >> 5;
+                        return ColorIntExt.FromRGB(r, g, b);
+                        //int rgb = iRGB & 0x00F8F8F8;
+                        //rgb |= ((rgb >> 5) & 0x00070707);
+                        //return rgb;
+                    }
+                case ColorQuantizationMode.RGB565:
+                    {
+                        int r = iRGB.ToR() & 0xF8;
+                        int g = iRGB.ToG() & 0xFC;
+                        int b = iRGB.ToB() & 0xF8;
+                        r |= r >> 5;
+                        g |= g >> 6;
+                        b |= b >> 5;
+                        return ColorIntExt.FromRGB(r, g, b);
+                    }
+                case ColorQuantizationMode.RGB666:
+                    {
+                        // 1111.1100
+                        // 1111.1122.2222 <- need mask to preserve G color channel
+                        int r = iRGB.ToR() & 0xFC;
+                        int g = iRGB.ToG() & 0xFC;
+                        int b = iRGB.ToB() & 0xFC;
+                        r |= r >> 6;
+                        g |= g >> 6;
+                        b |= b >> 6;
+                        return ColorIntExt.FromRGB(r, g, b);
+                        //int rgb = iRGB & 0x00FCFCFC;
+                        //rgb |= ((rgb >> 6) & 0x00030303);
+                        //return rgb;
+                    }
+                default:
+                    return -1;
+            }
+        }
+
+        public int QuantizeColor(int iRGB)
+        {
+            if (iRGB < 0)
+                return iRGB;
+            switch (QuantizationMode)
+            {
+                case ColorQuantizationMode.RGB888:
+                    return iRGB;
+                case ColorQuantizationMode.RGB111:
+                    {
+                        int r = iRGB.ToR() > 127 ? 0xFF : 0;
+                        int g = iRGB.ToG() > 127 ? 0xFF : 0;
+                        int b = iRGB.ToB() > 127 ? 0xFF : 0;
+                        return ColorIntExt.FromRGB(r,g,b);
+                    }
+                case ColorQuantizationMode.RGB222:
+                    {
+                        // 1100.0000
+                        // 1122.0000
+                        // 1122.3333
+                        int rgb = iRGB & 0x00C0C0C0;
+                        rgb |= rgb >> 2;
+                        rgb |= rgb >> 4;
+                        return rgb;
+                    }
+                case ColorQuantizationMode.RGB333:
+                    {
+                        // R         G         B
+                        // 1110.0000 1110.0000 ....
+                        // 1112.2200 1112.2200 ....
+                        // 1112.2223.3312.2233 <- need mask to preserve G color channel
+                        //           ^^                      
+                        int rgb = iRGB & 0x00E0E0E0;
+                        rgb |= rgb >> 3;
+                        rgb |= ((rgb >> 6) & 0x00010101);
+                        return rgb;
+                    }
+                case ColorQuantizationMode.RGB444:
+                    {
+                        // 1111.0000
+                        // 1111.2222                      
+                        int rgb = iRGB & 0x00F0F0F0;
+                        rgb |= rgb >> 4;
+                        return rgb;
+                    }
+                case ColorQuantizationMode.RGB555:
+                    {
+                        // 1111.1000
+                        // 1111.1222.22 <- need mask to preserve G color channel                      
+                        int rgb = iRGB & 0x00F8F8F8;
+                        rgb |= ((rgb >> 5) & 0x00070707);
+                        return rgb;
+                    }
+                case ColorQuantizationMode.RGB565:
+                    {
+                        int r = iRGB.ToR() & 0xF8;
+                        int g = iRGB.ToG() & 0xFC;
+                        int b = iRGB.ToB() & 0xF8;
+                        r |= r >> 5;
+                        g |= g >> 6;
+                        b |= b >> 5;
+                        return ColorIntExt.FromRGB(r, g, b);
+                    }
+                case ColorQuantizationMode.RGB666:
+                    {
+                        // 1111.1100
+                        // 1111.1122.2222 <- need mask to preserve G color channel
+                        int rgb = iRGB & 0x00FCFCFC;
+                        rgb |= ((rgb >> 6) & 0x00030303);
+                        return rgb;
+                    }
                 default:
                     return -1;
             }
