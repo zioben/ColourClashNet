@@ -29,9 +29,9 @@ namespace ColourClashNet
             oColorTransformer.DitheringAlgorithm = ColorDithering.FloydSteinberg;
             pbBkColor.BackColor = Color.Transparent;
             InitMenu();
-            CreateComboBox(cbC64VideoMode, Enum.GetNames(typeof(ColorTransformReductionC64.C64ScreenMode)).ToList());
-            CreateComboBox(cbCpcVideoMode, Enum.GetNames(typeof(ColorTransformReductionCPC.CPCScreenMode)).ToList());
-            CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformReductionAmiga.EnumVideoMode)).ToList());
+            CreateComboBox(cbC64VideoMode, Enum.GetNames(typeof(ColorTransformReductionC64.C64VideoMode)).ToList());
+            CreateComboBox(cbCpcVideoMode, Enum.GetNames(typeof(ColorTransformReductionCPC.CPCVideoMode)).ToList());
+            CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformReductionAmiga.EnumAMigaVideoMode)).ToList());
         }
 
 
@@ -221,30 +221,30 @@ namespace ColourClashNet
             oColorTransformer.SaturationEnhancement = (double)nudSat.Value;
             oColorTransformer.BrightnessEnhancement = (double)nudBright.Value;
             oColorTransformer.HueOffset = (double)nudHue.Value;
-            oColorTransformer.C64ScreenMode = (ColorTransformReductionC64.C64ScreenMode)Enum.Parse(typeof(ColorTransformReductionC64.C64ScreenMode), cbC64VideoMode.SelectedItem.ToString());
-            oColorTransformer.CPCScreenMode = (ColorTransformReductionCPC.CPCScreenMode)Enum.Parse(typeof(ColorTransformReductionCPC.CPCScreenMode), cbCpcVideoMode.SelectedItem.ToString());
+            oColorTransformer.C64ScreenMode = (ColorTransformReductionC64.C64VideoMode)Enum.Parse(typeof(ColorTransformReductionC64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString());
+            oColorTransformer.CPCScreenMode = (ColorTransformReductionCPC.CPCVideoMode)Enum.Parse(typeof(ColorTransformReductionCPC.CPCVideoMode), cbCpcVideoMode.SelectedItem.ToString());
             oColorTransformer.ZxEqColorLO = (int)nudZxColorLO.Value;
             oColorTransformer.ZxEqColorHI = (int)nudZxColorHI.Value;
             oColorTransformer.ZxEqBlackHI = chkZxBlackHI.Checked;
             oColorTransformer.ZxEqDitherHI = chkZxDitherHI.Checked;
-            oColorTransformer.AmigaVideoMode = (ColorTransformReductionAmiga.EnumVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumVideoMode), cbAmigaVideoMode.SelectedItem.ToString());
+            oColorTransformer.AmigaVideoMode = (ColorTransformReductionAmiga.EnumAMigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAMigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString());
         }
 
         private void btnReduceColors_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransform.ColorReductionMedianCut);
+            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionMedianCut);
         }
         private void btnReduceColorsScanline_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransform.ColorReductionScanline);
+            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionScanline);
         }
 
         private void btnReduceColorCluster_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransform.ColorReductionClustering);
+            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionClustering);
         }
 
         private void pbBkColor_DoubleClick(object sender, EventArgs e)
@@ -322,38 +322,38 @@ namespace ColourClashNet
         private void btnReduceColorsZx_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransform.ColorReductionZxSpectrum);
+            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionZxSpectrum);
         }
 
 
         private void btnReduceColorsEga_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransform.ColorReductionEga);
+            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionEga);
         }
 
         private void BtnReduceColorsC64v1_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransform.ColorReductionCBM64);
+            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionCBM64);
         }
 
         private void btnReduceColorCPC_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransform.ColorReductionCPC);
+            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionCPC);
         }
 
         private void btnChromaAdapt_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransform.ColorReductionSaturation);
+            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionSaturation);
         }
 
         private void btnReduceHam_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransform.ColorReductionHam);
+            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionHam);
         }
 
         bool bDitherStrenghtUpdating = false;

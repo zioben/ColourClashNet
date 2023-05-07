@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ColourClashNet.Colors.Transformation.ColorTransformReductionZxSpectrum;
 
 namespace ColourClashNet.Colors.Transformation
 {
@@ -11,15 +12,49 @@ namespace ColourClashNet.Colors.Transformation
     {
         public ColorTransformReductionScanLine()
         {
-            type = ColorTransform.ColorReductionScanline;
-            description = "Raster line color reduction";
+            Name = ColorTransformType.ColorReductionScanline;
+            Description = "Raster line color reduction";
         }
-        public int ColorsMax { get; set; } = -1;
+        public int ColorsMaxWanted { get; set; } = -1;
 
         public bool Clustering { get; set; }
-        public bool ClusteringUseMean { get; set; }
+        public bool ClusteringUseColorMean { get; set; }
 
         public List<List<int>> ColorListRow { get; private set; } = new List<List<int>>();
+
+        public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
+        {
+            if (base.SetProperty(eProperty, oValue) != null)
+                return this;
+            switch (eProperty)
+            {
+                case ColorTransformProperties.MaxColorsWanted:
+                    if (int.TryParse(oValue.ToString(), out var l))
+                    {
+                        ColorsMaxWanted = l;
+                        return this;
+                    }
+                    break;
+                case ColorTransformProperties.ScanlineUseClustering:
+                    if (bool.TryParse(oValue.ToString(), out var cl))
+                    {
+                        Clustering = cl;
+                        return this;
+                    }
+                    break;
+                case ColorTransformProperties.UseColorMean:
+                    if (bool.TryParse(oValue?.ToString(), out var cm))
+                    {
+                        ClusteringUseColorMean = cm;
+                        return this;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return null;
+        }
+
 
         protected override void CreateTrasformationMap()
         {
@@ -42,15 +77,15 @@ namespace ColourClashNet.Colors.Transformation
             if (Clustering)
             {
                 var oTrasf2 = new ColorTransformReductionCluster();
-                oTrasf2.ColorsMax = ColorsMax;
-                oTrasf2.UseClusterColorMean = ClusteringUseMean;
+                oTrasf2.ColorsMaxWanted = ColorsMaxWanted;
+                oTrasf2.UseClusterColorMean = ClusteringUseColorMean;
                 oTrasf2.TrainingLoop = 30;
                 oTrasf = oTrasf2;
             }
             else
             {
                 var oTrasf2 = new ColorTransformReductionFast();
-                oTrasf2.ColorsMax = ColorsMax;
+                oTrasf2.ColorsMaxWanted = ColorsMaxWanted;
                 oTrasf = oTrasf2;
             }
 
@@ -81,7 +116,7 @@ namespace ColourClashNet.Colors.Transformation
                 }
 
                 oRowColors.Clear();
-                foreach (var kvp in oTrasf.colorTransformationMap.rgbTransformationMap)
+                foreach (var kvp in oTrasf.ColorTransformationMapper.rgbTransformationMap)
                 {
                     oRowColors.Add(kvp.Value);
                 }

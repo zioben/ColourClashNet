@@ -14,12 +14,40 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformReductionMedianCut()
         {
-            type = ColorTransform.ColorReductionMedianCut;
-            description = "Median partition color reduction";
+            Name = ColorTransformType.ColorReductionMedianCut;
+            Description = "Median partition color reduction";
         }
 
-        public int ColorsMax { get; set; } = -1;
-        public bool UseClusterColorMean { get; set; } = true;
+        public int ColorsMaxWanted { get; set; } = -1;
+        public bool UseColorMean { get; set; } = true;
+
+        public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
+        {
+            if (base.SetProperty(eProperty, oValue) != null)
+                return this;
+            switch (eProperty)
+            {
+                case ColorTransformProperties.MaxColorsWanted:
+                    if (int.TryParse(oValue.ToString(), out var l))
+                    {
+                        ColorsMaxWanted = l;
+                        return this;
+                    }
+                    break;
+               
+                case ColorTransformProperties.UseColorMean:
+                    if (bool.TryParse(oValue?.ToString(), out var cm))
+                    {
+                        UseColorMean = cm;
+                        return this;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return null;
+        }
+
 
         int GetMedian(List<int> lList)
         {
@@ -110,9 +138,9 @@ namespace ColourClashNet.Colors.Transformation
                 var iRGB = ColorIntExt.GetColorMean(oPalette, ColorMeanMode.UseColorPalette);
                 foreach (var rgb in oPalette.rgbPalette)
                 {
-                    if (!colorTransformationMap.rgbTransformationMap.ContainsKey(rgb))
+                    if (!ColorTransformationMapper.rgbTransformationMap.ContainsKey(rgb))
                     {
-                        colorTransformationMap.Add(rgb, iRGB);
+                        ColorTransformationMapper.Add(rgb, iRGB);
                     }
                 }
             }
@@ -120,17 +148,17 @@ namespace ColourClashNet.Colors.Transformation
 
         protected override void CreateTrasformationMap()
         {
-            if (colorHistogram.ToColorPalette().Colors < ColorsMax)
+            if (Histogram.ToColorPalette().Colors < ColorsMaxWanted)
             {
-                foreach (var kvp in colorHistogram.rgbHistogram)
+                foreach (var kvp in Histogram.rgbHistogram)
                 {
-                    colorTransformationMap.rgbTransformationMap[kvp.Key] = kvp.Key;
+                    ColorTransformationMapper.rgbTransformationMap[kvp.Key] = kvp.Key;
                 }
                 return;
             }
-            int iColorsMax = Math.Min(256, Math.Max(2, ColorsMax));
-            Partition(colorHistogram.ToColorPalette(), iColorsMax / 2);
-            colorPalette = colorTransformationMap.ToColorPalette();
+            int iColorsMax = Math.Min(256, Math.Max(2, ColorsMaxWanted));
+            Partition(Histogram.ToColorPalette(), iColorsMax / 2);
+            Palette = ColorTransformationMapper.ToColorPalette();
         }
 
 

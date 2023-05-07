@@ -16,8 +16,8 @@ namespace ColourClashNet.Colors.Transformation
     public abstract partial class ColorTransformBase : ColorTransformInterface
     {
         //---------------- Base description ---------------------------------
-        public ColorTransform type { get; protected init; }
-        public string description { get; protected set; } = "";
+        public ColorTransformType Name { get; protected init; }
+        public string Description { get; protected set; } = "";
 
         //---------------- Source properties --------------------------------------
         public ColorHistogram SourceColorHistogram { get; protected set; } = new ColorHistogram();
@@ -25,14 +25,14 @@ namespace ColourClashNet.Colors.Transformation
         protected int FixedColors => FixedColorPalette?.Colors ?? 0;
 
         //---------------- Transformation properties------------------------------
-        public ColorHistogram colorHistogram { get; protected set; } = new ColorHistogram();
-        public ColorPalette colorPalette { get; set; } = new ColorPalette();
-        public int colors => colorPalette?.Colors ?? 0;
-        public ColorTransformationMap colorTransformationMap { get; protected set; } = new  ColorTransformationMap();
+        public ColorHistogram Histogram { get; protected set; } = new ColorHistogram();
+        public ColorPalette Palette { get; set; } = new ColorPalette();
+        public int Colors => Palette?.Colors ?? 0;
+        public ColorTransformationMap ColorTransformationMapper { get; protected set; } = new  ColorTransformationMap();
 
         //---------------- Useful objects ------------------------------
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
-        public DitherInterface? dithering { get; set; } = null;
+        public DitherInterface? Dithering { get; set; } = null;
         protected bool BypassDithering { get; set; }
         protected abstract void CreateTrasformationMap();
 
@@ -43,58 +43,58 @@ namespace ColourClashNet.Colors.Transformation
 
         void Reset()
         {
-            colorPalette.Reset();
-            colorHistogram.Reset();
-            colorTransformationMap.Reset();
+            Palette.Reset();
+            Histogram.Reset();
+            ColorTransformationMapper.Reset();
         }
 
 
-        public bool Create(int[,]? oDataSource, ColorPalette? oFixedColorPalette )
+        public ColorTransformInterface? Create(int[,]? oDataSource, ColorPalette? oFixedColorPalette )
         {
             Reset();
             if (oDataSource == null)
             {
-                return false;
+                return null;
             }
             FixedColorPalette = oFixedColorPalette;
-            colorHistogram.Create(oDataSource);
-            colorPalette = colorHistogram.ToColorPalette();
+            Histogram.Create(oDataSource);
+            Palette = Histogram.ToColorPalette();
             CreateTrasformationMap();
-            return true;    
+            return this;    
         }
 
-        public bool Create(ColorHistogram oSourceColorHistogram, ColorPalette? oFixedColorPalette)
+        public ColorTransformInterface? Create(ColorHistogram oSourceColorHistogram, ColorPalette? oFixedColorPalette)
         {
             Reset();
             if (oSourceColorHistogram == null )
             {
-                return false;
+                return null;
             }
             FixedColorPalette = oFixedColorPalette ?? new ColorPalette();
             foreach (var kvp in oSourceColorHistogram.rgbHistogram)
             {
-                colorHistogram.rgbHistogram.Add(kvp.Key, kvp.Value);
+                Histogram.rgbHistogram.Add(kvp.Key, kvp.Value);
             }
-            colorPalette = colorHistogram.ToColorPalette();
+            Palette = Histogram.ToColorPalette();
             CreateTrasformationMap();
-            return true;    
+            return this;    
         }
 
-        public bool Create(ColorPalette oSourceColorPalette, ColorPalette? oFixedColorPalette)
+        public ColorTransformInterface? Create(ColorPalette oSourceColorPalette, ColorPalette? oFixedColorPalette)
         {
             Reset();
             if (oSourceColorPalette == null)
             {
-                return false;
+                return null;
             }
             FixedColorPalette = oFixedColorPalette;
             foreach (var rgb in oSourceColorPalette.rgbPalette)
             {
-                colorHistogram.rgbHistogram.Add(rgb, 0);
+                Histogram.rgbHistogram.Add(rgb, 0);
             }
-            colorPalette = colorHistogram.ToColorPalette();
+            Palette = Histogram.ToColorPalette();
             CreateTrasformationMap();
-            return true;
+            return this;
         }
 
         public int[,]? TransformAndDither(int[,]? oDataSource)
@@ -104,7 +104,7 @@ namespace ColourClashNet.Colors.Transformation
                 return null;
             }
             var oDataTrasf = ExecuteTransform(oDataSource);
-            if (oDataTrasf == null || dithering == null || BypassDithering)
+            if (oDataTrasf == null || Dithering == null || BypassDithering)
             {
                 return oDataTrasf;
             }
@@ -117,7 +117,7 @@ namespace ColourClashNet.Colors.Transformation
             {
                 return oDataTrasf;
             }
-            var oProcDither = dithering.Dither(oDataSource, oDataTrasf, colorPalette, ColorDistanceEvaluationMode);
+            var oProcDither = Dithering.Dither(oDataSource, oDataTrasf, Palette, ColorDistanceEvaluationMode);
             return oProcDither;
         }
 
@@ -192,6 +192,23 @@ namespace ColourClashNet.Colors.Transformation
                 }
             });
             return oRet;
+        }
+
+        public virtual ColorTransformInterface? SetProperty(ColorTransformProperties eProperty, object oValue)
+        {
+            switch (eProperty)
+            {
+                case ColorTransformProperties.ColorDistanceEvaluationMode:
+                    if (Enum.TryParse<ColorDistanceEvaluationMode>(oValue?.ToString(), out var eMode))
+                    {
+                        ColorDistanceEvaluationMode = eMode;
+                        return this;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return null;
         }
 
     }

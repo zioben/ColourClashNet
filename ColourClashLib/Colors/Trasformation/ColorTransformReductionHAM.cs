@@ -19,7 +19,7 @@ namespace ColourClashNet.Colors.Transformation
         static string sClass = nameof(ColorTransformReductionAmiga);
 
 
-        public enum EnumVideoMode
+        public enum EnumAMigaVideoMode
         {
             Ham6,
             Ham8,
@@ -32,7 +32,7 @@ namespace ColourClashNet.Colors.Transformation
             Detailed
         }
 
-        public EnumVideoMode VideoMode { get; set; } = EnumVideoMode.Ham6;
+        public EnumAMigaVideoMode AmigaVideoMode { get; set; } = EnumAMigaVideoMode.Ham6;
 
         public EnumHamFirstColorReductionMode HamColorReductionMode { get; set; } = EnumHamFirstColorReductionMode.Fast;
 
@@ -40,9 +40,37 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformReductionAmiga()
         {
-            type = ColorTransform.ColorReductionClustering;
-            description = "Commododre Amiga specific color reduction";
+            Name = ColorTransformType.ColorReductionClustering;
+            Description = "Commododre Amiga specific color reduction";
         }
+
+
+        public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
+        {
+            if (base.SetProperty(eProperty, oValue) != null)
+                return this;
+            switch (eProperty)
+            {
+                case ColorTransformProperties.AmigaVideoMode:
+                    if (Enum.TryParse<EnumAMigaVideoMode>(oValue?.ToString(), out var evm ))
+                    {
+                        AmigaVideoMode = evm;
+                        return this;
+                    }
+                    break;
+                case ColorTransformProperties.UseColorMean:
+                    if (Enum.TryParse<EnumHamFirstColorReductionMode>(oValue?.ToString(), out var cm))
+                    {
+                        HamColorReductionMode = cm;
+                        return this;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return null;
+        }
+
 
         protected override void CreateTrasformationMap()
         {
@@ -117,17 +145,17 @@ namespace ColourClashNet.Colors.Transformation
 
             int iMaxColors = 0;
 
-            switch (VideoMode)
+            switch (AmigaVideoMode)
             {
-                case EnumVideoMode.ExtraHalfBright:
+                case EnumAMigaVideoMode.ExtraHalfBright:
                     iMaxColors = 64;
                     oQuantization.QuantizationMode = ColorQuantizationMode.RGB444;
                     break;
-                case EnumVideoMode.Ham6:
+                case EnumAMigaVideoMode.Ham6:
                     iMaxColors = 16;
                     oQuantization.QuantizationMode = ColorQuantizationMode.RGB444;
                     break;
-                case EnumVideoMode.Ham8:
+                case EnumAMigaVideoMode.Ham8:
                     iMaxColors = 64;
                     oQuantization.QuantizationMode = ColorQuantizationMode.RGB666;
                     break;
@@ -136,7 +164,7 @@ namespace ColourClashNet.Colors.Transformation
             }
 
             oQuantization.Create(oDataSource, FixedColorPalette);
-            oQuantization.dithering = dithering;
+            oQuantization.Dithering = Dithering;
             var oDataQuantized = oQuantization.TransformAndDither(oDataSource);
            
             switch (HamColorReductionMode)
@@ -146,9 +174,9 @@ namespace ColourClashNet.Colors.Transformation
                     {
                         oColorReduction = new ColorTransformReductionMedianCut()
                         {   
-                            UseClusterColorMean = true, 
+                            UseColorMean = true, 
                             ColorDistanceEvaluationMode = ColorDistanceEvaluationMode,
-                            ColorsMax = iMaxColors,
+                            ColorsMaxWanted = iMaxColors,
                         };
                     }
                     break;
@@ -159,27 +187,27 @@ namespace ColourClashNet.Colors.Transformation
                             TrainingLoop = 10,
                             UseClusterColorMean = true,
                             ColorDistanceEvaluationMode = ColorDistanceEvaluationMode,
-                            ColorsMax = iMaxColors,
+                            ColorsMaxWanted = iMaxColors,
                         };
                     }
                     break;
             }
 
-            oColorReduction.dithering = dithering;
+            oColorReduction.Dithering = Dithering;
             oColorReduction.Create(oDataSource, FixedColorPalette);
             var oDataPreprocessed = oColorReduction.TransformAndDither(oDataQuantized);
             BypassDithering = true;
 
             int[,] oRet;
-            switch (VideoMode)
+            switch (AmigaVideoMode)
             {
-                case EnumVideoMode.Ham6:
+                case EnumAMigaVideoMode.Ham6:
                     oRet = ToHam(oDataSource, oDataPreprocessed,  ColorQuantizationMode.RGB444 );
                     break;
-                case EnumVideoMode.Ham8:
+                case EnumAMigaVideoMode.Ham8:
                     oRet = ToHam(oDataSource, oDataPreprocessed, ColorQuantizationMode.RGB666 );
                     break;
-                case EnumVideoMode.ExtraHalfBright:
+                case EnumAMigaVideoMode.ExtraHalfBright:
                     oRet = ToEhb(oDataSource, oDataPreprocessed);
                     break;
                 default:

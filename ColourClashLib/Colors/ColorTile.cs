@@ -19,7 +19,7 @@ namespace ColourClashNet.Colors
         internal ColorTransformReductionCluster oReduction = new ColorTransformReductionCluster()
         {
             ColorDistanceEvaluationMode = ColorDistanceEvaluationMode.RGB,
-            ColorsMax = 2,
+            ColorsMaxWanted = 2,
             UseClusterColorMean = false,
             TrainingLoop = 3,
         };
@@ -27,7 +27,7 @@ namespace ColourClashNet.Colors
         internal int[,] Process(DitherInterface oDither)
         {
             oReduction.Create(TileData,null);
-            oReduction.dithering = oDither;
+            oReduction.Dithering = oDither;
             var oRet = oReduction.TransformAndDither(TileData);
             Error = ColorTransformBase.Error(oRet, TileData, oReduction.ColorDistanceEvaluationMode);
             return oRet;

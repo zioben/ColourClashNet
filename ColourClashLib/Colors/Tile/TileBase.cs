@@ -141,7 +141,7 @@ namespace ColourClashLib.Colors.Tile
                         oColorReduction = new ColorTransformReductionFast()
                             {
                                 ColorDistanceEvaluationMode = ColorDistanceMode,
-                                ColorsMax = TileMaxColors,
+                                ColorsMaxWanted = TileMaxColors,
                             };
                     }
                     break;
@@ -152,7 +152,7 @@ namespace ColourClashLib.Colors.Tile
                             TrainingLoop = 6,
                             UseClusterColorMean = false,
                             ColorDistanceEvaluationMode = ColorDistanceMode,
-                            ColorsMax = TileMaxColors,
+                            ColorsMaxWanted = TileMaxColors,
                         };
                     }
                     break;

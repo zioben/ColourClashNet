@@ -51,7 +51,11 @@ namespace ColourClashNet.Colors.Transformation
 
         public static int[,]? ExecuteStdTransform(int[,]? oSource, ColorTransformInterface oI )
         {
-            return ExecuteStdTransform(oSource, oI?.colorTransformationMap );
+            return ExecuteStdTransform(oSource, oI?.ColorTransformationMapper );
         }
+
+    
+
+
     }
 }

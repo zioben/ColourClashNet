@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ColourClashNet.Colors.Transformation.ColorTransformReductionAmiga;
 using static ColourClashNet.Colors.Transformation.ColorTransformReductionCPC;
 
 namespace ColourClashNet.Colors.Transformation
@@ -13,7 +14,7 @@ namespace ColourClashNet.Colors.Transformation
     public class ColorTransformReductionCPC : ColorTransformReductionPalette
     {
 
-        public enum CPCScreenMode
+        public enum CPCVideoMode
         {
             Mode0,
             Mode1,
@@ -21,51 +22,71 @@ namespace ColourClashNet.Colors.Transformation
             Mode3,
         }
 
-        public CPCScreenMode ScreenMode { get; set; }=  CPCScreenMode.Mode0;
+        public CPCVideoMode VideoMode { get; set; } =  CPCVideoMode.Mode0;
+
+        public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
+        {
+            if (base.SetProperty(eProperty, oValue) != null)
+                return this;
+            switch (eProperty)
+            {
+                case ColorTransformProperties.CPCVideoMode:
+                    if (Enum.TryParse<CPCVideoMode>(oValue?.ToString(), out var evm))
+                    {
+                        VideoMode = evm;
+                        return this;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return null;
+        }
+
 
         public ColorTransformReductionCPC()
         {
-            type = ColorTransform.ColorReductionCBM64;
-            description = "Reduce color to Amstrad CPC palette";
+            Name = ColorTransformType.ColorReductionCBM64;
+            Description = "Reduce color to Amstrad CPC palette";
         }
         protected override void CreateTrasformationMap()
         {
-            colorPalette = new ColorPalette(); 
-            colorPalette.Add(0x00_00_00_00);
-            colorPalette.Add(0x00_00_00_80);
-            colorPalette.Add(0x00_00_00_FF);
+            Palette = new ColorPalette(); 
+            Palette.Add(0x00_00_00_00);
+            Palette.Add(0x00_00_00_80);
+            Palette.Add(0x00_00_00_FF);
 
-            colorPalette.Add(0x00_80_00_00);
-            colorPalette.Add(0x00_80_00_80);
-            colorPalette.Add(0x00_80_00_FF);
+            Palette.Add(0x00_80_00_00);
+            Palette.Add(0x00_80_00_80);
+            Palette.Add(0x00_80_00_FF);
 
-            colorPalette.Add(0x00_FF_00_00);
-            colorPalette.Add(0x00_FF_00_80);
-            colorPalette.Add(0x00_FF_00_FF);
+            Palette.Add(0x00_FF_00_00);
+            Palette.Add(0x00_FF_00_80);
+            Palette.Add(0x00_FF_00_FF);
 
-            colorPalette.Add(0x00_00_80_00);
-            colorPalette.Add(0x00_00_80_80);
-            colorPalette.Add(0x00_00_80_FF);
+            Palette.Add(0x00_00_80_00);
+            Palette.Add(0x00_00_80_80);
+            Palette.Add(0x00_00_80_FF);
 
-            colorPalette.Add(0x00_80_80_00);
-            colorPalette.Add(0x00_80_80_80);
-            colorPalette.Add(0x00_80_80_FF);
+            Palette.Add(0x00_80_80_00);
+            Palette.Add(0x00_80_80_80);
+            Palette.Add(0x00_80_80_FF);
 
-            colorPalette.Add(0x00_FF_80_00);
-            colorPalette.Add(0x00_FF_80_80);
-            colorPalette.Add(0x00_FF_80_FF);
+            Palette.Add(0x00_FF_80_00);
+            Palette.Add(0x00_FF_80_80);
+            Palette.Add(0x00_FF_80_FF);
 
-            colorPalette.Add(0x00_00_FF_00);
-            colorPalette.Add(0x00_00_FF_80);
-            colorPalette.Add(0x00_00_FF_FF);
+            Palette.Add(0x00_00_FF_00);
+            Palette.Add(0x00_00_FF_80);
+            Palette.Add(0x00_00_FF_FF);
 
-            colorPalette.Add(0x00_80_FF_00);
-            colorPalette.Add(0x00_80_FF_80);
-            colorPalette.Add(0x00_80_FF_FF);
+            Palette.Add(0x00_80_FF_00);
+            Palette.Add(0x00_80_FF_80);
+            Palette.Add(0x00_80_FF_FF);
 
-            colorPalette.Add(0x00_FF_FF_00);
-            colorPalette.Add(0x00_FF_FF_80);
-            colorPalette.Add(0x00_FF_FF_FF);
+            Palette.Add(0x00_FF_FF_00);
+            Palette.Add(0x00_FF_FF_80);
+            Palette.Add(0x00_FF_FF_FF);
         }
 
         int[,]? PreProcess(int[,]? oDataSource, bool bHalveRes )
@@ -78,13 +99,13 @@ namespace ColourClashNet.Colors.Transformation
                 oTmp = HalveHorizontalRes(oDataSource);
             }
             var oTmpData = base.ExecuteTransform(oTmp);
-            if (dithering != null)
+            if (Dithering != null)
             {
-                oTmpData = dithering.Dither(oTmp, oTmpData, colorPalette, ColorDistanceEvaluationMode);
+                oTmpData = Dithering.Dither(oTmp, oTmpData, Palette, ColorDistanceEvaluationMode);
             }
             BypassDithering = true;
-            colorHistogram.Create(oTmpData);
-            colorHistogram.SortColorsDescending();
+            Histogram.Create(oTmpData);
+            Histogram.SortColorsDescending();
             return oTmpData;
         }
 
@@ -93,12 +114,12 @@ namespace ColourClashNet.Colors.Transformation
         {
             var oTmpH = HalveHorizontalRes(oDataSource);
             var oTmp = PreProcess(oDataSource, true);
-            var oPalette = colorHistogram.ToColorPalette().rgbPalette.Take(16).ToList();
-            base.colorPalette = ColorPalette.CreateColorPalette(oPalette);
+            var oPalette = Histogram.ToColorPalette().rgbPalette.Take(16).ToList();
+            base.Palette = ColorPalette.CreateColorPalette(oPalette);
             var oTmp2 = base.ExecuteTransform(oTmp);
-            if (dithering != null)
+            if (Dithering != null)
             {
-                oTmp2 = dithering.Dither(oTmpH, oTmp2, base.colorPalette, ColorDistanceEvaluationMode);
+                oTmp2 = Dithering.Dither(oTmpH, oTmp2, base.Palette, ColorDistanceEvaluationMode);
             }
             var oRet = DoubleHorizontalRes(oTmp2);
             return oRet;
@@ -106,12 +127,12 @@ namespace ColourClashNet.Colors.Transformation
         int[,]? ToMode1(int[,]? oDataSource)
         {
             var oTmp = PreProcess(oDataSource, false);
-            var oPalette = colorHistogram.ToColorPalette().rgbPalette.Take(4).ToList();
-            base.colorPalette = ColorPalette.CreateColorPalette(oPalette);
+            var oPalette = Histogram.ToColorPalette().rgbPalette.Take(4).ToList();
+            base.Palette = ColorPalette.CreateColorPalette(oPalette);
             var oRet = base.ExecuteTransform(oTmp);
-            if (dithering != null)
+            if (Dithering != null)
             {
-                oRet = dithering.Dither(oDataSource, oRet, base.colorPalette, ColorDistanceEvaluationMode);
+                oRet = Dithering.Dither(oDataSource, oRet, base.Palette, ColorDistanceEvaluationMode);
             }
             return oRet;
         }
@@ -129,12 +150,12 @@ namespace ColourClashNet.Colors.Transformation
             //};
             //oTrasf.Create(oTmp, null);
             //var oRet = oTrasf.TransformAndDither(oTmp);
-            var oPalette = colorHistogram.ToColorPalette().rgbPalette.Take(2).ToList();
-            base.colorPalette = ColorPalette.CreateColorPalette(oPalette);
+            var oPalette = Histogram.ToColorPalette().rgbPalette.Take(2).ToList();
+            base.Palette = ColorPalette.CreateColorPalette(oPalette);
             var oRet = base.ExecuteTransform(oTmp);
-            if (dithering != null)
+            if (Dithering != null)
             {
-                oRet = dithering.Dither(oDataSource, oRet, base.colorPalette, ColorDistanceEvaluationMode);
+                oRet = Dithering.Dither(oDataSource, oRet, base.Palette, ColorDistanceEvaluationMode);
             }
             return oRet;
         }
@@ -144,12 +165,12 @@ namespace ColourClashNet.Colors.Transformation
         {
             var oTmpH = HalveHorizontalRes(oDataSource);
             var oTmp = PreProcess(oDataSource, true);
-            var oPalette = colorHistogram.ToColorPalette().rgbPalette.Take(4).ToList();
-            base.colorPalette = ColorPalette.CreateColorPalette(oPalette);
+            var oPalette = Histogram.ToColorPalette().rgbPalette.Take(4).ToList();
+            base.Palette = ColorPalette.CreateColorPalette(oPalette);
             var oTmp2 = base.ExecuteTransform(oTmp);
-            if (dithering != null)
+            if (Dithering != null)
             {
-                oTmp2 = dithering.Dither(oTmpH, oTmp2, base.colorPalette, ColorDistanceEvaluationMode);
+                oTmp2 = Dithering.Dither(oTmpH, oTmp2, base.Palette, ColorDistanceEvaluationMode);
             }
             var oRet = DoubleHorizontalRes(oTmp2);
             return oRet;
@@ -162,21 +183,21 @@ namespace ColourClashNet.Colors.Transformation
             if (oDataSource == null)
                 return null;
 
-            switch (ScreenMode)
+            switch (VideoMode)
             {
-                case CPCScreenMode.Mode0:
+                case CPCVideoMode.Mode0:
                     {                       
                         return ToMode0(oDataSource);
                     }
-                case CPCScreenMode.Mode1:
+                case CPCVideoMode.Mode1:
                     {
                         return ToMode1(oDataSource);
                     }
-                case CPCScreenMode.Mode2:
+                case CPCVideoMode.Mode2:
                     {
                         return ToMode2(oDataSource);
                     }
-                case CPCScreenMode.Mode3:
+                case CPCVideoMode.Mode3:
                     {
                         return ToMode3(oDataSource);
                     }

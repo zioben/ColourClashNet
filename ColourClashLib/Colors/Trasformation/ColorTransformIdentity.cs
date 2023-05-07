@@ -14,19 +14,19 @@ namespace ColourClashNet.Colors.Transformation
         static string sClass = nameof(ColorTransformIdentity);
         public ColorTransformIdentity()
         {
-            type = ColorTransform.ColorIdentity;
-            description = "1:1 Color transformation";
+            Name = ColorTransformType.ColorIdentity;
+            Description = "1:1 Color transformation";
         }
 
         protected override void CreateTrasformationMap()
         {
             string sMethod = nameof(CreateTrasformationMap);
             if (ColorDefaults.Trace)
-                Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Creating trasformation map");
+                Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Creating trasformation map");
 
-            foreach (var kvp in colorHistogram.rgbHistogram)
+            foreach (var kvp in Histogram.rgbHistogram)
             {
-                colorTransformationMap.Add(kvp.Key, kvp.Key);
+                ColorTransformationMapper.Add(kvp.Key, kvp.Key);
             }
         }
     }

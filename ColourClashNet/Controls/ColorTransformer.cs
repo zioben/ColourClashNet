@@ -53,9 +53,9 @@ namespace ColourClashNet.Controls
         #endregion
 
         #region Properties
-        public int ImageSourceColors => oTrIdentity?.colors ?? 0;
-        public int ImageQuantizedColors => oTrQuantization?.colors ?? 0;
-        public int ImageProcessedColors => lTransform.LastOrDefault()?.colors ?? 0;
+        public int ImageSourceColors => oTrIdentity?.Colors ?? 0;
+        public int ImageQuantizedColors => oTrQuantization?.Colors ?? 0;
+        public int ImageProcessedColors => lTransform.LastOrDefault()?.Colors ?? 0;
         public int ImageWidth => ImageSource?.Width ?? 0;
         public int ImageHeight => ImageSource?.Height ?? 0;
 
@@ -88,7 +88,7 @@ namespace ColourClashNet.Controls
 
         public bool ClusteringUseMeanColor { get; set; } = true;
         public bool ScanlineClustering { get; set; } = true;
-        public ColorTransform ColorTransformAlgorithm { get; set; } = ColorTransform.None;
+        public ColorTransformType ColorTransformAlgorithm { get; set; } = ColorTransformType.None;
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
         public ColorQuantizationMode ColorQuantizationMode { get; set; } = ColorQuantizationMode.Unknown;
         public ColorDithering DitheringAlgorithm { get; set; } = ColorDithering.FloydSteinberg;
@@ -99,9 +99,9 @@ namespace ColourClashNet.Controls
         public int ZxEqColorHI { get; set; } = 0xFF;
         public bool ZxEqBlackHI { get; set; } = true;
         public bool ZxEqDitherHI { get; set; } = true;
-        public ColorTransformReductionAmiga.EnumVideoMode AmigaVideoMode { get; set; } = ColorTransformReductionAmiga.EnumVideoMode.Ham6;
-        public ColorTransformReductionC64.C64ScreenMode C64ScreenMode { get; set; } = ColorTransformReductionC64.C64ScreenMode.Multicolor;
-        public ColorTransformReductionCPC.CPCScreenMode CPCScreenMode { get; set; } = ColorTransformReductionCPC.CPCScreenMode.Mode0;
+        public ColorTransformReductionAmiga.EnumAMigaVideoMode AmigaVideoMode { get; set; } = ColorTransformReductionAmiga.EnumAMigaVideoMode.Ham6;
+        public ColorTransformReductionC64.C64VideoMode C64ScreenMode { get; set; } = ColorTransformReductionC64.C64VideoMode.Multicolor;
+        public ColorTransformReductionCPC.CPCVideoMode CPCScreenMode { get; set; } = ColorTransformReductionCPC.CPCVideoMode.Mode0;
 
         #endregion
 
@@ -223,7 +223,7 @@ namespace ColourClashNet.Controls
 
         private void ColorTransformer_OnProcess(object? sender, EventArgsTransformation e)
         {
-            ToPalette(lTransform.LastOrDefault()?.colorTransformationMap.rgbTransformationMap.Select(X=>X.Value).ToList());
+            ToPalette(lTransform.LastOrDefault()?.ColorTransformationMapper.rgbTransformationMap.Select(X=>X.Value).ToList());
             RebuildImageOutput();
         }
 
@@ -270,8 +270,8 @@ namespace ColourClashNet.Controls
                 return null;
             var oTrBkgRemover = new ColorTransformBkgRemover();
             oTrBkgRemover.ColorBackgroundList = BackgroundColorList;
-            oTrBkgRemover.ColorBackground = BackgroundColorReplacement;
-            oTrBkgRemover.Create(oTrIdentity.colorHistogram,null);
+            oTrBkgRemover.ColorBackgroundReplacement = BackgroundColorReplacement;
+            oTrBkgRemover.Create(oTrIdentity.Histogram,null);
             var mDataBkgRemoved = oTrBkgRemover.TransformAndDither(mDataSource);
             return mDataBkgRemoved;
         }
@@ -282,12 +282,12 @@ namespace ColourClashNet.Controls
                 return;
             var oTrBkgRemover = new ColorTransformBkgRemover();
             oTrBkgRemover.ColorBackgroundList = BackgroundColorList;
-            oTrBkgRemover.ColorBackground = BackgroundColorReplacement;
-            oTrBkgRemover.Create(oTrIdentity.colorHistogram, null);
+            oTrBkgRemover.ColorBackgroundReplacement = BackgroundColorReplacement;
+            oTrBkgRemover.Create(oTrIdentity.Histogram, null);
             lTransform.Add(oTrBkgRemover);
 
             oTrQuantization.QuantizationMode = ColorQuantizationMode;
-            oTrQuantization.Create(oTrBkgRemover.colorHistogram, null);
+            oTrQuantization.Create(oTrBkgRemover.Histogram, null);
             //oTrQuantization.Dithering = CreateDithering();
             lTransform.Add(oTrQuantization);
 
@@ -366,48 +366,48 @@ namespace ColourClashNet.Controls
             if (oDataOriginal == null)
                 return null;
             oTransform.Create(oDataOriginal, null);
-            oTransform.dithering = CreateDithering();
+            oTransform.Dithering = CreateDithering();
             lTransform.Add(oTransform);
             var oRet = oTransform.TransformAndDither(oDataOriginal);
             return oRet;
         }
 
-        public void ColorTranform(ColorTransform eTrasform)
+        public void ColorTranform(ColorTransformType eTrasform)
         {
             if (mDataQuantized == null)
                 return;
             ColorTransformInterface oTrI = null;
             switch (eTrasform)
             {
-                case ColorTransform.ColorReductionFast:
+                case ColorTransformType.ColorReductionFast:
                     {
                         var oTrasf = new ColorTransformReductionFast();
-                        oTrasf.ColorsMax = ColorsMax;
+                        oTrasf.ColorsMaxWanted = ColorsMax;
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
                         oTrI = oTrasf;
                     }
                     break;
-                case ColorTransform.ColorReductionClustering:
+                case ColorTransformType.ColorReductionClustering:
                     {
                         var oTrasf = new ColorTransformReductionCluster();
-                        oTrasf.ColorsMax = ColorsMax;
+                        oTrasf.ColorsMaxWanted = ColorsMax;
                         oTrasf.TrainingLoop = ClusteringTrainingLoop;
                         oTrasf.UseClusterColorMean = ClusteringUseMeanColor;
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
                         oTrI = oTrasf;
                     }
                     break;
-                case ColorTransform.ColorReductionScanline:
+                case ColorTransformType.ColorReductionScanline:
                     {
                         var oTrasf = new ColorTransformReductionScanLine();
-                        oTrasf.ColorsMax = ColorsMax;
+                        oTrasf.ColorsMaxWanted = ColorsMax;
                         oTrasf.Clustering = ScanlineClustering;
-                        oTrasf.ClusteringUseMean = ClusteringUseMeanColor;
+                        oTrasf.ClusteringUseColorMean = ClusteringUseMeanColor;
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
                         oTrI = oTrasf;
                     }
                     break;
-                case ColorTransform.ColorReductionZxSpectrum:
+                case ColorTransformType.ColorReductionZxSpectrum:
                     {
                         var oTrasf = new ColorTransformReductionZxSpectrum();
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
@@ -418,54 +418,54 @@ namespace ColourClashNet.Controls
                         oTrI = oTrasf;
                     }
                     break;
-                case ColorTransform.ColorReductionEga:
+                case ColorTransformType.ColorReductionEga:
                 {
                         var oTrasf = new ColorTransformReductionEGA();
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
                         oTrI = oTrasf;
                     }
                     break;
-                case ColorTransform.ColorReductionCBM64:
+                case ColorTransformType.ColorReductionCBM64:
                     {
                         var oTrasf = new ColorTransformReductionC64();
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
-                        oTrasf.ScreenMode = C64ScreenMode;
+                        oTrasf.VideoMode = C64ScreenMode;
                         oTrI = oTrasf;
                     }
                     break;
 
-                case ColorTransform.ColorReductionCPC:
+                case ColorTransformType.ColorReductionCPC:
                     {
                         var oTrasf = new ColorTransformReductionCPC();
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
-                        oTrasf.ScreenMode = CPCScreenMode;
+                        oTrasf.VideoMode = CPCScreenMode;
                         oTrI = oTrasf;
                     }
                     break;
 
-                case ColorTransform.ColorReductionMedianCut:
+                case ColorTransformType.ColorReductionMedianCut:
                     {
                         var oTrasf = new ColorTransformReductionMedianCut();
-                        oTrasf.ColorsMax = ColorsMax;
+                        oTrasf.ColorsMaxWanted = ColorsMax;
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
                         oTrI = oTrasf;
                     }
                     break;
-                case ColorTransform.ColorReductionSaturation:
+                case ColorTransformType.ColorReductionSaturation:
                     {
                         var oTrasf = new ColorTransformLumSat();
-                        oTrasf.SaturationFactor = SaturationEnhancement;
-                        oTrasf.BrightnessFactor = BrightnessEnhancement;
-                        oTrasf.HueChange = HueOffset;
+                        oTrasf.SaturationMultFactor = SaturationEnhancement;
+                        oTrasf.BrightnessMultFactor = BrightnessEnhancement;
+                        oTrasf.HueShift = HueOffset;
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
                         oTrI = oTrasf;
                     }
                     break;
-                case ColorTransform.ColorReductionHam:
+                case ColorTransformType.ColorReductionHam:
                     {
                         var oTrasf = new ColorTransformReductionAmiga();
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
-                        oTrasf.VideoMode = AmigaVideoMode;
+                        oTrasf.AmigaVideoMode = AmigaVideoMode;
                         oTrI = oTrasf;
                     }
                     break;
@@ -548,7 +548,7 @@ namespace ColourClashNet.Controls
             }
             else
             {
-                ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oTrLast.colorPalette.ToList(), eWidthAlignMode, bInterleaveData);
+                ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oTrLast.Palette.ToList(), eWidthAlignMode, bInterleaveData);
             }
         }
 

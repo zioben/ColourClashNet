@@ -28,8 +28,8 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformReductionZxSpectrum()
         {
-            type = ColorTransform.ColorReductionZxSpectrum;
-            description = "Reduce color to ZX Spectrum color map and apply Colourclash reduction";
+            Name = ColorTransformType.ColorReductionZxSpectrum;
+            Description = "Reduce color to ZX Spectrum color map and apply Colourclash reduction";
         }
 
         HashSet<int> hPalette = new HashSet<int>();
@@ -42,6 +42,55 @@ namespace ColourClashNet.Colors.Transformation
 
         int iColOutL = 0x00D8;
         int iColOutH = 0x00FF;
+
+        public override ColorTransformInterface SetProperty( ColorTransformProperties eProperty, object oValue )
+        {
+            if (base.SetProperty(eProperty, oValue) != null)
+                return this;
+            switch( eProperty) 
+            {
+                case ColorTransformProperties.ZxColL:
+                    if (int.TryParse(oValue.ToString(), out var l))
+                    {
+                        ColL= l;
+                        return this;
+                    }
+                    break;
+                case ColorTransformProperties.ZxColH:
+                    if (int.TryParse(oValue.ToString(), out var h))
+                    {
+                        ColH = h;
+                        return this;
+                    }
+                    break;
+                case ColorTransformProperties.ZxDitherHighColor:
+                    if (bool.TryParse(oValue?.ToString(), out var d))
+                    {
+                        DitherHighColor = d;    
+                        return this;    
+                    }
+                    break;
+                case ColorTransformProperties.ZxIncludeBlackInHighColor:
+                    if (bool.TryParse(oValue?.ToString(), out var b))
+                    {
+                        DitherHighColor = b;
+                        return this;
+                    }
+                    break;
+                case ColorTransformProperties.ZxPaletteMode:
+                    {
+                        if (Enum.TryParse<ZxPaletteMode>(oValue?.ToString(), out var eMode))
+                        {
+                            PaletteMode = eMode;
+                            return this;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return null;
+        }
 
         ColorTransformationMap  CreateZxMap(int iCol, int iColOut, bool bUseBlack )
         {
@@ -77,18 +126,18 @@ namespace ColourClashNet.Colors.Transformation
         int[,]? CreateImage(int[,]? oDataSource, int iCol, int iColOut, bool bUseBlack, bool bDither, ColorDistanceEvaluationMode eColorMode )
         {
             var oMap = CreateZxMap(iCol,iColOut, bUseBlack);
-            colorPalette = new ColorPalette();
+            Palette = new ColorPalette();
             foreach (var rgb in oMap.rgbTransformationMap)
             {
-                colorPalette.Add(rgb.Key);
+                Palette.Add(rgb.Key);
             }
             var oOld = ColorDistanceEvaluationMode;
             ColorDistanceEvaluationMode = eColorMode;
             var oTmpData = base.ExecuteTransform(oDataSource);
             ColorDistanceEvaluationMode = oOld;
-            if (bDither && dithering != null)
+            if (bDither && Dithering != null)
             {
-                oTmpData = dithering.Dither(oDataSource, oTmpData, colorPalette, eColorMode);
+                oTmpData = Dithering.Dither(oDataSource, oTmpData, Palette, eColorMode);
             }
             return oTmpData;
         }
@@ -160,14 +209,14 @@ namespace ColourClashNet.Colors.Transformation
 
             var oTileRet = TileManager.MergeData(oDataSource, lTM, TileBase.EnumErrorSourceMode.ExternalImageError);
           
-            colorTransformationMap.Reset();
+            ColorTransformationMapper.Reset();
             foreach (var rgb in oZxMapLO.rgbTransformationMap)
             {
-                colorTransformationMap.Add(rgb.Key, rgb.Value);
+                ColorTransformationMapper.Add(rgb.Key, rgb.Value);
             }
             foreach (var rgb in oZxMapHI.rgbTransformationMap)
             {
-                colorTransformationMap.Add(rgb.Key, rgb.Value);
+                ColorTransformationMapper.Add(rgb.Key, rgb.Value);
             }
 
             var oRet = ExecuteStdTransform(oTileRet, this);

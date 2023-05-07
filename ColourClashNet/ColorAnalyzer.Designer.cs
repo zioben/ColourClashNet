@@ -1004,18 +1004,18 @@
             // 
             // oColorTransformer
             // 
-            oColorTransformer.AmigaVideoMode = Colors.Transformation.ColorTransformReductionAmiga.EnumVideoMode.Ham6;
+            oColorTransformer.AmigaVideoMode = Colors.Transformation.ColorTransformReductionAmiga.EnumAMigaVideoMode.Ham6;
             oColorTransformer.BackgroundColorList = (List<int>)resources.GetObject("oColorTransformer.BackgroundColorList");
             oColorTransformer.BackgroundColorReplacement = 0;
             oColorTransformer.BrightnessEnhancement = 1D;
-            oColorTransformer.C64ScreenMode = Colors.Transformation.ColorTransformReductionC64.C64ScreenMode.Multicolor;
+            oColorTransformer.C64ScreenMode = Colors.Transformation.ColorTransformReductionC64.C64VideoMode.Multicolor;
             oColorTransformer.ClusteringTrainingLoop = 30;
             oColorTransformer.ClusteringUseMeanColor = true;
             oColorTransformer.ColorDistanceEvaluationMode = Colors.ColorDistanceEvaluationMode.RGB;
             oColorTransformer.ColorQuantizationMode = Colors.ColorQuantizationMode.Unknown;
             oColorTransformer.ColorsMax = 16;
-            oColorTransformer.ColorTransformAlgorithm = Colors.ColorTransform.None;
-            oColorTransformer.CPCScreenMode = Colors.Transformation.ColorTransformReductionCPC.CPCScreenMode.Mode0;
+            oColorTransformer.ColorTransformAlgorithm = Colors.ColorTransformType.None;
+            oColorTransformer.CPCScreenMode = Colors.Transformation.ColorTransformReductionCPC.CPCVideoMode.Mode0;
             oColorTransformer.DitheringAlgorithm = Colors.ColorDithering.Ordered_4x4;
             oColorTransformer.DitheringStrenght = 1D;
             oColorTransformer.HueOffset = 0D;

@@ -15,33 +15,62 @@ namespace ColourClashNet.Colors.Transformation
         static string sClass = nameof(ColorTransformBkgRemover);
         public ColorTransformBkgRemover()
         {
-            type = ColorTransform.ColorRemover;
-            description = "Substitute a colorlist with a single color";
+            Name = ColorTransformType.ColorRemover;
+            Description = "Substitute a colorlist with a single color";
         }
 
         public List<int> ColorBackgroundList { get; set; } = new List<int>();
-        public int ColorBackground { get; set; } = 0;
+        public int ColorBackgroundReplacement { get; set; } = 0;
+
+        public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
+        {
+            if (base.SetProperty(eProperty, oValue) != null)
+                return this;
+            switch (eProperty)
+            {
+                case ColorTransformProperties.ColorBackgroundList:
+                    {
+                        ColorBackgroundList = oValue as List<int>;
+                        if (ColorBackgroundList != null)
+                        {
+                            return this;
+                        }
+                    }
+                    break;
+                case ColorTransformProperties.ColorBackgroundReplacement:
+                    if (int.TryParse(oValue?.ToString(), out var rgb))
+                    {
+                        ColorBackgroundReplacement = rgb;
+                        return this;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return null;
+        }
+
 
         protected override void CreateTrasformationMap()
         {
             string sMethod = nameof(CreateTrasformationMap);
             if (ColorDefaults.Trace)
-                Trace.TraceInformation($"{sClass}.{sMethod} ({type}) : Creating trasformation map");
-            foreach (var rgb in colorPalette.rgbPalette)
+                Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Creating trasformation map");
+            foreach (var rgb in Palette.rgbPalette)
             {
                 if (rgb < 0)
                     continue;
-                colorTransformationMap.Add(rgb, rgb);
+                ColorTransformationMapper.Add(rgb, rgb);
             }
 
-            foreach (var rgb in colorPalette.rgbPalette)
+            foreach (var rgb in Palette.rgbPalette)
             {
                 if (rgb < 0)
                     continue;
                 if (ColorBackgroundList.Any(X => X.Equals(rgb)))
                 {
-                    colorPalette.Remove(rgb);
-                    colorTransformationMap.rgbTransformationMap[rgb] = ColorBackground;
+                    Palette.Remove(rgb);
+                    ColorTransformationMapper.rgbTransformationMap[rgb] = ColorBackgroundReplacement;
                 }
             }
         }

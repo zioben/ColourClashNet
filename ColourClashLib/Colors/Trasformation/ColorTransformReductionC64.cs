@@ -6,13 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ColourClashNet.Colors.Transformation.ColorTransformReductionCPC;
 
 namespace ColourClashNet.Colors.Transformation
 {
     public class ColorTransformReductionC64 : ColorTransformReductionPalette
     {
 
-        public enum C64ScreenMode
+        public enum C64VideoMode
         {
          //   Petscii,
             HiRes,
@@ -21,31 +22,50 @@ namespace ColourClashNet.Colors.Transformation
             MulticolorCaroline,
         }
 
-        public C64ScreenMode ScreenMode { get; set; }= C64ScreenMode.Multicolor;
+        public C64VideoMode VideoMode { get; set; }= C64VideoMode.Multicolor;
+
+        public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
+        {
+            if (base.SetProperty(eProperty, oValue) != null)
+                return this;
+            switch (eProperty)
+            {
+                case ColorTransformProperties.C64VideoMode:
+                    if (Enum.TryParse<C64VideoMode>(oValue?.ToString(), out var evm))
+                    {
+                        VideoMode = evm;
+                        return this;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return null;
+        }
 
         public ColorTransformReductionC64()
         {
-            type = ColorTransform.ColorReductionCBM64;
-            description = "Reduce color to C64 palette";
+            Name = ColorTransformType.ColorReductionCBM64;
+            Description = "Reduce color to C64 palette";
         }
         protected override void CreateTrasformationMap()
         {
-            colorPalette = new ColorPalette(); 
-            colorPalette.Add(0x00000000);
-            colorPalette.Add(0x00FFFFFF);
-            colorPalette.Add(0x00894036);
-            colorPalette.Add(0x007ABFC7);
-            colorPalette.Add(0x008A46AE);
-            colorPalette.Add(0x0068A941);
-            colorPalette.Add(0x003E31A2);
-            colorPalette.Add(0x00D0DC71);
-            colorPalette.Add(0x00905F25);
-            colorPalette.Add(0x005C4700);
-            colorPalette.Add(0x00BB776D);
-            colorPalette.Add(0x00555555);
-            colorPalette.Add(0x00808080);
-            colorPalette.Add(0x00ACEA88);
-            colorPalette.Add(0x00ABABAB);       
+            Palette = new ColorPalette(); 
+            Palette.Add(0x00000000);
+            Palette.Add(0x00FFFFFF);
+            Palette.Add(0x00894036);
+            Palette.Add(0x007ABFC7);
+            Palette.Add(0x008A46AE);
+            Palette.Add(0x0068A941);
+            Palette.Add(0x003E31A2);
+            Palette.Add(0x00D0DC71);
+            Palette.Add(0x00905F25);
+            Palette.Add(0x005C4700);
+            Palette.Add(0x00BB776D);
+            Palette.Add(0x00555555);
+            Palette.Add(0x00808080);
+            Palette.Add(0x00ACEA88);
+            Palette.Add(0x00ABABAB);       
         }
 
 
@@ -59,9 +79,9 @@ namespace ColourClashNet.Colors.Transformation
                 oTmp = HalveHorizontalRes(oDataSource);
             }
             var oTmpData = base.ExecuteTransform(oTmp);
-            if (dithering != null)
+            if (Dithering != null)
             {
-                oTmpData = dithering.Dither(oTmp, oTmpData, colorPalette, ColorDistanceEvaluationMode);
+                oTmpData = Dithering.Dither(oTmp, oTmpData, Palette, ColorDistanceEvaluationMode);
             }
             BypassDithering = true;
             return oTmpData;
@@ -100,7 +120,7 @@ namespace ColourClashNet.Colors.Transformation
                         var cg = (a.ToG() + b.ToG()) / 2;
                         var cb = (a.ToB() + b.ToB()) / 2;
                         var col = ColorIntExt.FromRGB(cr, cg, cb);
-                        var res = ColorIntExt.GetNearestColor(col, colorPalette, ColorDistanceEvaluationMode);
+                        var res = ColorIntExt.GetNearestColor(col, Palette, ColorDistanceEvaluationMode);
                         if (ColorIntExt.Distance(res, a, ColorDistanceEvaluationMode) < ColorIntExt.Distance(res, b, ColorDistanceEvaluationMode))
                         {
                             oRet[r, c] = a;
@@ -122,9 +142,9 @@ namespace ColourClashNet.Colors.Transformation
         {
             var oTmpData = PreProcess(oTmpDataSource, true);
 
-            colorHistogram.Create(oTmpData);
-            colorHistogram.SortColorsDescending();
-            var oBGK = colorHistogram.rgbHistogram.First().Value;
+            Histogram.Create(oTmpData);
+            Histogram.SortColorsDescending();
+            var oBGK = Histogram.rgbHistogram.First().Value;
             var oFixedColor = new ColorPalette();
             oFixedColor.Add(oBGK);
             TileManager oManager = new TileManager();
@@ -139,9 +159,9 @@ namespace ColourClashNet.Colors.Transformation
         {
             var oTmpData = PreProcess(oTmpDataSource, true);
 
-            colorHistogram.Create(oTmpData);
-            colorHistogram.SortColorsDescending();
-            var oBGK = colorHistogram.rgbHistogram.First().Value;
+            Histogram.Create(oTmpData);
+            Histogram.SortColorsDescending();
+            var oBGK = Histogram.rgbHistogram.First().Value;
             var oFixedColor = new ColorPalette();
             oFixedColor.Add(oBGK);
             TileManager oManager = new TileManager();
@@ -159,17 +179,17 @@ namespace ColourClashNet.Colors.Transformation
             if (oDataSource == null)
                 return null;
 
-            switch (ScreenMode)
+            switch (VideoMode)
             {
-                case C64ScreenMode.HiRes:
+                case C64VideoMode.HiRes:
                     {                       
                         return TohiRes(oDataSource);
                     }
-                case C64ScreenMode.MulticolorCaroline:
+                case C64VideoMode.MulticolorCaroline:
                     {
                         return ToMultiColorCaroline(oDataSource);
                     }
-                case C64ScreenMode.Multicolor:
+                case C64VideoMode.Multicolor:
                     {
                         return ToMultiColor(oDataSource);
                     }

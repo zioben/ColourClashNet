@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ColourClashNet.Colors.Transformation.ColorTransformReductionZxSpectrum;
 
 namespace ColourClashNet.Colors
 {
@@ -34,7 +35,7 @@ namespace ColourClashNet.Colors
         HSV,
     }
 
-    public enum ColorTransform
+    public enum ColorTransformType
     {
         None = 0,
         ColorRemover = 1,
@@ -56,7 +57,7 @@ namespace ColourClashNet.Colors
 
     public enum ColorDithering
     {
-        None=0,
+        None = 0,
         Ordered_2x2,
         Ordered_4x4,
         Ordered_8x8,
@@ -81,6 +82,32 @@ namespace ColourClashNet.Colors
         ColorDistanceMode,
         PaletteEntries,
         DitherMode,
+    }
+
+    public enum ColorTransformProperties
+    {
+        Unknown = 0,
+        ColorDistanceEvaluationMode,
+        ColorBackgroundList,
+        ColorBackgroundReplacement,
+        MaxColorsWanted,
+        HsbHueShift,
+        HsvSaturationMultFactor,
+        HsvBrightnessMultFactor,
+        QuantizationMode,
+        C64VideoMode,
+        ClusterColorsMax,
+        ClusterTrainingLoop,
+        CPCVideoMode,
+        AmigaVideoMode,
+        AmigaHamColorReductionMode,
+        UseColorMean,
+        ScanlineUseClustering,
+        ZxColL,
+        ZxColH,
+        ZxPaletteMode,
+        ZxIncludeBlackInHighColor,
+        ZxDitherHighColor
     }
 
 }
