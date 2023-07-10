@@ -1,14 +1,32 @@
 # ColourClashNet
 A basic collection of classes to handle image color reduction.
 
+| | | | 
+|-:|-|-|
+|Original Image (22000 colors)|||
+|![Alt text](./Images/Original.png?raw=true)|||
+|SVGA 256 Colors|VGA 256 Colors| EGA 16 Colors|
+|![Alt text](./Images/Alg_SVGA.png?raw=true)|![Alt text](./Images/Alg_VGA.png?raw=true)|![Alt text](./Images/Alg_EGA.png?raw=true)|
+|AMIGA HAM8 Mode | AMIGA HAM6 Mode||
+|![Alt text](./Images/Alg_HAM8.png?raw=true)|![Alt text](./Images/Alg_HAM6.png?raw=true)||
+|ATARI STE 16 Colors | ATARI ST 16 Colors|
+|![Alt text](./Images/Alg_STE.png?raw=true)|![Alt text](./Images/Alg_ST.png?raw=true)||
+|Commodore 64 HiRes Mode|Commodore 64 LoRes Mode|
+|![Alt text](./Images/Alg_C641.png?raw=true)|![Alt text](./Images/Alg_C642.png?raw=true)||
+|Zx Spectrum|||
+
+|Amstrad CPC Mode0|Amstrad CPC Mode1|Amstrad CPC Mode2|
+
+
+
 ## Purposes
 These tools can be used to create displayable images for old computer video modes, using various color reduction algorithms, color quantization, and dithering.
 
 ## Reduction recipe
-To reduce colors on source images for old computers' video mode we need to know:
+To reduce colors on source images for old systems' video mode we need to know:
 - The output computer color space, aka the number of bits the system uses to represent a color. 
-Source image usually has 3 color channels (red, green, and blue) with 8-bit channel, for a total of 16 million selectable colors.
-Old computers usually have 3 channels with  3 or 4-bit for color, for a total of 512 or 4096 selectable colors, or even a fixed color palette.
+Source image usually has 3 color channels (red, green, and blue) with 8-bit per channel, for a total of 16 million selectable colors.
+Old systems usually have 3 channels with  3 or 4-bit for color, for a total of 512 or 4096 selectable colors, or even a fixed color palette.
 - The maximum number of colors displayable on video modes. Most computers can display only 16 colors on screen.
 - The hardware limitations. Most computers use tricks to minimize ram consumption, like using tiles or doubling pixels techniques. 
 
@@ -54,13 +72,17 @@ To generate an image for Sega Genesis, the proper 3-3-3 color quantization shoul
 |![Alt text](./Images/Original.png?raw=true)|![Alt text](./Images/Q_565.png?raw=true)|![Alt text](./Images/Q_444.png?raw=true)|![Alt text](./Images/Q_333.png?raw=true)|![Alt text](./Images/Q_111.png?raw=true)|
 
 ### Dithering
-Dithering spreads the color reduction approximation errors over the entire image. After the color reduction process, dither tries to simulate the missing color using the remaining color information.
+Dithering spreads the color reduction approximation errors over the entire image. After the color reduction process, dither tries to simulate the missing color using the remaining color information. Ditherting strength can be adjusted to obtain better results.
+
 | 16 Color Image Without Dithering | 2x2 Ordered Dithering | 4x4 Ordered Dithering | Floyd Steimberg Dithering | Jarvis, Judice and Ninke Dithering |
 |-:|-|-|-|-|
 |![Alt text](./Images/Dith_None.png?raw=true)|![Alt text](./Images/Dith_Ordered1.png?raw=true)|![Alt text](./Images/Dith_Ordered2.png?raw=true)|![Alt text](./Images/Dith_FS_HI.png?raw=true)|![Alt text](./Images/Dith_JN.png?raw=true)|
 
 ### Color Reduction
+There are lots of classic color reduction algorithms. The majority simply reduce the number of colors, while others try also to adapt the source image according to the system screen mode limitations.
 
+
+![Alt text](./Images/Q_565.png?raw=true)|![Alt text](./Images/Q_444.png?raw=true)|![Alt text](./Images/Q_333.png?raw=true)|![Alt text](./Images/Q_111.png?raw=true)|
 
 
 
