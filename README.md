@@ -70,7 +70,7 @@ There are lots of classic color reduction algorithms. The majority simply reduce
 |SVGA 256 Colors|VGA 256 Colors| EGA 16 Colors|
 |![Alt text](./Images/Alg_SVGA.png?raw=true)|![Alt text](./Images/Alg_VGA.png?raw=true)|![Alt text](./Images/Alg_EGA.png?raw=true)|
 |AMIGA HAM8 Mode | AMIGA HAM6 Mode||
-|![Alt text](./Images/Alg_Ham8.png?raw=true)|![Alt text](./Images/Alg_Ham6.png?raw=true)||
+|![Alt text](./Images/Alg_HAM8.png?raw=true)|![Alt text](./Images/Alg_Ham6.png?raw=true)||
 |ATARI STE 16 Colors | ATARI ST 16 Colors|
 |![Alt text](./Images/Alg_STE.png?raw=true)|![Alt text](./Images/Alg_ST.png?raw=true)||
 |Commodore 64 HiRes Mode|Commodore 64 LoRes Mode|
@@ -78,7 +78,7 @@ There are lots of classic color reduction algorithms. The majority simply reduce
 |Zx Spectrum|||
 |![Alt text](./Images/Alg_ZX.png?raw=true)|||
 |Amstrad CPC Mode0|Amstrad CPC Mode1|Amstrad CPC Mode2|
-|![Alt text](./Images/Alg_Amst0.png?raw=true)|![Alt text](./Images/Alg_Amst1.png?raw=true)|![Alt text](./Images/Alg_Amst1.png?raw=true)|
+|![Alt text](./Images/Alg_Amst0.png?raw=true)|![Alt text](./Images/Alg_Amst2.png?raw=true)|![Alt text](./Images/Alg_Amst3.png?raw=true)|
 
 
 
