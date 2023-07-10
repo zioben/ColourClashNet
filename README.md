@@ -42,7 +42,7 @@ Quantization reduces the number of bits for colors channel. The lower value, the
 | 6-6-6 | 64  | 64  | 64  | 262,144 | Amiga HAM8, VGA |
 | 5-6-5 | 32 | 64 | 32 | 65536 | 16 Bit Hi Color |
 | 5-5-5 | 32 | 32 | 32 | 32768 | 15 Bit Hi Color, SNES |
-| 4-4-4 | 16 | 16 | 16 | 4096 | Amiga OCS/ECS, Atari STE, NeoGeo |
+| 4-4-4 | 16 | 16 | 16 | 4096 | Amiga OCS/ECS/HAM6, Atari STE, NeoGeo |
 | 3-3-3 | 8 | 8 | 8 |  512 | Atari ST, Sega Genesis, PC Engine |
 | 2-2-2 | 4 | 4 | 4 |  64 | EGA |
 | 1-1-1 | 2 | 2 | 2 |  8  | Basic Color Schemes |
