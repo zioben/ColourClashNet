@@ -36,7 +36,7 @@ A lot of stuff, like sprite masking and assembly code generation.
 ## Support
 ### Quantization
 Quantization reduces the number of bits for colors channel. The lower value, the less shadow of colors.
-|Quantization Level|Red Shades|Green Shades|Blue Shades|Total selecatable colors| Notes |
+|Quantization Level|Red Shades|Green Shades|Blue Shades|Total selectable colors| Notes |
 |-:|-|-|-|-|-|
 | 8-8-8 | 256 | 256 | 256 | 16,777,216 | 24 bit images, SVGA, Amiga AGA |
 | 6-6-6 | 64  | 64  | 64  | 262,144 | Amiga HAM8 |
@@ -47,7 +47,19 @@ Quantization reduces the number of bits for colors channel. The lower value, the
 | 2-2-2 | 4 | 4 | 4 |  64 | EGA |
 | 1-1-1 | 2 | 2 | 2 |  8  | Basic Color Schemes |
 
-| Original Image | 5-6-5 Quantization | 4-4-4 Quantization | 3-3-3 Quandtization | 1-1-1 Quantization |
+| Original Image (22000 colors) | 5-6-5 Quantization | 4-4-4 Quantization | 3-3-3 Quandtization | 1-1-1 Quantization |
 |-:|-|-|-|-|
 |![Alt text](./Images/0_Original.jpg?raw=true)|![Alt text](./Images/Q_565.png?raw=true)|![Alt text](./Images/Q_444.png?raw=true)|![Alt text](./Images/Q_333.png?raw=true)|![Alt text](./Images/Q_111.png?raw=true)|
+
+### Dithering
+Dithering spreads the color reduction approximation errors over the entire image. It generates artifacts that simulate 
+
+| 16 Color Image Without Dithering | 2x2 Ordered Dithering | 4x4 Ordered Dithering | Floyd Steimberg Dithering | Jarvis, Judice and Ninke Dithering |
+|-:|-|-|-|-|
+|![Alt text](./Images/Dith_None.png?raw=true)|![Alt text](./Images/Dith_Ordered1.png?raw=true)|![Alt text](./Images/Dith_Ordered2.png?raw=true)|![Alt text](./Images/Dith_FS_HI.png?raw=true)|![Alt text](./Images/Dith_JN.png?raw=true)|
+
+
+
+
+
 
