@@ -69,8 +69,8 @@ There are lots of classic color reduction algorithms. The majority simply reduce
 |![Alt text](./Images/Original.png?raw=true)|||
 |SVGA 256 Colors|VGA 256 Colors| EGA 16 Colors|
 |![Alt text](./Images/Alg_SVGA.png?raw=true)|![Alt text](./Images/Alg_VGA.png?raw=true)|![Alt text](./Images/Alg_EGA.png?raw=true)|
-|AMIGA HAM8 Mode | AMIGA HAM6 Mode||
-|![Alt text](./Images/Alg_HAM8.png?raw=true)|![Alt text](./Images/Alg_Ham6.png?raw=true)||
+|AMIGA HAM8 Mode | AMIGA HAM6 Mode| AMIGA 16 Colors and Copper |
+|![Alt text](./Images/Alg_HAM8.png?raw=true)|![Alt text](./Images/Alg_Ham6.png?raw=true)|![Alt text](./Images/Alg_Amiga_Copper.png?raw=true)||
 |ATARI STE 16 Colors | ATARI ST 16 Colors|
 |![Alt text](./Images/Alg_STE.png?raw=true)|![Alt text](./Images/Alg_ST.png?raw=true)||
 |Commodore 64 HiRes Mode|Commodore 64 LoRes Mode|
