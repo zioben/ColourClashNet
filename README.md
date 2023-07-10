@@ -18,7 +18,7 @@ Feed it with an input image and get the transformed image.
 
 ### Processing
 
-```proc
+```mermaid
 graph TD;
     Source_Image-->Source_Color_Palette;
     Source_Color_Palette-->Color_Quantization;
