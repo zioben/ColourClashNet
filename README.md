@@ -35,8 +35,8 @@ A lot of stuff, like sprite masking and assembly code generation.
 
 ## Support
 ### Quantization
-Quantization reduces the number of bits for colors channel.
-|Quantization Level|Red Shades|Green Shades|Blue Shades|Total Colors| Notes |
+Quantization reduces the number of bits for colors channel. The lower value, the less shadow of colors.
+|Quantization Level|Red Shades|Green Shades|Blue Shades|Total selecatable colors| Notes |
 |-:|-|-|-|-|-|
 | 8-8-8 | 256 | 256 | 256 | 16,777,216 | 24 bit images, SVGA, Amiga AGA |
 | 6-6-6 | 64  | 64  | 64  | 262,144 | Amiga HAM8 |
@@ -46,4 +46,8 @@ Quantization reduces the number of bits for colors channel.
 | 3-3-3 | 8 | 8 | 8 |  512 | Atari ST, Genesis, PC Engine |
 | 2-2-2 | 4 | 4 | 4 |  64 | EGA |
 | 1-1-1 | 2 | 2 | 2 |  8  | Basic Color Schemes |
+
+| Original Image | 5-6-5 Quantization | 4-4-4 Quantization | 3-3-3 Quandtization | 1-1-1 Quantization |
+|-:|-|-|-|-|
+|![Alt text](./Images/0_Original.jpg?raw=true)|![Alt text](./Images/Q_565.png?raw=true)|![Alt text](./Images/Q_444.png?raw=true)|![Alt text](./Images/Q_333.png?raw=true)|![Alt text](./Images/Q_111.png?raw=true)|
 
