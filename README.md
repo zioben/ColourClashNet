@@ -38,11 +38,11 @@ A lot of stuff, like sprite masking and assembly code generation.
 Quantization reduces the number of bits for colors channel.
 |Quantization Level|Red Shades|Green Shades|Blue Shades|Total Colors| Notes |
 |-:|-|-|-|-|-|
-| 8-8-8 | 256 | 256 | 256 | 16,777,216 | 24 bit images, SVGA |
-| 6-6-6 | 64  | 64  | 64  | 262,144 | HAM8 limit |
+| 8-8-8 | 256 | 256 | 256 | 16,777,216 | 24 bit images, SVGA, Amiga AGA |
+| 6-6-6 | 64  | 64  | 64  | 262,144 | Amiga HAM8 |
 | 5-6-5 | 32 | 64 | 32 | 65536 | Hi Color, SNES, VGA |
 | 5-5-5 | 32 | 32 | 32 | 32768 | Hi Color |
-| 4-4-4 | 16 | 16 | 16 | 4096 | Amiga, Atari STE, NeoGeo |
+| 4-4-4 | 16 | 16 | 16 | 4096 | Amiga OCS/ECS, Atari STE, NeoGeo |
 | 3-3-3 | 8 | 8 | 8 |  512 | Atari ST, Genesis, PC Engine |
 | 2-2-2 | 4 | 4 | 4 |  64 | EGA |
 | 1-1-1 | 2 | 2 | 2 |  8  | Basic Color Schemes |
