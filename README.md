@@ -43,20 +43,23 @@ Quantization reduces the number of bits for colors channel. The lower value, the
 | 5-6-5 | 32 | 64 | 32 | 65536 | Hi Color, SNES, VGA |
 | 5-5-5 | 32 | 32 | 32 | 32768 | Hi Color |
 | 4-4-4 | 16 | 16 | 16 | 4096 | Amiga OCS/ECS, Atari STE, NeoGeo |
-| 3-3-3 | 8 | 8 | 8 |  512 | Atari ST, Genesis, PC Engine |
+| 3-3-3 | 8 | 8 | 8 |  512 | Atari ST, Sega Genesis, PC Engine |
 | 2-2-2 | 4 | 4 | 4 |  64 | EGA |
 | 1-1-1 | 2 | 2 | 2 |  8  | Basic Color Schemes |
 
+To generate an image for Sega Genesis, the proper 3-3-3 color quantization should be selected before processing image.
+
 | Original Image (22000 colors) | 5-6-5 Quantization | 4-4-4 Quantization | 3-3-3 Quandtization | 1-1-1 Quantization |
 |-:|-|-|-|-|
-|![Alt text](./Images/0_Original.jpg?raw=true)|![Alt text](./Images/Q_565.png?raw=true)|![Alt text](./Images/Q_444.png?raw=true)|![Alt text](./Images/Q_333.png?raw=true)|![Alt text](./Images/Q_111.png?raw=true)|
+|![Alt text](./Images/Original.png?raw=true)|![Alt text](./Images/Q_565.png?raw=true)|![Alt text](./Images/Q_444.png?raw=true)|![Alt text](./Images/Q_333.png?raw=true)|![Alt text](./Images/Q_111.png?raw=true)|
 
 ### Dithering
-Dithering spreads the color reduction approximation errors over the entire image. It generates artifacts that simulate 
-
+Dithering spreads the color reduction approximation errors over the entire image. After the color reduction process, dither tries to simulate the missing color using the remaining color information.
 | 16 Color Image Without Dithering | 2x2 Ordered Dithering | 4x4 Ordered Dithering | Floyd Steimberg Dithering | Jarvis, Judice and Ninke Dithering |
 |-:|-|-|-|-|
 |![Alt text](./Images/Dith_None.png?raw=true)|![Alt text](./Images/Dith_Ordered1.png?raw=true)|![Alt text](./Images/Dith_Ordered2.png?raw=true)|![Alt text](./Images/Dith_FS_HI.png?raw=true)|![Alt text](./Images/Dith_JN.png?raw=true)|
+
+### Color Reduction
 
 
 
