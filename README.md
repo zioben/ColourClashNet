@@ -75,8 +75,8 @@ There are lots of classic color reduction algorithms. The majority simply reduce
 |![Alt text](./Images/Alg_STE.png?raw=true)|![Alt text](./Images/Alg_ST.png?raw=true)||
 |Commodore 64 HiRes Mode|Commodore 64 LoRes Mode|
 |![Alt text](./Images/Alg_C641.png?raw=true)|![Alt text](./Images/Alg_C642.png?raw=true)||
-|Zx Spectrum|||
-|![Alt text](./Images/Alg_ZX.png?raw=true)|||
+|Zx Spectrum|Zx Spectrum Alternative||
+|![Alt text](./Images/Alg_ZX.png?raw=true)|![Alt text](./Images/Alg_ZX2.png?raw=true)||
 |Amstrad CPC Mode0|Amstrad CPC Mode1|Amstrad CPC Mode2|
 |![Alt text](./Images/Alg_Amst0.png?raw=true)|![Alt text](./Images/Alg_Amst2.png?raw=true)|![Alt text](./Images/Alg_Amst3.png?raw=true)|
 
