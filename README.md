@@ -6,11 +6,11 @@ A basic collection of classes to handle image color reduction.
 |Original Image (22000 colors)|||
 |![Alt text](./Images/Original.png?raw=true)|||
 |SVGA 256 Colors|VGA 256 Colors| EGA 16 Colors|
-|![Alt text](./Images/Alg_SVGA.png?raw=true)|![Alt text](./Images/Alg_VGA.png?raw=true)|![Alt text](./Images/Alg_EGA.png?raw=true)|
+|![Alt text](./Images/ALG_SVGA.png?raw=true)|![Alt text](./Images/ALG_VGA.png?raw=true)|![Alt text](./Images/Alg_EGA.png?raw=true)|
 |AMIGA HAM8 Mode | AMIGA HAM6 Mode||
 |![Alt text](./Images/Alg_HAM8.png?raw=true)|![Alt text](./Images/Alg_HAM6.png?raw=true)||
 |ATARI STE 16 Colors | ATARI ST 16 Colors|
-|![Alt text](./Images/Alg_STE.png?raw=true)|![Alt text](./Images/Alg_ST.png?raw=true)||
+|![Alt text](./Images/ALG_STE.png?raw=true)|![Alt text](./Images/ALG_ST.png?raw=true)||
 |Commodore 64 HiRes Mode|Commodore 64 LoRes Mode|
 |![Alt text](./Images/Alg_C641.png?raw=true)|![Alt text](./Images/Alg_C642.png?raw=true)||
 |Zx Spectrum|||
