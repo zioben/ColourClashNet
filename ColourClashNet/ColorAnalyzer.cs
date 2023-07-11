@@ -161,6 +161,8 @@ namespace ColourClashNet
                 //   oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
                 //   oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
                 oColorTransformer.Create(oBmp);
+                oBitmapRenderDest.OriginZero();
+                oBitmapRenderSource.OriginZero();
             }
         }
 
@@ -261,9 +263,12 @@ namespace ColourClashNet
             oColorTransformer.Reset();
         }
 
-        private void toolStripMenuItem1_Click(object sender, EventArgs e)
+        private void toolStripMenuItemSave_Click(object sender, EventArgs e)
         {
-
+            if (sfdExportImage.ShowDialog() == DialogResult.OK)
+            {
+                ImageTools.ImageTools.Export(oColorTransformer.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageTools.ImageExportFormat.Png24);
+            }
         }
 
 

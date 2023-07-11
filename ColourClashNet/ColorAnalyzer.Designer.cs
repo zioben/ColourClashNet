@@ -35,7 +35,7 @@
             fileToolStripMenuItem = new ToolStripMenuItem();
             newToolStripMenuItem = new ToolStripMenuItem();
             openToolStripMenuItem = new ToolStripMenuItem();
-            toolStripMenuItem1 = new ToolStripMenuItem();
+            toolStripMenuItemSave = new ToolStripMenuItem();
             exportToolStripMenuItem = new ToolStripMenuItem();
             bitmapIndexedToolStripMenuItem = new ToolStripMenuItem();
             indexedPNGToolStripMenuItem = new ToolStripMenuItem();
@@ -94,6 +94,10 @@
             lblCpcVideoMode = new Label();
             cbCpcVideoMode = new ComboBox();
             btnReduceColorCPC = new Button();
+            panel1 = new Panel();
+            label8 = new Label();
+            cbAmigaVideoMode = new ComboBox();
+            btnReduceAmiga = new Button();
             panel10 = new Panel();
             lblHue = new Label();
             nudHue = new NumericUpDown();
@@ -102,10 +106,6 @@
             nudSat = new NumericUpDown();
             lblSat = new Label();
             btnChromaAdapt = new Button();
-            panel1 = new Panel();
-            label8 = new Label();
-            cbAmigaVideoMode = new ComboBox();
-            btnReduceAmiga = new Button();
             scLayout = new SplitContainer();
             pictureBoxSrc = new PictureBox();
             pictureBoxProc = new PictureBox();
@@ -140,11 +140,11 @@
             ((System.ComponentModel.ISupportInitialize)nudZxColorHI).BeginInit();
             ((System.ComponentModel.ISupportInitialize)nudZxColorLO).BeginInit();
             panCPC.SuspendLayout();
+            panel1.SuspendLayout();
             panel10.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nudHue).BeginInit();
             ((System.ComponentModel.ISupportInitialize)nudBright).BeginInit();
             ((System.ComponentModel.ISupportInitialize)nudSat).BeginInit();
-            panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)scLayout).BeginInit();
             scLayout.Panel1.SuspendLayout();
             scLayout.Panel2.SuspendLayout();
@@ -170,7 +170,7 @@
             // 
             // fileToolStripMenuItem
             // 
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newToolStripMenuItem, openToolStripMenuItem, toolStripMenuItem1, exportToolStripMenuItem });
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newToolStripMenuItem, openToolStripMenuItem, toolStripMenuItemSave, exportToolStripMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             fileToolStripMenuItem.Size = new Size(37, 20);
             fileToolStripMenuItem.Text = "&File";
@@ -181,7 +181,7 @@
             newToolStripMenuItem.ImageTransparentColor = Color.Magenta;
             newToolStripMenuItem.Name = "newToolStripMenuItem";
             newToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.N;
-            newToolStripMenuItem.Size = new Size(146, 22);
+            newToolStripMenuItem.Size = new Size(180, 22);
             newToolStripMenuItem.Text = "&New";
             newToolStripMenuItem.Click += newToolStripMenuItem_Click;
             // 
@@ -191,25 +191,25 @@
             openToolStripMenuItem.ImageTransparentColor = Color.Magenta;
             openToolStripMenuItem.Name = "openToolStripMenuItem";
             openToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.O;
-            openToolStripMenuItem.Size = new Size(146, 22);
+            openToolStripMenuItem.Size = new Size(180, 22);
             openToolStripMenuItem.Text = "&Open";
             openToolStripMenuItem.Click += openToolStripMenuItem_Click;
             // 
-            // toolStripMenuItem1
+            // toolStripMenuItemSave
             // 
-            toolStripMenuItem1.Image = (Image)resources.GetObject("toolStripMenuItem1.Image");
-            toolStripMenuItem1.ImageTransparentColor = Color.Magenta;
-            toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.ShortcutKeys = Keys.Control | Keys.S;
-            toolStripMenuItem1.Size = new Size(146, 22);
-            toolStripMenuItem1.Text = "&Save";
-            toolStripMenuItem1.Click += toolStripMenuItem1_Click;
+            toolStripMenuItemSave.Image = (Image)resources.GetObject("toolStripMenuItemSave.Image");
+            toolStripMenuItemSave.ImageTransparentColor = Color.Magenta;
+            toolStripMenuItemSave.Name = "toolStripMenuItemSave";
+            toolStripMenuItemSave.ShortcutKeys = Keys.Control | Keys.S;
+            toolStripMenuItemSave.Size = new Size(180, 22);
+            toolStripMenuItemSave.Text = "&Save";
+            toolStripMenuItemSave.Click += toolStripMenuItemSave_Click;
             // 
             // exportToolStripMenuItem
             // 
             exportToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { bitmapIndexedToolStripMenuItem, indexedPNGToolStripMenuItem, bitmapToolStripMenuItem, pNGToolStripMenuItem, amigaToolStripMenuItem });
             exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            exportToolStripMenuItem.Size = new Size(146, 22);
+            exportToolStripMenuItem.Size = new Size(180, 22);
             exportToolStripMenuItem.Text = "Export";
             // 
             // bitmapIndexedToolStripMenuItem
@@ -798,6 +798,45 @@
             btnReduceColorCPC.UseVisualStyleBackColor = true;
             btnReduceColorCPC.Click += btnReduceColorCPC_Click;
             // 
+            // panel1
+            // 
+            panel1.Controls.Add(label8);
+            panel1.Controls.Add(cbAmigaVideoMode);
+            panel1.Controls.Add(btnReduceAmiga);
+            panel1.Dock = DockStyle.Fill;
+            panel1.Location = new Point(0, 540);
+            panel1.Margin = new Padding(0);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(362, 54);
+            panel1.TabIndex = 37;
+            // 
+            // label8
+            // 
+            label8.Location = new Point(138, 17);
+            label8.Name = "label8";
+            label8.Size = new Size(83, 21);
+            label8.TabIndex = 23;
+            label8.Text = "Video Mode";
+            // 
+            // cbAmigaVideoMode
+            // 
+            cbAmigaVideoMode.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbAmigaVideoMode.FormattingEnabled = true;
+            cbAmigaVideoMode.Location = new Point(250, 14);
+            cbAmigaVideoMode.Name = "cbAmigaVideoMode";
+            cbAmigaVideoMode.Size = new Size(101, 23);
+            cbAmigaVideoMode.TabIndex = 19;
+            // 
+            // btnReduceAmiga
+            // 
+            btnReduceAmiga.Location = new Point(3, 0);
+            btnReduceAmiga.Name = "btnReduceAmiga";
+            btnReduceAmiga.Size = new Size(129, 48);
+            btnReduceAmiga.TabIndex = 18;
+            btnReduceAmiga.Text = "To Amiga";
+            btnReduceAmiga.UseVisualStyleBackColor = true;
+            btnReduceAmiga.Click += btnReduceHam_Click;
+            // 
             // panel10
             // 
             panel10.Controls.Add(lblHue);
@@ -880,45 +919,6 @@
             btnChromaAdapt.UseVisualStyleBackColor = true;
             btnChromaAdapt.Click += btnChromaAdapt_Click;
             // 
-            // panel1
-            // 
-            panel1.Controls.Add(label8);
-            panel1.Controls.Add(cbAmigaVideoMode);
-            panel1.Controls.Add(btnReduceAmiga);
-            panel1.Dock = DockStyle.Fill;
-            panel1.Location = new Point(0, 540);
-            panel1.Margin = new Padding(0);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(362, 54);
-            panel1.TabIndex = 37;
-            // 
-            // label8
-            // 
-            label8.Location = new Point(138, 17);
-            label8.Name = "label8";
-            label8.Size = new Size(83, 21);
-            label8.TabIndex = 23;
-            label8.Text = "Video Mode";
-            // 
-            // cbAmigaVideoMode
-            // 
-            cbAmigaVideoMode.DropDownStyle = ComboBoxStyle.DropDownList;
-            cbAmigaVideoMode.FormattingEnabled = true;
-            cbAmigaVideoMode.Location = new Point(250, 14);
-            cbAmigaVideoMode.Name = "cbAmigaVideoMode";
-            cbAmigaVideoMode.Size = new Size(101, 23);
-            cbAmigaVideoMode.TabIndex = 19;
-            // 
-            // btnReduceAmiga
-            // 
-            btnReduceAmiga.Location = new Point(3, 0);
-            btnReduceAmiga.Name = "btnReduceAmiga";
-            btnReduceAmiga.Size = new Size(129, 48);
-            btnReduceAmiga.TabIndex = 18;
-            btnReduceAmiga.Text = "To Amiga";
-            btnReduceAmiga.UseVisualStyleBackColor = true;
-            btnReduceAmiga.Click += btnReduceHam_Click;
-            // 
             // scLayout
             // 
             scLayout.Dock = DockStyle.Fill;
@@ -963,7 +963,7 @@
             oBitmapRenderSource.Control = pictureBoxSrc;
             oBitmapRenderSource.Image = null;
             oBitmapRenderSource.ImageBlockScroll = false;
-            oBitmapRenderSource.ImageMoveOverControlBorder = true;
+            oBitmapRenderSource.ImageMoveOverControlBorder = false;
             oBitmapRenderSource.ImageZoomManual = 1F;
             oBitmapRenderSource.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
             oBitmapRenderSource.MouseMovingButton = MouseButtons.Left;
@@ -993,7 +993,7 @@
             oBitmapRenderDest.Control = pictureBoxProc;
             oBitmapRenderDest.Image = null;
             oBitmapRenderDest.ImageBlockScroll = false;
-            oBitmapRenderDest.ImageMoveOverControlBorder = true;
+            oBitmapRenderDest.ImageMoveOverControlBorder = false;
             oBitmapRenderDest.ImageZoomManual = 1F;
             oBitmapRenderDest.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
             oBitmapRenderDest.MouseMovingButton = MouseButtons.Left;
@@ -1068,12 +1068,12 @@
             ((System.ComponentModel.ISupportInitialize)nudZxColorHI).EndInit();
             ((System.ComponentModel.ISupportInitialize)nudZxColorLO).EndInit();
             panCPC.ResumeLayout(false);
+            panel1.ResumeLayout(false);
             panel10.ResumeLayout(false);
             panel10.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)nudHue).EndInit();
             ((System.ComponentModel.ISupportInitialize)nudBright).EndInit();
             ((System.ComponentModel.ISupportInitialize)nudSat).EndInit();
-            panel1.ResumeLayout(false);
             scLayout.Panel1.ResumeLayout(false);
             scLayout.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)scLayout).EndInit();
@@ -1118,7 +1118,7 @@
         private ToolStripMenuItem bitplaneToolStripMenuItem1;
         private ToolStripMenuItem sourceCodeToolStripMenuItem;
         private ToolStripMenuItem rawBitplaneAndOCSCopperlistToolStripMenuItem;
-        private ToolStripMenuItem toolStripMenuItem1;
+        private ToolStripMenuItem toolStripMenuItemSave;
         private SplitContainer scLayout;
         private PictureBox pictureBoxProc;
         private Controls.BitmapRender bitmapRender1;
