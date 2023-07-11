@@ -1,6 +1,6 @@
 # ColourClashNet
 A basic collection of classes to handle image color reduction.
-
+![Alt text](./Images/ColourClash.jpg?raw=true) 
 ## Purposes
 These tools can be used to create displayable images for old computer video modes, using various color reduction algorithms, color quantization, and dithering.
 
