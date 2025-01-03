@@ -273,7 +273,7 @@ namespace ColourClashNet.Controls
             oTrBkgRemover.ColorBackgroundReplacement = BackgroundColorReplacement;
             oTrBkgRemover.Create(oTrIdentity.Histogram,null);
             var mDataBkgRemoved = oTrBkgRemover.TransformAndDither(mDataSource);
-            return mDataBkgRemoved;
+            return mDataBkgRemoved.DataOut;
         }
 
         void Quantize()
@@ -291,7 +291,9 @@ namespace ColourClashNet.Controls
             //oTrQuantization.Dithering = CreateDithering();
             lTransform.Add(oTrQuantization);
 
-            mDataQuantized = oTrQuantization.TransformAndDither(oTrBkgRemover.TransformAndDither(mDataSource));
+            var oBkgRemover = oTrBkgRemover.TransformAndDither(mDataSource);
+            var oQuantizer = oTrQuantization.TransformAndDither(oBkgRemover.DataOut);
+            mDataQuantized = oQuantizer.DataOut;
             mDataProcessed = mDataQuantized.Clone() as int[,];
             RebuildImageOutput();
             OnQuantize?.Invoke(this, new EventArgsTransformation 
@@ -369,7 +371,7 @@ namespace ColourClashNet.Controls
             oTransform.Dithering = CreateDithering();
             lTransform.Add(oTransform);
             var oRet = oTransform.TransformAndDither(oDataOriginal);
-            return oRet;
+            return oRet.DataOut;
         }
 
         public void ColorTranform(ColorTransformType eTrasform)

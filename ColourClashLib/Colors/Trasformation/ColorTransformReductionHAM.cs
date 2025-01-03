@@ -72,11 +72,9 @@ namespace ColourClashNet.Colors.Transformation
         }
 
 
-        protected override void CreateTrasformationMap()
-        {
-        }
+      
 
-        int[,]? ToHam(int[,]? oDataSource, int[,]? oDataPreProcessed, ColorQuantizationMode eQuantization )
+        int[,]? ToHam(int[,]? oDataSource, int[,]? oDataPreProcessed, ColorQuantizationMode eQuantization, CancellationToken oToken)
         {
             int R = oDataSource.GetLength(0);
             int C = oDataSource.GetLength(1);
@@ -128,12 +126,12 @@ namespace ColourClashNet.Colors.Transformation
             return oRet;
         }
 
-        int[,]? ToEhb(int[,]? oDataSource, int[,]? oDataPreProcessed)
+        int[,]? ToEhb(int[,]? oDataSource, int[,]? oDataPreProcessed, CancellationToken oToken)
         {
             return oDataPreProcessed;
         }
 
-        protected override int[,]? ExecuteTransform(int[,]? oDataSource)
+        protected override int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken)
         {
             if( oDataSource== null ) 
             {
@@ -165,8 +163,9 @@ namespace ColourClashNet.Colors.Transformation
 
             oQuantization.Create(oDataSource, FixedColorPalette);
             oQuantization.Dithering = Dithering;
-            var oDataQuantized = oQuantization.TransformAndDither(oDataSource);
-           
+            var oResultQuantized = oQuantization.TransformAndDither(oDataSource);
+            var oDataQuantized = oResultQuantized.DataOut;
+
             switch (HamColorReductionMode)
             {
                 default:
@@ -195,20 +194,21 @@ namespace ColourClashNet.Colors.Transformation
 
             oColorReduction.Dithering = Dithering;
             oColorReduction.Create(oDataSource, FixedColorPalette);
-            var oDataPreprocessed = oColorReduction.TransformAndDither(oDataQuantized);
+            var oResultPreprocessed = oColorReduction.TransformAndDither(oDataQuantized);
+            var oDataPreprocessed = oResultPreprocessed.DataOut;
             BypassDithering = true;
 
             int[,] oRet;
             switch (AmigaVideoMode)
             {
                 case EnumAMigaVideoMode.Ham6:
-                    oRet = ToHam(oDataSource, oDataPreprocessed,  ColorQuantizationMode.RGB444 );
+                    oRet = ToHam(oDataSource, oDataPreprocessed,  ColorQuantizationMode.RGB444, oToken );
                     break;
                 case EnumAMigaVideoMode.Ham8:
-                    oRet = ToHam(oDataSource, oDataPreprocessed, ColorQuantizationMode.RGB666 );
+                    oRet = ToHam(oDataSource, oDataPreprocessed, ColorQuantizationMode.RGB666, oToken );
                     break;
                 case EnumAMigaVideoMode.ExtraHalfBright:
-                    oRet = ToEhb(oDataSource, oDataPreprocessed);
+                    oRet = ToEhb(oDataSource, oDataPreprocessed, oToken );
                     break;
                 default:
                     oRet = null;

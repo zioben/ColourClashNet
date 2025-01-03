@@ -89,7 +89,7 @@ namespace ColourClashNet.Colors.Transformation
             Palette.Add(0x00_FF_FF_FF);
         }
 
-        int[,]? PreProcess(int[,]? oDataSource, bool bHalveRes )
+        int[,]? PreProcess(int[,]? oDataSource, bool bHalveRes, CancellationToken oToken)
         {
             if (oDataSource == null)
                 return null;
@@ -98,10 +98,10 @@ namespace ColourClashNet.Colors.Transformation
             {
                 oTmp = HalveHorizontalRes(oDataSource);
             }
-            var oTmpData = base.ExecuteTransform(oTmp);
+            var oTmpData = base.ExecuteTransform(oTmp,oToken);
             if (Dithering != null)
             {
-                oTmpData = Dithering.Dither(oTmp, oTmpData, Palette, ColorDistanceEvaluationMode);
+                oTmpData = Dithering.Dither(oTmp, oTmpData, Palette, ColorDistanceEvaluationMode, oToken);
             }
             BypassDithering = true;
             Histogram.Create(oTmpData);
@@ -110,36 +110,36 @@ namespace ColourClashNet.Colors.Transformation
         }
 
 
-        int[,]? ToMode0(int[,]? oDataSource)
+        int[,]? ToMode0(int[,]? oDataSource, CancellationToken oToken)
         {
             var oTmpH = HalveHorizontalRes(oDataSource);
-            var oTmp = PreProcess(oDataSource, true);
+            var oTmp = PreProcess(oDataSource, true, oToken);
             var oPalette = Histogram.ToColorPalette().rgbPalette.Take(16).ToList();
             base.Palette = ColorPalette.FromList(oPalette);
-            var oTmp2 = base.ExecuteTransform(oTmp);
+            var oTmp2 = base.ExecuteTransform(oTmp, oToken);
             if (Dithering != null)
             {
-                oTmp2 = Dithering.Dither(oTmpH, oTmp2, base.Palette, ColorDistanceEvaluationMode);
+                oTmp2 = Dithering.Dither(oTmpH, oTmp2, base.Palette, ColorDistanceEvaluationMode, oToken);
             }
             var oRet = DoubleHorizontalRes(oTmp2);
             return oRet;
         }
-        int[,]? ToMode1(int[,]? oDataSource)
+        int[,]? ToMode1(int[,]? oDataSource, CancellationToken oToken)
         {
-            var oTmp = PreProcess(oDataSource, false);
+            var oTmp = PreProcess(oDataSource, false, oToken);
             var oPalette = Histogram.ToColorPalette().rgbPalette.Take(4).ToList();
             base.Palette = ColorPalette.FromList(oPalette);
-            var oRet = base.ExecuteTransform(oTmp);
+            var oRet = base.ExecuteTransform(oTmp, oToken);
             if (Dithering != null)
             {
-                oRet = Dithering.Dither(oDataSource, oRet, base.Palette, ColorDistanceEvaluationMode);
+                oRet = Dithering.Dither(oDataSource, oRet, base.Palette, ColorDistanceEvaluationMode, oToken);
             }
             return oRet;
         }
 
-        int[,]? ToMode2(int[,]? oDataSource)
+        int[,]? ToMode2(int[,]? oDataSource, CancellationToken oToken)
         {
-            var oTmp = PreProcess(oDataSource, false);
+            var oTmp = PreProcess(oDataSource, false, oToken);
             //ColorTransformReductionCluster oTrasf = new ColorTransformReductionCluster()
             //{
             //    ColorDistanceEvaluationMode = ColorDistanceEvaluationMode,
@@ -152,25 +152,25 @@ namespace ColourClashNet.Colors.Transformation
             //var oRet = oTrasf.TransformAndDither(oTmp);
             var oPalette = Histogram.ToColorPalette().rgbPalette.Take(2).ToList();
             base.Palette = ColorPalette.FromList(oPalette);
-            var oRet = base.ExecuteTransform(oTmp);
+            var oRet = base.ExecuteTransform(oTmp, oToken);
             if (Dithering != null)
             {
-                oRet = Dithering.Dither(oDataSource, oRet, base.Palette, ColorDistanceEvaluationMode);
+                oRet = Dithering.Dither(oDataSource, oRet, base.Palette, ColorDistanceEvaluationMode,oToken);
             }
             return oRet;
         }
 
 
-        int[,]? ToMode3(int[,]? oDataSource)
+        int[,]? ToMode3(int[,]? oDataSource, CancellationToken oToken)
         {
             var oTmpH = HalveHorizontalRes(oDataSource);
-            var oTmp = PreProcess(oDataSource, true);
+            var oTmp = PreProcess(oDataSource, true, oToken);
             var oPalette = Histogram.ToColorPalette().rgbPalette.Take(4).ToList();
             base.Palette = ColorPalette.FromList(oPalette);
-            var oTmp2 = base.ExecuteTransform(oTmp);
+            var oTmp2 = base.ExecuteTransform(oTmp,oToken);
             if (Dithering != null)
             {
-                oTmp2 = Dithering.Dither(oTmpH, oTmp2, base.Palette, ColorDistanceEvaluationMode);
+                oTmp2 = Dithering.Dither(oTmpH, oTmp2, base.Palette, ColorDistanceEvaluationMode, oToken);
             }
             var oRet = DoubleHorizontalRes(oTmp2);
             return oRet;
@@ -178,7 +178,7 @@ namespace ColourClashNet.Colors.Transformation
 
 
 
-        protected override int[,]? ExecuteTransform(int[,]? oDataSource)
+        protected override int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken)
         {
             if (oDataSource == null)
                 return null;
@@ -187,19 +187,19 @@ namespace ColourClashNet.Colors.Transformation
             {
                 case CPCVideoMode.Mode0:
                     {                       
-                        return ToMode0(oDataSource);
+                        return ToMode0(oDataSource, oToken );
                     }
                 case CPCVideoMode.Mode1:
                     {
-                        return ToMode1(oDataSource);
+                        return ToMode1(oDataSource, oToken);
                     }
                 case CPCVideoMode.Mode2:
                     {
-                        return ToMode2(oDataSource);
+                        return ToMode2(oDataSource, oToken);
                     }
                 case CPCVideoMode.Mode3:
                     {
-                        return ToMode3(oDataSource);
+                        return ToMode3(oDataSource, oToken);
                     }
                 default: return null;
             }

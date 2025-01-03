@@ -26,7 +26,7 @@ namespace ColourClashNet.Colors.Dithering
             return true;
         }
 
-        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, ColorPalette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode)
+        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, ColorPalette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken oToken)
         {
             string sMethod = nameof(Dither);
             try

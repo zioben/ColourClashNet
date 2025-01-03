@@ -25,7 +25,9 @@ namespace ColourClashNet.Colors.Transformation
         ColorTransformInterface? Create(ColorHistogram? oColorHistogramSource, ColorPalette? oFixedPaletteSource);
         ColorTransformInterface? Create(ColorPalette? oColorPaletteSource, ColorPalette? oFixedPaletteSource);
         DitherInterface? Dithering { get; set; }
-        int[,]? TransformAndDither(int[,]? oSource);
+        Task<ColorTransformResults> TransformAndDitherAsync(int[,]? oSource);
+        ColorTransformResults TransformAndDither(int[,]? oSource);
+        bool TransformAbort();
         ColorTransformInterface? SetProperty(ColorTransformProperties eProperty, object oValue);
     }
 }

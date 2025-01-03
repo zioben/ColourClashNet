@@ -69,7 +69,7 @@ namespace ColourClashNet.Colors.Transformation
         }
 
 
-        int[,]? PreProcess(int[,]? oDataSource, bool bHalveRes)
+        int[,]? PreProcess(int[,]? oDataSource, bool bHalveRes, CancellationToken oToken)
         {
             if (oDataSource == null)
                 return null;
@@ -78,18 +78,18 @@ namespace ColourClashNet.Colors.Transformation
             {
                 oTmp = HalveHorizontalRes(oDataSource);
             }
-            var oTmpData = base.ExecuteTransform(oTmp);
+            var oTmpData = base.ExecuteTransform(oTmp,oToken);
             if (Dithering != null)
             {
-                oTmpData = Dithering.Dither(oTmp, oTmpData, Palette, ColorDistanceEvaluationMode);
+                oTmpData = Dithering.Dither(oTmp, oTmpData, Palette, ColorDistanceEvaluationMode, oToken);
             }
             BypassDithering = true;
             return oTmpData;
         }
 
-        int[,]? TohiRes(int[,]? oTmpDataSource)
+        int[,]? TohiRes(int[,]? oTmpDataSource, CancellationToken oToken)
         {
-            var oTmpData = PreProcess(oTmpDataSource, false);
+            var oTmpData = PreProcess(oTmpDataSource, false, oToken);
             TileManager oManager = new TileManager();
             oManager.Init(oTmpData, 8, 8, 2, null, ColorDistanceEvaluationMode, TileBase.EnumColorReductionMode.Detailed);
             var oRet = oManager.TransformAndDither(oTmpData);
@@ -97,7 +97,7 @@ namespace ColourClashNet.Colors.Transformation
             return oRet;
         }
 
-        int[,]? To2X1(int[,]? oTmpDataSource)
+        int[,]? To2X1(int[,]? oTmpDataSource, CancellationToken oToken)
         {
             if (oTmpDataSource == null)
                 return null;
@@ -138,9 +138,9 @@ namespace ColourClashNet.Colors.Transformation
         }
 
 
-        int[,]? ToMultiColor(int[,]? oTmpDataSource)
-        {
-            var oTmpData = PreProcess(oTmpDataSource, true);
+        int[,]? ToMultiColor(int[,]? oTmpDataSource, CancellationToken oToken)
+{
+            var oTmpData = PreProcess(oTmpDataSource, true, oToken);
 
             Histogram.Create(oTmpData);
             Histogram.SortColorsDescending();
@@ -155,9 +155,9 @@ namespace ColourClashNet.Colors.Transformation
             return oRet;
         }
 
-        int[,]? ToMultiColorCaroline(int[,]? oTmpDataSource)
-        {
-            var oTmpData = PreProcess(oTmpDataSource, true);
+        int[,]? ToMultiColorCaroline(int[,]? oTmpDataSource, CancellationToken oToken)
+{
+            var oTmpData = PreProcess(oTmpDataSource, true, oToken);
 
             Histogram.Create(oTmpData);
             Histogram.SortColorsDescending();
@@ -174,7 +174,7 @@ namespace ColourClashNet.Colors.Transformation
 
 
 
-        protected override int[,]? ExecuteTransform(int[,]? oDataSource)
+        protected override int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken)
         {
             if (oDataSource == null)
                 return null;
@@ -183,15 +183,15 @@ namespace ColourClashNet.Colors.Transformation
             {
                 case C64VideoMode.HiRes:
                     {                       
-                        return TohiRes(oDataSource);
+                        return TohiRes(oDataSource, oToken);
                     }
                 case C64VideoMode.MulticolorCaroline:
                     {
-                        return ToMultiColorCaroline(oDataSource);
+                        return ToMultiColorCaroline(oDataSource, oToken);
                     }
                 case C64VideoMode.Multicolor:
                     {
-                        return ToMultiColor(oDataSource);
+                        return ToMultiColor(oDataSource, oToken);
                     }
                 default: return null;
             }

@@ -327,7 +327,7 @@ namespace ColourClashNet.Colors.Transformation
             }
         }
 
-        protected override int[,]? ExecuteTransform(int[,]? oSource)
+        protected override int[,]? ExecuteTransform(int[,]? oSource, CancellationToken token)
         {
             if (oSource == null)
                 return null;
@@ -345,6 +345,7 @@ namespace ColourClashNet.Colors.Transformation
                     Palette.Add(col);
                     oRet[r, c] = col;
                 }
+                token.ThrowIfCancellationRequested();   
             }
             return oRet;
         }

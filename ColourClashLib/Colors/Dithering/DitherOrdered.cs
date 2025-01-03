@@ -102,7 +102,7 @@ namespace ColourClashNet.Colors.Dithering
             return true;
         }
 
-        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, ColorPalette? oDataProcessedPalette, ColorDistanceEvaluationMode eMode)
+        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, ColorPalette? oDataProcessedPalette, ColorDistanceEvaluationMode eMode, CancellationToken oToken)
         {
             string sMethod = nameof(Dither);
             try
@@ -137,6 +137,7 @@ namespace ColourClashNet.Colors.Dithering
                         var iCol = ColorIntExt.FromRGB(cr, cg, cb);
                         oRet[r, c] = ColorIntExt.GetNearestColor(iCol, oDataProcessedPalette, eMode);
                     }
+                    oToken.ThrowIfCancellationRequested();
                 });
 
                 Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering completed");

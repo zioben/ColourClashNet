@@ -29,8 +29,8 @@ namespace ColourClashNet.Colors
             oReduction.Create(TileData,null);
             oReduction.Dithering = oDither;
             var oRet = oReduction.TransformAndDither(TileData);
-            Error = ColorTransformBase.Error(oRet, TileData, oReduction.ColorDistanceEvaluationMode);
-            return oRet;
+            Error = ColorTransformBase.Error(oRet.DataOut, TileData, oReduction.ColorDistanceEvaluationMode);
+            return oRet.DataOut;
         }
 
     }

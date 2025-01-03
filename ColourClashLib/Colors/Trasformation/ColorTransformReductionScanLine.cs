@@ -56,12 +56,9 @@ namespace ColourClashNet.Colors.Transformation
         }
 
 
-        protected override void CreateTrasformationMap()
-        {
-        }
+       
 
-
-        protected override int[,]? ExecuteTransform(int[,]? oSource)
+        protected override int[,]? ExecuteTransform(int[,]? oSource, CancellationToken oToken)
         {
             if (oSource == null)
                 return null;
@@ -99,7 +96,8 @@ namespace ColourClashNet.Colors.Transformation
                     oCols[0, c] = oSource[r, c];
                 }
                 oTrasf.Create(oCols, FixedColorPalette);
-                var oColsTrasf = oTrasf.TransformAndDither(oCols);
+                var oColsRes = oTrasf.TransformAndDither(oCols);
+                var oColsTrasf = oColsRes.DataOut;
                 if (oColsTrasf == null)
                 {
                     for (int c = 0; c < C; c++)

@@ -57,7 +57,7 @@ namespace ColourClashNet.Colors.Dithering
 
 
 
-        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, ColorPalette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode)
+        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, ColorPalette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken oToken )
         {
             string sMethod = nameof(Dither);
             try
@@ -103,6 +103,7 @@ namespace ColourClashNet.Colors.Dithering
                         oGP[r, c] = oDataProc.ToG();
                         oBP[r, c] = oDataProc.ToB();
                     }
+                    oToken.ThrowIfCancellationRequested();
                 });
 
                 var oDataRet = new int[R, C];

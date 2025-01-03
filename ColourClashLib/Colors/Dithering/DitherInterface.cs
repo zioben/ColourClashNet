@@ -15,7 +15,7 @@ namespace ColourClashNet.Colors.Dithering
         double DitheringStrenght { get; set; }
         public bool Create();
 
-        int[,]? Dither(int[,]? oDataSource, int[,]? oDataProcessed, ColorPalette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode);
+        int[,]? Dither(int[,]? oDataSource, int[,]? oDataProcessed, ColorPalette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken oToken);
 
     }
 }

@@ -55,11 +55,9 @@ namespace ColourClashNet.Colors.Transformation
             return null;
         }
 
-        protected override void CreateTrasformationMap()
-        {
-        }
+      
 
-        protected override int[,]? ExecuteTransform(int[,]? oSource)
+        protected override int[,]? ExecuteTransform(int[,]? oSource, CancellationToken oToken )
         {
             if (oSource == null)
                 return null;
@@ -82,6 +80,7 @@ namespace ColourClashNet.Colors.Transformation
                     int oRGB = ColorIntExt.FromHSV(h, s, v);
                     oRet[r, c] = oRGB;
                 }
+                oToken.ThrowIfCancellationRequested();
             });
             return oRet;
         }

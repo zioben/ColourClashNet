@@ -15,7 +15,7 @@ namespace ColourClashNet.Colors.Transformation
     {
         static string sClass = nameof(ColorTransformBase);
 
-        public static int[,]? ExecuteStdTransform(int[,]? oSource, ColorTransformationMap oColorTransformationMap)
+        public static int[,]? ExecuteStdTransform(int[,]? oSource, ColorTransformationMap oColorTransformationMap, CancellationToken oToken)
         {
             string sMethod = nameof(ExecuteStdTransform);
             if (oSource == null)
@@ -45,13 +45,14 @@ namespace ColourClashNet.Colors.Transformation
                         oRet[r, c] = oColorTransformationMap.rgbTransformationMap[col];
 
                 }
+                oToken.ThrowIfCancellationRequested();  
             });
             return oRet;
         }
 
-        public static int[,]? ExecuteStdTransform(int[,]? oSource, ColorTransformInterface oI )
+        public static int[,]? ExecuteStdTransform(int[,]? oSource, ColorTransformInterface oI, CancellationToken oToken )
         {
-            return ExecuteStdTransform(oSource, oI?.ColorTransformationMapper );
+            return ExecuteStdTransform(oSource, oI?.ColorTransformationMapper, oToken );
         }
 
         public ColorTransformInterface CreateColorTransformInterface(ColorTransformType transformType, Dictionary<ColorTransformProperties, object> paramList)

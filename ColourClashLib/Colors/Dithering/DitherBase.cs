@@ -21,7 +21,7 @@ namespace ColourClashNet.Colors.Dithering
         public abstract bool Create();
 
 
-        public abstract int[,]? Dither(int[,]? oDataSource, int[,]? oDataProcessed, ColorPalette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode);
+        public abstract int[,]? Dither(int[,]? oDataSource, int[,]? oDataProcessed, ColorPalette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken oToken);
 
  
     }

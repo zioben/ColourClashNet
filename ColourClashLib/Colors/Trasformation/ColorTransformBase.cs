@@ -34,11 +34,28 @@ namespace ColourClashNet.Colors.Transformation
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
         public DitherInterface? Dithering { get; set; } = null;
         protected bool BypassDithering { get; set; }
-        protected abstract void CreateTrasformationMap();
+        protected virtual void CreateTrasformationMap() { }
 
-        protected virtual int[,]? ExecuteTransform(int[,]? oDataSource)
+        private object locker = new object();   
+
+        private CancellationTokenSource cancToken;
+
+        public bool TransformAbort()
         {
-            return ExecuteStdTransform(oDataSource,this);
+            lock (locker)
+            {
+                if (cancToken == null)
+                {
+                    return false;
+                }
+                cancToken.Cancel();
+                return true;
+            }
+        }
+
+        protected virtual int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken)
+        {
+            return ExecuteStdTransform(oDataSource,this, oToken);
         }
 
         void Reset()
@@ -97,29 +114,87 @@ namespace ColourClashNet.Colors.Transformation
             return this;
         }
 
-        public int[,]? TransformAndDither(int[,]? oDataSource)
+        public ColorTransformResults TransformAndDither(int[,]? oDataSource) => TransformAndDitherAsync(oDataSource).Result;
+
+        public async Task<ColorTransformResults> TransformAndDitherAsync(int[,]? oDataSource)
         {
-            if (oDataSource == null)
+            return await Task.Run(() =>
             {
-                return null;
-            }
-            var oDataTrasf = ExecuteTransform(oDataSource);
-            if (oDataTrasf == null || Dithering == null || BypassDithering)
-            {
-                return oDataTrasf;
-            }
-            var oh = new HashSet<int>();
-            foreach (var rgb in oDataTrasf)
-            {
-                oh.Add(rgb);
-            }
-            if( oh.Count >= 256 ) 
-            {
-                return oDataTrasf;
-            }
-            var oProcDither = Dithering.Dither(oDataSource, oDataTrasf, Palette, ColorDistanceEvaluationMode);
-            return oProcDither;
+                var oRet = new ColorTransformResults()
+                {
+                    DataSource = oDataSource,
+                };
+                lock (locker)
+                {
+                    if (cancToken != null)
+                    {
+                        oRet.AddMessage($"{Name} : Processing already running");
+                        return oRet;
+                    }
+                    cancToken = new CancellationTokenSource();
+                }
+                try
+                {
+                    if (oDataSource == null)
+                    {
+                        oRet.AddMessage($"{Name} : DataSource Null");
+                        return oRet;
+                    }
+
+                    oRet.DataTemp = ExecuteTransform(oDataSource, cancToken.Token);
+                    if (oRet.DataTemp == null)
+                    {
+                        oRet.AddMessage($"{Name} : Transformation error");
+                        return oRet;
+                    }
+                    if (Dithering == null || BypassDithering)
+                    {
+                        oRet.DataOut = oRet.DataTemp;
+                        oRet.Valid = true;
+                        oRet.AddMessage($"{Name} : Valid");
+                        return oRet;
+                    }
+                    var oh = new HashSet<int>();
+                    foreach (var rgb in oRet.DataTemp)
+                    {
+                        oh.Add(rgb);
+                    }
+                    if (oh.Count >= 256)
+                    {
+                        oRet.AddMessage($"{Name} : Processing Completed");
+                        oRet.Valid = true;
+                        return oRet;
+                    }
+                    oRet.DataOut = Dithering.Dither(oDataSource, oRet.DataTemp, Palette, ColorDistanceEvaluationMode, cancToken.Token);
+                    if (oRet.DataOut == null)
+                    {
+                        oRet.AddMessage($"{Name} : Dithering error");
+                        return oRet;
+                    }
+                    oRet.Valid = true;
+                    oRet.AddMessage($"{Name} : Processing Completed");
+                    return oRet;
+                }
+                catch (ThreadInterruptedException exTh)
+                {
+                    oRet.AddMessage($"{Name} : Processing Interupted");
+                    return oRet;
+                }
+                catch (Exception ex)
+                {
+                    oRet.AddMessage($"{Name} : Exception Raised : {ex.Message}");
+                    oRet.Exception = ex;
+                    return oRet;
+                }
+                finally
+                {
+                    cancToken = null;
+                }
+            });
         }
+
+
+
 
         static public double Error(int[,]? oDataA, int[,]? oDataB, ColorDistanceEvaluationMode eMode)
         {
