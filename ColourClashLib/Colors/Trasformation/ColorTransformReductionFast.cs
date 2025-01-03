@@ -45,7 +45,7 @@ namespace ColourClashNet.Colors.Transformation
             Palette.Reset();
             Histogram.SortColorsDescending();
             var oTempPalette = ColorPalette.MergeColorPalette(FixedColorPalette, Histogram.ToColorPalette());
-            if (oTempPalette.Colors < ColorsMaxWanted)
+            if (oTempPalette.Count < ColorsMaxWanted)
             {
                 foreach (var kvp in Histogram.rgbHistogram )
                 {

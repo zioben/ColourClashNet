@@ -31,7 +31,7 @@ namespace ColourClashNet.Colors.Dithering
             string sMethod = nameof(Dither);
             try
             {
-                if (oDataOriginal == null || oDataProcessedPalette == null || oDataProcessedPalette.Colors == 0 )
+                if (oDataOriginal == null || oDataProcessedPalette == null || oDataProcessedPalette.Count == 0 )
                 {
                     Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Invalid input data");
                     return null;

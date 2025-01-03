@@ -22,12 +22,12 @@ namespace ColourClashNet.Colors.Transformation
         //---------------- Source properties --------------------------------------
         public ColorHistogram SourceColorHistogram { get; protected set; } = new ColorHistogram();
         public ColorPalette FixedColorPalette { get; protected set; } = new ColorPalette();
-        protected int FixedColors => FixedColorPalette?.Colors ?? 0;
+        protected int FixedColors => FixedColorPalette?.Count ?? 0;
 
         //---------------- Transformation properties------------------------------
         public ColorHistogram Histogram { get; protected set; } = new ColorHistogram();
         public ColorPalette Palette { get; set; } = new ColorPalette();
-        public int Colors => Palette?.Colors ?? 0;
+        public int Colors => Palette?.Count ?? 0;
         public ColorTransformationMap ColorTransformationMapper { get; protected set; } = new  ColorTransformationMap();
 
         //---------------- Useful objects ------------------------------

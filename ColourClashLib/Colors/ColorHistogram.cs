@@ -25,18 +25,7 @@ namespace ColourClashLib.Color
             return ColorHistogram.CreateColorHist(oDataSource, this);
         }
 
-        public void Add(int rgb, int histVal)
-        {
-            if( rgbHistogram.ContainsKey(rgb) ) 
-            {
-                rgbHistogram[rgb] += histVal;
-            }
-            else 
-            {
-                rgbHistogram.Add(rgb, histVal);
-            }
-        }
-
+      
         public bool Create(ColorPalette oPalette)
         {
             Reset();
@@ -44,7 +33,7 @@ namespace ColourClashLib.Color
                 return false;
             foreach( var rgb in oPalette.rgbPalette) 
             {
-                Add(rgb, 0);
+                AddToHistogram(rgb, 0);
             }
             return true;
         }
@@ -58,13 +47,25 @@ namespace ColourClashLib.Color
             {
                 foreach (var rgb in pal.rgbPalette)
                 {
-                    Add(rgb, 0);
+                    AddToHistogram(rgb, 0);
                 }
             });
             return true;
         }
 
-        public int Colors => rgbHistogram.Count;
+        public int Count => rgbHistogram.Count;
+
+        public void AddToHistogram(int rgb, int histAdder)
+        {
+            if (rgbHistogram.ContainsKey(rgb))
+            {
+                rgbHistogram[rgb] += histAdder;
+            }
+            else
+            {
+                rgbHistogram.Add(rgb, histAdder);
+            }
+        }
 
         public ColorPalette ToColorPalette()
         {
@@ -78,93 +79,93 @@ namespace ColourClashLib.Color
             return oCP; 
         }
 
-        public List<int> HistR()
-        {
-            var oRet = new int[256];
-            foreach (var rgb in rgbHistogram)
-            {
-                if (rgb.Key > 0)
-                    oRet[rgb.Key.ToR()] += rgb.Value;
-            }
-            return oRet.ToList();
-        }
+        //public List<int> HistR()
+        //{
+        //    var oRet = new int[256];
+        //    foreach (var rgb in rgbHistogram)
+        //    {
+        //        if (rgb.Key > 0)
+        //            oRet[rgb.Key.ToR()] += rgb.Value;
+        //    }
+        //    return oRet.ToList().Where(X => X > 0).ToList();
+        //}
 
-        public List<int> HistG()
-        {
-            var oRet = new int[256];
-            foreach (var rgb in rgbHistogram)
-            {
-                if (rgb.Key > 0)
-                    oRet[rgb.Key.ToG()] += rgb.Value;
-            }
-            return oRet.ToList();
-        }
+        //public List<int> HistG()
+        //{
+        //    var oRet = new int[256];
+        //    foreach (var rgb in rgbHistogram)
+        //    {
+        //        if (rgb.Key > 0)
+        //            oRet[rgb.Key.ToG()] += rgb.Value;
+        //    }
+        //    return oRet.ToList();
+        //}
 
-        public List<int> HistB()
-        {
-            var oRet = new int[256];
-            foreach (var rgb in rgbHistogram)
-            {
-                if (rgb.Key > 0)
-                    oRet[rgb.Key.ToB()] += rgb.Value;
-            }
-            return oRet.ToList();
-        }
+        //public List<int> HistB()
+        //{
+        //    var oRet = new int[256];
+        //    foreach (var rgb in rgbHistogram)
+        //    {
+        //        if (rgb.Key > 0)
+        //            oRet[rgb.Key.ToB()] += rgb.Value;
+        //    }
+        //    return oRet.ToList();
+        //}
 
-        static public int Otsu(List<int> lHistogram)
-        {
-            if (lHistogram.Count == 0)
-                return 0;
+        //static public int Otsu(List<int> lHistogram)
+        //{
+        //    if (lHistogram.Count == 0)
+        //        return 0;
 
-            double HistogramAccu = 0;
-            for (int i = 0; i < lHistogram.Count; i++)
-            {
-                HistogramAccu += lHistogram[i];
-            }
+        //    double HistogramAccu = 0;
+        //    for (int i = 0; i < lHistogram.Count; i++)
+        //    {
+        //        HistogramAccu += lHistogram[i];
+        //    }
 
-            if (HistogramAccu > 0)
-            {
-                double sum = 0;
-                for (int i = 0; i < lHistogram.Count; i++)
-                {
-                    sum += i * lHistogram[i];
-                }
-                double sumB = 0;
-                double wB = 0;
-                double wF = 0;
-                double mB;
-                double mF;
-                double max = 0;
-                double between = 0;
-                int iTH1 = 0;
-                int iTH2 = 0;
-                for (int i = 0; i < lHistogram.Count; i++)
-                {
-                    wB += lHistogram[i];
-                    if (wB == 0)
-                        continue;
-                    wF = HistogramAccu - wB;
-                    if (wF == 0)
-                        break;
-                    sumB += i * lHistogram[i];
-                    mB = sumB / wB;
-                    mF = (sum - sumB) / wF;
-                    between = wB * wF * (mB - mF) * (mB - mF);
-                    if (between >= max)
-                    {
-                        iTH1 = i;
-                        if (between > max)
-                        {
-                            iTH2 = i;
-                        }
-                        max = between;
-                    }
-                }
-                int iTH = (iTH1 + iTH2) / 2;
-                return iTH;
-            }
-            return 0;
-        }
+        //    if (HistogramAccu > 0)
+        //    {
+        //        double sum = 0;
+        //        for (int i = 0; i < lHistogram.Count; i++)
+        //        {
+        //            sum += i * lHistogram[i];
+        //        }
+        //        double sumB = 0;
+        //        double wB = 0;
+        //        double wF = 0;
+        //        double mB;
+        //        double mF;
+        //        double max = 0;
+        //        double between = 0;
+        //        int iTH1 = 0;
+        //        int iTH2 = 0;
+        //        for (int i = 0; i < lHistogram.Count; i++)
+        //        {
+        //            wB += lHistogram[i];
+        //            if (wB == 0)
+        //                continue;
+        //            wF = HistogramAccu - wB;
+        //            if (wF == 0)
+        //                break;
+        //            sumB += i * lHistogram[i];
+        //            mB = sumB / wB;
+        //            mF = (sum - sumB) / wF;
+        //            between = wB * wF * (mB - mF) * (mB - mF);
+        //            if (between >= max)
+        //            {
+        //                iTH1 = i;
+        //                if (between > max)
+        //                {
+        //                    iTH2 = i;
+        //                }
+        //                max = between;
+        //            }
+        //        }
+        //        int iTH = (iTH1 + iTH2) / 2;
+        //        return iTH;
+        //    }
+        //    return 0;
+        //}
 
         //public class DuplicateKeyComparer<TKey> : IComparer<TKey> where TKey : IComparable
         //{

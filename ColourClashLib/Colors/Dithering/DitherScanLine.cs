@@ -12,7 +12,7 @@ namespace ColourClashNet.Colors.Dithering
 
         public DitherScanLine()
         {
-            Type = ColorDithering.Linear;
+            Type = ColorDithering.ScanLine;
             Description = "Scanline quantization error diffusion";
         }
 

@@ -8,6 +8,7 @@ namespace ColourClashLib
 {
     public static class ColorDefaults
     {
-        public static bool Trace { get; set; }
+        public static bool Trace { get; set; } = false;
+        public static int DefaultDitherKernelSize { get; set; } = 4;
     }
 }

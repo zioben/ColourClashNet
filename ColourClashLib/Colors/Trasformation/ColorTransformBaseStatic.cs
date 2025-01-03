@@ -54,8 +54,65 @@ namespace ColourClashNet.Colors.Transformation
             return ExecuteStdTransform(oSource, oI?.ColorTransformationMapper );
         }
 
-    
-
+        public ColorTransformInterface CreateColorTransformInterface(ColorTransformType transformType, Dictionary<ColorTransformProperties, object> paramList)
+        {
+            string sMethod = nameof(CreateColorTransformInterface);
+            ColorTransformInterface trans = null;
+            switch (transformType)
+            {
+                case ColorTransformType.None:
+                    trans = new ColorTransformIdentity();
+                    break;
+                case ColorTransformType.ColorReductionCBM64:
+                    trans = new ColorTransformIdentity();
+                    break;
+                case ColorTransformType.ColorReductionClustering:
+                    trans = new ColorTransformIdentity();
+                    break;
+                case ColorTransformType.ColorReductionCPC:
+                    trans = new ColorTransformIdentity();
+                    break;
+                case ColorTransformType.ColorReductionEga:
+                    trans = new ColorTransformIdentity();
+                    break;
+                case ColorTransformType.ColorReductionFast:
+                    trans = new ColorTransformIdentity();
+                    break;
+                case ColorTransformType.ColorReductionGenericPalette:
+                    trans = new ColorTransformIdentity();
+                    break;
+                case ColorTransformType.ColorReductionHam:
+                    trans = new ColorTransformIdentity();
+                    break;
+                case ColorTransformType.ColorReductionMedianCut:
+                    trans = new ColorTransformIdentity();
+                    break;
+                case ColorTransformType.ColorReductionQuantization:
+                    trans = new ColorTransformIdentity();
+                    break;
+                case ColorTransformType.ColorReductionSaturation:
+                    trans = new ColorTransformIdentity();
+                    break;
+                case ColorTransformType.ColorReductionScanline:
+                    trans = new ColorTransformIdentity();
+                    break;
+                case ColorTransformType.ColorReductionTileBase:
+                    trans = new ColorTransformIdentity();
+                    break;
+                case ColorTransformType.ColorReductionZxSpectrum:
+                    trans = new ColorTransformIdentity();
+                    break;
+                case ColorTransformType.ColorRemover:
+                    trans = new ColorTransformIdentity();
+                    break;
+                default:
+                    trans = new ColorTransformIdentity();
+                    break;
+            }
+            foreach (var kvp in paramList)
+                trans.SetProperty(kvp.Key, kvp.Value);
+            return trans;
+        }
 
     }
 }

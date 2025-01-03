@@ -74,7 +74,7 @@ namespace ColourClashNet.Colors.Transformation
             //FixedColorPalette.Add(0x000000ff);
             //FixedColorPalette.Add(0x00ffffff);
             var oTempPalette = ColorPalette.MergeColorPalette(FixedColorPalette, Histogram.ToColorPalette());
-            if (oTempPalette.Colors < ColorsMaxWanted)
+            if (oTempPalette.Count < ColorsMaxWanted)
             {
                 foreach (var kvp in Histogram.rgbHistogram)
                 {

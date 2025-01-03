@@ -326,7 +326,7 @@ namespace ColourClashNet.Controls
                 case ColorDithering.JarvisJudiceNinke:
                     Dithering = new DitherJarvisJudiceNinke();
                     break;
-                case ColorDithering.Linear:
+                case ColorDithering.ScanLine:
                     Dithering = new DitherScanLine();
                     break;
                 case ColorDithering.None:

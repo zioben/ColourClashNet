@@ -35,7 +35,7 @@ namespace ColourClashLib.Color
                 for (int rgb = 0; rgb < oColorArray.Length; rgb++)
                 {
                     if (oColorArray[rgb] > 0)
-                        oHist.Add(rgb, oColorArray[rgb]);
+                        oHist.AddToHistogram(rgb, oColorArray[rgb]);
                 }
             }
         }
@@ -51,7 +51,7 @@ namespace ColourClashLib.Color
                     var rgb = oDataSource[r, c];
                     if (rgb < 0)
                         continue;
-                    oHist.Add(rgb, 1);
+                    oHist.AddToHistogram(rgb, 1);
                 }
             }
             return true;
@@ -70,7 +70,7 @@ namespace ColourClashLib.Color
                 oHist.Reset();
                 int R = oDataSource.GetLength(0);
                 int C = oDataSource.GetLength(1);
-                if (R * C > 64 * 64)
+                if (R * C > 1920 * 1080 )
                 {
                     if (ColorDefaults.Trace)
                         Trace.TraceInformation($"{sClass}.{sMethod} : call CreateColorHistArray");

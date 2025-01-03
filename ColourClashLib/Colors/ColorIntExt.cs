@@ -296,7 +296,7 @@ namespace ColourClashNet.Colors
 
         public static int GetColorMean(ColorPalette oPalette, ColorMeanMode eMeanMode)
         {
-            if (oPalette == null || oPalette.Colors == 0)
+            if (oPalette == null || oPalette.Count == 0)
                 return -1;
             double R = 0;
             double G = 0;
@@ -307,9 +307,9 @@ namespace ColourClashNet.Colors
                 G += kvp.ToG();
                 B += kvp.ToB();
             };
-            R /= oPalette.Colors;
-            G /= oPalette.Colors;
-            B /= oPalette.Colors;
+            R /= oPalette.Count;
+            G /= oPalette.Count;
+            B /= oPalette.Count;
             var iMean = ColorIntExt.FromRGB(R, G, B);
             switch (eMeanMode)
             {

@@ -53,12 +53,12 @@ namespace ColourClashLib.Colors.Tile
         /// <summary>
         /// Original position in source
         /// </summary>
-        public int DataSourceC { get; private set; } = 0;
+        public int DataSourceOriginC { get; private set; } = 0;
 
         /// <summary>
         /// Original position in source
         /// </summary>
-        public int DataSourceR { get; private set; } = 0;
+        public int DataSourceOriginR { get; private set; } = 0;
 
         /// <summary>
         /// Tile data processed
@@ -119,8 +119,8 @@ namespace ColourClashLib.Colors.Tile
         /// <returns>int[,] processed data or null on error</returns>
         public int[,]? ExecuteTrasform(int[,]? oDataSource, int iSourceR, int iSourceC )
         {
-            DataSourceC = iSourceC; 
-            DataSourceR = iSourceR;
+            DataSourceOriginC = iSourceC; 
+            DataSourceOriginR = iSourceR;
             if (oDataSource == null)
             {
                 return null;                
@@ -182,13 +182,13 @@ namespace ColourClashLib.Colors.Tile
             }
             int R = oDestinationData.GetLength(0);
             int C = oDestinationData.GetLength(1);
-            int RR = Math.Max(0, Math.Min(R, DataSourceR + TileH));
-            int CC = Math.Max(0, Math.Min(C, DataSourceC + TileW));
+            int RR = Math.Max(0, Math.Min(R, DataSourceOriginR + TileH));
+            int CC = Math.Max(0, Math.Min(C, DataSourceOriginC + TileW));
 
             // Merge Data
-            for (int dr = DataSourceR, r = 0; dr < RR; dr++, r++)
+            for (int dr = DataSourceOriginR, r = 0; dr < RR; dr++, r++)
             {
-                for (int dc = DataSourceC, c = 0; dc < CC; dc++, c++)
+                for (int dc = DataSourceOriginC, c = 0; dc < CC; dc++, c++)
                 {
                     oDestinationData[dr, dc] = DataProcessed[r, c];
                 }
@@ -298,7 +298,7 @@ namespace ColourClashLib.Colors.Tile
 
         public  bool CalcExternalImageError(int[,]? oDestinationData)
         {
-            var oDataTile = GetDataTile(oDestinationData, DataSourceR, DataSourceC, TileW, TileH);
+            var oDataTile = GetDataTile(oDestinationData, DataSourceOriginR, DataSourceOriginC, TileW, TileH);
             if (oDataTile == null)
             {
                 ExternalImageError = double.MaxValue;
@@ -309,7 +309,7 @@ namespace ColourClashLib.Colors.Tile
 
         public override string ToString()
         {
-            return $"R={DataSourceR}:C={DataSourceC}:H={TileH}:W={TileW} : TE={TrasformationError} : IE={ExternalImageError}";
+            return $"R={DataSourceOriginR}:C={DataSourceOriginC}:H={TileH}:W={TileW} : TE={TrasformationError} : IE={ExternalImageError}";
         }
     }
 }

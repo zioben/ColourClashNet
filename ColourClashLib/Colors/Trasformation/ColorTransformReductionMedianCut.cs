@@ -133,7 +133,7 @@ namespace ColourClashNet.Colors.Transformation
             }
             else
             {
-                if (oPalette.Colors == 0)
+                if (oPalette.Count == 0)
                     return;
                 var iRGB = ColorIntExt.GetColorMean(oPalette, ColorMeanMode.UseColorPalette);
                 foreach (var rgb in oPalette.rgbPalette)
@@ -148,7 +148,7 @@ namespace ColourClashNet.Colors.Transformation
 
         protected override void CreateTrasformationMap()
         {
-            if (Histogram.ToColorPalette().Colors < ColorsMaxWanted)
+            if (Histogram.ToColorPalette().Count < ColorsMaxWanted)
             {
                 foreach (var kvp in Histogram.rgbHistogram)
                 {

@@ -115,7 +115,7 @@ namespace ColourClashNet.Colors.Transformation
             var oTmpH = HalveHorizontalRes(oDataSource);
             var oTmp = PreProcess(oDataSource, true);
             var oPalette = Histogram.ToColorPalette().rgbPalette.Take(16).ToList();
-            base.Palette = ColorPalette.CreateColorPalette(oPalette);
+            base.Palette = ColorPalette.FromList(oPalette);
             var oTmp2 = base.ExecuteTransform(oTmp);
             if (Dithering != null)
             {
@@ -128,7 +128,7 @@ namespace ColourClashNet.Colors.Transformation
         {
             var oTmp = PreProcess(oDataSource, false);
             var oPalette = Histogram.ToColorPalette().rgbPalette.Take(4).ToList();
-            base.Palette = ColorPalette.CreateColorPalette(oPalette);
+            base.Palette = ColorPalette.FromList(oPalette);
             var oRet = base.ExecuteTransform(oTmp);
             if (Dithering != null)
             {
@@ -151,7 +151,7 @@ namespace ColourClashNet.Colors.Transformation
             //oTrasf.Create(oTmp, null);
             //var oRet = oTrasf.TransformAndDither(oTmp);
             var oPalette = Histogram.ToColorPalette().rgbPalette.Take(2).ToList();
-            base.Palette = ColorPalette.CreateColorPalette(oPalette);
+            base.Palette = ColorPalette.FromList(oPalette);
             var oRet = base.ExecuteTransform(oTmp);
             if (Dithering != null)
             {
@@ -166,7 +166,7 @@ namespace ColourClashNet.Colors.Transformation
             var oTmpH = HalveHorizontalRes(oDataSource);
             var oTmp = PreProcess(oDataSource, true);
             var oPalette = Histogram.ToColorPalette().rgbPalette.Take(4).ToList();
-            base.Palette = ColorPalette.CreateColorPalette(oPalette);
+            base.Palette = ColorPalette.FromList(oPalette);
             var oTmp2 = base.ExecuteTransform(oTmp);
             if (Dithering != null)
             {

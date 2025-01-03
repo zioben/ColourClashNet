@@ -60,14 +60,16 @@ namespace ColourClashNet.Colors
         None = 0,
         Ordered_2x2,
         Ordered_4x4,
+        Ordered_6x6,
         Ordered_8x8,
+        Ordered,
         FloydSteinberg,
         Atkinson,
         Burkes,
         JarvisJudiceNinke,
         Sierra,
         Stucki,
-        Linear
+        ScanLine
     }
     public enum ColorMeanMode
     {
