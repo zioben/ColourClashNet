@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ColourClashLib.Color;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,8 @@ namespace ColourClashNet.Colors.Transformation
         public string Message { get; private set; } = string.Empty;
 
         public Exception? Exception { get; set; }
+
+        public ColorTransformInterface ColorTransformInterface { get; }
 
         public void AddMessage( string sMessage)
         {

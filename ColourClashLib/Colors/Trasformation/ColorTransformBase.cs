@@ -36,9 +36,9 @@ namespace ColourClashNet.Colors.Transformation
         protected bool BypassDithering { get; set; }
         protected virtual void CreateTrasformationMap() { }
 
-        private object locker = new object();   
+        private object locker = new object();
 
-        private CancellationTokenSource cancToken;
+        private CancellationTokenSource cancToken = null;
 
         public bool TransformAbort()
         {
@@ -114,87 +114,86 @@ namespace ColourClashNet.Colors.Transformation
             return this;
         }
 
-        public ColorTransformResults TransformAndDither(int[,]? oDataSource) => TransformAndDitherAsync(oDataSource).Result;
+
+        public ColorTransformResults TransformAndDither(int[,]? oDataSource)
+        {
+            var oRet = new ColorTransformResults()
+            {
+                DataSource = oDataSource,
+            };
+            lock (locker)
+            {
+                if (cancToken != null)
+                {
+                    oRet.AddMessage($"{Name} : Processing already running");
+                    return oRet;
+                }
+                cancToken = new CancellationTokenSource();
+            }
+            try
+            {
+                if (oDataSource == null)
+                {
+                    oRet.AddMessage($"{Name} : DataSource Null");
+                    return oRet;
+                }
+
+                // Execute color reduction
+                oRet.DataTemp = ExecuteTransform(oDataSource, cancToken.Token);        
+                if (oRet.DataTemp == null)
+                {
+                    oRet.AddMessage($"{Name} : Transformation error");
+                    return oRet;
+                }
+                if (Dithering == null || BypassDithering)
+                {
+                    oRet.DataOut = oRet.DataTemp;
+                    oRet.Valid = true;
+                    oRet.AddMessage($"{Name} : Valid");
+                    return oRet;
+                }
+                var oHash = new HashSet<int>();
+                foreach (var rgb in oRet.DataTemp)
+                {
+                    oHash.Add(rgb);
+                }
+                if (oHash.Count >= 256)
+                {
+                    oRet.AddMessage($"{Name} : Processing Completed");
+                    oRet.Valid = true;
+                    return oRet;
+                }
+                oRet.DataOut = Dithering.Dither(oDataSource, oRet.DataTemp, Palette, ColorDistanceEvaluationMode, cancToken.Token);
+                if (oRet.DataOut == null)
+                {
+                    oRet.AddMessage($"{Name} : Dithering error");
+                    return oRet;
+                }
+                oRet.Valid = true;
+                oRet.AddMessage($"{Name} : Processing Completed");
+                return oRet;
+            }
+            catch (ThreadInterruptedException exTh)
+            {
+                oRet.AddMessage($"{Name} : Processing Interupted");
+                return oRet;
+            }
+            catch (Exception ex)
+            {
+                oRet.AddMessage($"{Name} : Exception Raised : {ex.Message}");
+                oRet.Exception = ex;
+                return oRet;
+            }
+            finally
+            {
+                cancToken = null;
+            }
+        }
 
         public async Task<ColorTransformResults> TransformAndDitherAsync(int[,]? oDataSource)
         {
-            return await Task.Run(() =>
-            {
-                var oRet = new ColorTransformResults()
-                {
-                    DataSource = oDataSource,
-                };
-                lock (locker)
-                {
-                    if (cancToken != null)
-                    {
-                        oRet.AddMessage($"{Name} : Processing already running");
-                        return oRet;
-                    }
-                    cancToken = new CancellationTokenSource();
-                }
-                try
-                {
-                    if (oDataSource == null)
-                    {
-                        oRet.AddMessage($"{Name} : DataSource Null");
-                        return oRet;
-                    }
-
-                    oRet.DataTemp = ExecuteTransform(oDataSource, cancToken.Token);
-                    if (oRet.DataTemp == null)
-                    {
-                        oRet.AddMessage($"{Name} : Transformation error");
-                        return oRet;
-                    }
-                    if (Dithering == null || BypassDithering)
-                    {
-                        oRet.DataOut = oRet.DataTemp;
-                        oRet.Valid = true;
-                        oRet.AddMessage($"{Name} : Valid");
-                        return oRet;
-                    }
-                    var oh = new HashSet<int>();
-                    foreach (var rgb in oRet.DataTemp)
-                    {
-                        oh.Add(rgb);
-                    }
-                    if (oh.Count >= 256)
-                    {
-                        oRet.AddMessage($"{Name} : Processing Completed");
-                        oRet.Valid = true;
-                        return oRet;
-                    }
-                    oRet.DataOut = Dithering.Dither(oDataSource, oRet.DataTemp, Palette, ColorDistanceEvaluationMode, cancToken.Token);
-                    if (oRet.DataOut == null)
-                    {
-                        oRet.AddMessage($"{Name} : Dithering error");
-                        return oRet;
-                    }
-                    oRet.Valid = true;
-                    oRet.AddMessage($"{Name} : Processing Completed");
-                    return oRet;
-                }
-                catch (ThreadInterruptedException exTh)
-                {
-                    oRet.AddMessage($"{Name} : Processing Interupted");
-                    return oRet;
-                }
-                catch (Exception ex)
-                {
-                    oRet.AddMessage($"{Name} : Exception Raised : {ex.Message}");
-                    oRet.Exception = ex;
-                    return oRet;
-                }
-                finally
-                {
-                    cancToken = null;
-                }
-            });
+           return await Task.Run(()=>TransformAndDither(oDataSource));
         }
-
-
-
 
         static public double Error(int[,]? oDataA, int[,]? oDataB, ColorDistanceEvaluationMode eMode)
         {

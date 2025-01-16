@@ -30,7 +30,9 @@ namespace ColourClashNet.Colors.Transformation
             }
             // var lListList = ToListList(oSource);
             if (ColorDefaults.Trace)
+            {
                 Trace.TraceInformation($"{sClass}.{sMethod} : Apply default trasformatiion");
+            }
             var R = oSource.GetLength(0);
             var C = oSource.GetLength(1);
             var oRet = new int[R, C];

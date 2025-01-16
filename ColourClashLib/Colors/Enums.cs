@@ -93,6 +93,7 @@ namespace ColourClashNet.Colors
         ColorBackgroundList,
         ColorBackgroundReplacement,
         MaxColorsWanted,
+        MaxColorChangePerLine,
         HsbHueShift,
         HsvSaturationMultFactor,
         HsvBrightnessMultFactor,
