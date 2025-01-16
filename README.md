@@ -1,4 +1,4 @@
-# ColourClashNet
+# ColourClashNet - Work in progress - NOT WORKING
 A basic collection of classes to handle image color reduction.
 ![Alt text](./Images/ColourClash.jpg?raw=true) 
 ## Purposes
