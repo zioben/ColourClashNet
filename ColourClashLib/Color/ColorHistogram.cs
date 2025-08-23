@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace ColourClashLib.Color
 {
+    /// <summary>
+    /// Color Histogram evaluation.<BR/>
+    /// Represent Histogram RGB Color with its occurrences.
+    /// </summary>
     public partial class ColorHistogram
     {
         static string sClass = nameof(ColorHistogram);

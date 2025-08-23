@@ -116,10 +116,7 @@ namespace ColourClashNet.Colors.Transformation
             OutputPalette = OutputHistogram.ToColorPalette();
             CreateTrasformationMap();
 
-            int i = 0;
-            if (i.Info() == ColorIntInfo.IsColor)
-            { 
-            }
+          
             return this;
         }
 

@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ColourClashLib\ColourClashLib.csproj" />
+    <ProjectReference Include="..\ColourClashSupport\ColourClashSupport.csproj" />
   </ItemGroup>
 
 </Project>

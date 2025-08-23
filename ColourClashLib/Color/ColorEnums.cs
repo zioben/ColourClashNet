@@ -115,4 +115,42 @@ namespace ColourClashNet.Colors
         Output_Palette,
     }
 
+    /// <summary>
+    /// Enums to decorate ColorIntExt Class
+    /// <para>
+    /// 24 bit space is neede to codigy RGB8 colour space data. Remaining 8 bit data can be used to identify a property of the color.<br/>
+    /// Everything tha in nor "real" color is maked with 1 on MSB, so resulting in always a negative number. This Helps on filtering operations.
+    /// </para>
+    /// </summary>
+    public enum ColorIntType
+    {
+        /// <summary>
+        /// Real color Flag
+        /// </summary>
+        IsColor = 0,
+        /// <summary>
+        /// The color in part of the background, and should be processed apart
+        /// </summary>
+        IsBkg = (0b10000001) << 24,
+        /// <summary>
+        /// The color codifies a cookiecut image, and should be treated apart on image processing
+        /// </summary>
+        IsMask = (0b10000010) << 24,
+        /// <summary>
+        /// The color represents an alpha value
+        /// </summary>
+        IsAplha = (0b10000100) << 24,
+        /// <summary>
+        /// The color represents a tile grid, useful to align graphics
+        /// </summary>
+        IsTile = (0b10001000) << 24,
+        /// <summary>
+        /// The color should be treated as transparent
+        /// </summary>
+        IsTransparent = (0b10010000) << 24,
+        /// <summary>
+        /// The color should be considered invalid
+        /// </summary>
+        Invalid = (0b11111111) << 24,
+    }
 }

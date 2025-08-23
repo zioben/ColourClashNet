@@ -1,4 +1,5 @@
 ﻿using ColourClashLib.Color;
+using ColourClashLib.Colors;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
@@ -11,16 +12,7 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Colors
 {
-    public enum ColorIntInfo
-    {
-        IsColor = 0,
-        IsBkg = 1 << 24,
-        IsMask = 1 << 25,
-        IsAplha = 1 << 26,
-        IsTileLayer = 1 << 27,
-        IsTransparent= 1 << 28,
-        Invalid = 1 << 31,
-    }
+
 
 
     public static class ColorIntExt
@@ -30,42 +22,42 @@ namespace ColourClashNet.Colors
         public static Color DefaultTileLayerColor { get; set; } = Color.FromArgb(255, 255, 255, 255);
         public static Color DefaultTransparentColor { get; set; } = Color.Transparent;
 
-        public static void SetColorInfo(this int i, ColorIntInfo eInfo)
+        public static void SetColorInfo(this int i, ColorIntType eInfo)
         {
             i &= 0x00_FF_FF_FF;
             i |= ((int)eInfo) << 24;
         }
 
-        public static ColorIntInfo GetColorInfo(this int i)
+        public static ColorIntType GetColorInfo(this int i)
         {
             int val = (i >> 24) & 0x00_00_00_FF;
             if (i == 0x_00_ff)
             {
-                return ColorIntInfo.Invalid;
+                return ColorIntType.Invalid;
             }
-            return (ColorIntInfo)val;
+            return (ColorIntType)val;
         }
 
         public static System.Drawing.Color ToDrawingColor(this int i)
         {
             switch (GetColorInfo(i))
             {
-                case ColorIntInfo.IsColor:
+                case ColorIntType.IsColor:
                     {
                         unchecked
                         {
                             return System.Drawing.Color.FromArgb(i | (int)0xFF_00_00_00);
                         }
                     }
-                case ColorIntInfo.IsBkg:
+                case ColorIntType.IsBkg:
                     {
                         return DefaultBkgColor;
                     }
-                case ColorIntInfo.IsMask:
+                case ColorIntType.IsMask:
                     {
                         return DefaultMaskColor;
                     }
-                case ColorIntInfo.IsTileLayer:
+                case ColorIntType.IsTile:
                     {
                         return DefaultTileLayerColor;
                     }
@@ -227,17 +219,18 @@ namespace ColourClashNet.Colors
             }
         }
 
-        public static int FromRGB(int r, int g, int b)
+     
+
+        public static int FromRGB(int r, int g, int b, ColorIntType eType)
         {
             if (r < 0 || g < 0 || b < 0)
-                return -1;
-            return (Math.Min(255, r) << 16) | (Math.Min(255, g) << 8) | (Math.Min(255, b) << 0);
+                return ((int)ColorIntType.Invalid);
+            return (Math.Min(255, r) << 16) | (Math.Min(255, g) << 8) | (Math.Min(255, b) << 0) | (int)eType;
         }
 
-        public static int FromRGB(double dr, double dg, double db)
-        {
-            return FromRGB((int)dr, (int)dg, (int)db);
-        }
+        public static int FromRGB(int r, int g, int b) => FromRGB(r, g, b, ColorIntType.IsColor);
+
+        public static int FromRGB(double dr, double dg, double db) => FromRGB((int) dr, (int) dg, (int) db);
 
         public static int FromHSV(float fValh, float fVals, float fValv)
         {
@@ -391,9 +384,5 @@ namespace ColourClashNet.Colors
             return FromRGB(R, G, B);
         }
 
-        //    static public int R(this int i) => ToR(i);
-        //    static public int G(this int i) => ToG(i);
-        //    static public int B(this int i) => ToB(i);
-        //    static public ColorIntInfo Info(this int i) => GetColorInfo(i);
     }
 }
