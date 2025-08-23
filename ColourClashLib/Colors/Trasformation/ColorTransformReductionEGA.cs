@@ -11,27 +11,32 @@ namespace ColourClashNet.Colors.Transformation
     {
         public ColorTransformReductionEGA()
         {
-            Name = ColorTransformType.ColorReductionEga;
+            Type = ColorTransformType.ColorReductionEga;
             Description = "Reduce color to EGA palette";
         }
         protected override void CreateTrasformationMap()
         {
-            Palette.Reset();
-            Palette.Add(0x00000000);
-            Palette.Add(0x000000AA);
-            Palette.Add(0x0000AA00);
-            Palette.Add(0x0000AAAA);
-            Palette.Add(0x00AA0000);
-            Palette.Add(0x00AA00AA);
-            Palette.Add(0x00AA5500);
-            Palette.Add(0x00AAAAAA);
-            Palette.Add(0x00555555);
-            Palette.Add(0x005555FF);
-            Palette.Add(0x0055FF55);
-            Palette.Add(0x00FF5555);
-            Palette.Add(0x00FF55FF);
-            Palette.Add(0x00FFFF55);
-            Palette.Add(0x00FFFFFF);
+            SetProperty(
+               ColorTransformProperties.Output_Palette,
+               new List<int>
+               {
+                    0x00000000,
+                    0x000000AA,
+                    0x0000AA00,
+                    0x0000AAAA,
+                    0x00AA0000,
+                    0x00AA00AA,
+                    0x00AA5500,
+                    0x00AAAAAA,
+                    0x00555555,
+                    0x005555FF,
+                    0x0055FF55,
+                    0x00FF5555,
+                    0x00FF55FF,
+                    0x00FFFF55,
+                    0x00FFFFFF,
+               }
+           );
         }
 
     }

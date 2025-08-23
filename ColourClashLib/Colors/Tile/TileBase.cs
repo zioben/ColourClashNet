@@ -158,11 +158,11 @@ namespace ColourClashLib.Colors.Tile
                     break;
             }
             oColorReduction.Create(DataSource,FixedPalette);
-            var DataProcessed = oColorReduction.TransformAndDither(DataSource);
+            DataProcessed = oColorReduction.ProcessColors(DataSource).DataOut;
 
             // Evaluate error
-            TrasformationError = ColorTransformBase.Error(DataSource, DataProcessed.DataOut, ColorDistanceMode);
-            return DataProcessed.DataOut;
+            TrasformationError = ColorTransformBase.EvaluateError(DataSource, DataProcessed, ColorDistanceMode);
+            return DataProcessed;
         }
 
         /// <summary>
@@ -303,7 +303,7 @@ namespace ColourClashLib.Colors.Tile
             {
                 ExternalImageError = double.MaxValue;
             }
-            ExternalImageError = ColorTransformBase.Error(oDataTile, DataProcessed, ColorDistanceMode);
+            ExternalImageError = ColorTransformBase.EvaluateError(oDataTile, DataProcessed, ColorDistanceMode);
             return true;
         }
 

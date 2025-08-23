@@ -14,7 +14,7 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformReductionFast()
         {
-            Name = ColorTransformType.ColorReductionFast;
+            Type = ColorTransformType.ColorReductionFast;
             Description = "Quantitative color reduction";
         }
 
@@ -42,14 +42,14 @@ namespace ColourClashNet.Colors.Transformation
 
         protected override void CreateTrasformationMap()
         {
-            Palette.Reset();
-            Histogram.SortColorsDescending();
-            var oTempPalette = ColorPalette.MergeColorPalette(FixedColorPalette, Histogram.ToColorPalette());
+            OutputPalette.Reset();
+            OutputHistogram.SortColorsDescending();
+            var oTempPalette = ColorPalette.MergeColorPalette(InputFixedColorPalette, OutputHistogram.ToColorPalette());
             if (oTempPalette.Count < ColorsMaxWanted)
             {
-                foreach (var kvp in Histogram.rgbHistogram )
+                foreach (var kvp in OutputHistogram.rgbHistogram )
                 {
-                    Palette.Add(kvp.Key);
+                    OutputPalette.Add(kvp.Key);
                     ColorTransformationMapper.rgbTransformationMap[kvp.Key] = kvp.Key;
                 }
                 return;
@@ -62,7 +62,7 @@ namespace ColourClashNet.Colors.Transformation
             {
                 var dMin = listMax.Min(Y => Y.Distance(X, ColorDistanceEvaluationMode));
                 var oItem = listMax.FirstOrDefault(Y => Y.Distance(X, ColorDistanceEvaluationMode) == dMin);
-                Palette.Add(oItem);
+                OutputPalette.Add(oItem);
                 ColorTransformationMapper.rgbTransformationMap[X] = oItem;
             });
         }

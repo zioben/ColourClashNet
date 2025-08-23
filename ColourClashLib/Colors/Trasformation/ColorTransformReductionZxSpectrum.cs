@@ -28,7 +28,7 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformReductionZxSpectrum()
         {
-            Name = ColorTransformType.ColorReductionZxSpectrum;
+            Type = ColorTransformType.ColorReductionZxSpectrum;
             Description = "Reduce color to ZX Spectrum color map and apply Colourclash reduction";
         }
 
@@ -49,35 +49,35 @@ namespace ColourClashNet.Colors.Transformation
                 return this;
             switch( eProperty) 
             {
-                case ColorTransformProperties.ZxColL:
+                case ColorTransformProperties.Zx_ColL:
                     if (int.TryParse(oValue.ToString(), out var l))
                     {
                         ColL= l;
                         return this;
                     }
                     break;
-                case ColorTransformProperties.ZxColH:
+                case ColorTransformProperties.Zx_ColH:
                     if (int.TryParse(oValue.ToString(), out var h))
                     {
                         ColH = h;
                         return this;
                     }
                     break;
-                case ColorTransformProperties.ZxDitherHighColor:
+                case ColorTransformProperties.Zx_DitherHighColor:
                     if (bool.TryParse(oValue?.ToString(), out var d))
                     {
                         DitherHighColor = d;    
                         return this;    
                     }
                     break;
-                case ColorTransformProperties.ZxIncludeBlackInHighColor:
+                case ColorTransformProperties.Zx_IncludeBlackInHighColor:
                     if (bool.TryParse(oValue?.ToString(), out var b))
                     {
                         DitherHighColor = b;
                         return this;
                     }
                     break;
-                case ColorTransformProperties.ZxPaletteMode:
+                case ColorTransformProperties.Zx_PaletteMode:
                     {
                         if (Enum.TryParse<ZxPaletteMode>(oValue?.ToString(), out var eMode))
                         {
@@ -123,10 +123,10 @@ namespace ColourClashNet.Colors.Transformation
         int[,]? CreateImage(int[,]? oDataSource, int iCol, int iColOut, bool bUseBlack, bool bDither, ColorDistanceEvaluationMode eColorMode, CancellationToken oToken )
         {
             var oMap = CreateZxMap(iCol,iColOut, bUseBlack);
-            Palette = new ColorPalette();
+            OutputPalette = new ColorPalette();
             foreach (var rgb in oMap.rgbTransformationMap)
             {
-                Palette.Add(rgb.Key);
+                OutputPalette.Add(rgb.Key);
             }
             var oOld = ColorDistanceEvaluationMode;
             ColorDistanceEvaluationMode = eColorMode;
@@ -134,7 +134,7 @@ namespace ColourClashNet.Colors.Transformation
             ColorDistanceEvaluationMode = oOld;
             if (bDither && Dithering != null)
             {
-                oTmpData = Dithering.Dither(oDataSource, oTmpData, Palette, eColorMode, oToken );
+                oTmpData = Dithering.Dither(oDataSource, oTmpData, OutputPalette, eColorMode, oToken );
             }
             return oTmpData;
         }

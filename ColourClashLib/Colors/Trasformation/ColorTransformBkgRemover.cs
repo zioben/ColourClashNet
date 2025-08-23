@@ -15,7 +15,7 @@ namespace ColourClashNet.Colors.Transformation
         static string sClass = nameof(ColorTransformBkgRemover);
         public ColorTransformBkgRemover()
         {
-            Name = ColorTransformType.ColorRemover;
+            Type = ColorTransformType.ColorRemover;
             Description = "Substitute a colorlist with a single color";
         }
 
@@ -55,21 +55,21 @@ namespace ColourClashNet.Colors.Transformation
         {
             string sMethod = nameof(CreateTrasformationMap);
             if (ColorDefaults.Trace)
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Creating trasformation map");
-            foreach (var rgb in Palette.rgbPalette)
+                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
+            foreach (var rgb in OutputPalette.rgbPalette)
             {
                 if (rgb < 0)
                     continue;
                 ColorTransformationMapper.Add(rgb, rgb);
             }
 
-            foreach (var rgb in Palette.rgbPalette)
+            foreach (var rgb in OutputPalette.rgbPalette)
             {
                 if (rgb < 0)
                     continue;
                 if (ColorBackgroundList.Any(X => X.Equals(rgb)))
                 {
-                    Palette.Remove(rgb);
+                    OutputPalette.Remove(rgb);
                     ColorTransformationMapper.rgbTransformationMap[rgb] = ColorBackgroundReplacement;
                 }
             }

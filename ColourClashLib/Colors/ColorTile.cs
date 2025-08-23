@@ -12,7 +12,7 @@ namespace ColourClashNet.Colors
     {
         internal int r { get; set; }
         internal int c { get; set; }
-        internal int[,] TileData { get; set; }
+        internal int[,]? TileData { get; set; }
         //internal int[,] TileDataProc { get; set; }
         internal double Error { get; private set; }
 
@@ -24,12 +24,12 @@ namespace ColourClashNet.Colors
             TrainingLoop = 3,
         };
 
-        internal int[,] Process(DitherInterface oDither)
+        internal int[,]? Process(DitherInterface oDither)
         {
             oReduction.Create(TileData,null);
             oReduction.Dithering = oDither;
-            var oRet = oReduction.TransformAndDither(TileData);
-            Error = ColorTransformBase.Error(oRet.DataOut, TileData, oReduction.ColorDistanceEvaluationMode);
+            var oRet = oReduction.ProcessColors(TileData);
+            Error = ColorTransformBase.EvaluateError(oRet.DataOut, TileData, oReduction.ColorDistanceEvaluationMode);
             return oRet.DataOut;
         }
 

@@ -14,7 +14,7 @@ namespace ColourClashNet.Colors.Transformation
         static string sClass = nameof(ColorTransformIdentity);
         public ColorTransformIdentity()
         {
-            Name = ColorTransformType.ColorIdentity;
+            Type = ColorTransformType.ColorIdentity;
             Description = "1:1 Color transformation";
         }
 
@@ -22,9 +22,9 @@ namespace ColourClashNet.Colors.Transformation
         {
             string sMethod = nameof(CreateTrasformationMap);
             if (ColorDefaults.Trace)
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Creating trasformation map");
+                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
 
-            foreach (var kvp in Histogram.rgbHistogram)
+            foreach (var kvp in OutputHistogram.rgbHistogram)
             {
                 ColorTransformationMapper.Add(kvp.Key, kvp.Key);
             }

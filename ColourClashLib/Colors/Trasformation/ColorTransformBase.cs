@@ -13,22 +13,26 @@ using System.Xml.Xsl;
 
 namespace ColourClashNet.Colors.Transformation
 {
+    /// <summary>
+    /// Abstract class to handle std color transformations
+    /// </summary>
     public abstract partial class ColorTransformBase : ColorTransformInterface
     {
         //---------------- Base description ---------------------------------
-        public ColorTransformType Name { get; protected init; }
+        public ColorTransformType Type { get; protected init; }
+        public String Name { get; set; } = "";
         public string Description { get; protected set; } = "";
 
         //---------------- Source properties --------------------------------------
-        public ColorHistogram SourceColorHistogram { get; protected set; } = new ColorHistogram();
-        public ColorPalette FixedColorPalette { get; protected set; } = new ColorPalette();
-        protected int FixedColors => FixedColorPalette?.Count ?? 0;
+        public ColorHistogram InputHistogram { get; protected set; } = new ColorHistogram();
+        public ColorPalette InputFixedColorPalette { get; protected set; } = new ColorPalette();
+        protected int InputFixedColors => InputFixedColorPalette?.Count ?? 0;
 
         //---------------- Transformation properties------------------------------
-        public ColorHistogram Histogram { get; protected set; } = new ColorHistogram();
-        public ColorPalette Palette { get; set; } = new ColorPalette();
-        public int Colors => Palette?.Count ?? 0;
-        public ColorTransformationMap ColorTransformationMapper { get; protected set; } = new  ColorTransformationMap();
+        public ColorHistogram OutputHistogram { get; protected set; } = new ColorHistogram();
+        public ColorPalette OutputPalette { get; set; } = new ColorPalette();
+        public int OutputColors => OutputPalette?.Count ?? 0;
+        public ColorTransformationMap ColorTransformationMapper { get; protected set; } = new ColorTransformationMap();
 
         //---------------- Useful objects ------------------------------
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
@@ -38,9 +42,9 @@ namespace ColourClashNet.Colors.Transformation
 
         private object locker = new object();
 
-        private CancellationTokenSource cancToken = null;
+        private CancellationTokenSource? cancToken = null;
 
-        public bool TransformAbort()
+        public bool ProcessAbort()
         {
             lock (locker)
             {
@@ -55,46 +59,46 @@ namespace ColourClashNet.Colors.Transformation
 
         protected virtual int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken)
         {
-            return ExecuteStdTransform(oDataSource,this, oToken);
+            return ExecuteStdTransform(oDataSource, this, oToken);
         }
 
         void Reset()
         {
-            Palette.Reset();
-            Histogram.Reset();
+            OutputPalette.Reset();
+            OutputHistogram.Reset();
             ColorTransformationMapper.Reset();
         }
 
 
-        public ColorTransformInterface? Create(int[,]? oDataSource, ColorPalette? oFixedColorPalette )
+        public ColorTransformInterface? Create(int[,]? oDataSource, ColorPalette? oFixedColorPalette)
         {
             Reset();
             if (oDataSource == null)
             {
                 return null;
             }
-            FixedColorPalette = oFixedColorPalette;
-            Histogram.Create(oDataSource);
-            Palette = Histogram.ToColorPalette();
+            InputFixedColorPalette = oFixedColorPalette ?? new ColorPalette();
+            OutputHistogram.Create(oDataSource);
+            OutputPalette = OutputHistogram.ToColorPalette();
             CreateTrasformationMap();
-            return this;    
+            return this;
         }
 
         public ColorTransformInterface? Create(ColorHistogram oSourceColorHistogram, ColorPalette? oFixedColorPalette)
         {
             Reset();
-            if (oSourceColorHistogram == null )
+            if (oSourceColorHistogram == null)
             {
                 return null;
             }
-            FixedColorPalette = oFixedColorPalette ?? new ColorPalette();
+            InputFixedColorPalette = oFixedColorPalette ?? new ColorPalette();
             foreach (var kvp in oSourceColorHistogram.rgbHistogram)
             {
-                Histogram.rgbHistogram.Add(kvp.Key, kvp.Value);
+                OutputHistogram.rgbHistogram.Add(kvp.Key, kvp.Value);
             }
-            Palette = Histogram.ToColorPalette();
+            OutputPalette = OutputHistogram.ToColorPalette();
             CreateTrasformationMap();
-            return this;    
+            return this;
         }
 
         public ColorTransformInterface? Create(ColorPalette oSourceColorPalette, ColorPalette? oFixedColorPalette)
@@ -104,18 +108,23 @@ namespace ColourClashNet.Colors.Transformation
             {
                 return null;
             }
-            FixedColorPalette = oFixedColorPalette;
+            InputFixedColorPalette = oFixedColorPalette ?? new ColorPalette();
             foreach (var rgb in oSourceColorPalette.rgbPalette)
             {
-                Histogram.rgbHistogram.Add(rgb, 0);
+                OutputHistogram.rgbHistogram.Add(rgb, 0);
             }
-            Palette = Histogram.ToColorPalette();
+            OutputPalette = OutputHistogram.ToColorPalette();
             CreateTrasformationMap();
+
+            int i = 0;
+            if (i.Info() == ColorIntInfo.IsColor)
+            { 
+            }
             return this;
         }
 
 
-        public ColorTransformResults TransformAndDither(int[,]? oDataSource)
+        public ColorTransformResults ProcessColors(int[,]? oDataSource)
         {
             var oRet = new ColorTransformResults()
             {
@@ -125,7 +134,7 @@ namespace ColourClashNet.Colors.Transformation
             {
                 if (cancToken != null)
                 {
-                    oRet.AddMessage($"{Name} : Processing already running");
+                    oRet.AddMessage($"{Type} : Processing already running");
                     return oRet;
                 }
                 cancToken = new CancellationTokenSource();
@@ -134,22 +143,22 @@ namespace ColourClashNet.Colors.Transformation
             {
                 if (oDataSource == null)
                 {
-                    oRet.AddMessage($"{Name} : DataSource Null");
+                    oRet.AddMessage($"{Type} : DataSource Null");
                     return oRet;
                 }
 
                 // Execute color reduction
-                oRet.DataTemp = ExecuteTransform(oDataSource, cancToken.Token);        
+                oRet.DataTemp = ExecuteTransform(oDataSource, cancToken.Token);
                 if (oRet.DataTemp == null)
                 {
-                    oRet.AddMessage($"{Name} : Transformation error");
+                    oRet.AddMessage($"{Type} : Transformation error");
                     return oRet;
                 }
                 if (Dithering == null || BypassDithering)
                 {
                     oRet.DataOut = oRet.DataTemp;
                     oRet.Valid = true;
-                    oRet.AddMessage($"{Name} : Valid");
+                    oRet.AddMessage($"{Type} : Valid");
                     return oRet;
                 }
                 var oHash = new HashSet<int>();
@@ -159,28 +168,28 @@ namespace ColourClashNet.Colors.Transformation
                 }
                 if (oHash.Count >= 256)
                 {
-                    oRet.AddMessage($"{Name} : Processing Completed");
+                    oRet.AddMessage($"{Type} : Processing Completed");
                     oRet.Valid = true;
                     return oRet;
                 }
-                oRet.DataOut = Dithering.Dither(oDataSource, oRet.DataTemp, Palette, ColorDistanceEvaluationMode, cancToken.Token);
+                oRet.DataOut = Dithering.Dither(oDataSource, oRet.DataTemp, OutputPalette, ColorDistanceEvaluationMode, cancToken.Token);
                 if (oRet.DataOut == null)
                 {
-                    oRet.AddMessage($"{Name} : Dithering error");
+                    oRet.AddMessage($"{Type} : Dithering error");
                     return oRet;
                 }
                 oRet.Valid = true;
-                oRet.AddMessage($"{Name} : Processing Completed");
+                oRet.AddMessage($"{Type} : Processing Completed");
                 return oRet;
             }
             catch (ThreadInterruptedException exTh)
             {
-                oRet.AddMessage($"{Name} : Processing Interupted");
+                oRet.AddMessage($"{Type} : Processing Interupted");
                 return oRet;
             }
             catch (Exception ex)
             {
-                oRet.AddMessage($"{Name} : Exception Raised : {ex.Message}");
+                oRet.AddMessage($"{Type} : Exception Raised : {ex.Message}");
                 oRet.Exception = ex;
                 return oRet;
             }
@@ -190,12 +199,12 @@ namespace ColourClashNet.Colors.Transformation
             }
         }
 
-        public async Task<ColorTransformResults> TransformAndDitherAsync(int[,]? oDataSource)
+        public async Task<ColorTransformResults> ProcessColorsAsync(int[,]? oDataSource)
         {
-           return await Task.Run(()=>TransformAndDither(oDataSource));
+            return await Task.Run(() => ProcessColors(oDataSource));
         }
 
-        static public double Error(int[,]? oDataA, int[,]? oDataB, ColorDistanceEvaluationMode eMode)
+        static public double EvaluateError(int[,]? oDataA, int[,]? oDataB, ColorDistanceEvaluationMode eMode)
         {
             if (oDataA == null || oDataB == null)
             {
@@ -210,19 +219,19 @@ namespace ColourClashNet.Colors.Transformation
                 return double.NaN;
             }
             double err = 0;
-            for( int r=0; r<r1; r++ ) 
+            for (int r = 0; r < r1; r++)
             {
                 for (int c = 0; c < c1; c++)
                 {
                     var rgb1 = oDataA[r, c];
                     var rgb2 = oDataB[r, c];
-                    if( rgb1 >=0 && rgb2 >=0 ) 
+                    if (rgb1 >= 0 && rgb2 >= 0)
                     {
                         err += ColorIntExt.Distance(rgb1, rgb2, eMode);
                     }
                 }
             }
-            return err; 
+            return err;
         }
 
 
@@ -256,6 +265,7 @@ namespace ColourClashNet.Colors.Transformation
             var R = oTmpDataSource.GetLength(0);
             var C = oTmpDataSource.GetLength(1);
             var oRet = new int[R, C * 2];
+
             Parallel.For(0, R, r =>
             {
                 for (int c = 0, co = 0; c < C; c++)
@@ -279,11 +289,33 @@ namespace ColourClashNet.Colors.Transformation
                         return this;
                     }
                     break;
+                case ColorTransformProperties.Output_Palette:
+                    {
+                        if (oValue is List<int> oPalette)
+                        {
+                            OutputPalette = ColorPalette.FromList(oPalette);
+                        }
+                        else if (oValue is ColorPalette oPal)
+                        {
+                            OutputPalette = oPal;
+                        }
+                        else
+                        {
+                            OutputPalette = new ColorPalette();
+                        }
+                        return this;
+                    }
+                    break;
                 default:
                     break;
             }
             return null;
         }
 
+        public virtual ColorTransformInterface? SetDithering(DitherInterface oDithering)
+        {
+            Dithering = oDithering;
+            return this;
+        }
     }
 }

@@ -13,7 +13,7 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformLumSat() 
         {
-            Name = ColorTransformType.ColorReductionEga;
+            Type = ColorTransformType.ColorReductionEga;
             Description = "Expand color crominance";
         }
 

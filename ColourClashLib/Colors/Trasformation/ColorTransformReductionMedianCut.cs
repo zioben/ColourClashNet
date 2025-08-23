@@ -14,7 +14,7 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformReductionMedianCut()
         {
-            Name = ColorTransformType.ColorReductionMedianCut;
+            Type = ColorTransformType.ColorReductionMedianCut;
             Description = "Median partition color reduction";
         }
 
@@ -148,17 +148,17 @@ namespace ColourClashNet.Colors.Transformation
 
         protected override void CreateTrasformationMap()
         {
-            if (Histogram.ToColorPalette().Count < ColorsMaxWanted)
+            if (OutputHistogram.ToColorPalette().Count < ColorsMaxWanted)
             {
-                foreach (var kvp in Histogram.rgbHistogram)
+                foreach (var kvp in OutputHistogram.rgbHistogram)
                 {
                     ColorTransformationMapper.rgbTransformationMap[kvp.Key] = kvp.Key;
                 }
                 return;
             }
             int iColorsMax = Math.Min(256, Math.Max(2, ColorsMaxWanted));
-            Partition(Histogram.ToColorPalette(), iColorsMax / 2);
-            Palette = ColorTransformationMapper.ToColorPalette();
+            Partition(OutputHistogram.ToColorPalette(), iColorsMax / 2);
+            OutputPalette = ColorTransformationMapper.ToColorPalette();
         }
 
 

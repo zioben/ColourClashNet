@@ -89,7 +89,6 @@ namespace ColourClashNet.Colors.Dithering
                 var oGP = new double[R, C];
                 var oBP = new double[R, C];
 
-
                 Parallel.For(0, R, r =>
                 {
                     for (int c = 0; c < C; c++)

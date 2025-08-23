@@ -11,7 +11,7 @@ namespace ColourClashLib.Color
 {
     public partial class ColorPalette
     {
-        public static ColorPalette MergeColorPalette(List<ColorPalette> lSourcePalette)
+        public static ColorPalette? MergeColorPalette(List<ColorPalette> lSourcePalette)
         {
             if (lSourcePalette == null)
             {
@@ -34,23 +34,25 @@ namespace ColourClashLib.Color
             return null;
         }
 
-        public static ColorPalette MergeColorPalette(ColorPalette oSourcePaletteA, ColorPalette oSourcePaletteB)
+        public static ColorPalette? MergeColorPalette(ColorPalette oSourcePaletteA, ColorPalette oSourcePaletteB)
         {
             return MergeColorPalette(new List<ColorPalette> { oSourcePaletteA, oSourcePaletteB });
         }
 
-        public static ColorPalette CreateColorPalette(ColorPalette oSourcePalette)
+        public static ColorPalette? CreateColorPalette(ColorPalette oSourcePalette)
         {
             return MergeColorPalette(new List<ColorPalette> { oSourcePalette } );
         }
 
-        public static ColorPalette FromList(List<int>? oSourcePalette)
+        public static ColorPalette? FromList(List<int>? oSourceList)
         {
-            if (oSourcePalette == null || oSourcePalette.Count == 0)
+            if (oSourceList == null || oSourceList.Count == 0)
                 return null;
             var oRet = new ColorPalette();
-            oSourcePalette.ForEach(X => oRet.Add(X));
+            oSourceList.ForEach(X => oRet.Add(X));
             return oRet;    
         }
+
+        public static ColorPalette? FromList(IEnumerable<int>? oSourceEnumerable) => FromList(oSourceEnumerable?.ToList());
     }
 }

@@ -101,6 +101,15 @@ namespace ColourClashLib.Colors.Tile
             int RT = TileData.GetLength(0);
             int CT = TileData.GetLength(1);
             {
+#if DEBUG
+                for( int r=0; r < RT; r++ )
+                {
+                    for (int c = 0; c < CT; c++)
+                    {
+                        TileData[r, c].ExecuteTrasform(oDataSource, r * TileH, c * TileW);
+                    }
+                }
+#else
                 Parallel.For(0, RT, r =>
                 {
                     Parallel.For(0, CT, c =>
@@ -108,6 +117,7 @@ namespace ColourClashLib.Colors.Tile
                         TileData[r, c].ExecuteTrasform(oDataSource, r * TileH, c * TileW);
                     });
                 });
+#endif
             }
             return true;
         }
@@ -131,15 +141,23 @@ namespace ColourClashLib.Colors.Tile
             int RT = TileData.GetLength(0);
             int CT = TileData.GetLength(1);
             var oRet = new int[R, C];
+#if DEBUG
+            for (int r = 0; r < RT; r++)
             {
-                Parallel.For(0, RT, r =>
+                for (int c = 0; c < CT; c++)
                 {
-                    Parallel.For(0, CT, c =>
-                    {
-                        TileData[r, c].MergeData(oRet);
-                    });
-                });
+                    TileData[r, c].MergeData(oRet);
+                }
             }
+#else
+            Parallel.For(0, RT, r =>
+            {
+                Parallel.For(0, CT, c =>
+                {
+                    TileData[r, c].MergeData(oRet);
+                });
+            });
+#endif
             return oRet;
         }
 
@@ -168,15 +186,23 @@ namespace ColourClashLib.Colors.Tile
             }
             int RT = TileData.GetLength(0);
             int CT = TileData.GetLength(1);
+#if DEBUG
+            for (int r = 0; r < RT; r++)
             {
-                Parallel.For(0, RT, r =>
+                for (int c = 0; c < CT; c++)
                 {
-                    Parallel.For(0, CT, c =>
-                    {
-                        TileData[r, c].CalcExternalImageError(oDataSource);
-                    });
-                });
+                    TileData[r, c].CalcExternalImageError(oDataSource);
+                }
             }
+#else
+            Parallel.For(0, RT, r =>
+            {
+                Parallel.For(0, CT, c =>
+                {
+                    TileData[r, c].CalcExternalImageError(oDataSource);
+                });
+            });
+#endif
             return true;
         }
 

@@ -30,7 +30,7 @@ namespace ColourClashNet.Colors.Transformation
                 return this;
             switch (eProperty)
             {
-                case ColorTransformProperties.C64VideoMode:
+                case ColorTransformProperties.C64_VideoMode:
                     if (Enum.TryParse<C64VideoMode>(oValue?.ToString(), out var evm))
                     {
                         VideoMode = evm;
@@ -45,27 +45,32 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformReductionC64()
         {
-            Name = ColorTransformType.ColorReductionCBM64;
+            Type = ColorTransformType.ColorReductionCBM64;
             Description = "Reduce color to C64 palette";
         }
         protected override void CreateTrasformationMap()
         {
-            Palette = new ColorPalette(); 
-            Palette.Add(0x00000000);
-            Palette.Add(0x00FFFFFF);
-            Palette.Add(0x00894036);
-            Palette.Add(0x007ABFC7);
-            Palette.Add(0x008A46AE);
-            Palette.Add(0x0068A941);
-            Palette.Add(0x003E31A2);
-            Palette.Add(0x00D0DC71);
-            Palette.Add(0x00905F25);
-            Palette.Add(0x005C4700);
-            Palette.Add(0x00BB776D);
-            Palette.Add(0x00555555);
-            Palette.Add(0x00808080);
-            Palette.Add(0x00ACEA88);
-            Palette.Add(0x00ABABAB);       
+            SetProperty(  
+                ColorTransformProperties.Output_Palette,
+                new List<int>
+                {
+                    0x00000000,
+                    0x00FFFFFF,
+                    0x00894036,
+                    0x007ABFC7,
+                    0x008A46AE,
+                    0x0068A941,
+                    0x003E31A2,
+                    0x00D0DC71,
+                    0x00905F25,
+                    0x005C4700,
+                    0x00BB776D,
+                    0x00555555,
+                    0x00808080,
+                    0x00ACEA88,
+                    0x00ABABAB,
+                }
+            );
         }
 
 
@@ -81,7 +86,7 @@ namespace ColourClashNet.Colors.Transformation
             var oTmpData = base.ExecuteTransform(oTmp,oToken);
             if (Dithering != null)
             {
-                oTmpData = Dithering.Dither(oTmp, oTmpData, Palette, ColorDistanceEvaluationMode, oToken);
+                oTmpData = Dithering.Dither(oTmp, oTmpData, OutputPalette, ColorDistanceEvaluationMode, oToken);
             }
             BypassDithering = true;
             return oTmpData;
@@ -92,6 +97,7 @@ namespace ColourClashNet.Colors.Transformation
             var oTmpData = PreProcess(oTmpDataSource, false, oToken);
             TileManager oManager = new TileManager();
             oManager.Init(oTmpData, 8, 8, 2, null, ColorDistanceEvaluationMode, TileBase.EnumColorReductionMode.Detailed);
+            //            oManager.Init(oTmpData, 8, 8, 2, Palette, ColorDistanceEvaluationMode, TileBase.EnumColorReductionMode.Detailed);
             var oRet = oManager.TransformAndDither(oTmpData);
             BypassDithering = true;
             return oRet;
@@ -120,7 +126,7 @@ namespace ColourClashNet.Colors.Transformation
                         var cg = (a.ToG() + b.ToG()) / 2;
                         var cb = (a.ToB() + b.ToB()) / 2;
                         var col = ColorIntExt.FromRGB(cr, cg, cb);
-                        var res = ColorIntExt.GetNearestColor(col, Palette, ColorDistanceEvaluationMode);
+                        var res = ColorIntExt.GetNearestColor(col, OutputPalette, ColorDistanceEvaluationMode);
                         if (ColorIntExt.Distance(res, a, ColorDistanceEvaluationMode) < ColorIntExt.Distance(res, b, ColorDistanceEvaluationMode))
                         {
                             oRet[r, c] = a;
@@ -142,9 +148,9 @@ namespace ColourClashNet.Colors.Transformation
 {
             var oTmpData = PreProcess(oTmpDataSource, true, oToken);
 
-            Histogram.Create(oTmpData);
-            Histogram.SortColorsDescending();
-            var oBGK = Histogram.rgbHistogram.First().Value;
+            OutputHistogram.Create(oTmpData);
+            OutputHistogram.SortColorsDescending();
+            var oBGK = OutputHistogram.rgbHistogram.First().Value;
             var oFixedColor = new ColorPalette();
             oFixedColor.Add(oBGK);
             TileManager oManager = new TileManager();
@@ -159,9 +165,9 @@ namespace ColourClashNet.Colors.Transformation
 {
             var oTmpData = PreProcess(oTmpDataSource, true, oToken);
 
-            Histogram.Create(oTmpData);
-            Histogram.SortColorsDescending();
-            var oBGK = Histogram.rgbHistogram.First().Value;
+            OutputHistogram.Create(oTmpData);
+            OutputHistogram.SortColorsDescending();
+            var oBGK = OutputHistogram.rgbHistogram.First().Value;
             var oFixedColor = new ColorPalette();
             oFixedColor.Add(oBGK);
             TileManager oManager = new TileManager();

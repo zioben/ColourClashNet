@@ -18,7 +18,7 @@ namespace ColourClashNet.Colors.Transformation
         static string sClass = nameof(ColorTransformQuantization);
         public ColorTransformQuantization()
         {
-            Name = ColorTransformType.ColorReductionQuantization;
+            Type = ColorTransformType.ColorReductionQuantization;
             Description = "Reduces color bit spectrum";
         }
 
@@ -318,9 +318,9 @@ namespace ColourClashNet.Colors.Transformation
 
             string sMethod = nameof(CreateTrasformationMap);
             if (ColorDefaults.Trace)
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Creating trasformation map");
+                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
 
-            foreach (var kvp in Histogram.rgbHistogram)
+            foreach (var kvp in OutputHistogram.rgbHistogram)
             {
                 int iCol = QuantizeColor(kvp.Value);
                 ColorTransformationMapper.Add(kvp.Key, iCol);
@@ -336,13 +336,13 @@ namespace ColourClashNet.Colors.Transformation
             var C = oSource.GetLength(1);
             var oRet = new int[R, C];
             var oCols = new int[1, C];
-            Palette = new ColorPalette();
+            OutputPalette = new ColorPalette();
             for (int r = 0; r < R; r++)
             {
                 for (int c = 0; c < C; c++)
                 {
                     var col = QuantizeColor(oSource[r, c]);
-                    Palette.Add(col);
+                    OutputPalette.Add(col);
                     oRet[r, c] = col;
                 }
                 token.ThrowIfCancellationRequested();   

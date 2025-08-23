@@ -13,21 +13,24 @@ namespace ColourClashNet.Colors.Transformation
     {
 
         //------------------------------------------------------------
-        ColorHistogram Histogram { get; }
-        ColorPalette Palette { get; }
-        int Colors { get; }
+        ColorHistogram OutputHistogram { get; }
+        ColorPalette OutputPalette { get; }
+        Int32 OutputColors { get; }
         ColorTransformationMap ColorTransformationMapper { get; }
 
         //------------------------------------------------------------
-        ColorTransformType Name { get; }
-        string Description { get; }
+        ColorTransformType Type { get; }
+        String Name { get; }
+        String Description { get; }
+        DitherInterface? Dithering { get; set; }
         ColorTransformInterface? Create(int[,]? oDataSource, ColorPalette? oFixedPaletteSource );
         ColorTransformInterface? Create(ColorHistogram? oColorHistogramSource, ColorPalette? oFixedPaletteSource);
         ColorTransformInterface? Create(ColorPalette? oColorPaletteSource, ColorPalette? oFixedPaletteSource);
-        DitherInterface? Dithering { get; set; }
-        Task<ColorTransformResults> TransformAndDitherAsync(int[,]? oSource);
-        ColorTransformResults TransformAndDither(int[,]? oSource);
-        bool TransformAbort();
+        Task<ColorTransformResults> ProcessColorsAsync(int[,]? oSource);
+        ColorTransformResults ProcessColors(int[,]? oSource);
+        Boolean ProcessAbort();
         ColorTransformInterface? SetProperty(ColorTransformProperties eProperty, object oValue);
+        ColorTransformInterface? SetDithering(DitherInterface oDithering);
+        //ColorTransformInterface? CreateDither(ColorDithering eDithering);
     }
 }

@@ -66,6 +66,9 @@
             nudClusterLoop = new NumericUpDown();
             btnReduceColorCluster = new Button();
             panScanline = new Panel();
+            label9 = new Label();
+            chkScanlineSharedPal = new CheckBox();
+            nudScanlineLineColors = new NumericUpDown();
             label7 = new Label();
             nudScanlineTrainEpochs = new NumericUpDown();
             chkScanLineCluster = new CheckBox();
@@ -109,12 +112,12 @@
             scLayout = new SplitContainer();
             pictureBoxSrc = new PictureBox();
             pictureBoxProc = new PictureBox();
-            oBitmapRenderSource = new Controls.BitmapRender(components);
-            bitmapRender1 = new Controls.BitmapRender(components);
-            bitmapRender2 = new Controls.BitmapRender(components);
-            oBitmapRenderDest = new Controls.BitmapRender(components);
+            oBitmapRenderSource = new ColourClashNet.Controls.BitmapRender(components);
+            bitmapRender1 = new ColourClashNet.Controls.BitmapRender(components);
+            bitmapRender2 = new ColourClashNet.Controls.BitmapRender(components);
+            oBitmapRenderDest = new ColourClashNet.Controls.BitmapRender(components);
             sfdExportImage = new SaveFileDialog();
-            oColorTransformer = new Controls.ColorTransformer(components);
+            oColorTransformer = new ColourClashNet.Controls.ColorTransformer(components);
             menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)scMain).BeginInit();
             scMain.Panel1.SuspendLayout();
@@ -129,6 +132,7 @@
             panClustering.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nudClusterLoop).BeginInit();
             panScanline.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)nudScanlineLineColors).BeginInit();
             ((System.ComponentModel.ISupportInitialize)nudScanlineTrainEpochs).BeginInit();
             panel5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nudDitheringStrenght).BeginInit();
@@ -181,7 +185,7 @@
             newToolStripMenuItem.ImageTransparentColor = Color.Magenta;
             newToolStripMenuItem.Name = "newToolStripMenuItem";
             newToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.N;
-            newToolStripMenuItem.Size = new Size(180, 22);
+            newToolStripMenuItem.Size = new Size(146, 22);
             newToolStripMenuItem.Text = "&New";
             newToolStripMenuItem.Click += newToolStripMenuItem_Click;
             // 
@@ -191,7 +195,7 @@
             openToolStripMenuItem.ImageTransparentColor = Color.Magenta;
             openToolStripMenuItem.Name = "openToolStripMenuItem";
             openToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.O;
-            openToolStripMenuItem.Size = new Size(180, 22);
+            openToolStripMenuItem.Size = new Size(146, 22);
             openToolStripMenuItem.Text = "&Open";
             openToolStripMenuItem.Click += openToolStripMenuItem_Click;
             // 
@@ -201,7 +205,7 @@
             toolStripMenuItemSave.ImageTransparentColor = Color.Magenta;
             toolStripMenuItemSave.Name = "toolStripMenuItemSave";
             toolStripMenuItemSave.ShortcutKeys = Keys.Control | Keys.S;
-            toolStripMenuItemSave.Size = new Size(180, 22);
+            toolStripMenuItemSave.Size = new Size(146, 22);
             toolStripMenuItemSave.Text = "&Save";
             toolStripMenuItemSave.Click += toolStripMenuItemSave_Click;
             // 
@@ -209,7 +213,7 @@
             // 
             exportToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { bitmapIndexedToolStripMenuItem, indexedPNGToolStripMenuItem, bitmapToolStripMenuItem, pNGToolStripMenuItem, amigaToolStripMenuItem });
             exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            exportToolStripMenuItem.Size = new Size(180, 22);
+            exportToolStripMenuItem.Size = new Size(146, 22);
             exportToolStripMenuItem.Text = "Export";
             // 
             // bitmapIndexedToolStripMenuItem
@@ -501,6 +505,9 @@
             // 
             // panScanline
             // 
+            panScanline.Controls.Add(label9);
+            panScanline.Controls.Add(chkScanlineSharedPal);
+            panScanline.Controls.Add(nudScanlineLineColors);
             panScanline.Controls.Add(label7);
             panScanline.Controls.Add(nudScanlineTrainEpochs);
             panScanline.Controls.Add(chkScanLineCluster);
@@ -512,17 +519,46 @@
             panScanline.Size = new Size(362, 54);
             panScanline.TabIndex = 32;
             // 
+            // label9
+            // 
+            label9.Location = new Point(217, 32);
+            label9.Name = "label9";
+            label9.Size = new Size(51, 18);
+            label9.TabIndex = 25;
+            label9.Text = "Colors";
+            // 
+            // chkScanlineSharedPal
+            // 
+            chkScanlineSharedPal.Checked = true;
+            chkScanlineSharedPal.CheckState = CheckState.Checked;
+            chkScanlineSharedPal.Location = new Point(138, 27);
+            chkScanlineSharedPal.Name = "chkScanlineSharedPal";
+            chkScanlineSharedPal.Size = new Size(83, 21);
+            chkScanlineSharedPal.TabIndex = 24;
+            chkScanlineSharedPal.Text = "Share Pal";
+            chkScanlineSharedPal.UseVisualStyleBackColor = true;
+            // 
+            // nudScanlineLineColors
+            // 
+            nudScanlineLineColors.Location = new Point(274, 30);
+            nudScanlineLineColors.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
+            nudScanlineLineColors.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            nudScanlineLineColors.Name = "nudScanlineLineColors";
+            nudScanlineLineColors.Size = new Size(65, 23);
+            nudScanlineLineColors.TabIndex = 23;
+            nudScanlineLineColors.Value = new decimal(new int[] { 7, 0, 0, 0 });
+            // 
             // label7
             // 
             label7.Location = new Point(217, 8);
             label7.Name = "label7";
-            label7.Size = new Size(51, 30);
+            label7.Size = new Size(51, 18);
             label7.TabIndex = 22;
-            label7.Text = "Train epochs";
+            label7.Text = "Epochs";
             // 
             // nudScanlineTrainEpochs
             // 
-            nudScanlineTrainEpochs.Location = new Point(274, 13);
+            nudScanlineTrainEpochs.Location = new Point(274, 4);
             nudScanlineTrainEpochs.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
             nudScanlineTrainEpochs.Minimum = new decimal(new int[] { 30, 0, 0, 0 });
             nudScanlineTrainEpochs.Name = "nudScanlineTrainEpochs";
@@ -534,9 +570,9 @@
             // 
             chkScanLineCluster.Location = new Point(138, 5);
             chkScanLineCluster.Name = "chkScanLineCluster";
-            chkScanLineCluster.Size = new Size(83, 37);
+            chkScanLineCluster.Size = new Size(83, 21);
             chkScanLineCluster.TabIndex = 13;
-            chkScanLineCluster.Text = "Clustering Scanline";
+            chkScanLineCluster.Text = "Clustering";
             chkScanLineCluster.UseVisualStyleBackColor = true;
             // 
             // btnReduceColorsScanline
@@ -1021,6 +1057,7 @@
             oColorTransformer.HueOffset = 0D;
             oColorTransformer.SaturationEnhancement = 1.5D;
             oColorTransformer.ScanlineClustering = true;
+            oColorTransformer.ScanlineColorsMax = 7;
             oColorTransformer.ZxEqBlackHI = true;
             oColorTransformer.ZxEqColorHI = 255;
             oColorTransformer.ZxEqColorLO = 128;
@@ -1055,6 +1092,7 @@
             panClustering.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)nudClusterLoop).EndInit();
             panScanline.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)nudScanlineLineColors).EndInit();
             ((System.ComponentModel.ISupportInitialize)nudScanlineTrainEpochs).EndInit();
             panel5.ResumeLayout(false);
             panel5.PerformLayout();
@@ -1172,5 +1210,8 @@
         private Label label8;
         private ComboBox cbAmigaVideoMode;
         private Button btnReduceAmiga;
+        private NumericUpDown nudScanlineLineColors;
+        private Label label9;
+        private CheckBox chkScanlineSharedPal;
     }
 }

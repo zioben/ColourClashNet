@@ -40,7 +40,7 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformReductionAmiga()
         {
-            Name = ColorTransformType.ColorReductionClustering;
+            Type = ColorTransformType.ColorReductionClustering;
             Description = "Commododre Amiga specific color reduction";
         }
 
@@ -51,7 +51,7 @@ namespace ColourClashNet.Colors.Transformation
                 return this;
             switch (eProperty)
             {
-                case ColorTransformProperties.AmigaVideoMode:
+                case ColorTransformProperties.Amiga_VideoMode:
                     if (Enum.TryParse<EnumAMigaVideoMode>(oValue?.ToString(), out var evm ))
                     {
                         AmigaVideoMode = evm;
@@ -161,9 +161,9 @@ namespace ColourClashNet.Colors.Transformation
                     return null;
             }
 
-            oQuantization.Create(oDataSource, FixedColorPalette);
+            oQuantization.Create(oDataSource, InputFixedColorPalette);
             oQuantization.Dithering = Dithering;
-            var oResultQuantized = oQuantization.TransformAndDither(oDataSource);
+            var oResultQuantized = oQuantization.ProcessColors(oDataSource);
             var oDataQuantized = oResultQuantized.DataOut;
 
             switch (HamColorReductionMode)
@@ -193,8 +193,8 @@ namespace ColourClashNet.Colors.Transformation
             }
 
             oColorReduction.Dithering = Dithering;
-            oColorReduction.Create(oDataSource, FixedColorPalette);
-            var oResultPreprocessed = oColorReduction.TransformAndDither(oDataQuantized);
+            oColorReduction.Create(oDataSource, InputFixedColorPalette);
+            var oResultPreprocessed = oColorReduction.ProcessColors(oDataQuantized);
             var oDataPreprocessed = oResultPreprocessed.DataOut;
             BypassDithering = true;
 
@@ -215,7 +215,7 @@ namespace ColourClashNet.Colors.Transformation
                     break;
             }
 
-            Create(oRet, FixedColorPalette);
+            Create(oRet, InputFixedColorPalette);
             return oRet;
         }
 

@@ -1,27 +1,78 @@
-﻿using System;
+﻿using ColourClashLib.Color;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
+using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.Drawing;
-using System.Diagnostics.Metrics;
-using System.Runtime.CompilerServices;
-using ColourClashLib.Color;
-using System.Runtime.InteropServices;
 
 namespace ColourClashNet.Colors
 {
+    public enum ColorIntInfo
+    {
+        IsColor = 0,
+        IsBkg = 1 << 24,
+        IsMask = 1 << 25,
+        IsAplha = 1 << 26,
+        IsTileLayer = 1 << 27,
+        IsTransparent= 1 << 28,
+        Invalid = 1 << 31,
+    }
+
+
     public static class ColorIntExt
     {
+        public static Color DefaultBkgColor { get; set; } = Color.FromArgb(255, 255, 255, 0);
+        public static Color DefaultMaskColor { get; set; } = Color.FromArgb(255, 255, 255, 255);
+        public static Color DefaultTileLayerColor { get; set; } = Color.FromArgb(255, 255, 255, 255);
+        public static Color DefaultTransparentColor { get; set; } = Color.Transparent;
+
+        public static void SetColorInfo(this int i, ColorIntInfo eInfo)
+        {
+            i &= 0x00_FF_FF_FF;
+            i |= ((int)eInfo) << 24;
+        }
+
+        public static ColorIntInfo GetColorInfo(this int i)
+        {
+            int val = (i >> 24) & 0x00_00_00_FF;
+            if (i == 0x_00_ff)
+            {
+                return ColorIntInfo.Invalid;
+            }
+            return (ColorIntInfo)val;
+        }
+
         public static System.Drawing.Color ToDrawingColor(this int i)
         {
-            if (i < 0)
+            switch (GetColorInfo(i))
             {
-                return System.Drawing.Color.Transparent;
-            }
-            unchecked
-            {
-                return System.Drawing.Color.FromArgb(i | (int)0xFF_00_00_00);
+                case ColorIntInfo.IsColor:
+                    {
+                        unchecked
+                        {
+                            return System.Drawing.Color.FromArgb(i | (int)0xFF_00_00_00);
+                        }
+                    }
+                case ColorIntInfo.IsBkg:
+                    {
+                        return DefaultBkgColor;
+                    }
+                case ColorIntInfo.IsMask:
+                    {
+                        return DefaultMaskColor;
+                    }
+                case ColorIntInfo.IsTileLayer:
+                    {
+                        return DefaultTileLayerColor;
+                    }
+                default:
+                    {
+                        return System.Drawing.Color.Transparent;
+                    }
             }
         }
 
@@ -280,7 +331,8 @@ namespace ColourClashNet.Colors
                             R += kvp.Value * kvp.Key.ToR();
                             G += kvp.Value * kvp.Key.ToG();
                             B += kvp.Value * kvp.Key.ToB();
-                        };
+                        }
+                        ;
                         if (Count <= 0)
                             return -1;
                         R /= Count;
@@ -306,7 +358,8 @@ namespace ColourClashNet.Colors
                 R += kvp.ToR();
                 G += kvp.ToG();
                 B += kvp.ToB();
-            };
+            }
+            ;
             R /= oPalette.Count;
             G /= oPalette.Count;
             B /= oPalette.Count;
@@ -338,5 +391,9 @@ namespace ColourClashNet.Colors
             return FromRGB(R, G, B);
         }
 
+        //    static public int R(this int i) => ToR(i);
+        //    static public int G(this int i) => ToG(i);
+        //    static public int B(this int i) => ToB(i);
+        //    static public ColorIntInfo Info(this int i) => GetColorInfo(i);
     }
 }

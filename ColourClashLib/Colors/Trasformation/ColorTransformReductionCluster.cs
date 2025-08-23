@@ -59,26 +59,26 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformReductionCluster()
         {
-            Name = ColorTransformType.ColorReductionClustering;
+            Type = ColorTransformType.ColorReductionClustering;
             Description = "Reduces color bit spectrum";
         }
 
         protected override void CreateTrasformationMap()
         {
             string sMethod = nameof(CreateTrasformationMap);
-            Histogram.SortColorsDescending();
+            OutputHistogram.SortColorsDescending();
             //FixedColorPalette = new ColorPalette();
             //FixedColorPalette.Add(0x00000000);
             //FixedColorPalette.Add(0x00ff0000);
             //FixedColorPalette.Add(0x0000ff00);
             //FixedColorPalette.Add(0x000000ff);
             //FixedColorPalette.Add(0x00ffffff);
-            var oTempPalette = ColorPalette.MergeColorPalette(FixedColorPalette, Histogram.ToColorPalette());
+            var oTempPalette = ColorPalette.MergeColorPalette(InputFixedColorPalette, OutputHistogram.ToColorPalette());
             if (oTempPalette.Count < ColorsMaxWanted)
             {
-                foreach (var kvp in Histogram.rgbHistogram)
+                foreach (var kvp in OutputHistogram.rgbHistogram)
                 {
-                    Palette.Add(kvp.Key);
+                    OutputPalette.Add(kvp.Key);
                     ColorTransformationMapper.rgbTransformationMap[kvp.Key] = kvp.Key;
                 }
                 return;
@@ -106,9 +106,9 @@ namespace ColourClashNet.Colors.Transformation
                 // Reset Set
                 lTupleColorCluster.ForEach(X => X.Item2.Clear()); ;
                 if (ColorDefaults.Trace) 
-                    Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Train {train}");
+                    Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Train {train}");
                 // Aggregate :  Assign every color to the cluster of appartenence 
-                foreach (var kvp in Histogram.rgbHistogram )
+                foreach (var kvp in OutputHistogram.rgbHistogram )
                 {
                     // Evaluate minimum distance from every color to cluster
                     var dMin = lTupleColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
@@ -121,10 +121,10 @@ namespace ColourClashNet.Colors.Transformation
                     {
                         // If color is in FixedColorPalette, block evolution evolution
                         var iRgbMean = oTuple.Item1.Last();
-                        if (FixedColorPalette?.rgbPalette.Any(X => X == iRgbMean) ?? false)
+                        if (InputFixedColorPalette?.rgbPalette.Any(X => X == iRgbMean) ?? false)
                         {
                             if (ColorDefaults.Trace)
-                                Trace.TraceInformation($"{sClass}.{sMethod} ({Name}) : Color {iRgbMean} is fixed, skipping evolution");
+                                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Color {iRgbMean} is fixed, skipping evolution");
                         }
                         // else evaluate color mean
                         else
@@ -136,8 +136,8 @@ namespace ColourClashNet.Colors.Transformation
                 }
             }
 
-            Palette = new ColorPalette();
-            foreach (var kvp in Histogram.rgbHistogram )
+            OutputPalette = new ColorPalette();
+            foreach (var kvp in OutputHistogram.rgbHistogram )
             {
                 var dMin = lTupleColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
                 var oItem = lTupleColorCluster.FirstOrDefault(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
@@ -151,7 +151,7 @@ namespace ColourClashNet.Colors.Transformation
                     var Max = oItem?.Item2.Max(X => X.Value);
                     iCol = oItem?.Item2.FirstOrDefault(X => X.Value == Max).Key ?? -1;
                 }
-                Palette.Add(iCol);
+                OutputPalette.Add(iCol);
                 ColorTransformationMapper.Add(kvp.Key,iCol); // Item1.Last()??-1;
             };
         }

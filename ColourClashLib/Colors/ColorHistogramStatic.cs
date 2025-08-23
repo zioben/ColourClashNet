@@ -57,7 +57,7 @@ namespace ColourClashLib.Color
             return true;
         } 
 
-        static bool CreateColorHist(int[,] oDataSource, ColorHistogram oHist)
+        static ColorHistogram? CreateColorHist(int[,] oDataSource, ColorHistogram oHist)
         {
             string sMethod = nameof(CreateColorHist);
             try
@@ -65,7 +65,7 @@ namespace ColourClashLib.Color
                 if (oDataSource == null || oHist == null)
                 {
                     Trace.TraceError($"{sClass}.{sMethod} : Invalid data source");
-                    return false;
+                    return null;
                 }
                 oHist.Reset();
                 int R = oDataSource.GetLength(0);
@@ -82,12 +82,12 @@ namespace ColourClashLib.Color
                         Trace.TraceInformation($"{sClass}.{sMethod} : creating HashColorHistogram");
                     CreateColorHistDirect(oDataSource, oHist);
                 }
-                return true;
+                return oHist;
             }
             catch (Exception ex)
             {
                 Trace.TraceError($"{sClass}.{sMethod} : {ex.Message}");
-                return false;
+                return null;
             }
         }
 

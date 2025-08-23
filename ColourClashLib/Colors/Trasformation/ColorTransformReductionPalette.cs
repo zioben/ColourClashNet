@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ColourClashLib.Color;
 using ColourClashLib.Colors.Tile;
 using ColourClashNet.Colors;
 
@@ -16,17 +17,19 @@ namespace ColourClashNet.Colors.Transformation
         //-------------------------------------------------------------
         public ColorTransformReductionPalette()
         {
-            Name = ColorTransformType.ColorReductionGenericPalette;
+            Type = ColorTransformType.ColorReductionGenericPalette;
             Description = "Color palette trasformation";
         }
+
+         
 
        
         protected override int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken )
         {
-            if (Palette == null ) 
+            if (OutputPalette == null ) 
             {
                 return null;    
-            }
+            }          
             if (oDataSource == null)
             {
                 return null;
@@ -45,8 +48,8 @@ namespace ColourClashNet.Colors.Transformation
             oToken.ThrowIfCancellationRequested();
             Parallel.ForEach(oHashSet, rgb =>
             {
-                ColorTransformationMapper.rgbTransformationMap[rgb] = ColorIntExt.GetNearestColor(rgb, Palette, ColorDistanceEvaluationMode);
-                lock (Palette)
+                ColorTransformationMapper.rgbTransformationMap[rgb] = ColorIntExt.GetNearestColor(rgb, OutputPalette, ColorDistanceEvaluationMode);
+                lock (OutputPalette)
                 {
                     oToken.ThrowIfCancellationRequested();  
                 }
@@ -55,5 +58,7 @@ namespace ColourClashNet.Colors.Transformation
             return base.ExecuteTransform(oDataSource, oToken);
         }
 
+
+       
     }
 }

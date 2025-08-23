@@ -20,6 +20,11 @@ namespace ColourClashLib.Color
         public void Reset()
         {
             rgbPalette.Clear(); 
-        }     
+        }
+
+        public override string ToString()
+        {
+            return $"Palette Colors:{Count}";
+        }
     }
 }

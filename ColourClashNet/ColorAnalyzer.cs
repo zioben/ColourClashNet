@@ -217,6 +217,9 @@ namespace ColourClashNet
         {
             oColorTransformer.ColorsMax = (int)nudColorsWanted.Value;
             oColorTransformer.ScanlineClustering = chkScanLineCluster.Checked;
+            oColorTransformer.ScanlineColorsMax = (int)nudScanlineLineColors.Value;
+            oColorTransformer.ScanlineSharedPalette = chkScanlineSharedPal.Checked;
+
             oColorTransformer.ClusteringTrainingLoop = (int)nudClusterLoop.Value;
             oColorTransformer.ClusteringUseMeanColor = true;
             oColorTransformer.DitheringStrenght = (double)nudDitheringStrenght.Value;
