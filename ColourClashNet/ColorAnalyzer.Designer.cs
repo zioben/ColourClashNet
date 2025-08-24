@@ -54,6 +54,7 @@
             propertyGrid1 = new PropertyGrid();
             tableLayoutPanel2 = new TableLayoutPanel();
             panel2 = new Panel();
+            pictureBox1 = new PictureBox();
             rbLayoutH = new RadioButton();
             gbLayoutV = new RadioButton();
             pbBkColor = new PictureBox();
@@ -126,6 +127,7 @@
             tableLayoutPanel1.SuspendLayout();
             tableLayoutPanel2.SuspendLayout();
             panel2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pbBkColor).BeginInit();
             panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nudColorsWanted).BeginInit();
@@ -379,6 +381,7 @@
             // 
             // panel2
             // 
+            panel2.Controls.Add(pictureBox1);
             panel2.Controls.Add(rbLayoutH);
             panel2.Controls.Add(gbLayoutV);
             panel2.Controls.Add(pbBkColor);
@@ -389,6 +392,14 @@
             panel2.Name = "panel2";
             panel2.Size = new Size(362, 54);
             panel2.TabIndex = 28;
+            // 
+            // pictureBox1
+            // 
+            pictureBox1.Location = new Point(165, 3);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(47, 48);
+            pictureBox1.TabIndex = 15;
+            pictureBox1.TabStop = false;
             // 
             // rbLayoutH
             // 
@@ -416,7 +427,7 @@
             // 
             // pbBkColor
             // 
-            pbBkColor.Location = new Point(138, 3);
+            pbBkColor.Location = new Point(112, 3);
             pbBkColor.Name = "pbBkColor";
             pbBkColor.Size = new Size(47, 48);
             pbBkColor.TabIndex = 12;
@@ -1003,6 +1014,7 @@
             oBitmapRenderSource.ImageZoomManual = 1F;
             oBitmapRenderSource.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
             oBitmapRenderSource.MouseMovingButton = MouseButtons.Left;
+            oBitmapRenderSource.MouseMove += oBitmapRenderSource_MouseMove;
             // 
             // bitmapRender1
             // 
@@ -1058,6 +1070,7 @@
             oColorTransformer.SaturationEnhancement = 1.5D;
             oColorTransformer.ScanlineClustering = true;
             oColorTransformer.ScanlineColorsMax = 7;
+            oColorTransformer.ScanlineSharedPalette = true;
             oColorTransformer.ZxEqBlackHI = true;
             oColorTransformer.ZxEqColorHI = 255;
             oColorTransformer.ZxEqColorLO = 128;
@@ -1085,6 +1098,7 @@
             tableLayoutPanel2.ResumeLayout(false);
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ((System.ComponentModel.ISupportInitialize)pbBkColor).EndInit();
             panel3.ResumeLayout(false);
             panel3.PerformLayout();
@@ -1213,5 +1227,6 @@
         private NumericUpDown nudScanlineLineColors;
         private Label label9;
         private CheckBox chkScanlineSharedPal;
+        private PictureBox pictureBox1;
     }
 }

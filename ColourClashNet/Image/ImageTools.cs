@@ -4,8 +4,14 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System;
+using System.Drawing;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+
 
 namespace ColourClashNet.ImageTools
 {
@@ -34,6 +40,8 @@ namespace ColourClashNet.ImageTools
 
     public static partial class ImageTools
     {
+
+
         static int GetImageWidthAlign(int iW, ImageWidthAlignMode ePixelWidthAlign)
         {
             switch (ePixelWidthAlign)

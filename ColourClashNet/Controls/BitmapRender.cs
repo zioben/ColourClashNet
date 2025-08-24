@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -12,6 +13,43 @@ namespace ColourClashNet.Controls
 
     public partial class BitmapRender : Component
     {
+
+        // Struttura POINT per le coordinate del cursore
+        [StructLayout(LayoutKind.Sequential)]
+        public struct POINT
+        {
+            public int X;
+            public int Y;
+        }
+
+        // API di Windows
+        [DllImport("user32.dll")]
+        static extern bool GetCursorPos(out POINT lpPoint);
+
+        [DllImport("user32.dll")]
+        static extern IntPtr GetDC(IntPtr hWnd);
+
+        [DllImport("gdi32.dll")]
+        static extern uint GetPixel(IntPtr hdc, int nXPos, int nYPos);
+
+        [DllImport("user32.dll")]
+        static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
+        static Color GetColorAt(int x, int y)
+        {
+            IntPtr hdc = GetDC(IntPtr.Zero); // DC globale (schermo intero)
+            uint pixel = GetPixel(hdc, x, y);
+            ReleaseDC(IntPtr.Zero, hdc);
+
+            // Estrae RGB
+            int r = (int)(pixel & 0x000000FF);
+            int g = (int)((pixel & 0x0000FF00) >> 8);
+            int b = (int)((pixel & 0x00FF0000) >> 16);
+
+            return Color.FromArgb(r, g, b);
+        }
+
+
         public enum EnumZoom
         {
             ZoomQ = 0,
@@ -48,6 +86,10 @@ namespace ColourClashNet.Controls
             RegisterToolStripItems();
         }
 
+        public Color MouseColor { get; private set; }
+
+        public List<Color> SelectedColors { get; private set; } = new List<Color>();
+ 
         #region ToolStripItemZoom
 
         void RegisterToolStripItems()
@@ -64,6 +106,7 @@ namespace ColourClashNet.Controls
             this.toolStripMenuItemStretch.Click += new EventHandler(OnZoomS);
             this.toolStripMenuItemManual.Click += new EventHandler(OnZoomM);
             this.toolStripMenuItemBlockMoving.Click += new EventHandler(OnBlockMoving);
+            this.toolStripMenuItemAddColor.Click += new EventHandler(OnSelectColor);
             toolStripMenuItemBlockMoving.Checked = ImageBlockScroll;
         }
 
@@ -92,6 +135,15 @@ namespace ColourClashNet.Controls
         {
             ImageBlockScroll = !ImageBlockScroll;
             toolStripMenuItemBlockMoving.Checked = ImageBlockScroll;
+        }
+
+        void OnSelectColor(object sender, EventArgs e)
+        {
+            var oCol = MouseColor;
+            if (!SelectedColors.Contains(oCol))
+            {
+                SelectedColors.Add(oCol);
+            }
         }
 
         #endregion
@@ -384,10 +436,34 @@ namespace ColourClashNet.Controls
 
         public event MouseEventHandler MouseMove;
 
+        protected Color GetMousePixelColor(int x, int y)
+        {
+            //MouseColor = GetColorAt(x,y);
+            if (Image is Bitmap oBmp)
+            {
+                double MouseX = x;
+                double MouseY = y;
+                double ImgX = RoiSrc.X + MouseX * ZoomImageX;
+                double ImgY = RoiSrc.Y + MouseY * ZoomImageY;
+                if (ImgX >= 0 && ImgX < oBmp.Width)
+                {
+                    if (ImgY >= 0 && ImgY < oBmp.Height)
+                    {
+                        return oBmp.GetPixel((int)ImgX, (int)ImgY);
+                    }
+                }
+            }
+            return Color.Transparent;
+        }
+
         protected void OnMouseMove(object Sender, MouseEventArgs args)
         {
-            if (MouseMove != null) MouseMove(Sender, args);
-            else
+            MouseColor = GetMousePixelColor(args.X,args.Y);
+            if (MouseMove != null)
+            {
+                MouseMove(Sender, args);
+            }
+            //else
             {
                 if (MousePushed)
                 {

@@ -271,10 +271,10 @@ namespace ColourClashNet.Controls
         {
             if (mDataSource == null)
                 return null;
-            var oTrBkgRemover = new ColorTransformBkgRemover();
-            oTrBkgRemover.ColorBackgroundList = BackgroundColorList;
-            oTrBkgRemover.ColorBackgroundReplacement = BackgroundColorReplacement;
-            oTrBkgRemover.Create(oTrIdentity.OutputHistogram,null);
+            var oTrBkgRemover = new ColorTransformBkgRemover()
+                .SetProperty( ColorTransformProperties.ColorBackgroundList, BackgroundColorList)
+                .SetProperty( ColorTransformProperties.ColorBackgroundReplacement, BackgroundColorReplacement)
+                .Create(oTrIdentity.OutputHistogram, null);
             var mDataBkgRemoved = oTrBkgRemover.ProcessColors(mDataSource);
             return mDataBkgRemoved.DataOut;
         }
@@ -283,10 +283,10 @@ namespace ColourClashNet.Controls
         {
             if (mDataSource == null)
                 return;
-            var oTrBkgRemover = new ColorTransformBkgRemover();
-            oTrBkgRemover.ColorBackgroundList = BackgroundColorList;
-            oTrBkgRemover.ColorBackgroundReplacement = BackgroundColorReplacement;
-            oTrBkgRemover.Create(oTrIdentity.OutputHistogram, null);
+            var oTrBkgRemover = new ColorTransformBkgRemover()
+                .SetProperty( ColorTransformProperties.ColorBackgroundList, BackgroundColorList)
+                .SetProperty( ColorTransformProperties.ColorBackgroundReplacement, BackgroundColorReplacement)
+                .Create(oTrIdentity.OutputHistogram, null);
             lTransform.Add(oTrBkgRemover);
 
             oTrQuantization.QuantizationMode = ColorQuantizationMode;

@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using ColourClashLib;
+using ColourClashLib.Color;
 using ColourClashNet.Colors;
 
 namespace ColourClashNet.Colors.Transformation
@@ -19,7 +20,7 @@ namespace ColourClashNet.Colors.Transformation
             Description = "Substitute a colorlist with a single color";
         }
 
-        public List<int> ColorBackgroundList { get; set; } = new List<int>();
+        public ColorPalette BackgroundPalette { get; set; } = new ColorPalette();
         public int ColorBackgroundReplacement { get; set; } = 0;
 
         public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
@@ -30,11 +31,16 @@ namespace ColourClashNet.Colors.Transformation
             {
                 case ColorTransformProperties.ColorBackgroundList:
                     {
-                        ColorBackgroundList = oValue as List<int>;
-                        if (ColorBackgroundList != null)
+                        BackgroundPalette = new ColorPalette();
+                        if (oValue is List<int> oList)
                         {
-                            return this;
+                            BackgroundPalette = ColorPalette.FromList(oList);
                         }
+                        else if (oValue is ColorPalette oPalette)
+                        {
+                            BackgroundPalette = oPalette;
+                        }
+                        return this;
                     }
                     break;
                 case ColorTransformProperties.ColorBackgroundReplacement:
@@ -51,28 +57,54 @@ namespace ColourClashNet.Colors.Transformation
         }
 
 
-        protected override void CreateTrasformationMap()
-        {
-            string sMethod = nameof(CreateTrasformationMap);
-            if (ColorDefaults.Trace)
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
-            foreach (var rgb in OutputPalette.rgbPalette)
-            {
-                if (rgb < 0)
-                    continue;
-                ColorTransformationMapper.Add(rgb, rgb);
-            }
+        //protected override void CreateTrasformationMap()
+        //{
+        //    string sMethod = nameof(CreateTrasformationMap);
+        //    if (ColorDefaults.Trace)
+        //        Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
+        //    foreach (var rgb in OutputPalette.rgbPalette)
+        //    {
+        //        if (rgb < 0)
+        //            continue;
+        //        ColorTransformationMapper.Add(rgb, rgb);
+        //    }
 
-            foreach (var rgb in OutputPalette.rgbPalette)
+        //    foreach (var rgb in OutputPalette.rgbPalette)
+        //    {
+        //        if (rgb < 0)
+        //            continue;
+        //        if (ColorBackgroundList.Any(X => X.Equals(rgb)))
+        //        {
+        //            OutputPalette.Remove(rgb);
+        //            ColorTransformationMapper.rgbTransformationMap[rgb] = ColorBackgroundReplacement;
+        //        }
+        //    }
+        //}
+        protected override int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken)
+        {
+            if (oDataSource == null)
+                return null;
+            var R = oDataSource.GetLength(0);
+            var C = oDataSource.GetLength(1);
+            var oRet = new int[R, C];   
+            var oList = BackgroundPalette.ToList();
+            var oBkgCol = ColorBackgroundReplacement;
+            oBkgCol.SetColorInfo(ColorIntType.IsBkg);
+            Parallel.For(0, R, r =>
             {
-                if (rgb < 0)
-                    continue;
-                if (ColorBackgroundList.Any(X => X.Equals(rgb)))
+                for (int c = 0; c < C; c++)
                 {
-                    OutputPalette.Remove(rgb);
-                    ColorTransformationMapper.rgbTransformationMap[rgb] = ColorBackgroundReplacement;
+                    oRet[r, c] = oDataSource[r, c];
+                    if (oRet[r, c].GetColorInfo() == ColorIntType.IsColor)
+                    {
+                        if (oList.Any(X => X == oRet[r, c]))
+                        {
+                            oRet[r, c] = oBkgCol;
+                        }
+                    }
                 }
-            }
+            });
+            return oRet;
         }
     }
 }

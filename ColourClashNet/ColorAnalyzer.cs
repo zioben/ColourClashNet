@@ -102,7 +102,8 @@ namespace ColourClashNet
             foreach (var X in lColorMode)
             {
                 CreateMenuItem(oTsBase, X);
-            };
+            }
+            ;
         }
 
         void InitMenu()
@@ -130,7 +131,8 @@ namespace ColourClashNet
                             g.FillRectangle(oBrush, i * 16, 0, 16, 16);
                         }
                         index++;
-                    };
+                    }
+                    ;
                 }
                 pbBkColor.SizeMode = PictureBoxSizeMode.StretchImage;
                 pbBkColor.Image = oBmp;
@@ -409,6 +411,10 @@ namespace ColourClashNet
             }
         }
 
-
+        private void oBitmapRenderSource_MouseMove(object sender, MouseEventArgs e)
+        {
+            Color oCol = oBitmapRenderSource.MouseColor;
+            pbBkColor.BackColor = oCol;
+        }
     }
 }
