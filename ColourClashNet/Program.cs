@@ -19,9 +19,9 @@ namespace ColourClashNet
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
          
-            Log.Create();
-            Log.Message( sClass, sMethod , "Hello");
-            Log.MinLogLevel = LogLevel.Debug;
+            LogMan.Create();
+            LogMan.Message( sClass, sMethod , "Hello");
+            LogMan.MinLogLevel = LogLevel.Debug;
 
             Application.Run(new Form1());
         }
