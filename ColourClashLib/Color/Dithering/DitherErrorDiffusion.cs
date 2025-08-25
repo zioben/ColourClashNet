@@ -148,7 +148,18 @@ namespace ColourClashNet.Colors.Dithering
                     }
                 }
 
-                LogMan.Trace(sClass, sMethod, $"{Type} : Dithering completed");
+                for (int r = 0; r < R; r++)
+                {
+                    for (int c = 0; c < C; c++)
+                    {
+                        if (oDataProcessed[r, c] < 0)
+                        {
+                            oDataRet[r, c] = oDataProcessed[r, c];
+                        }
+                    }
+                }
+
+                        LogMan.Trace(sClass, sMethod, $"{Type} : Dithering completed");
                 return oDataRet;
 
             }

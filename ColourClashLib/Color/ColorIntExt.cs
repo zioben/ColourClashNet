@@ -27,7 +27,7 @@ namespace ColourClashNet.Colors
         /// <summary>
         /// Gets or sets the default background color.
         /// </summary>
-        public static Color DefaultBkgColor { get; set; } = Color.FromArgb(255, 255, 255, 0);
+        public static Color DefaultBkgColor { get; set; } = Color.FromArgb(255, 255, 0, 255);
 
         /// <summary>
         /// Gets or sets the default mask color used for rendering operations.
@@ -96,10 +96,10 @@ namespace ColourClashNet.Colors
                             return System.Drawing.Color.FromArgb(rgb | (int)0xFF_00_00_00);
                         }
                     }
-                case ColorIntType.IsBkg:
-                    {
-                        return DefaultBkgColor;
-                    }
+                //case ColorIntType.IsBkg:
+                //    {
+                //        return DefaultBkgColor;
+                //    }
                 case ColorIntType.IsMask:
                     {
                         return DefaultMaskColor;

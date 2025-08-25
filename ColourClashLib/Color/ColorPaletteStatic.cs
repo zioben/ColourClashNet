@@ -24,25 +24,20 @@ namespace ColourClashLib.Color
         /// langword="null"/> if the input list is <see langword="null"/>  or contains no valid palettes with colors.</returns>
         public static ColorPalette? MergeColorPalette(List<ColorPalette> lSourcePalette)
         {
-            if (lSourcePalette == null)
-            {
-                return null;
-            }
             var oRet = new ColorPalette();
-            foreach (var oPal in lSourcePalette)
+            if (lSourcePalette != null)
             {
-                if( oPal == null) 
-                    continue;
-                foreach (var iRGB in oPal.rgbPalette)
+                foreach (var oPal in lSourcePalette)
                 {
-                    oRet.Add(iRGB);
+                    if (oPal == null)
+                        continue;
+                    foreach (var iRGB in oPal.rgbPalette)
+                    {
+                        oRet.Add(iRGB);
+                    }
                 }
             }
-            if (oRet.Count > 0)
-            {
-                return oRet;
-            }
-            return null;
+            return oRet;
         }
 
         /// <summary>

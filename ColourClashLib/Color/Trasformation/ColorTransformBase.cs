@@ -161,6 +161,8 @@ namespace ColourClashNet.Colors.Transformation
                 var oHash = new HashSet<int>();
                 foreach (var rgb in oRet.DataTemp)
                 {
+                    if (rgb < 0)
+                        continue;
                     oHash.Add(rgb);
                 }
                 if (oHash.Count >= 256)

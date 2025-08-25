@@ -40,7 +40,7 @@ namespace ColourClashNet.Colors.Transformation
                 {
                     var col = oSource[r, c];
                     if (col < 0 || !oColorTransformationMap.rgbTransformationMap.ContainsKey(col))
-                        oRet[r, c] = -1;
+                        oRet[r, c] = col;
                     else
                         oRet[r, c] = oColorTransformationMap.rgbTransformationMap[col];
 

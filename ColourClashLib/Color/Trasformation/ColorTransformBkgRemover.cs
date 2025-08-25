@@ -71,7 +71,7 @@ namespace ColourClashNet.Colors.Transformation
             var oRet = new int[R, C];   
             var oList = BackgroundPalette.ToList();
             var oBkgCol = ColorBackgroundReplacement;
-            oBkgCol = oBkgCol.SetColorInfo(ColorIntType.IsBkg);
+            //oBkgCol = oBkgCol.SetColorInfo(ColorIntType.IsBkg);
             Parallel.For(0, R, r =>
             {
                 for (int c = 0; c < C; c++)

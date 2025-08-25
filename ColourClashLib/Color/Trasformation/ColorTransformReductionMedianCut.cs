@@ -157,7 +157,7 @@ namespace ColourClashNet.Colors.Transformation
                 return;
             }
             int iColorsMax = Math.Min(256, Math.Max(2, ColorsMaxWanted));
-            Partition(OutputHistogram.ToColorPalette(), iColorsMax / 2);
+            Partition(OutputHistogram.ToColorPalette(), iColorsMax/2);
             OutputPalette = ColorTransformationMapper.ToColorPalette();
         }
 

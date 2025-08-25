@@ -153,10 +153,10 @@ namespace ColourClashNet.Colors
         /// Real color Flag
         /// </summary>
         IsColor = 0,
-        /// <summary>
-        /// The color in part of the background, and should be processed apart
-        /// </summary>
-        IsBkg = 0b10000001,
+        ///// <summary>
+        ///// The color in part of the background, and should be processed apart
+        ///// </summary>
+        //IsBkg = 0b10000001,
         /// <summary>
         /// The color codifies a cookiecut image, and should be treated apart on image processing
         /// </summary>
