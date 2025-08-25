@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using ColourClashLib;
 using ColourClashLib.Color;
 using ColourClashNet.Colors;
+using ColourClashSupport.Log;
 
 namespace ColourClashNet.Colors.Dithering
 {
@@ -64,17 +65,16 @@ namespace ColourClashNet.Colors.Dithering
             {
                 if (oDataProcessedPalette == null || oDataProcessedPalette.Count == 0)
                 {
-                    Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Invalid input data");
+                    LogMan.Error(sClass, sMethod, $"{Type} : Invalid input data");
                     return null;
                 }
                 if (!Create())
                 {
-                    Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Creation Error");
+                    LogMan.Error(sClass, sMethod, $"{Type} : Creation Error");  
                     return null;
                 }
 
-                if (ColorDefaults.Trace) 
-                    Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering");
+                LogMan.Trace(sClass, sMethod, $"{Type} : Dithering");   
 
                 int R = oDataOriginal.GetLength(0);
                 int C = oDataOriginal.GetLength(1);
@@ -148,14 +148,13 @@ namespace ColourClashNet.Colors.Dithering
                     }
                 }
 
-                if (ColorDefaults.Trace) 
-                    Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering completed");
+                LogMan.Trace(sClass, sMethod, $"{Type} : Dithering completed");
                 return oDataRet;
 
             }
             catch (Exception ex)
             {
-                Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Exception raised : {ex.Message}");
+                LogMan.Exception(sClass, sMethod, $"{Type}", ex);  
                 return null;
             }
         }

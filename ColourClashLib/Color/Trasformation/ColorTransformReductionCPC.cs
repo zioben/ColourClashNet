@@ -120,7 +120,7 @@ namespace ColourClashNet.Colors.Transformation
             var oTmpH = HalveHorizontalRes(oDataSource);
             var oTmp = PreProcess(oDataSource, true, oToken);
             var oPalette = OutputHistogram.ToColorPalette().rgbPalette.Take(16).ToList();
-            base.OutputPalette = ColorPalette.FromList(oPalette);
+            base.OutputPalette = ColorPalette.CreateColorPalette(oPalette);
             var oTmp2 = base.ExecuteTransform(oTmp, oToken);
             if (Dithering != null)
             {
@@ -133,7 +133,7 @@ namespace ColourClashNet.Colors.Transformation
         {
             var oTmp = PreProcess(oDataSource, false, oToken);
             var oPalette = OutputHistogram.ToColorPalette().rgbPalette.Take(4).ToList();
-            base.OutputPalette = ColorPalette.FromList(oPalette);
+            base.OutputPalette = ColorPalette.CreateColorPalette(oPalette);
             var oRet = base.ExecuteTransform(oTmp, oToken);
             if (Dithering != null)
             {
@@ -156,7 +156,7 @@ namespace ColourClashNet.Colors.Transformation
             //oTrasf.Create(oTmp, null);
             //var oRet = oTrasf.TransformAndDither(oTmp);
             var oPalette = OutputHistogram.ToColorPalette().rgbPalette.Take(2).ToList();
-            base.OutputPalette = ColorPalette.FromList(oPalette);
+            base.OutputPalette = ColorPalette.CreateColorPalette(oPalette);
             var oRet = base.ExecuteTransform(oTmp, oToken);
             if (Dithering != null)
             {
@@ -171,7 +171,7 @@ namespace ColourClashNet.Colors.Transformation
             var oTmpH = HalveHorizontalRes(oDataSource);
             var oTmp = PreProcess(oDataSource, true, oToken);
             var oPalette = OutputHistogram.ToColorPalette().rgbPalette.Take(4).ToList();
-            base.OutputPalette = ColorPalette.FromList(oPalette);
+            base.OutputPalette = ColorPalette.CreateColorPalette(oPalette);
             var oTmp2 = base.ExecuteTransform(oTmp,oToken);
             if (Dithering != null)
             {

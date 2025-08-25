@@ -39,6 +39,7 @@ namespace ColourClashNet.Controls
         #region Data processed
 
         int[,] mDataSource = null;
+        int[,] mDataBkgRemoved = null;
         int[,] mDataQuantized = null;
         int[,] mDataProcessed = null;
 
@@ -47,6 +48,7 @@ namespace ColourClashNet.Controls
         #region Windows objects
 
         public Image ImageSource { get; private set; }
+        public Image ImageBkgRemoved { get; private set; }
         public Image ImageQuantized { get; private set; }
         public Image ImageProcessed { get; private set; }
 
@@ -54,6 +56,7 @@ namespace ColourClashNet.Controls
 
         #region Properties
         public int ImageSourceColors => oTrIdentity?.OutputColors ?? 0;
+        public int ImageBkgRemovedColors => oTrBkgRemover?.OutputColors ?? 0;
         public int ImageQuantizedColors => oTrQuantization?.OutputColors ?? 0;
         public int ImageProcessedColors => lTransform.LastOrDefault()?.OutputColors ?? 0;
         public int ImageWidth => ImageSource?.Width ?? 0;
@@ -71,7 +74,7 @@ namespace ColourClashNet.Controls
 
         public double SaturationEnhancement { get; set; } = 1;
         public double BrightnessEnhancement { get; set; } = 1;
-        public double HueOffset { get; set; } = 0;
+        public double HsvHueOffset { get; set; } = 0;
 
         int iTrainLoop = 30;
         public int ClusteringTrainingLoop
@@ -111,6 +114,7 @@ namespace ColourClashNet.Controls
         #region Trasformations
 
         private ColorTransformIdentity oTrIdentity = new ColorTransformIdentity();
+        private ColorTransformBkgRemover oTrBkgRemover = new ColorTransformBkgRemover();
         private ColorTransformQuantization oTrQuantization = new ColorTransformQuantization();
         private List<ColorTransformInterface> lTransform = new List<ColorTransformInterface>();
 
@@ -128,16 +132,20 @@ namespace ColourClashNet.Controls
         {
             ImageSource?.Dispose();
             ImageSource = null;
+            ImageBkgRemoved?.Dispose();
+            ImageBkgRemoved = null;
             ImageQuantized?.Dispose();
             ImageQuantized = null;
             ImageProcessed?.Dispose();
             ImageProcessed = null;
 
             mDataSource = null;
+            mDataBkgRemoved = null;
             mDataQuantized = null;
             mDataProcessed = null;
 
             oTrIdentity = new ColorTransformIdentity();
+            oTrBkgRemover = new ColorTransformBkgRemover(); 
             oTrQuantization = new ColorTransformQuantization();
             lTransform = new List<ColorTransformInterface>();
 
@@ -250,12 +258,16 @@ namespace ColourClashNet.Controls
         {
             Reset();
             if (oImage == null)
+            {
                 return;
+            }
             try
             {
                 ImageSource = new Bitmap(oImage.Width, oImage.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
                 using (Graphics g = Graphics.FromImage(ImageSource))
+                {
                     g.DrawImage(oImage, 0, 0, ImageWidth, ImageHeight);
+                }
                 mDataSource = ToMatrix(ImageSource as Bitmap );
                 oTrIdentity.Create(mDataSource,null);
                 OnCreate?.Invoke(this, EventArgs.Empty);
@@ -267,26 +279,29 @@ namespace ColourClashNet.Controls
             }
         }
 
-        int[,] RemoveBkg()
-        {
-            if (mDataSource == null)
-                return null;
-            var oTrBkgRemover = new ColorTransformBkgRemover()
-                .SetProperty( ColorTransformProperties.ColorBackgroundList, BackgroundColorList)
-                .SetProperty( ColorTransformProperties.ColorBackgroundReplacement, BackgroundColorReplacement)
-                .Create(oTrIdentity.OutputHistogram, null);
-            var mDataBkgRemoved = oTrBkgRemover.ProcessColors(mDataSource);
-            return mDataBkgRemoved.DataOut;
-        }
+        //int[,] RemoveBkg()
+        //{
+        //    if (mDataSource == null)
+        //        return null;
+        //    var oTrBkgRemover = new ColorTransformBkgRemover()
+        //        .SetProperty( ColorTransformProperties.ColorBackgroundList, BackgroundColorList)
+        //        .SetProperty( ColorTransformProperties.ColorBackgroundReplacement, BackgroundColorReplacement)
+        //        .Create(oTrIdentity.OutputHistogram, null);
+        //    var mDataBkgRemoved = oTrBkgRemover.ProcessColors(mDataSource);
+        //    return mDataBkgRemoved.DataOut;
+        //}
 
         void Quantize()
         {
             if (mDataSource == null)
                 return;
-            var oTrBkgRemover = new ColorTransformBkgRemover()
-                .SetProperty( ColorTransformProperties.ColorBackgroundList, BackgroundColorList)
-                .SetProperty( ColorTransformProperties.ColorBackgroundReplacement, BackgroundColorReplacement)
-                .Create(oTrIdentity.OutputHistogram, null);
+            oTrBkgRemover.ColorBackgroundReplacement = BackgroundColorReplacement;
+            oTrBkgRemover.BackgroundPalette = ColourClashLib.Color.ColorPalette.CreateColorPalette(BackgroundColorList) ?? new ColourClashLib.Color.ColorPalette();
+            oTrBkgRemover.Create(oTrIdentity.OutputHistogram, null);
+            //var oTrBkgRemover = new ColorTransformBkgRemover()
+            //    .SetProperty( ColorTransformProperties.ColorBackgroundList, BackgroundColorList)
+            //    .SetProperty( ColorTransformProperties.ColorBackgroundReplacement, BackgroundColorReplacement)
+            //    .Create(oTrIdentity.OutputHistogram, null);
             lTransform.Add(oTrBkgRemover);
 
             oTrQuantization.QuantizationMode = ColorQuantizationMode;
@@ -295,6 +310,7 @@ namespace ColourClashNet.Controls
             lTransform.Add(oTrQuantization);
 
             var oBkgRemover = oTrBkgRemover.ProcessColors(mDataSource);
+            mDataBkgRemoved = oBkgRemover.DataOut?.Clone() as int[,];
             var oQuantizer = oTrQuantization.ProcessColors(oBkgRemover.DataOut);
             mDataQuantized = oQuantizer.DataOut;
             mDataProcessed = mDataQuantized.Clone() as int[,];
@@ -310,6 +326,7 @@ namespace ColourClashNet.Controls
 
         void RebuildImageOutput()
         {
+            ImageBkgRemoved = ToBitmap(mDataBkgRemoved);    
             ImageQuantized = ToBitmap(mDataQuantized);
             ImageProcessed = ToBitmap(mDataProcessed);
         }
@@ -463,7 +480,7 @@ namespace ColourClashNet.Controls
                         var oTrasf = new ColorTransformLumSat();
                         oTrasf.SaturationMultFactor = SaturationEnhancement;
                         oTrasf.BrightnessMultFactor = BrightnessEnhancement;
-                        oTrasf.HueShift = HueOffset;
+                        oTrasf.HueShift = HsvHueOffset;
                         oTrasf.ColorDistanceEvaluationMode = ColorDistanceEvaluationMode;
                         oTrI = oTrasf;
                     }

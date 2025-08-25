@@ -290,7 +290,7 @@ namespace ColourClashNet.Colors.Transformation
                     {
                         if (oValue is List<int> oPalette)
                         {
-                            OutputPalette = ColorPalette.FromList(oPalette);
+                            OutputPalette = ColorPalette.CreateColorPalette(oPalette);
                         }
                         else if (oValue is ColorPalette oPal)
                         {

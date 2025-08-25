@@ -54,7 +54,7 @@
             propertyGrid1 = new PropertyGrid();
             tableLayoutPanel2 = new TableLayoutPanel();
             panel2 = new Panel();
-            pictureBox1 = new PictureBox();
+            pbMouseColor = new PictureBox();
             rbLayoutH = new RadioButton();
             gbLayoutV = new RadioButton();
             pbBkColor = new PictureBox();
@@ -114,8 +114,6 @@
             pictureBoxSrc = new PictureBox();
             pictureBoxProc = new PictureBox();
             oBitmapRenderSource = new ColourClashNet.Controls.BitmapRender(components);
-            bitmapRender1 = new ColourClashNet.Controls.BitmapRender(components);
-            bitmapRender2 = new ColourClashNet.Controls.BitmapRender(components);
             oBitmapRenderDest = new ColourClashNet.Controls.BitmapRender(components);
             sfdExportImage = new SaveFileDialog();
             oColorTransformer = new ColourClashNet.Controls.ColorTransformer(components);
@@ -127,7 +125,7 @@
             tableLayoutPanel1.SuspendLayout();
             tableLayoutPanel2.SuspendLayout();
             panel2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pbMouseColor).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pbBkColor).BeginInit();
             panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nudColorsWanted).BeginInit();
@@ -221,27 +219,27 @@
             // bitmapIndexedToolStripMenuItem
             // 
             bitmapIndexedToolStripMenuItem.Name = "bitmapIndexedToolStripMenuItem";
-            bitmapIndexedToolStripMenuItem.Size = new Size(157, 22);
+            bitmapIndexedToolStripMenuItem.Size = new Size(156, 22);
             bitmapIndexedToolStripMenuItem.Text = "Bitmap Indexed";
             bitmapIndexedToolStripMenuItem.Click += bitmapIndexedToolStripMenuItem_Click;
             // 
             // indexedPNGToolStripMenuItem
             // 
             indexedPNGToolStripMenuItem.Name = "indexedPNGToolStripMenuItem";
-            indexedPNGToolStripMenuItem.Size = new Size(157, 22);
+            indexedPNGToolStripMenuItem.Size = new Size(156, 22);
             indexedPNGToolStripMenuItem.Text = "PNG Indexed";
             // 
             // bitmapToolStripMenuItem
             // 
             bitmapToolStripMenuItem.Name = "bitmapToolStripMenuItem";
-            bitmapToolStripMenuItem.Size = new Size(157, 22);
+            bitmapToolStripMenuItem.Size = new Size(156, 22);
             bitmapToolStripMenuItem.Text = "Bitmap";
             bitmapToolStripMenuItem.Click += bitmapToolStripMenuItem_Click;
             // 
             // pNGToolStripMenuItem
             // 
             pNGToolStripMenuItem.Name = "pNGToolStripMenuItem";
-            pNGToolStripMenuItem.Size = new Size(157, 22);
+            pNGToolStripMenuItem.Size = new Size(156, 22);
             pNGToolStripMenuItem.Text = "PNG";
             pNGToolStripMenuItem.Click += pNGToolStripMenuItem_Click;
             // 
@@ -249,7 +247,7 @@
             // 
             amigaToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { iFFILBMToolStripMenuItem, bitplaneToolStripMenuItem1, rawBitplaneAndOCSCopperlistToolStripMenuItem, sourceCodeToolStripMenuItem });
             amigaToolStripMenuItem.Name = "amigaToolStripMenuItem";
-            amigaToolStripMenuItem.Size = new Size(157, 22);
+            amigaToolStripMenuItem.Size = new Size(156, 22);
             amigaToolStripMenuItem.Text = "Amiga";
             // 
             // iFFILBMToolStripMenuItem
@@ -381,7 +379,7 @@
             // 
             // panel2
             // 
-            panel2.Controls.Add(pictureBox1);
+            panel2.Controls.Add(pbMouseColor);
             panel2.Controls.Add(rbLayoutH);
             panel2.Controls.Add(gbLayoutV);
             panel2.Controls.Add(pbBkColor);
@@ -393,13 +391,13 @@
             panel2.Size = new Size(362, 54);
             panel2.TabIndex = 28;
             // 
-            // pictureBox1
+            // pbMouseColor
             // 
-            pictureBox1.Location = new Point(165, 3);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(47, 48);
-            pictureBox1.TabIndex = 15;
-            pictureBox1.TabStop = false;
+            pbMouseColor.Location = new Point(165, 3);
+            pbMouseColor.Name = "pbMouseColor";
+            pbMouseColor.Size = new Size(47, 48);
+            pbMouseColor.TabIndex = 15;
+            pbMouseColor.TabStop = false;
             // 
             // rbLayoutH
             // 
@@ -993,7 +991,6 @@
             pictureBoxSrc.Size = new Size(762, 395);
             pictureBoxSrc.TabIndex = 0;
             pictureBoxSrc.TabStop = false;
-            pictureBoxSrc.MouseDoubleClick += pictureBox1_MouseDoubleClick;
             // 
             // pictureBoxProc
             // 
@@ -1010,41 +1007,27 @@
             oBitmapRenderSource.Control = pictureBoxSrc;
             oBitmapRenderSource.Image = null;
             oBitmapRenderSource.ImageBlockScroll = false;
+            oBitmapRenderSource.ImageCoordinates = (PointF)resources.GetObject("oBitmapRenderSource.ImageCoordinates");
             oBitmapRenderSource.ImageMoveOverControlBorder = false;
             oBitmapRenderSource.ImageZoomManual = 1F;
             oBitmapRenderSource.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
+            oBitmapRenderSource.MouseCoordinates = new Point(0, 0);
             oBitmapRenderSource.MouseMovingButton = MouseButtons.Left;
+            oBitmapRenderSource.PeekMouseColor = true;
             oBitmapRenderSource.MouseMove += oBitmapRenderSource_MouseMove;
-            // 
-            // bitmapRender1
-            // 
-            bitmapRender1.Control = pictureBoxSrc;
-            bitmapRender1.Image = null;
-            bitmapRender1.ImageBlockScroll = false;
-            bitmapRender1.ImageMoveOverControlBorder = true;
-            bitmapRender1.ImageZoomManual = 1F;
-            bitmapRender1.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
-            bitmapRender1.MouseMovingButton = MouseButtons.Left;
-            // 
-            // bitmapRender2
-            // 
-            bitmapRender2.Control = pictureBoxSrc;
-            bitmapRender2.Image = null;
-            bitmapRender2.ImageBlockScroll = false;
-            bitmapRender2.ImageMoveOverControlBorder = true;
-            bitmapRender2.ImageZoomManual = 1F;
-            bitmapRender2.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
-            bitmapRender2.MouseMovingButton = MouseButtons.Left;
             // 
             // oBitmapRenderDest
             // 
             oBitmapRenderDest.Control = pictureBoxProc;
             oBitmapRenderDest.Image = null;
             oBitmapRenderDest.ImageBlockScroll = false;
+            oBitmapRenderDest.ImageCoordinates = (PointF)resources.GetObject("oBitmapRenderDest.ImageCoordinates");
             oBitmapRenderDest.ImageMoveOverControlBorder = false;
             oBitmapRenderDest.ImageZoomManual = 1F;
             oBitmapRenderDest.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
+            oBitmapRenderDest.MouseCoordinates = new Point(0, 0);
             oBitmapRenderDest.MouseMovingButton = MouseButtons.Left;
+            oBitmapRenderDest.PeekMouseColor = true;
             // 
             // sfdExportImage
             // 
@@ -1066,7 +1049,7 @@
             oColorTransformer.CPCScreenMode = Colors.Transformation.ColorTransformReductionCPC.CPCVideoMode.Mode0;
             oColorTransformer.DitheringAlgorithm = Colors.ColorDithering.Ordered_4x4;
             oColorTransformer.DitheringStrenght = 1D;
-            oColorTransformer.HueOffset = 0D;
+            oColorTransformer.HsvHueOffset = 0D;
             oColorTransformer.SaturationEnhancement = 1.5D;
             oColorTransformer.ScanlineClustering = true;
             oColorTransformer.ScanlineColorsMax = 7;
@@ -1098,7 +1081,7 @@
             tableLayoutPanel2.ResumeLayout(false);
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pbMouseColor).EndInit();
             ((System.ComponentModel.ISupportInitialize)pbBkColor).EndInit();
             panel3.ResumeLayout(false);
             panel3.PerformLayout();
@@ -1173,8 +1156,6 @@
         private ToolStripMenuItem toolStripMenuItemSave;
         private SplitContainer scLayout;
         private PictureBox pictureBoxProc;
-        private Controls.BitmapRender bitmapRender1;
-        private Controls.BitmapRender bitmapRender2;
         private Controls.BitmapRender oBitmapRenderDest;
         private SaveFileDialog sfdExportImage;
         private Button btnReduceColorsZx;
@@ -1227,6 +1208,6 @@
         private NumericUpDown nudScanlineLineColors;
         private Label label9;
         private CheckBox chkScanlineSharedPal;
-        private PictureBox pictureBox1;
+        private PictureBox pbMouseColor;
     }
 }

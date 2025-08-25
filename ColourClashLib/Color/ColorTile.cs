@@ -8,12 +8,17 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Colors
 {
+    /// <summary>
+    /// Represents a tile of color data, including its position, associated color data, and processing capabilities.
+    /// </summary>
+    /// <remarks>This class is designed to handle color data for a specific tile, including processing the
+    /// tile's color data  using a specified dithering algorithm. It also supports error evaluation based on the
+    /// processed output.</remarks>
     public class ColorTile
     {
         internal int r { get; set; }
         internal int c { get; set; }
         internal int[,]? TileData { get; set; }
-        //internal int[,] TileDataProc { get; set; }
         internal double Error { get; private set; }
 
         internal ColorTransformReductionCluster oReduction = new ColorTransformReductionCluster()

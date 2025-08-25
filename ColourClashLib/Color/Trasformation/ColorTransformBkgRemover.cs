@@ -34,7 +34,11 @@ namespace ColourClashNet.Colors.Transformation
                         BackgroundPalette = new ColorPalette();
                         if (oValue is List<int> oList)
                         {
-                            BackgroundPalette = ColorPalette.FromList(oList);
+                            BackgroundPalette = ColorPalette.CreateColorPalette(oList);
+                            if (BackgroundPalette == null)
+                            {
+                                BackgroundPalette = new ColorPalette();
+                            }
                         }
                         else if (oValue is ColorPalette oPalette)
                         {
@@ -57,29 +61,7 @@ namespace ColourClashNet.Colors.Transformation
         }
 
 
-        //protected override void CreateTrasformationMap()
-        //{
-        //    string sMethod = nameof(CreateTrasformationMap);
-        //    if (ColorDefaults.Trace)
-        //        Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
-        //    foreach (var rgb in OutputPalette.rgbPalette)
-        //    {
-        //        if (rgb < 0)
-        //            continue;
-        //        ColorTransformationMapper.Add(rgb, rgb);
-        //    }
-
-        //    foreach (var rgb in OutputPalette.rgbPalette)
-        //    {
-        //        if (rgb < 0)
-        //            continue;
-        //        if (ColorBackgroundList.Any(X => X.Equals(rgb)))
-        //        {
-        //            OutputPalette.Remove(rgb);
-        //            ColorTransformationMapper.rgbTransformationMap[rgb] = ColorBackgroundReplacement;
-        //        }
-        //    }
-        //}
+       
         protected override int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken)
         {
             if (oDataSource == null)
@@ -89,7 +71,7 @@ namespace ColourClashNet.Colors.Transformation
             var oRet = new int[R, C];   
             var oList = BackgroundPalette.ToList();
             var oBkgCol = ColorBackgroundReplacement;
-            oBkgCol.SetColorInfo(ColorIntType.IsBkg);
+            oBkgCol = oBkgCol.SetColorInfo(ColorIntType.IsBkg);
             Parallel.For(0, R, r =>
             {
                 for (int c = 0; c < C; c++)

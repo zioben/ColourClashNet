@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ColourClashLib;
 using ColourClashNet.Colors;
+using ColourClashSupport.Log;
 
 namespace ColourClashNet.Colors.Transformation
 {
@@ -21,8 +22,7 @@ namespace ColourClashNet.Colors.Transformation
         protected override void CreateTrasformationMap()
         {
             string sMethod = nameof(CreateTrasformationMap);
-            if (ColorDefaults.Trace)
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
+            LogMan.Trace(sClass, sMethod, $"{Type} : Clearing trasformation map");
 
             foreach (var kvp in OutputHistogram.rgbHistogram)
             {

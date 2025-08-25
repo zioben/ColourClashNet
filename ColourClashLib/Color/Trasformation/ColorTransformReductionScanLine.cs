@@ -145,13 +145,11 @@ namespace ColourClashNet.Colors.Transformation
                     oCols[0, c] = oSourceNew[r, c];
                 }
                 // Create row histogram and take the most used colors
-                var oRowHist = new ColorHistogram().Create(oCols).SortColorsDescending();
+                var oRowHist = ColorHistogram.CreateColorHistogram(oCols).SortColorsDescending();
                 var oRowPal = oRowHist.ToColorPalette();
-                var oNewPal = ColorPalette.FromList(oRowPal.ToList().Take(LineReductionMaxColors));
+                var oNewPal = ColorPalette.CreateColorPalette(oRowPal.ToList().Take(LineReductionMaxColors));
                 // Create 
                 //--------------------------------------------------------------
-                // Too slow!
-
                 //    Trace.WriteLine($"Row - {r}");
                 if (Dithering == null || Dithering.Type == ColorDithering.None)
                 {

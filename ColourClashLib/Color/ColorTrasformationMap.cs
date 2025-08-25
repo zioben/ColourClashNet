@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace ColourClashLib.Color
 {
+    /// <summary>
+    /// Class to transform palette colors.
+    /// </summary>
     public partial class ColorTransformationMap
     {
         static string sClass = nameof(ColorTransformationMap);
@@ -53,15 +56,25 @@ namespace ColourClashLib.Color
 
         public void Add(int iSorceRGB, int iDestRGB)
         {
+            if (iSorceRGB < 0 || iDestRGB < 0)
+            {
+                return;
+            }
             if (rgbTransformationMap.ContainsKey(iSorceRGB))
+            {
                 rgbTransformationMap[iSorceRGB] = iDestRGB;
+            }
             else
+            {
                 rgbTransformationMap.Add(iSorceRGB, iDestRGB);
+            }
         }
         public void Remove(int iSorceRGB)
         {
             if (rgbTransformationMap.ContainsKey(iSorceRGB))
+            {
                 rgbTransformationMap.Remove(iSorceRGB);
+            }
         }
 
 

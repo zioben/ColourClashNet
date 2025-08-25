@@ -7,6 +7,9 @@ using static ColourClashNet.Colors.Transformation.ColorTransformReductionZxSpect
 
 namespace ColourClashNet.Colors
 {
+    /// <summary>
+    /// Enums to select color quantization mode 
+    /// </summary>
     public enum ColorQuantizationMode
     {
         Unknown = 0,
@@ -20,6 +23,9 @@ namespace ColourClashNet.Colors
         RGB111,
     }
 
+    /// <summary>
+    /// Enums to select color space for color distance evaluation
+    /// </summary>
     public enum Colorspace
     {
         RGB,
@@ -28,6 +34,9 @@ namespace ColourClashNet.Colors
         XYZ,
     }
 
+    /// <summary>
+    /// Enums to select color distance evaluation algorithm
+    /// </summary>
     public enum ColorDistanceEvaluationMode
     {
         RGB,
@@ -35,6 +44,9 @@ namespace ColourClashNet.Colors
         HSV,
     }
 
+    /// <summary>
+    /// Enums to select color transformation algorithm 
+    /// </summary>
     public enum ColorTransformType
     {
         None = 0,
@@ -55,6 +67,9 @@ namespace ColourClashNet.Colors
         ColorReductionTileBase,
     }
 
+    /// <summary>
+    /// Enums to select dithering algorithm 
+    /// </summary>
     public enum ColorDithering
     {
         None = 0,
@@ -71,12 +86,19 @@ namespace ColourClashNet.Colors
         Stucki,
         ScanLine
     }
+
+    /// <summary>
+    /// Enums to select how to calculate the mean color of a cluster 
+    /// </summary>
     public enum ColorMeanMode
     {
         UseMean,
         UseColorPalette
     }
 
+    /// <summary>
+    /// Enums to decorate Parameter Class 
+    /// </summary>
     public enum Parameters
     {
         Unknown = 0,
@@ -86,6 +108,9 @@ namespace ColourClashNet.Colors
         DitherMode,
     }
 
+    /// <summary>
+    /// Enums to decorate ColorTransformBase Class
+    /// </summary>
     public enum ColorTransformProperties
     {
         Unknown = 0,
@@ -94,7 +119,7 @@ namespace ColourClashNet.Colors
         ColorBackgroundReplacement,
         MaxColorsWanted,
         MaxColorChangePerLine,
-        HsbHueShift,
+        HsvHueShift,
         HsvSaturationMultFactor,
         HsvBrightnessMultFactor,
         QuantizationMode,
@@ -131,26 +156,26 @@ namespace ColourClashNet.Colors
         /// <summary>
         /// The color in part of the background, and should be processed apart
         /// </summary>
-        IsBkg = (0b10000001) << 24,
+        IsBkg = 0b10000001,
         /// <summary>
         /// The color codifies a cookiecut image, and should be treated apart on image processing
         /// </summary>
-        IsMask = (0b10000010) << 24,
+        IsMask = 0b10000010,
         /// <summary>
         /// The color represents an alpha value
         /// </summary>
-        IsAplha = (0b10000100) << 24,
+        IsAplha = 0b10000100,
         /// <summary>
         /// The color represents a tile grid, useful to align graphics
         /// </summary>
-        IsTile = (0b10001000) << 24,
+        IsTile = 0b10001000,
         /// <summary>
         /// The color should be treated as transparent
         /// </summary>
-        IsTransparent = (0b10010000) << 24,
+        IsTransparent = 0b10010000,
         /// <summary>
         /// The color should be considered invalid
         /// </summary>
-        Invalid = (0b11111111) << 24,
+        Invalid = 0b11111111,
     }
 }

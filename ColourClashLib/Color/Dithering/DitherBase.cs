@@ -10,6 +10,9 @@ using ColourClashNet.Colors;
 
 namespace ColourClashNet.Colors.Dithering
 {
+    /// <summary>
+    /// Base class for Dithering algorithms
+    /// </summary>
     public abstract partial class DitherBase : DitherInterface
     {
         static string sClass = nameof(DitherBase);

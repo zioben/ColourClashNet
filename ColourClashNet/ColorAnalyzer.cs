@@ -32,10 +32,11 @@ namespace ColourClashNet
             CreateComboBox(cbC64VideoMode, Enum.GetNames(typeof(ColorTransformReductionC64.C64VideoMode)).ToList());
             CreateComboBox(cbCpcVideoMode, Enum.GetNames(typeof(ColorTransformReductionCPC.CPCVideoMode)).ToList());
             CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformReductionAmiga.EnumAMigaVideoMode)).ToList());
+            oBitmapRenderSource.ColorAdded += (s, e) => { BuildBkgPalette(); };
+            oBitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };    
         }
 
 
-        List<System.Drawing.Color> lBkgColor = new List<System.Drawing.Color>();
         List<ToolStripMenuItem> lTsItems = new List<ToolStripMenuItem>();
 
         void RebulidSetCheck(string sItem)
@@ -117,6 +118,7 @@ namespace ColourClashNet
         void BuildBkgPalette()
         {
             pbBkColor.Image = null;
+            var lBkgColor = oBitmapRenderSource.SelectedColors;
             if (lBkgColor.Count > 0)
             {
                 Bitmap oBmp = new Bitmap(lBkgColor.Count * 16, 16);
@@ -137,6 +139,9 @@ namespace ColourClashNet
                 pbBkColor.SizeMode = PictureBoxSizeMode.StretchImage;
                 pbBkColor.Image = oBmp;
             }
+            oColorTransformer.BackgroundColorList = GetBkgColors();
+            oColorTransformer.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorIntExt.DefaultBkgColor);
+            oColorTransformer.ProcessBase();
         }
 
         void ShowImage()
@@ -158,52 +163,22 @@ namespace ColourClashNet
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 var oBmp = Bitmap.FromFile(openFileDialog1.FileName) as Bitmap;
-                oColorTransformer.BackgroundColorList = new List<int> { ColorIntExt.FromDrawingColor(pbBkColor.BackColor) };
-                oColorTransformer.BackgroundColorReplacement = 0;
-                //   oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
-                //   oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
-                oColorTransformer.Create(oBmp);
+                oBitmapRenderDest.ResetSelectedColors();
                 oBitmapRenderDest.OriginZero();
+                oBitmapRenderSource.ResetSelectedColors();
                 oBitmapRenderSource.OriginZero();
+                //
+                oColorTransformer.BackgroundColorList = GetBkgColors();
+                oColorTransformer.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorIntExt.DefaultBkgColor);
+                oColorTransformer.Create(oBmp);
             }
         }
 
-        void Reprocess()
-        {
-            BuildBkgPalette();
-            oColorTransformer.BackgroundColorList = new List<int> { ColorIntExt.FromDrawingColor(pbBkColor.BackColor) };
-            oColorTransformer.BackgroundColorReplacement = 0;
-            // oColorTransformer.ColorQuantizationMode = GetQuantizationMode();
-            // oColorTransformer.ColorDistanceEvaluationMode = GetColorDistanceMode();
-            oColorTransformer.ProcessBase();
-        }
-
-        private void pictureBox1_MouseDoubleClick(object sender, MouseEventArgs e)
-        {
-            //if (!fullColorToolStripMenuItem.Checked)
-            //    return;
-            //if (e.Button == MouseButtons.Left)
-            //{
-            //    using (Bitmap bmp = new Bitmap(pictureBoxSrc.ClientSize.Width, pictureBoxSrc.Height))
-            //    {
-            //        pictureBoxSrc.DrawToBitmap(bmp, pictureBoxSrc.ClientRectangle);
-            //        try
-            //        {
-            //            lBkgColor.Add(bmp.GetPixel(e.X, e.Y));
-            //            Reprocess();
-            //        }
-            //        catch
-            //        {
-            //        }
-            //    }
-            //}
-        }
-
-
+   
         List<int> GetBkgColors()
         {
             var oRet = new List<int>();
-            foreach (var item in lBkgColor)
+            foreach (var item in oBitmapRenderSource.SelectedColors)
                 oRet.Add(ColorIntExt.FromDrawingColor(item));
             return oRet;
         }
@@ -217,6 +192,9 @@ namespace ColourClashNet
 
         private void SetToControl()
         {
+            oColorTransformer.BackgroundColorList = GetBkgColors();
+            oColorTransformer.BackgroundColorReplacement = ColorIntExt.FromDrawingColor( ColorIntExt.DefaultBkgColor );
+
             oColorTransformer.ColorsMax = (int)nudColorsWanted.Value;
             oColorTransformer.ScanlineClustering = chkScanLineCluster.Checked;
             oColorTransformer.ScanlineColorsMax = (int)nudScanlineLineColors.Value;
@@ -227,7 +205,7 @@ namespace ColourClashNet
             oColorTransformer.DitheringStrenght = (double)nudDitheringStrenght.Value;
             oColorTransformer.SaturationEnhancement = (double)nudSat.Value;
             oColorTransformer.BrightnessEnhancement = (double)nudBright.Value;
-            oColorTransformer.HueOffset = (double)nudHue.Value;
+            oColorTransformer.HsvHueOffset = (double)nudHue.Value;
             oColorTransformer.C64ScreenMode = (ColorTransformReductionC64.C64VideoMode)Enum.Parse(typeof(ColorTransformReductionC64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString());
             oColorTransformer.CPCScreenMode = (ColorTransformReductionCPC.CPCVideoMode)Enum.Parse(typeof(ColorTransformReductionCPC.CPCVideoMode), cbCpcVideoMode.SelectedItem.ToString());
             oColorTransformer.ZxEqColorLO = (int)nudZxColorLO.Value;
@@ -256,11 +234,11 @@ namespace ColourClashNet
 
         private void pbBkColor_DoubleClick(object sender, EventArgs e)
         {
-            if (lBkgColor.Count > 0)
-            {
-                lBkgColor.RemoveAt(lBkgColor.Count - 1);
-                Reprocess();
-            }
+            //if (lBkgColor.Count > 0)
+            //{
+            //    lBkgColor.RemoveAt(lBkgColor.Count - 1);
+            //    Reprocess();
+            //}
         }
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
@@ -414,7 +392,7 @@ namespace ColourClashNet
         private void oBitmapRenderSource_MouseMove(object sender, MouseEventArgs e)
         {
             Color oCol = oBitmapRenderSource.MouseColor;
-            pbBkColor.BackColor = oCol;
+            pbMouseColor.BackColor = oCol;
         }
     }
 }

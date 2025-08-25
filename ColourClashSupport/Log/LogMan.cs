@@ -228,6 +228,18 @@ namespace ColourClashSupport.Log
         }
 
         /// <summary>
+        /// Trace an Exception message
+        /// </summary>
+        /// <param name="sClass">Source Class</param>
+        /// <param name="sMethod">Source Method</param>
+        /// <param name="ex">Exception info</param>
+        public static void Exception(string sClass, string sMethod, Exception ex)
+        {
+            Log(LogLevel.Exception, sClass, sMethod, "Exception raised", ex);
+        }
+
+
+        /// <summary>
         /// Trace an Error message
         /// </summary>
         /// <param name="sClass">Source Class</param>

@@ -11,10 +11,33 @@ using System.Windows.Forms;
 namespace ColourClashNet.Controls
 {
 
+
     public partial class BitmapRender : Component
     {
 
-        // Struttura POINT per le coordinate del cursore
+        /// <summary>
+        /// Zoom modes
+        /// </summary>
+        public enum EnumZoom
+        {
+            ZoomQ = 0,
+            ZoomH = 1,
+            Zoom1 = 2,
+            Zoom2 = 3,
+            Zoom3 = 4,
+            Zoom4 = 5,
+            Fit = 6,
+            FitW = 7,
+            FitH = 8,
+            Stretch = 9,
+            Manual = 100
+        }
+
+
+        #region Windows OS ony - PInvoke declarations
+        /*------------------------------------------
+        // Windows OS ony - PInvoke declarations
+
         [StructLayout(LayoutKind.Sequential)]
         public struct POINT
         {
@@ -22,7 +45,6 @@ namespace ColourClashNet.Controls
             public int Y;
         }
 
-        // API di Windows
         [DllImport("user32.dll")]
         static extern bool GetCursorPos(out POINT lpPoint);
 
@@ -48,30 +70,24 @@ namespace ColourClashNet.Controls
 
             return Color.FromArgb(r, g, b);
         }
+        */
+        #endregion
 
+        #region Constructor
 
-        public enum EnumZoom
-        {
-            ZoomQ = 0,
-            ZoomH = 1,
-            Zoom1 = 2,
-            Zoom2 = 3,
-            Zoom3 = 4,
-            Zoom4 = 5,
-            Fit   = 6,
-            FitW  = 7,
-            FitH  = 8,
-            Stretch = 9,
-            Manual = 100
-        }
-
-
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public BitmapRender()
         {
             InitializeComponent();
             Create();
         }
 
+        /// <summary>
+        /// Constructor with container
+        /// </summary>
+        /// <param name="container"></param>
         public BitmapRender(IContainer container)
         {
             container.Add(this);
@@ -79,6 +95,10 @@ namespace ColourClashNet.Controls
             InitializeComponent();
             Create();
         }
+
+        /// <summary>
+        /// Common create code
+        /// </summary>
         protected void Create()
         {
             MouseMovingButton = MouseButtons.Left;
@@ -86,10 +106,91 @@ namespace ColourClashNet.Controls
             RegisterToolStripItems();
         }
 
+        #endregion
+
+        #region Coordinates and Color Picking
+
+        /// <summary>
+        /// If true the color under the mouse pointer is tracked
+        /// </summary>
+        public bool PeekMouseColor { get; set; }
+ 
+
+        /// <summary>
+        /// Color under the mouse pointer
+        /// </summary>
         public Color MouseColor { get; private set; }
 
+        /// <summary>
+        /// Mouse coordinates in the control
+        /// </summary>
+        public Point MouseCoordinates { get; set; }
+
+        /// <summary>
+        /// Mouse coordinates in the image
+        /// </summary>
+        public PointF ImageCoordinates { get; set; }
+
+        /// <summary>
+        /// List of selected colors
+        /// </summary>
         public List<Color> SelectedColors { get; private set; } = new List<Color>();
- 
+
+        Color oContextMenuColor = Color.Transparent;
+
+        Color UpdateMouseData(Point oMousePoint)
+        {
+            MouseCoordinates = oMousePoint;
+            ImageCoordinates = PointControlToPointBitmap(oMousePoint);
+            if( Image == null)
+            {
+                MouseColor = Color.Transparent;
+                return MouseColor;
+            }
+            if (PeekMouseColor)
+            {
+                if (Image is Bitmap oBmp)
+                {
+                    var ImgX = ImageCoordinates.X;
+                    var ImgY = ImageCoordinates.Y;
+                    if (ImgX >= 0 && ImgX < oBmp.Width)
+                    {
+                        if (ImgY >= 0 && ImgY < oBmp.Height)
+                        {
+                            MouseColor = oBmp.GetPixel((int)ImgX, (int)ImgY);
+                            return MouseColor;
+                        }
+                    }
+                }
+            }
+            MouseColor = Color.Transparent;
+            return MouseColor;
+        }
+
+
+        public void AddSelectedColor(Color oColor)
+        {
+            if (!SelectedColors.Contains(oColor))
+            {
+                SelectedColors.Add(oColor);
+            }
+        }
+
+        public void ResetSelectedColors()
+        {
+            SelectedColors.Clear();
+        }
+
+        public void RemoveSelectedColor(Color oColor)
+        {
+            if (!SelectedColors.Contains(oColor))
+            {
+                SelectedColors.Remove(oColor);
+            }
+        }
+
+        #endregion  
+
         #region ToolStripItemZoom
 
         void RegisterToolStripItems()
@@ -106,7 +207,8 @@ namespace ColourClashNet.Controls
             this.toolStripMenuItemStretch.Click += new EventHandler(OnZoomS);
             this.toolStripMenuItemManual.Click += new EventHandler(OnZoomM);
             this.toolStripMenuItemBlockMoving.Click += new EventHandler(OnBlockMoving);
-            this.toolStripMenuItemAddColor.Click += new EventHandler(OnSelectColor);
+            this.toolStripMenuItemAddColor.Click += new EventHandler(OnAddColor);
+            this.toolStripMenuItemResetColors.Click += new EventHandler(OnResetColors);
             toolStripMenuItemBlockMoving.Checked = ImageBlockScroll;
         }
 
@@ -137,15 +239,41 @@ namespace ColourClashNet.Controls
             toolStripMenuItemBlockMoving.Checked = ImageBlockScroll;
         }
 
-        void OnSelectColor(object sender, EventArgs e)
+        void RebuildMouseColorItems()
         {
-            var oCol = MouseColor;
-            if (!SelectedColors.Contains(oCol))
+            toolStripMenuItemColors.DropDownItems.Clear();
+            foreach (var c in SelectedColors)
             {
-                SelectedColors.Add(oCol);
+                var tsi = new ToolStripMenuItem();
+                tsi.Text = $"R:{c.R} G:{c.G} B:{c.B}";
+                tsi.BackColor = c;
+                tsi.ForeColor = (c.R + c.G + c.B) / 3 < 128 ? Color.White : Color.Black;
+                tsi.Click += (s, e) => 
+                { 
+                    RemoveSelectedColor(c); 
+                    RebuildMouseColorItems();
+                    ColorRemoved?.Invoke(this, EventArgs.Empty);
+                };
+                toolStripMenuItemColors.DropDownItems.Add(tsi);
             }
+            toolStripMenuItemColors.Enabled = SelectedColors.Count > 0;
         }
 
+        void OnAddColor(object sender, EventArgs e)
+        {
+            if (oContextMenuColor != Color.Transparent)
+            {
+                AddSelectedColor(oContextMenuColor);
+            }
+            RebuildMouseColorItems();
+            ColorAdded?.Invoke(this, EventArgs.Empty);
+        }
+        void OnResetColors(object sender, EventArgs e)
+        {
+            ResetSelectedColors();
+            RebuildMouseColorItems();
+            ColorRemoved?.Invoke(this, EventArgs.Empty);
+        }
         #endregion
 
         #region RAD Setup
@@ -308,7 +436,7 @@ namespace ColourClashNet.Controls
                     break;
                 case EnumZoom.Manual: RoiZoomX = RoiZoomY = RoiZoomM; fiw *= RoiZoomM; fih *= RoiZoomM; break;
             }
-            BitmapCoordinates.Zoom = new PointF( (float)RoiZoomX,(float)RoiZoomY);
+            BitmapCoordinates.Zoom = new PointF((float)RoiZoomX, (float)RoiZoomY);
             RoiDst.X = RoiDst.Y = 0;
             RoiDst.Width = Control.Size.Width;
             RoiDst.Height = Control.Size.Height;
@@ -391,7 +519,6 @@ namespace ColourClashNet.Controls
 
         protected void OnMouseWheel(object Sender, MouseEventArgs args)
         {
-//            Trace.WriteLine($"{args.Delta}");
             if (args.Delta != 0)
             {
                 if (ImageZoomMode == EnumZoom.Manual)
@@ -436,45 +563,49 @@ namespace ColourClashNet.Controls
 
         public event MouseEventHandler MouseMove;
 
-        protected Color GetMousePixelColor(int x, int y)
-        {
-            //MouseColor = GetColorAt(x,y);
-            if (Image is Bitmap oBmp)
-            {
-                double MouseX = x;
-                double MouseY = y;
-                double ImgX = RoiSrc.X + MouseX * ZoomImageX;
-                double ImgY = RoiSrc.Y + MouseY * ZoomImageY;
-                if (ImgX >= 0 && ImgX < oBmp.Width)
-                {
-                    if (ImgY >= 0 && ImgY < oBmp.Height)
-                    {
-                        return oBmp.GetPixel((int)ImgX, (int)ImgY);
-                    }
-                }
-            }
-            return Color.Transparent;
-        }
+        public event EventHandler ColorAdded;
+        public event EventHandler ColorRemoved;
+
+
 
         protected void OnMouseMove(object Sender, MouseEventArgs args)
         {
-            MouseColor = GetMousePixelColor(args.X,args.Y);
+            UpdateMouseData(new Point(args.X, args.Y));
+            if (MousePushed)
+            {
+                int DX = MousePushedPointLast.X - args.Location.X;
+                int DY = MousePushedPointLast.Y - args.Location.Y;
+                WorldOriginMove(DX, DY);
+                MousePushedPointLast = args.Location;
+            }
             if (MouseMove != null)
             {
                 MouseMove(Sender, args);
             }
-            //else
-            {
-                if (MousePushed)
-                {
-                    int DX = MousePushedPointLast.X - args.Location.X;
-                    int DY = MousePushedPointLast.Y - args.Location.Y;
-                    WorldOriginMove(DX, DY);
-                    MousePushedPointLast = args.Location;
-                }
-            }
         }
 
         #endregion
+
+        private static Image MakeColorSwatch(Color color, int size = 12, int border = 1)
+        {
+            var bmp = new Bitmap(size, size);
+            using (var g = Graphics.FromImage(bmp))
+            using (var brush = new SolidBrush(color))
+            using (var pen = new Pen(Color.FromArgb(120, Color.Black), border))
+            {
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
+                g.Clear(Color.Transparent);
+                g.FillRectangle(brush, border, border, size - 2 * border, size - 2 * border);
+                g.DrawRectangle(pen, border, border, size - 2 * border - 1, size - 2 * border - 1);
+            }
+            return bmp;
+        }
+
+        private void oContextMenuStrip_Opening(object sender, CancelEventArgs e)
+        {
+            oContextMenuColor = UpdateMouseData(MouseCoordinates);
+            toolStripMenuItemAddColor.Image?.Dispose();
+            toolStripMenuItemAddColor.Image = MakeColorSwatch(oContextMenuColor, 16, 2);
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ColourClashNet.Colors;
+using ColourClashSupport.Log;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,10 +27,9 @@ namespace ColourClashLib.Color
                     for (int c = 0; c < C; c++)
                     {
                         var i = oDataSource[r, c];
-                        if (i >= 0)
-                        {
-                            oColorArray[i]++;
-                        }
+                        if (i < 0)
+                            continue;
+                        oColorArray[i]++;
                     }
                 }
                 for (int rgb = 0; rgb < oColorArray.Length; rgb++)
@@ -55,7 +55,7 @@ namespace ColourClashLib.Color
                 }
             }
             return true;
-        } 
+        }
 
         static ColorHistogram? CreateColorHist(int[,] oDataSource, ColorHistogram oHist)
         {
@@ -64,32 +64,40 @@ namespace ColourClashLib.Color
             {
                 if (oDataSource == null || oHist == null)
                 {
-                    Trace.TraceError($"{sClass}.{sMethod} : Invalid data source");
+                    LogMan.Error(sClass, sMethod, "Invalid data source");
                     return null;
                 }
                 oHist.Reset();
                 int R = oDataSource.GetLength(0);
                 int C = oDataSource.GetLength(1);
-                if (R * C > 1920 * 1080 )
+                if (R * C > 1920 * 1080)
                 {
-                    if (ColorDefaults.Trace)
-                        Trace.TraceInformation($"{sClass}.{sMethod} : call CreateColorHistArray");
+                    LogMan.Trace(sClass, sMethod, "Using array method for large image");
                     CreateColorHistArray(oDataSource, oHist);
                 }
                 else
                 {
-                    if (ColorDefaults.Trace)
-                        Trace.TraceInformation($"{sClass}.{sMethod} : creating HashColorHistogram");
+                    LogMan.Trace(sClass, sMethod, "Using direct method for small image");
                     CreateColorHistDirect(oDataSource, oHist);
                 }
                 return oHist;
             }
             catch (Exception ex)
             {
-                Trace.TraceError($"{sClass}.{sMethod} : {ex.Message}");
+                LogMan.Exception(sClass, sMethod, ex);
                 return null;
             }
         }
 
+        /// <summary>
+        /// Create Histogram from a 2D int array of RGB values
+        /// </summary>
+        /// <param name="oDataSource">Image Array</param>
+        /// <returns>ColorHistogram or null on error</returns>
+        public static ColorHistogram? CreateColorHistogram(int[,] oDataSource)
+        {
+            ColorHistogram colorHistogram = new ColorHistogram();
+            return CreateColorHist(oDataSource, colorHistogram);    
+        }
     }
 }

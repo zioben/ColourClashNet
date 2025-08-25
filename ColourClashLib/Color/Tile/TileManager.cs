@@ -2,6 +2,7 @@
 using ColourClashNet.Colors;
 using ColourClashNet.Colors.Dithering;
 using ColourClashNet.Colors.Transformation;
+using ColourClashSupport.Log;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,6 +14,8 @@ namespace ColourClashLib.Colors.Tile
 {
     public class TileManager
     {
+        static string sClass = nameof(TileManager); 
+
         TileBase[,] TileData { get; set; }
         public int TileW { get; private set; } = 8;
         public int TileH { get; private set; } = 8;
@@ -206,14 +209,19 @@ namespace ColourClashLib.Colors.Tile
             return true;
         }
 
-        public static TileManager Create(int[,]? oDataSource, int iTileW, int iTileH, int iMaxTileColors, ColorPalette oFixedColorPalette, ColorDistanceEvaluationMode eColorDistanceMode, TileBase.EnumColorReductionMode eColorReductionMode)
+        public static TileManager CreateTileManager(int[,]? oDataSource, int iTileW, int iTileH, int iMaxTileColors, ColorPalette oFixedColorPalette, ColorDistanceEvaluationMode eColorDistanceMode, TileBase.EnumColorReductionMode eColorReductionMode)
         {
+            string sMethod = nameof(CreateTileManager); 
             var oRet = new TileManager();
-            if (!oRet.Init(oDataSource, iTileW, iTileH, iMaxTileColors, oFixedColorPalette, eColorDistanceMode, eColorReductionMode))
+            if (oRet.Init(oDataSource, iTileW, iTileH, iMaxTileColors, oFixedColorPalette, eColorDistanceMode, eColorReductionMode))
             {
-                Trace.TraceError("Cannot create TileManager");
+                return oRet;
             }
-            return oRet;
+            else
+            { 
+                LogMan.Error(sClass, sMethod, "Cannot init TileManager");
+                return null;
+            }
         }
 
         public static int[,]? MergeData(int[,]? oDataSource, List<TileManager> lTileMan, TileBase.EnumErrorSourceMode eErrorMode)

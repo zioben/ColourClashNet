@@ -44,21 +44,23 @@
             toolStripMenuItemManual = new ToolStripMenuItem();
             toolStripMenuItemBlockMoving = new ToolStripMenuItem();
             toolStripMenuItemAddColor = new ToolStripMenuItem();
-            oContextMenuStripColors = new ContextMenuStrip(components);
+            toolStripMenuItemResetColors = new ToolStripMenuItem();
             toolStripMenuItemColors = new ToolStripMenuItem();
+            oContextMenuStripColors = new ContextMenuStrip(components);
             oContextMenuStrip.SuspendLayout();
             // 
             // oContextMenuStrip
             // 
-            oContextMenuStrip.Items.AddRange(new ToolStripItem[] { toolStripMenuItemZoom, toolStripMenuItemBlockMoving, toolStripMenuItemAddColor, toolStripMenuItemColors });
+            oContextMenuStrip.Items.AddRange(new ToolStripItem[] { toolStripMenuItemZoom, toolStripMenuItemBlockMoving, toolStripMenuItemAddColor, toolStripMenuItemResetColors, toolStripMenuItemColors });
             oContextMenuStrip.Name = "oContextMenuStrip";
-            oContextMenuStrip.Size = new Size(181, 70);
+            oContextMenuStrip.Size = new Size(140, 114);
+            oContextMenuStrip.Opening += oContextMenuStrip_Opening;
             // 
             // toolStripMenuItemZoom
             // 
             toolStripMenuItemZoom.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem1_4, toolStripMenuItem1_2, toolStripMenuItem1_1, toolStripMenuItem2_1, toolStripMenuItem3_1, toolStripMenuItem4_1, toolStripMenuItemFit, toolStripMenuItemFitW, toolStripMenuItemFitH, toolStripMenuItemStretch, toolStripMenuItemManual });
             toolStripMenuItemZoom.Name = "toolStripMenuItemZoom";
-            toolStripMenuItemZoom.Size = new Size(180, 22);
+            toolStripMenuItemZoom.Size = new Size(139, 22);
             toolStripMenuItemZoom.Text = "Zoom";
             // 
             // toolStripMenuItem1_4
@@ -130,25 +132,31 @@
             // toolStripMenuItemBlockMoving
             // 
             toolStripMenuItemBlockMoving.Name = "toolStripMenuItemBlockMoving";
-            toolStripMenuItemBlockMoving.Size = new Size(180, 22);
+            toolStripMenuItemBlockMoving.Size = new Size(139, 22);
             toolStripMenuItemBlockMoving.Text = "Block Scroll";
             // 
             // toolStripMenuItemAddColor
             // 
             toolStripMenuItemAddColor.Name = "toolStripMenuItemAddColor";
-            toolStripMenuItemAddColor.Size = new Size(180, 22);
-            toolStripMenuItemAddColor.Text = "toolStripMenuItem1";
+            toolStripMenuItemAddColor.Size = new Size(139, 22);
+            toolStripMenuItemAddColor.Text = "Add Color";
+            // 
+            // toolStripMenuItemResetColors
+            // 
+            toolStripMenuItemResetColors.Name = "toolStripMenuItemResetColors";
+            toolStripMenuItemResetColors.Size = new Size(139, 22);
+            toolStripMenuItemResetColors.Text = "Reset Colors";
+            // 
+            // toolStripMenuItemColors
+            // 
+            toolStripMenuItemColors.Name = "toolStripMenuItemColors";
+            toolStripMenuItemColors.Size = new Size(139, 22);
+            toolStripMenuItemColors.Text = "Color List";
             // 
             // oContextMenuStripColors
             // 
             oContextMenuStripColors.Name = "oContextMenuStripColors";
             oContextMenuStripColors.OwnerItem = toolStripMenuItemColors;
-            // 
-            // toolStripMenuItemColors
-            // 
-            toolStripMenuItemColors.Name = "toolStripMenuItemColors";
-            toolStripMenuItemColors.Size = new Size(32, 19);
-            toolStripMenuItemColors.Text = "toolStripMenuItem1";
             oContextMenuStrip.ResumeLayout(false);
 
         }
@@ -172,5 +180,6 @@
         private ToolStripMenuItem toolStripMenuItemAddColor;
         private ToolStripMenuItem toolStripMenuItemColors;
         private ContextMenuStrip oContextMenuStripColors;
+        private ToolStripMenuItem toolStripMenuItemResetColors;
     }
 }

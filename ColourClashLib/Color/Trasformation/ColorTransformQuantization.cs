@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ColourClashLib;
 using ColourClashLib.Color;
 using ColourClashNet.Colors;
+using ColourClashSupport.Log;
 using static ColourClashNet.Colors.Transformation.ColorTransformReductionC64;
 
 namespace ColourClashNet.Colors.Transformation
@@ -317,8 +318,7 @@ namespace ColourClashNet.Colors.Transformation
         {
 
             string sMethod = nameof(CreateTrasformationMap);
-            if (ColorDefaults.Trace)
-                Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Creating trasformation map");
+            LogMan.Trace(sClass, sMethod, $"{Type} : Creating trasformation map");  
 
             foreach (var kvp in OutputHistogram.rgbHistogram)
             {

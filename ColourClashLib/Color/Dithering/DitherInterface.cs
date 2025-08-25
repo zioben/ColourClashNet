@@ -8,6 +8,9 @@ using ColourClashNet.Colors;
 
 namespace ColourClashNet.Colors.Dithering
 {
+    /// <summary>
+    /// Interface for Dithering algorithms
+    /// </summary>
     public interface DitherInterface
     {
         ColorDithering Type { get; }

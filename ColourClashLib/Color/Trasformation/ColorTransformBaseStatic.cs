@@ -1,6 +1,7 @@
 ﻿using ColourClashLib;
 using ColourClashLib.Color;
 using ColourClashNet.Colors.Dithering;
+using ColourClashSupport.Log;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,19 +21,16 @@ namespace ColourClashNet.Colors.Transformation
             string sMethod = nameof(ExecuteStdTransform);
             if (oSource == null)
             {
-                Trace.TraceError($"{sClass}.{sMethod} : Invalid data source");
+                LogMan.Error(sClass, sMethod, "Invalid data source");   
                 return null;
             }
             if (oColorTransformationMap == null || oColorTransformationMap.Colors == 0)
             {
-                Trace.TraceError($"{sClass}.{sMethod} : Invalid color transformation map");
+                LogMan.Error(sClass, sMethod, "Invalid color transformation map");
                 return null;
             }
             // var lListList = ToListList(oSource);
-            if (ColorDefaults.Trace)
-            {
-                Trace.TraceInformation($"{sClass}.{sMethod} : Apply default trasformatiion");
-            }
+            LogMan.Trace(sClass, sMethod, $"Apply default trasformation");
             var R = oSource.GetLength(0);
             var C = oSource.GetLength(1);
             var oRet = new int[R, C];

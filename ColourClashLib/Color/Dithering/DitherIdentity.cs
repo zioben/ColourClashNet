@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ColourClashLib;
 using ColourClashLib.Color;
 using ColourClashNet.Colors;
+using ColourClashSupport.Log;
 
 namespace ColourClashNet.Colors.Dithering
 {
@@ -33,20 +34,18 @@ namespace ColourClashNet.Colors.Dithering
             {
                 if (oDataOriginal == null || oDataProcessedPalette == null || oDataProcessedPalette.Count == 0 )
                 {
-                    Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Invalid input data");
+                    LogMan.Error(sClass,sMethod, "Invalid input data");
                     return null;
                 }
-                if (ColorDefaults.Trace)
-                    Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering");
+                LogMan.Trace(sClass, sMethod, $"{Type} : Dithering");
                 var oRet = oDataProcessed.Clone() as int[,];
-                if (ColorDefaults.Trace)
-                    Trace.TraceInformation($"{sClass}.{sMethod} ({Type}) : Dithering completed");
+                LogMan.Trace(sClass, sMethod, $"{Type} : Dithering completed");
                 return oRet;
 
             }
             catch (Exception ex)
             {
-                Trace.TraceError($"{sClass}.{sMethod} ({Type}) : Exception raised : {ex.Message}");
+                LogMan.Exception(sClass, sMethod, ex);
                 return null;
             }
         }

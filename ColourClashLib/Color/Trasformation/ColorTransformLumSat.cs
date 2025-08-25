@@ -28,7 +28,7 @@ namespace ColourClashNet.Colors.Transformation
                 return this;
             switch (eProperty)
             {
-                case ColorTransformProperties.HsbHueShift:
+                case ColorTransformProperties.HsvHueShift:
                     if (double.TryParse(oValue?.ToString(), out var h))
                     {
                         HueShift = h;
