@@ -21,7 +21,7 @@ namespace ColourClashNet
          
             LogMan.Create();
             LogMan.Message( sClass, sMethod , "Hello");
-            LogMan.MinLogLevel = LogLevel.Debug;
+            LogMan.MinLogLevel = LogLevel.Message;
 
             Application.Run(new Form1());
         }

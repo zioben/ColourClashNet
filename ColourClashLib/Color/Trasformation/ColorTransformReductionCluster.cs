@@ -140,18 +140,18 @@ namespace ColourClashNet.Colors.Transformation
             {
                 var dMin = lTupleColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
                 var oItem = lTupleColorCluster.FirstOrDefault(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
-                var iCol = -1;
+                var iCol = ColorDefaults.DefaultInvalidColor; ;
                 if (UseClusterColorMean)
                 {
-                    iCol = oItem?.Item1.Last() ?? -1;
+                    iCol = oItem?.Item1.Last() ?? ColorDefaults.DefaultInvalidColor; ;
                 }
                 else
                 {
                     var Max = oItem?.Item2.Max(X => X.Value);
-                    iCol = oItem?.Item2.FirstOrDefault(X => X.Value == Max).Key ?? -1;
+                    iCol = oItem?.Item2.FirstOrDefault(X => X.Value == Max).Key ?? ColorDefaults.DefaultInvalidColor; ;
                 }
                 OutputPalette.Add(iCol);
-                ColorTransformationMapper.Add(kvp.Key,iCol); // Item1.Last()??-1;
+                ColorTransformationMapper.Add(kvp.Key,iCol); 
             };
         }
 

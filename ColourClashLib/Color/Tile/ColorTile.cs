@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Colors.Dithering;
+﻿using ColourClashNet.Colors;
+using ColourClashNet.Colors.Dithering;
 using ColourClashNet.Colors.Transformation;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Colors
+namespace ColourClashLib.Color.Tile
 {
     /// <summary>
     /// Represents a tile of color data, including its position, associated color data, and processing capabilities.

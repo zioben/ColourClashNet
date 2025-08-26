@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashLib.Color
+namespace ColourClashLib.Color.Trasformation
 {
     /// <summary>
     /// Class to transform palette colors.

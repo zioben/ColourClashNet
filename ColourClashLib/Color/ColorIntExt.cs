@@ -24,30 +24,7 @@ namespace ColourClashNet.Colors
     /// additional metadata (e.g., color type).</remarks>
     public static class ColorIntExt
     {
-        /// <summary>
-        /// Gets or sets the default background color.
-        /// </summary>
-        public static Color DefaultBkgColor { get; set; } = Color.FromArgb(255, 255, 0, 255);
-
-        /// <summary>
-        /// Gets or sets the default mask color used for rendering operations.
-        /// </summary>
-        public static Color DefaultMaskColor { get; set; } = Color.FromArgb(255, 255, 255, 255);
-
-        /// <summary>
-        /// Gets or sets the default color used for tile layers.
-        /// </summary>
-        public static Color DefaultTileLayerColor { get; set; } = Color.FromArgb(255, 255, 255, 255);
-
-        /// <summary>
-        /// Gets or sets the default transparent color.
-        /// </summary>
-        public static Color DefaultTransparentColor { get; set; } = Color.Transparent;
-
-        /// <summary>
-        /// Default integer representation of an invalid color.
-        /// </summary>
-        public readonly static int DefaultInvalidColor = FromRGB(255,255,255, ColorIntType.Invalid); 
+        
 
         /// <summary>
         /// Sets the color information type in the integer representation of a color.
@@ -102,11 +79,11 @@ namespace ColourClashNet.Colors
                 //    }
                 case ColorIntType.IsMask:
                     {
-                        return DefaultMaskColor;
+                        return ColorDefaults.DefaultMaskColor;
                     }
                 case ColorIntType.IsTile:
                     {
-                        return DefaultTileLayerColor;
+                        return ColorDefaults.DefaultTileLayerColor;
                     }
                 default:
                     {
@@ -430,7 +407,7 @@ namespace ColourClashNet.Colors
         public static int FromDrawingColor(System.Drawing.Color oColor)
         {
             if (oColor == System.Drawing.Color.Transparent)
-                return DefaultInvalidColor;
+                return ColorDefaults.DefaultInvalidColor;
 
             return FromRGB(oColor.R, oColor.G, oColor.B);
         }
@@ -459,7 +436,7 @@ namespace ColourClashNet.Colors
         public static int GetColorMean(Dictionary<int, int> lColorHistogram, ColorMeanMode eMeanMode)
         {
             if (lColorHistogram == null || lColorHistogram.Count == 0)
-                return DefaultInvalidColor;
+                return ColorDefaults.DefaultInvalidColor;
             switch (eMeanMode)
             {
                 case ColorMeanMode.UseColorPalette:
@@ -483,14 +460,14 @@ namespace ColourClashNet.Colors
                         }
                         ;
                         if (Count <= 0)
-                            return DefaultInvalidColor;
+                            return ColorDefaults.DefaultInvalidColor;
                         R /= Count;
                         G /= Count;
                         B /= Count;
                         return ColorIntExt.FromRGB(R, G, B);
                     }
                 default:
-                    return DefaultInvalidColor;
+                    return ColorDefaults.DefaultInvalidColor;
             }
         }
 
@@ -503,7 +480,7 @@ namespace ColourClashNet.Colors
         public static int GetColorMean(ColorPalette oPalette, ColorMeanMode eMeanMode)
         {
             if (oPalette == null || oPalette.Count == 0)
-                return DefaultInvalidColor;
+                return ColorDefaults.DefaultInvalidColor;
             double R = 0;
             double G = 0;
             double B = 0;
@@ -525,7 +502,7 @@ namespace ColourClashNet.Colors
                 case ColorMeanMode.UseColorPalette:
                     return GetNearestColor(iMean, oPalette, ColorDistanceEvaluationMode.RGB);
                 default:
-                    return DefaultInvalidColor;
+                    return ColorDefaults.DefaultInvalidColor;
             }
         }
 

@@ -1,4 +1,5 @@
 ﻿using ColourClashLib.Color;
+using ColourClashLib.Color.Trasformation;
 using ColourClashNet.Colors;
 using ColourClashNet.Colors.Dithering;
 using System;

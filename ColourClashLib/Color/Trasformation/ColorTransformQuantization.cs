@@ -87,7 +87,7 @@ namespace ColourClashNet.Colors.Transformation
                     dB = Math.Round(dB / 4) * 4;
                     break;
                 default:
-                    return -1;
+                    return ColorDefaults.DefaultInvalidColor;
             }
             var iRGBOut = ColorIntExt.FromRGB(dR, dG, dB);
             return iRGBOut;
@@ -116,7 +116,7 @@ namespace ColourClashNet.Colors.Transformation
                 case ColorQuantizationMode.RGB666:
                     return iRGB & 0x00FCFCFC;
                 default:
-                    return -1;
+                    return ColorDefaults.DefaultInvalidColor;
             }
         }
 
@@ -233,7 +233,7 @@ namespace ColourClashNet.Colors.Transformation
                         //return rgb;
                     }
                 default:
-                    return -1;
+                    return ColorDefaults.DefaultInvalidColor;
             }
         }
 
@@ -309,7 +309,7 @@ namespace ColourClashNet.Colors.Transformation
                         return rgb;
                     }
                 default:
-                    return -1;
+                    return ColorDefaults.DefaultInvalidColor;
             }
         }
 

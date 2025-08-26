@@ -17,7 +17,7 @@ namespace ColourClashLib.Image
         public ColorHistogram? Histogram { get; set; } = new ColorHistogram();
         public ColorPalette? BackgroundPalette { get; set; } = new ColorPalette();
 
-        public int BackgroundValue = ColorIntExt.FromDrawingColor(ColorIntExt.DefaultBkgColor);
+        public int BackgroundValue = ColorIntExt.FromDrawingColor(  ColorDefaults.DefaultBkgColor);
 
     }
 

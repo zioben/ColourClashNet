@@ -83,7 +83,7 @@ namespace ColourClashNet.Colors.Transformation
             var oRet = new int[R, C];
             for (int r = 0; r < R; r++)
             {
-                int iRgbPrev = -1;
+                int iRgbPrev = ColorDefaults.DefaultInvalidColor; ;
                 var oPalette = new ColorPalette();
                 for (int c = 1; c < C; c++)
                 {
@@ -98,7 +98,7 @@ namespace ColourClashNet.Colors.Transformation
                         int iRgbSrc = oQuantization.QuantizeColor( oDataSource[r, c] );
                         if (iRgbSrc < 0)
                         {
-                            iRgbPrev = -1;
+                            iRgbPrev = ColorDefaults.DefaultInvalidColor; ;
                             oRet[r, c] = iRgbSrc;
                             continue;
                         }

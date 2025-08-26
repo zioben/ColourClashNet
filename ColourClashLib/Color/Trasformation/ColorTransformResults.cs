@@ -1,7 +1,9 @@
 ﻿using ColourClashLib.Color;
+using ColourClashSupport.Log;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,6 +11,8 @@ namespace ColourClashNet.Colors.Transformation
 {
     public class ColorTransformResults
     {
+        static string sClass = nameof(ColorTransformResults);
+
         public int[,]? DataSource { get; set; }
         public int[,]? DataTemp { get; set; }
         public int[,]? DataOut { get; set; }
@@ -22,6 +26,7 @@ namespace ColourClashNet.Colors.Transformation
 
         public void AddMessage( string sMessage)
         {
+            string sMethod = nameof(AddMessage);
             if (string.IsNullOrEmpty(sMessage))
             {
                 Message = sMessage;
@@ -30,6 +35,7 @@ namespace ColourClashNet.Colors.Transformation
             {
                 Message += $"{Environment.NewLine}{sMessage}";
             }
+            LogMan.Message(sClass, sMethod, sMessage);
         }
     }
 }

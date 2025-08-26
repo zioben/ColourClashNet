@@ -140,7 +140,7 @@ namespace ColourClashNet
                 pbBkColor.Image = oBmp;
             }
             oColorTransformer.BackgroundColorList = GetBkgColors();
-            oColorTransformer.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorIntExt.DefaultBkgColor);
+            oColorTransformer.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
             oColorTransformer.ProcessBase();
         }
 
@@ -169,7 +169,7 @@ namespace ColourClashNet
                 oBitmapRenderSource.OriginZero();
                 //
                 oColorTransformer.BackgroundColorList = GetBkgColors();
-                oColorTransformer.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorIntExt.DefaultBkgColor);
+                oColorTransformer.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
                 oColorTransformer.Create(oBmp);
             }
         }
@@ -193,7 +193,7 @@ namespace ColourClashNet
         private void SetToControl()
         {
             oColorTransformer.BackgroundColorList = GetBkgColors();
-            oColorTransformer.BackgroundColorReplacement = ColorIntExt.FromDrawingColor( ColorIntExt.DefaultBkgColor );
+            oColorTransformer.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
 
             oColorTransformer.ColorsMax = (int)nudColorsWanted.Value;
             oColorTransformer.ScanlineClustering = chkScanLineCluster.Checked;
