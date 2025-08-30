@@ -1,4 +1,4 @@
-﻿using ColourClashNet.Colors;
+﻿using ColourClashNet.Color;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashLib.Color
+namespace ColourClashNet.Color
 {
     /// <summary>
     /// Class that enumerates distinct colors
@@ -15,7 +15,7 @@ namespace ColourClashLib.Color
     /// The class in intended to operate only with "real" colors as defined in the <see cref="ColorIntInfo"/> Enum
     /// </para>
     /// </summary>
-    public partial class ColorPalette
+    public partial class Palette
     {
 
         /// <summary>

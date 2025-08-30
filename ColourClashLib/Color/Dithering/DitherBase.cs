@@ -5,10 +5,10 @@ using System.Linq;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashLib.Color;
-using ColourClashNet.Colors;
+using ColourClashNet.Color;
+using ColourClashNet.Color;
 
-namespace ColourClashNet.Colors.Dithering
+namespace ColourClashNet.Color.Dithering
 {
     /// <summary>
     /// Base class for Dithering algorithms
@@ -24,7 +24,7 @@ namespace ColourClashNet.Colors.Dithering
         public abstract bool Create();
 
 
-        public abstract int[,]? Dither(int[,]? oDataSource, int[,]? oDataProcessed, ColorPalette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken oToken);
+        public abstract int[,]? Dither(int[,]? oDataSource, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken oToken);
 
  
     }

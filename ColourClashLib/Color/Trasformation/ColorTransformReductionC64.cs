@@ -1,14 +1,14 @@
-﻿using ColourClashLib.Color;
-using ColourClashLib.Colors.Tile;
-using ColourClashNet.Colors;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color.Tile;
+using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashNet.Colors.Transformation.ColorTransformReductionCPC;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionCPC;
 
-namespace ColourClashNet.Colors.Transformation
+namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformReductionC64 : ColorTransformReductionPalette
     {
@@ -81,7 +81,7 @@ namespace ColourClashNet.Colors.Transformation
             var oTmp = oDataSource;
             if (bHalveRes)
             {
-                oTmp = HalveHorizontalRes(oDataSource);
+                oTmp = ColorTransformBase.HalveHorizontalRes(oDataSource);
             }
             var oTmpData = base.ExecuteTransform(oTmp,oToken);
             if (Dithering != null)
@@ -151,13 +151,13 @@ namespace ColourClashNet.Colors.Transformation
             OutputHistogram.Create(oTmpData);
             OutputHistogram.SortColorsDescending();
             var oBGK = OutputHistogram.rgbHistogram.First().Value;
-            var oFixedColor = new ColorPalette();
+            var oFixedColor = new Palette();
             oFixedColor.Add(oBGK);
             TileManager oManager = new TileManager();
 
             oManager.Init(oTmpData, 4, 8, 4, oFixedColor, ColorDistanceEvaluationMode, TileBase.EnumColorReductionMode.Detailed);
             var oTmpHalfProc = oManager.TransformAndDither(oTmpData);
-            var oRet = DoubleHorizontalRes(oTmpHalfProc);
+            var oRet = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc);
             return oRet;
         }
 
@@ -168,12 +168,12 @@ namespace ColourClashNet.Colors.Transformation
             OutputHistogram.Create(oTmpData);
             OutputHistogram.SortColorsDescending();
             var oBGK = OutputHistogram.rgbHistogram.First().Value;
-            var oFixedColor = new ColorPalette();
+            var oFixedColor = new Palette();
             oFixedColor.Add(oBGK);
             TileManager oManager = new TileManager();
             oManager.Init(oTmpData, 4, 1, 4, oFixedColor, ColorDistanceEvaluationMode, TileBase.EnumColorReductionMode.Detailed);
             var oTmpHalfProc = oManager.TransformAndDither(oTmpData);
-            var oRet = DoubleHorizontalRes(oTmpHalfProc);
+            var oRet = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc);
             return oRet;
         }
 

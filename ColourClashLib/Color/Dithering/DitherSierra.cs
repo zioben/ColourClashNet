@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashNet.Colors;
+using ColourClashNet.Color;
 
-namespace ColourClashNet.Colors.Dithering
+namespace ColourClashNet.Color.Dithering
 {
     public class DitherSierra : DitherErrorDiffusion
     {

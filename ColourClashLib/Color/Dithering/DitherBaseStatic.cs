@@ -1,16 +1,16 @@
-﻿using ColourClashNet.Colors;
-using ColourClashNet.Colors.Dithering;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color.Dithering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashLib.Colors.Dithering
+namespace ColourClashNet.Color.Dithering
 {
     public abstract partial class DitherBase 
     {
-        static DitherInterface CreateDitherInterface(ColorDithering eModelType, double ditheringStrength, int iKernelSize)
+        public static DitherInterface CreateDitherInterface(ColorDithering eModelType, double ditheringStrength, int iKernelSize)
         {
             switch (eModelType)
             {
@@ -45,8 +45,8 @@ namespace ColourClashLib.Colors.Dithering
             }
         }
 
-        static DitherInterface CreateDitherInterface(ColorDithering eModelType, int iKernelSize) => CreateDitherInterface(eModelType, 100, iKernelSize);
-        static DitherInterface CreateDitherInterface(ColorDithering eModelType, double dDitherStrength) => CreateDitherInterface(eModelType, dDitherStrength, ColorDefaults.DefaultDitherKernelSize);      
-        static DitherInterface CreateDitherInterface(ColorDithering eModelType) => CreateDitherInterface(eModelType, 100, ColorDefaults.DefaultDitherKernelSize);
+        public static DitherInterface CreateDitherInterface(ColorDithering eModelType, int iKernelSize) => CreateDitherInterface(eModelType, 100, iKernelSize);
+        public static DitherInterface CreateDitherInterface(ColorDithering eModelType, double dDitherStrength) => CreateDitherInterface(eModelType, dDitherStrength, ColorDefaults.DefaultDitherKernelSize);      
+        public static DitherInterface CreateDitherInterface(ColorDithering eModelType) => CreateDitherInterface(eModelType, 100, ColorDefaults.DefaultDitherKernelSize);
     }
 }

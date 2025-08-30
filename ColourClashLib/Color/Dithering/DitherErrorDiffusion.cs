@@ -6,12 +6,11 @@ using System.Linq;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashLib;
-using ColourClashLib.Color;
-using ColourClashNet.Colors;
-using ColourClashSupport.Log;
+using ColourClashNet.Color;
 
-namespace ColourClashNet.Colors.Dithering
+using ColourClashNet.Log;
+
+namespace ColourClashNet.Color.Dithering
 {
     public abstract class DitherErrorDiffusion : DitherBase
     {
@@ -58,7 +57,7 @@ namespace ColourClashNet.Colors.Dithering
 
 
 
-        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, ColorPalette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken oToken )
+        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken oToken )
         {
             string sMethod = nameof(Dither);
             try

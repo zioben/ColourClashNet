@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashLib.Color;
-using ColourClashNet.Colors;
+using ColourClashNet.Color;
+using ColourClashNet.Color;
 
-namespace ColourClashNet.Colors.Dithering
+namespace ColourClashNet.Color.Dithering
 {
     /// <summary>
     /// Interface for Dithering algorithms
@@ -18,7 +18,7 @@ namespace ColourClashNet.Colors.Dithering
         double DitheringStrenght { get; set; }
         public bool Create();
 
-        int[,]? Dither(int[,]? oDataSource, int[,]? oDataProcessed, ColorPalette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken oToken);
+        int[,]? Dither(int[,]? oDataSource, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken oToken);
 
     }
 }

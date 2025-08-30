@@ -1,15 +1,15 @@
-﻿using ColourClashLib.Color;
-using ColourClashLib.Colors.Tile;
-using ColourClashNet.Colors;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color.Tile;
+using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashNet.Colors.Transformation.ColorTransformReductionAmiga;
-using static ColourClashNet.Colors.Transformation.ColorTransformReductionCPC;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionAmiga;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionCPC;
 
-namespace ColourClashNet.Colors.Transformation
+namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformReductionCPC : ColorTransformReductionPalette
     {
@@ -101,7 +101,7 @@ namespace ColourClashNet.Colors.Transformation
             var oTmp = oDataSource;
             if (bHalveRes)
             {
-                oTmp = HalveHorizontalRes(oDataSource);
+                oTmp = ColorTransformBase.HalveHorizontalRes(oDataSource);
             }
             var oTmpData = base.ExecuteTransform(oTmp,oToken);
             if (Dithering != null)
@@ -117,23 +117,23 @@ namespace ColourClashNet.Colors.Transformation
 
         int[,]? ToMode0(int[,]? oDataSource, CancellationToken oToken)
         {
-            var oTmpH = HalveHorizontalRes(oDataSource);
+            var oTmpH = ColorTransformBase.HalveHorizontalRes(oDataSource);
             var oTmp = PreProcess(oDataSource, true, oToken);
             var oPalette = OutputHistogram.ToColorPalette().rgbPalette.Take(16).ToList();
-            base.OutputPalette = ColorPalette.CreateColorPalette(oPalette);
+            base.OutputPalette = Palette.CreateColorPalette(oPalette);
             var oTmp2 = base.ExecuteTransform(oTmp, oToken);
             if (Dithering != null)
             {
                 oTmp2 = Dithering.Dither(oTmpH, oTmp2, base.OutputPalette, ColorDistanceEvaluationMode, oToken);
             }
-            var oRet = DoubleHorizontalRes(oTmp2);
+            var oRet = ColorTransformBase.DoubleHorizontalRes(oTmp2);
             return oRet;
         }
         int[,]? ToMode1(int[,]? oDataSource, CancellationToken oToken)
         {
             var oTmp = PreProcess(oDataSource, false, oToken);
             var oPalette = OutputHistogram.ToColorPalette().rgbPalette.Take(4).ToList();
-            base.OutputPalette = ColorPalette.CreateColorPalette(oPalette);
+            base.OutputPalette = Palette.CreateColorPalette(oPalette);
             var oRet = base.ExecuteTransform(oTmp, oToken);
             if (Dithering != null)
             {
@@ -156,7 +156,7 @@ namespace ColourClashNet.Colors.Transformation
             //oTrasf.Create(oTmp, null);
             //var oRet = oTrasf.TransformAndDither(oTmp);
             var oPalette = OutputHistogram.ToColorPalette().rgbPalette.Take(2).ToList();
-            base.OutputPalette = ColorPalette.CreateColorPalette(oPalette);
+            base.OutputPalette = Palette.CreateColorPalette(oPalette);
             var oRet = base.ExecuteTransform(oTmp, oToken);
             if (Dithering != null)
             {
@@ -168,16 +168,16 @@ namespace ColourClashNet.Colors.Transformation
 
         int[,]? ToMode3(int[,]? oDataSource, CancellationToken oToken)
         {
-            var oTmpH = HalveHorizontalRes(oDataSource);
+            var oTmpH = ColorTransformBase.HalveHorizontalRes(oDataSource);
             var oTmp = PreProcess(oDataSource, true, oToken);
             var oPalette = OutputHistogram.ToColorPalette().rgbPalette.Take(4).ToList();
-            base.OutputPalette = ColorPalette.CreateColorPalette(oPalette);
+            base.OutputPalette = Palette.CreateColorPalette(oPalette);
             var oTmp2 = base.ExecuteTransform(oTmp,oToken);
             if (Dithering != null)
             {
                 oTmp2 = Dithering.Dither(oTmpH, oTmp2, base.OutputPalette, ColorDistanceEvaluationMode, oToken);
             }
-            var oRet = DoubleHorizontalRes(oTmp2);
+            var oRet = ColorTransformBase.DoubleHorizontalRes(oTmp2);
             return oRet;
         }
 

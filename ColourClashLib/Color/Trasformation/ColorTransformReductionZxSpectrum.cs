@@ -1,8 +1,8 @@
-﻿using ColourClashLib.Color;
-using ColourClashLib.Color.Trasformation;
-using ColourClashLib.Colors;
-using ColourClashLib.Colors.Tile;
-using ColourClashNet.Colors;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color.Trasformation;
+using ColourClashNet.Color;
+using ColourClashNet.Color.Tile;
+using ColourClashNet.Color;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Colors.Transformation
+namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformReductionZxSpectrum : ColorTransformReductionPalette
     {
@@ -124,7 +124,7 @@ namespace ColourClashNet.Colors.Transformation
         int[,]? CreateImage(int[,]? oDataSource, int iCol, int iColOut, bool bUseBlack, bool bDither, ColorDistanceEvaluationMode eColorMode, CancellationToken oToken )
         {
             var oMap = CreateZxMap(iCol,iColOut, bUseBlack);
-            OutputPalette = new ColorPalette();
+            OutputPalette = new Palette();
             foreach (var rgb in oMap.rgbTransformationMap)
             {
                 OutputPalette.Add(rgb.Key);

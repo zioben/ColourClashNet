@@ -1,5 +1,5 @@
-﻿using ColourClashLib.Color;
-using ColourClashNet.Colors;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Colors.Transformation
+namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformReductionMedianCut : ColorTransformBase
     {
@@ -75,7 +75,7 @@ namespace ColourClashNet.Colors.Transformation
             return l - f;
         }
 
-        void Partition(ColorPalette oPalette, int iMaxColor)
+        void Partition(Palette oPalette, int iMaxColor)
         {            
             if (iMaxColor > 0)
             {
@@ -92,8 +92,8 @@ namespace ColourClashNet.Colors.Transformation
                 int ird = GetRange(lR);
                 int igd = GetRange(lG);
                 int ibd = GetRange(lB);
-                ColorPalette hInf = new ColorPalette();
-                ColorPalette hSup = new ColorPalette();
+                Palette hInf = new Palette();
+                Palette hSup = new Palette();
                 if (ird > igd && ird > ibd)
                 {
                     var irm = GetMedian(lR);

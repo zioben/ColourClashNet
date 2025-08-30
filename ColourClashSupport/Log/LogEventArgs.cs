@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashSupport.Log
+namespace ColourClashNet.Log
 {
     public class LogEventArgs : EventArgs
     {

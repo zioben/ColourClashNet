@@ -4,12 +4,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashLib;
-using ColourClashLib.Color;
-using ColourClashNet.Colors;
-using ColourClashSupport.Log;
+using ColourClashNet.Color;
+using ColourClashNet.Log;
 
-namespace ColourClashNet.Colors.Dithering
+namespace ColourClashNet.Color.Dithering
 {
     public class DitherOrdered : DitherBase
     {
@@ -103,7 +101,7 @@ namespace ColourClashNet.Colors.Dithering
             return true;
         }
 
-        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, ColorPalette? oDataProcessedPalette, ColorDistanceEvaluationMode eMode, CancellationToken oToken)
+        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eMode, CancellationToken oToken)
         {
             string sMethod = nameof(Dither);
             try

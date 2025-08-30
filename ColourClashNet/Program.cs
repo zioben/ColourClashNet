@@ -1,5 +1,5 @@
-using ColourClashNet.Colors;
-using ColourClashSupport.Log;
+using ColourClashNet.Color;
+using ColourClashNet.Log;
 
 namespace ColourClashNet
 {

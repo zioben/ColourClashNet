@@ -1,13 +1,13 @@
-﻿using ColourClashNet.Colors;
-using ColourClashNet.Colors.Dithering;
-using ColourClashNet.Colors.Transformation;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color.Dithering;
+using ColourClashNet.Color.Transformation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashLib.Color.Tile
+namespace ColourClashNet.Color.Tile
 {
     /// <summary>
     /// Represents a tile of color data, including its position, associated color data, and processing capabilities.
@@ -15,11 +15,11 @@ namespace ColourClashLib.Color.Tile
     /// <remarks>This class is designed to handle color data for a specific tile, including processing the
     /// tile's color data  using a specified dithering algorithm. It also supports error evaluation based on the
     /// processed output.</remarks>
-    public class ColorTile
+    public class TileData
     {
         internal int r { get; set; }
         internal int c { get; set; }
-        internal int[,]? TileData { get; set; }
+        internal int[,]? Tile { get; set; }
         internal double Error { get; private set; }
 
         internal ColorTransformReductionCluster oReduction = new ColorTransformReductionCluster()
@@ -32,10 +32,10 @@ namespace ColourClashLib.Color.Tile
 
         internal int[,]? Process(DitherInterface oDither)
         {
-            oReduction.Create(TileData,null);
+            oReduction.Create(Tile,null);
             oReduction.Dithering = oDither;
-            var oRet = oReduction.ProcessColors(TileData);
-            Error = ColorTransformBase.EvaluateError(oRet.DataOut, TileData, oReduction.ColorDistanceEvaluationMode);
+            var oRet = oReduction.ProcessColors(Tile);
+            Error = ColorTransformBase.EvaluateError(oRet.DataOut, Tile, oReduction.ColorDistanceEvaluationMode);
             return oRet.DataOut;
         }
 

@@ -1,5 +1,5 @@
-﻿using ColourClashNet.Colors;
-using ColourClashSupport.Log;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,15 +7,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashLib.Color
+namespace ColourClashNet.Color
 {
     /// <summary>
     /// Color Histogram evaluation.<BR/>
     /// Represent Histogram RGB Color with its occurrences.
     /// </summary>
-    public partial class ColorHistogram
+    public partial class Histogram
     {
-        static string sClass = nameof(ColorHistogram);
+        static string sClass = nameof(Histogram);
 
         /// <summary>
         /// Dictionary that contains RGB color as key and its occurrences as value.
@@ -35,10 +35,10 @@ namespace ColourClashLib.Color
         /// </summary>
         /// <param name="oDataSource">Image Data</param>
         /// <returns>this object</returns>
-        public ColorHistogram? Create(int[,] oDataSource)
+        public Histogram? Create(int[,] oDataSource)
         {
             Reset();
-            return ColorHistogram.CreateColorHist(oDataSource, this);
+            return Histogram.CreateColorHist(oDataSource, this);
         }
 
 
@@ -48,7 +48,7 @@ namespace ColourClashLib.Color
         /// </summary>
         /// <param name="oPalette"></param>
         /// <returns>this object or null on error</returns>
-        public ColorHistogram? Create(ColorPalette oPalette)
+        public Histogram? Create(Palette oPalette)
         {
             string sMethod = nameof(Create);    
             Reset();
@@ -70,7 +70,7 @@ namespace ColourClashLib.Color
         /// </summary>
         /// <param name="lPalette"></param>
         /// <returns>this object or null on error</returns>
-        public ColorHistogram? Create(List<ColorPalette> lPalette)
+        public Histogram? Create(List<Palette> lPalette)
         {
             string sMethod = nameof(Create);
             Reset();
@@ -119,9 +119,9 @@ namespace ColourClashLib.Color
         /// Extract colors in the histogram as a Color Palette
         /// </summary>
         /// <returns></returns>
-        public ColorPalette ToColorPalette()
+        public Palette ToColorPalette()
         {
-            var oCP = new ColorPalette();
+            var oCP = new Palette();
             foreach (var kvp in rgbHistogram)
             {
                 if (kvp.Key < 0)
@@ -134,8 +134,8 @@ namespace ColourClashLib.Color
         /// <summary>
         /// Sort colors in the histogram by occurrences in descending order 
         /// </summary>
-        /// <returns>this object</returns>
-        public ColorHistogram? SortColorsDescending()
+        /// <returns>new Histogram</returns>
+        public Histogram? SortColorsDescending()
         {
             List<Tuple<int, int>> oListHist = new List<Tuple<int, int>>(rgbHistogram.Count);
             foreach (var kvp in rgbHistogram)
@@ -155,7 +155,7 @@ namespace ColourClashLib.Color
         /// Sort colors in the histogram by occurrences in ascending order
         /// </summary>
         /// <returns>this object</returns>
-        public ColorHistogram? SortColorsAscending()
+        public Histogram? SortColorsAscending()
         {
             List<Tuple<int, int>> oListHist = new List<Tuple<int, int>>(rgbHistogram.Count);
             foreach (var kvp in rgbHistogram)

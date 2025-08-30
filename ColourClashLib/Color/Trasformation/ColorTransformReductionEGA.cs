@@ -1,11 +1,11 @@
-﻿using ColourClashNet.Colors;
+﻿using ColourClashNet.Color;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Colors.Transformation
+namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformReductionEGA : ColorTransformReductionPalette
     {

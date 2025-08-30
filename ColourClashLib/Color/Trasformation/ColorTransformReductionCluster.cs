@@ -1,7 +1,4 @@
-﻿using ColourClashLib;
-using ColourClashLib.Color;
-using ColourClashNet.Colors;
-using ColourClashSupport.Log;
+﻿using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,9 +8,9 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashNet.Colors.Transformation.ColorTransformReductionZxSpectrum;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum;
 
-namespace ColourClashNet.Colors.Transformation
+namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformReductionCluster : ColorTransformBase
     {
@@ -67,14 +64,11 @@ namespace ColourClashNet.Colors.Transformation
         protected override void CreateTrasformationMap()
         {
             string sMethod = nameof(CreateTrasformationMap);
-            OutputHistogram.SortColorsDescending();
-            //FixedColorPalette = new ColorPalette();
-            //FixedColorPalette.Add(0x00000000);
-            //FixedColorPalette.Add(0x00ff0000);
-            //FixedColorPalette.Add(0x0000ff00);
-            //FixedColorPalette.Add(0x000000ff);
-            //FixedColorPalette.Add(0x00ffffff);
-            var oTempPalette = ColorPalette.MergeColorPalette(InputFixedColorPalette, OutputHistogram.ToColorPalette());
+            // Sort by most used colors
+            var oTempHistogram = OutputHistogram.SortColorsDescending();
+            // Creating a temporary palette with fixed colors and histogram colors
+            var oTempPalette = Palette.MergeColorPalette(InputFixedColorPalette, oTempHistogram.ToColorPalette());
+            // If we have less colors than wanted, just map them directly
             if (oTempPalette.Count < ColorsMaxWanted)
             {
                 foreach (var kvp in OutputHistogram.rgbHistogram)
@@ -85,32 +79,36 @@ namespace ColourClashNet.Colors.Transformation
                 return;
             }
 
-            // Init Set
-            // We need <List<ColorMeanOfTheCluster>,<Dictionary<ColorOfTheCluster,ColorOccurrences>>
-            // ColorReference, with evolution -> Cluster of colors
-            // ytryt
+            // Init Clustering Algorithm 
+            // We need the Tuple <List<ColorMeanOfTheCluster>,<Dictionary<ColorOfTheCluster,ColorOccurrences>>
+            // List<ColorMeanOfTheCluster> is the evolution of the cluster color, starting from the initial color
+            // Dictionary<ColorOfTheCluster,ColorOccurrences> is the set of colors assigned to the cluster
             List<Tuple<List<int>, Dictionary<int, int>>> lTupleColorCluster = new List<Tuple<List<int>, Dictionary<int, int>>>();
 
             // initial population of the cluster, with base max color occurrences 
+            // Starting with the fixed palette, then with the most used colors
             int i = 0;
             int iRGB = 0;           
-            foreach (var rgb in oTempPalette.rgbPalette )//colorHistogram.rgbHistogram )
+            foreach (var rgb in oTempPalette.rgbPalette )
             {
                 lTupleColorCluster.Add(Tuple.Create(new List<int> { rgb }, new Dictionary<int, int>()));
                 if (++i == ColorsMaxWanted)
+                {
                     break;
+                }
             }
 
             // Clustering training
+            // For each loop, assign every color to the nearest cluster, then recalculate the cluster mean
             for (int train = 0; train < TrainingLoop; train++)
             {
-                // Reset Set
-                lTupleColorCluster.ForEach(X => X.Item2.Clear());
                 LogMan.Trace(sClass, sMethod, $"{Type} : Training loop {train}");
-                // Aggregate :  Assign every color to the cluster of appartenence 
+                // Clear previous cluster assignment
+                lTupleColorCluster.ForEach(X => X.Item2.Clear());
+                // Aggregate part : Assign every color to the cluster of appartenence 
                 foreach (var kvp in OutputHistogram.rgbHistogram )
                 {
-                    // Evaluate minimum distance from every color to cluster
+                    // For each color int the 
                     var dMin = lTupleColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
                     var oTupleCluster = lTupleColorCluster.FirstOrDefault(X => X.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
                     oTupleCluster?.Item2.Add(kvp.Key, kvp.Value);
@@ -135,20 +133,20 @@ namespace ColourClashNet.Colors.Transformation
                 }
             }
 
-            OutputPalette = new ColorPalette();
+            OutputPalette = new Palette();
             foreach (var kvp in OutputHistogram.rgbHistogram )
             {
                 var dMin = lTupleColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
                 var oItem = lTupleColorCluster.FirstOrDefault(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
-                var iCol = ColorDefaults.DefaultInvalidColor; ;
+                var iCol = ColorDefaults.DefaultInvalidColorRGB; ;
                 if (UseClusterColorMean)
                 {
-                    iCol = oItem?.Item1.Last() ?? ColorDefaults.DefaultInvalidColor; ;
+                    iCol = oItem?.Item1.Last() ?? ColorDefaults.DefaultInvalidColorRGB; ;
                 }
                 else
                 {
                     var Max = oItem?.Item2.Max(X => X.Value);
-                    iCol = oItem?.Item2.FirstOrDefault(X => X.Value == Max).Key ?? ColorDefaults.DefaultInvalidColor; ;
+                    iCol = oItem?.Item2.FirstOrDefault(X => X.Value == Max).Key ?? ColorDefaults.DefaultInvalidColorRGB; ;
                 }
                 OutputPalette.Add(iCol);
                 ColorTransformationMapper.Add(kvp.Key,iCol); 

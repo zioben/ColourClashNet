@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashLib.Color;
-using ColourClashLib.Colors.Tile;
-using ColourClashNet.Colors;
+using ColourClashNet.Color;
+using ColourClashNet.Color.Tile;
+using ColourClashNet.Color;
 
-namespace ColourClashNet.Colors.Transformation
+namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformReductionPalette : ColorTransformBase
     {

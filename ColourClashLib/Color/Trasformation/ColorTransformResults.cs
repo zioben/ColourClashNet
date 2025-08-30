@@ -1,5 +1,5 @@
-﻿using ColourClashLib.Color;
-using ColourClashSupport.Log;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Colors.Transformation
+namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformResults
     {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -119,7 +120,7 @@ namespace ColourClashNet.Controls
         /// <summary>
         /// Color under the mouse pointer
         /// </summary>
-        public Color MouseColor { get; private set; }
+        public System.Drawing.Color MouseColor { get; private set; }
 
         /// <summary>
         /// Mouse coordinates in the control
@@ -134,17 +135,17 @@ namespace ColourClashNet.Controls
         /// <summary>
         /// List of selected colors
         /// </summary>
-        public List<Color> SelectedColors { get; private set; } = new List<Color>();
+        public List<System.Drawing.Color> SelectedColors { get; private set; } = new List<System.Drawing.Color>();
 
-        Color oContextMenuColor = Color.Transparent;
+        System.Drawing.Color oContextMenuColor = System.Drawing.Color.Transparent;
 
-        Color UpdateMouseData(Point oMousePoint)
+        System.Drawing.Color UpdateMouseData(Point oMousePoint)
         {
             MouseCoordinates = oMousePoint;
             ImageCoordinates = PointControlToPointBitmap(oMousePoint);
             if( Image == null)
             {
-                MouseColor = Color.Transparent;
+                MouseColor = System.Drawing.Color.Transparent;
                 return MouseColor;
             }
             if (PeekMouseColor)
@@ -163,12 +164,12 @@ namespace ColourClashNet.Controls
                     }
                 }
             }
-            MouseColor = Color.Transparent;
+            MouseColor = System.Drawing.Color.Transparent;
             return MouseColor;
         }
 
 
-        public void AddSelectedColor(Color oColor)
+        public void AddSelectedColor(System.Drawing.Color oColor)
         {
             if (!SelectedColors.Contains(oColor))
             {
@@ -181,7 +182,7 @@ namespace ColourClashNet.Controls
             SelectedColors.Clear();
         }
 
-        public void RemoveSelectedColor(Color oColor)
+        public void RemoveSelectedColor(System.Drawing.Color oColor)
         {
             if (!SelectedColors.Contains(oColor))
             {
@@ -247,7 +248,7 @@ namespace ColourClashNet.Controls
                 var tsi = new ToolStripMenuItem();
                 tsi.Text = $"R:{c.R} G:{c.G} B:{c.B}";
                 tsi.BackColor = c;
-                tsi.ForeColor = (c.R + c.G + c.B) / 3 < 128 ? Color.White : Color.Black;
+                tsi.ForeColor = (c.R + c.G + c.B) / 3 < 128 ? System.Drawing.Color.White : System.Drawing.Color.Black;
                 tsi.Click += (s, e) => 
                 { 
                     RemoveSelectedColor(c); 
@@ -261,7 +262,7 @@ namespace ColourClashNet.Controls
 
         void OnAddColor(object sender, EventArgs e)
         {
-            if (oContextMenuColor != Color.Transparent)
+            if (oContextMenuColor != System.Drawing.Color.Transparent)
             {
                 AddSelectedColor(oContextMenuColor);
             }
@@ -586,15 +587,15 @@ namespace ColourClashNet.Controls
 
         #endregion
 
-        private static Image MakeColorSwatch(Color color, int size = 12, int border = 1)
+        private static Image MakeColorSwatch(System.Drawing.Color color, int size = 12, int border = 1)
         {
             var bmp = new Bitmap(size, size);
             using (var g = Graphics.FromImage(bmp))
             using (var brush = new SolidBrush(color))
-            using (var pen = new Pen(Color.FromArgb(120, Color.Black), border))
+            using (var pen = new Pen(System.Drawing.Color.FromArgb(120, System.Drawing.Color.Black), border))
             {
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
-                g.Clear(Color.Transparent);
+                g.Clear(System.Drawing.Color.Transparent);
                 g.FillRectangle(brush, border, border, size - 2 * border, size - 2 * border);
                 g.DrawRectangle(pen, border, border, size - 2 * border - 1, size - 2 * border - 1);
             }

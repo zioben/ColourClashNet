@@ -1,6 +1,6 @@
 ﻿namespace ColourClashNet.Controls
 {
-    partial class ColorTransformer
+    partial class ColorManager
     {
         /// <summary>
         /// Required designer variable.
@@ -15,9 +15,6 @@
         {
             if (disposing && (components != null))
             {
-                ImageProcessed?.Dispose();
-                ImageQuantized?.Dispose();
-                ImageSource?.Dispose();
                 components.Dispose();
             }
             base.Dispose(disposing);

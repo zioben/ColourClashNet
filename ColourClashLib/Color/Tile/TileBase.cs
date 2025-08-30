@@ -1,6 +1,6 @@
-﻿using ColourClashLib.Color;
-using ColourClashNet.Colors;
-using ColourClashNet.Colors.Transformation;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color;
+using ColourClashNet.Color.Transformation;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashLib.Colors.Tile
+namespace ColourClashNet.Color.Tile
 {
     public class TileBase
     {
@@ -78,7 +78,7 @@ namespace ColourClashLib.Colors.Tile
         /// <summary>
         /// Prioritary colors
         /// </summary>
-        public ColorPalette FixedPalette { get; set; } = new ColorPalette();
+        public Palette FixedPalette { get; set; } = new Palette();
 
         public EnumColorReductionMode ColorReductionMode { get; internal set; } =  EnumColorReductionMode.Fast;
 

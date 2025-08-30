@@ -1,8 +1,8 @@
-﻿using ColourClashLib.Color;
-using ColourClashNet.Colors;
-using ColourClashNet.Colors.Dithering;
-using ColourClashNet.Colors.Transformation;
-using ColourClashSupport.Log;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color;
+using ColourClashNet.Color.Dithering;
+using ColourClashNet.Color.Transformation;
+using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashLib.Colors.Tile
+namespace ColourClashNet.Color.Tile
 {
     public class TileManager
     {
@@ -22,7 +22,7 @@ namespace ColourClashLib.Colors.Tile
         public int TileR { get; private set; } = 0;
         public int TileC { get; private set; } = 0;
 
-        public ColorPalette FixedColorPalette { get; set; } = new ColorPalette();
+        public Palette FixedColorPalette { get; set; } = new Palette();
 
         ColorDistanceEvaluationMode ColorDistanceMode { get; set; } = ColorDistanceEvaluationMode.RGB;
 
@@ -49,7 +49,7 @@ namespace ColourClashLib.Colors.Tile
         }
 
 
-        public bool Init(int[,]? oDataSource, int iTileW, int iTileH, int iMaxTileColors, ColorPalette oFixedColorPalette, ColorDistanceEvaluationMode eColorDistanceMode, TileBase.EnumColorReductionMode eColorReductionMode)
+        public bool Init(int[,]? oDataSource, int iTileW, int iTileH, int iMaxTileColors, Palette oFixedColorPalette, ColorDistanceEvaluationMode eColorDistanceMode, TileBase.EnumColorReductionMode eColorReductionMode)
         {
             Free();
             if (oDataSource == null)
@@ -64,7 +64,7 @@ namespace ColourClashLib.Colors.Tile
             TileH = iTileH;
             ColorDistanceMode = eColorDistanceMode;
             ColorReductionMode = eColorReductionMode;
-            FixedColorPalette = oFixedColorPalette ?? new ColorPalette();
+            FixedColorPalette = oFixedColorPalette ?? new Palette();
             MaxColors = iMaxTileColors;
             TileR = (oDataSource.GetLength(0) + TileH - 1) / TileH;
             TileC = (oDataSource.GetLength(1) + TileW - 1) / TileW;
@@ -209,7 +209,7 @@ namespace ColourClashLib.Colors.Tile
             return true;
         }
 
-        public static TileManager CreateTileManager(int[,]? oDataSource, int iTileW, int iTileH, int iMaxTileColors, ColorPalette oFixedColorPalette, ColorDistanceEvaluationMode eColorDistanceMode, TileBase.EnumColorReductionMode eColorReductionMode)
+        public static TileManager CreateTileManager(int[,]? oDataSource, int iTileW, int iTileH, int iMaxTileColors, Palette oFixedColorPalette, ColorDistanceEvaluationMode eColorDistanceMode, TileBase.EnumColorReductionMode eColorReductionMode)
         {
             string sMethod = nameof(CreateTileManager); 
             var oRet = new TileManager();

@@ -1,6 +1,4 @@
-﻿using ColourClashLib;
-using ColourClashLib.Color;
-using ColourClashNet.Colors;
+﻿using ColourClashNet.Color;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,9 +8,9 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashLib.Colors.Tile.TileBase;
+using static ColourClashNet.Color.Tile.TileBase;
 
-namespace ColourClashNet.Colors.Transformation
+namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformReductionAmiga : ColorTransformBase
     {
@@ -83,8 +81,8 @@ namespace ColourClashNet.Colors.Transformation
             var oRet = new int[R, C];
             for (int r = 0; r < R; r++)
             {
-                int iRgbPrev = ColorDefaults.DefaultInvalidColor; ;
-                var oPalette = new ColorPalette();
+                int iRgbPrev = ColorDefaults.DefaultInvalidColorRGB; ;
+                var oPalette = new Palette();
                 for (int c = 1; c < C; c++)
                 {
                     if (iRgbPrev < 0)
@@ -98,7 +96,7 @@ namespace ColourClashNet.Colors.Transformation
                         int iRgbSrc = oQuantization.QuantizeColor( oDataSource[r, c] );
                         if (iRgbSrc < 0)
                         {
-                            iRgbPrev = ColorDefaults.DefaultInvalidColor; ;
+                            iRgbPrev = ColorDefaults.DefaultInvalidColorRGB; ;
                             oRet[r, c] = iRgbSrc;
                             continue;
                         }

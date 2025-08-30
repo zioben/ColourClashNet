@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashNet.Colors.Transformation.ColorTransformReductionZxSpectrum;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum;
 
-namespace ColourClashNet.Colors
+namespace ColourClashNet.Color
 {
     /// <summary>
     /// Enums to select color quantization mode 

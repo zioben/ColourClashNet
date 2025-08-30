@@ -1,5 +1,5 @@
-﻿using ColourClashNet.Colors;
-using ColourClashSupport.Log;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,15 +7,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashLib.Color
+namespace ColourClashNet.Color
 {
-    public partial class ColorHistogram
+    public partial class Histogram
     {
         static int[] oColorArray = new int[256 * 256 * 256];
 
         static object oLocker = new object();
 
-        static void CreateColorHistArray(int[,] oDataSource, ColorHistogram oHist)
+        static void CreateColorHistArray(int[,] oDataSource, Histogram oHist)
         {
             lock (oLocker)
             {
@@ -39,7 +39,7 @@ namespace ColourClashLib.Color
                 }
             }
         }
-        static bool CreateColorHistDirect(int[,] oDataSource, ColorHistogram oHist)
+        static bool CreateColorHistDirect(int[,] oDataSource, Histogram oHist)
         {
 
             int R = oDataSource.GetLength(0);
@@ -57,7 +57,7 @@ namespace ColourClashLib.Color
             return true;
         }
 
-        static ColorHistogram? CreateColorHist(int[,] oDataSource, ColorHistogram oHist)
+        static Histogram? CreateColorHist(int[,] oDataSource, Histogram oHist)
         {
             string sMethod = nameof(CreateColorHist);
             try
@@ -94,9 +94,9 @@ namespace ColourClashLib.Color
         /// </summary>
         /// <param name="oDataSource">Image Array</param>
         /// <returns>ColorHistogram or null on error</returns>
-        public static ColorHistogram? CreateColorHistogram(int[,] oDataSource)
+        public static Histogram? CreateColorHistogram(int[,] oDataSource)
         {
-            ColorHistogram colorHistogram = new ColorHistogram();
+            Histogram colorHistogram = new Histogram();
             return CreateColorHist(oDataSource, colorHistogram);    
         }
     }

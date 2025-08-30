@@ -1,6 +1,4 @@
-﻿using ColourClashLib.Color;
-using ColourClashLib.Colors;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Drawing;
@@ -10,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Colors
+namespace ColourClashNet.Color
 {
 
 
@@ -83,7 +81,7 @@ namespace ColourClashNet.Colors
                     }
                 case ColorIntType.IsTile:
                     {
-                        return ColorDefaults.DefaultTileLayerColor;
+                        return ColorDefaults.DefaultTileColor;
                     }
                 default:
                     {
@@ -407,7 +405,7 @@ namespace ColourClashNet.Colors
         public static int FromDrawingColor(System.Drawing.Color oColor)
         {
             if (oColor == System.Drawing.Color.Transparent)
-                return ColorDefaults.DefaultInvalidColor;
+                return ColorDefaults.DefaultInvalidColorRGB;
 
             return FromRGB(oColor.R, oColor.G, oColor.B);
         }
@@ -419,7 +417,7 @@ namespace ColourClashNet.Colors
         /// <param name="oPalette"></param>
         /// <param name="eMode"></param>
         /// <returns></returns>
-        public static int GetNearestColor(int iColor, ColorPalette oPalette, ColorDistanceEvaluationMode eMode)
+        public static int GetNearestColor(int iColor, Palette oPalette, ColorDistanceEvaluationMode eMode)
         {
             double dmin = oPalette.rgbPalette.Min(X => X.Distance(iColor, eMode));
             if (dmin == 0)
@@ -436,7 +434,7 @@ namespace ColourClashNet.Colors
         public static int GetColorMean(Dictionary<int, int> lColorHistogram, ColorMeanMode eMeanMode)
         {
             if (lColorHistogram == null || lColorHistogram.Count == 0)
-                return ColorDefaults.DefaultInvalidColor;
+                return ColorDefaults.DefaultInvalidColorRGB;
             switch (eMeanMode)
             {
                 case ColorMeanMode.UseColorPalette:
@@ -460,14 +458,14 @@ namespace ColourClashNet.Colors
                         }
                         ;
                         if (Count <= 0)
-                            return ColorDefaults.DefaultInvalidColor;
+                            return ColorDefaults.DefaultInvalidColorRGB;
                         R /= Count;
                         G /= Count;
                         B /= Count;
                         return ColorIntExt.FromRGB(R, G, B);
                     }
                 default:
-                    return ColorDefaults.DefaultInvalidColor;
+                    return ColorDefaults.DefaultInvalidColorRGB;
             }
         }
 
@@ -477,10 +475,10 @@ namespace ColourClashNet.Colors
         /// <param name="oPalette"></param>
         /// <param name="eMeanMode"></param>
         /// <returns></returns>
-        public static int GetColorMean(ColorPalette oPalette, ColorMeanMode eMeanMode)
+        public static int GetColorMean(Palette oPalette, ColorMeanMode eMeanMode)
         {
             if (oPalette == null || oPalette.Count == 0)
-                return ColorDefaults.DefaultInvalidColor;
+                return ColorDefaults.DefaultInvalidColorRGB;
             double R = 0;
             double G = 0;
             double B = 0;
@@ -502,7 +500,7 @@ namespace ColourClashNet.Colors
                 case ColorMeanMode.UseColorPalette:
                     return GetNearestColor(iMean, oPalette, ColorDistanceEvaluationMode.RGB);
                 default:
-                    return ColorDefaults.DefaultInvalidColor;
+                    return ColorDefaults.DefaultInvalidColorRGB;
             }
         }
 

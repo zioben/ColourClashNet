@@ -4,11 +4,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashLib;
-using ColourClashNet.Colors;
-using ColourClashSupport.Log;
+using ColourClashNet.Color;
+using ColourClashNet.Log;
 
-namespace ColourClashNet.Colors.Transformation
+namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformIdentity : ColorTransformBase
     {

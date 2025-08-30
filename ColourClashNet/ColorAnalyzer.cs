@@ -1,7 +1,7 @@
-﻿using ColourClashNet.Colors;
-using ColourClashNet.Colors.Transformation;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color.Transformation;
 using ColourClashNet.Controls;
-using ColourClashNet.ImageTools;
+using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -21,19 +21,22 @@ namespace ColourClashNet
 
         int Panel1MaxWidth = 400;
 
+
         public ColorAnalyzer()
         {
             InitializeComponent();
-            oColorTransformer.BackgroundColorList = GetBkgColors();
-            oColorTransformer.ColorQuantizationMode = ColorQuantizationMode.RGB888;//GetQuantizationMode();
-            oColorTransformer.DitheringAlgorithm = ColorDithering.FloydSteinberg;
-            pbBkColor.BackColor = Color.Transparent;
+            oColorManager.Config.BackgroundColorList = GetBkgColors();
+            oColorManager.Config.ColorQuantizationMode = ColorQuantizationMode.RGB888;//GetQuantizationMode();
+            oColorManager.Config.DitheringAlgorithm = ColorDithering.FloydSteinberg;
+            pbBkColor.BackColor = ColorDefaults.DefaultBkgColor;
             InitMenu();
             CreateComboBox(cbC64VideoMode, Enum.GetNames(typeof(ColorTransformReductionC64.C64VideoMode)).ToList());
             CreateComboBox(cbCpcVideoMode, Enum.GetNames(typeof(ColorTransformReductionCPC.CPCVideoMode)).ToList());
             CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformReductionAmiga.EnumAMigaVideoMode)).ToList());
             oBitmapRenderSource.ColorAdded += (s, e) => { BuildBkgPalette(); };
-            oBitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };    
+            oBitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };
+            oColorManager.OnQuantize += (s, e) => { RefreshData(); };
+            oColorManager.OnProcess += (s, e) => { RefreshData(); };
         }
 
 
@@ -49,9 +52,9 @@ namespace ColourClashNet
         void RebuildChecks()
         {
             lTsItems.ForEach(X => X.Checked = false);
-            RebulidSetCheck(oColorTransformer.ColorQuantizationMode.ToString());
-            RebulidSetCheck(oColorTransformer.ColorDistanceEvaluationMode.ToString());
-            RebulidSetCheck(oColorTransformer.DitheringAlgorithm.ToString());
+            RebulidSetCheck(oColorManager.Config.ColorQuantizationMode.ToString());
+            RebulidSetCheck(oColorManager.Config.ColorDistanceEvaluationMode.ToString());
+            RebulidSetCheck(oColorManager.Config.DitheringAlgorithm.ToString());
         }
 
         private void TsItem_Click(object? sender, EventArgs e)
@@ -60,16 +63,16 @@ namespace ColourClashNet
             var oTag = oTS.Tag;
             if (oTag is ColorQuantizationMode)
             {
-                oColorTransformer.ColorQuantizationMode = (ColorQuantizationMode)oTag;
-                oColorTransformer.ProcessBase();
+                oColorManager.Config.ColorQuantizationMode = (ColorQuantizationMode)oTag;
+                oColorManager.PreProcess();
             }
             else if (oTag is ColorDistanceEvaluationMode)
             {
-                oColorTransformer.ColorDistanceEvaluationMode = (ColorDistanceEvaluationMode)oTag;
+                oColorManager.Config.ColorDistanceEvaluationMode = (ColorDistanceEvaluationMode)oTag;
             }
             else if (oTag is ColorDithering)
             {
-                oColorTransformer.DitheringAlgorithm = (ColorDithering)oTag;
+                oColorManager.Config.DitheringAlgorithm = (ColorDithering)oTag;
             }
             RebuildChecks();
         }
@@ -139,21 +142,21 @@ namespace ColourClashNet
                 pbBkColor.SizeMode = PictureBoxSizeMode.StretchImage;
                 pbBkColor.Image = oBmp;
             }
-            oColorTransformer.BackgroundColorList = GetBkgColors();
-            oColorTransformer.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
-            oColorTransformer.ProcessBase();
+            oColorManager.Config.BackgroundColorList = GetBkgColors();
+            oColorManager.Config.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
+            oColorManager.PreProcess();
         }
 
         void ShowImage()
         {
-            oBitmapRenderSource.Image = oColorTransformer.ImageSource;
-            oBitmapRenderDest.Image = oColorTransformer.ImageProcessed;
+            oBitmapRenderSource.Image = oColorManager.ImageSource;
+            oBitmapRenderDest.Image = oColorManager.ImageProcessed;
             Invalidate();
         }
 
         void RefreshData()
         {
-            propertyGrid1.SelectedObject = oColorTransformer;
+            pgColorProcessor.SelectedObject = oColorManager;
             ShowImage();
         }
 
@@ -168,13 +171,13 @@ namespace ColourClashNet
                 oBitmapRenderSource.ResetSelectedColors();
                 oBitmapRenderSource.OriginZero();
                 //
-                oColorTransformer.BackgroundColorList = GetBkgColors();
-                oColorTransformer.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
-                oColorTransformer.Create(oBmp);
+                oColorManager.Config.BackgroundColorList = GetBkgColors();
+                oColorManager.Config.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
+                oColorManager.Create(oBmp);
             }
         }
 
-   
+
         List<int> GetBkgColors()
         {
             var oRet = new List<int>();
@@ -183,53 +186,49 @@ namespace ColourClashNet
             return oRet;
         }
 
-        ImageWidthAlignMode GetImageWidthAlignMode()
-        {
-            return ImageWidthAlignMode.MultiplePixel16;
-        }
 
 
 
         private void SetToControl()
         {
-            oColorTransformer.BackgroundColorList = GetBkgColors();
-            oColorTransformer.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
+            oColorManager.Config.BackgroundColorList = GetBkgColors();
+            oColorManager.Config.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
 
-            oColorTransformer.ColorsMax = (int)nudColorsWanted.Value;
-            oColorTransformer.ScanlineClustering = chkScanLineCluster.Checked;
-            oColorTransformer.ScanlineColorsMax = (int)nudScanlineLineColors.Value;
-            oColorTransformer.ScanlineSharedPalette = chkScanlineSharedPal.Checked;
+            oColorManager.Config.ColorsMax = (int)nudColorsWanted.Value;
+            oColorManager.Config.ScanlineClustering = chkScanLineCluster.Checked;
+            oColorManager.Config.ScanlineColorsMax = (int)nudScanlineLineColors.Value;
+            oColorManager.Config.ScanlineSharedPalette = chkScanlineSharedPal.Checked;
 
-            oColorTransformer.ClusteringTrainingLoop = (int)nudClusterLoop.Value;
-            oColorTransformer.ClusteringUseMeanColor = true;
-            oColorTransformer.DitheringStrenght = (double)nudDitheringStrenght.Value;
-            oColorTransformer.SaturationEnhancement = (double)nudSat.Value;
-            oColorTransformer.BrightnessEnhancement = (double)nudBright.Value;
-            oColorTransformer.HsvHueOffset = (double)nudHue.Value;
-            oColorTransformer.C64ScreenMode = (ColorTransformReductionC64.C64VideoMode)Enum.Parse(typeof(ColorTransformReductionC64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString());
-            oColorTransformer.CPCScreenMode = (ColorTransformReductionCPC.CPCVideoMode)Enum.Parse(typeof(ColorTransformReductionCPC.CPCVideoMode), cbCpcVideoMode.SelectedItem.ToString());
-            oColorTransformer.ZxEqColorLO = (int)nudZxColorLO.Value;
-            oColorTransformer.ZxEqColorHI = (int)nudZxColorHI.Value;
-            oColorTransformer.ZxEqBlackHI = chkZxBlackHI.Checked;
-            oColorTransformer.ZxEqDitherHI = chkZxDitherHI.Checked;
-            oColorTransformer.AmigaVideoMode = (ColorTransformReductionAmiga.EnumAMigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAMigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString());
+            oColorManager.Config.ClusteringTrainingLoop = (int)nudClusterLoop.Value;
+            oColorManager.Config.ClusteringUseMeanColor = true;
+            oColorManager.Config.DitheringStrenght = (double)nudDitheringStrenght.Value;
+            oColorManager.Config.SaturationEnhancement = (double)nudSat.Value;
+            oColorManager.Config.BrightnessEnhancement = (double)nudBright.Value;
+            oColorManager.Config.HsvHueOffset = (double)nudHue.Value;
+            oColorManager.Config.C64ScreenMode = (ColorTransformReductionC64.C64VideoMode)Enum.Parse(typeof(ColorTransformReductionC64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString());
+            oColorManager.Config.CPCScreenMode = (ColorTransformReductionCPC.CPCVideoMode)Enum.Parse(typeof(ColorTransformReductionCPC.CPCVideoMode), cbCpcVideoMode.SelectedItem.ToString());
+            oColorManager.Config.ZxEqColorLO = (int)nudZxColorLO.Value;
+            oColorManager.Config.ZxEqColorHI = (int)nudZxColorHI.Value;
+            oColorManager.Config.ZxEqBlackHI = chkZxBlackHI.Checked;
+            oColorManager.Config.ZxEqDitherHI = chkZxDitherHI.Checked;
+            oColorManager.Config.AmigaVideoMode = (ColorTransformReductionAmiga.EnumAMigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAMigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString());
         }
 
         private void btnReduceColors_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionMedianCut);
+            oColorManager.ProcessColors(ColorTransformType.ColorReductionMedianCut);
         }
         private void btnReduceColorsScanline_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionScanline);
+            oColorManager.ProcessColors(ColorTransformType.ColorReductionScanline);
         }
 
         private void btnReduceColorCluster_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionClustering);
+            oColorManager.ProcessColors(ColorTransformType.ColorReductionClustering);
         }
 
         private void pbBkColor_DoubleClick(object sender, EventArgs e)
@@ -243,19 +242,19 @@ namespace ColourClashNet
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            oColorTransformer.Reset();
+            oColorManager.Reset();
         }
 
         private void toolStripMenuItemSave_Click(object sender, EventArgs e)
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {
-                ImageTools.ImageTools.Export(oColorTransformer.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageTools.ImageExportFormat.Png24);
+                ImageTools.Export(oColorManager.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageExportFormat.Png24);
             }
         }
 
 
-        private void oColorTransformer_OnReset(object sender, EventArgs e)
+        private void oColorManager_OnReset(object sender, EventArgs e)
         {
             RefreshData();
         }
@@ -265,7 +264,7 @@ namespace ColourClashNet
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {
-                ImageTools.ImageTools.Export(oColorTransformer.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageTools.ImageExportFormat.Bmp24);
+                ImageTools.Export(oColorManager.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageExportFormat.Bmp24);
             }
         }
 
@@ -273,7 +272,7 @@ namespace ColourClashNet
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {
-                ImageTools.ImageTools.Export(oColorTransformer.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageTools.ImageExportFormat.Png24);
+                ImageTools.Export(oColorManager.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageExportFormat.Png24);
             }
         }
 
@@ -281,67 +280,56 @@ namespace ColourClashNet
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {
-                oColorTransformer.WriteBitmapIndex(sfdExportImage.FileName, GetImageWidthAlignMode());
+                // oColorManager.WriteBitmapIndex(sfdExportImage.FileName, ImageWidthAlignMode.MultiplePixel16);
             }
         }
         private void bitplaneToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {
-                oColorTransformer.WriteBitplane(sfdExportImage.FileName, GetImageWidthAlignMode(), false);
+                // oColorManager.WriteBitplane(sfdExportImage.FileName, ImageWidthAlignMode.MultiplePixel16, false);
             }
         }
 
-        private void oColorTransformer_OnProcess(object sender, ColorTransformer.EventArgsTransformation e)
-        {
-            RefreshData();
-        }
 
-        private void oColorTransformer_OnQuantize(object sender, ColorTransformer.EventArgsTransformation e)
-        {
-            RefreshData();
-        }
 
-        private void oColorTransformer_OnCreate(object sender, EventArgs e)
-        {
-            RefreshData();
-        }
+
 
         private void btnReduceColorsZx_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionZxSpectrum);
+            oColorManager.ProcessColors(ColorTransformType.ColorReductionZxSpectrum);
         }
 
 
         private void btnReduceColorsEga_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionEga);
+            oColorManager.ProcessColors(ColorTransformType.ColorReductionEga);
         }
 
         private void BtnReduceColorsC64v1_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionCBM64);
+            oColorManager.ProcessColors(ColorTransformType.ColorReductionCBM64);
         }
 
         private void btnReduceColorCPC_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionCPC);
+            oColorManager.ProcessColors(ColorTransformType.ColorReductionCPC);
         }
 
         private void btnChromaAdapt_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionSaturation);
+            oColorManager.ProcessColors(ColorTransformType.ColorReductionSaturation);
         }
 
         private void btnReduceHam_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorTransformer.ColorTranform(ColorTransformType.ColorReductionHam);
+            oColorManager.ProcessColors(ColorTransformType.ColorReductionHam);
         }
 
         bool bDitherStrenghtUpdating = false;
@@ -391,8 +379,8 @@ namespace ColourClashNet
 
         private void oBitmapRenderSource_MouseMove(object sender, MouseEventArgs e)
         {
-            Color oCol = oBitmapRenderSource.MouseColor;
-            pbMouseColor.BackColor = oCol;
+            pbMouseColor.BackColor = oBitmapRenderSource.MouseColor;
         }
+
     }
 }

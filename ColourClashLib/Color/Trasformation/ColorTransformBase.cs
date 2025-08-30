@@ -1,6 +1,6 @@
-﻿using ColourClashLib.Color;
-using ColourClashLib.Color.Trasformation;
-using ColourClashNet.Colors.Dithering;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color.Trasformation;
+using ColourClashNet.Color.Dithering;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
@@ -11,27 +11,29 @@ using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Xsl;
+using ColourClashNet.Log;
 
-namespace ColourClashNet.Colors.Transformation
+namespace ColourClashNet.Color.Transformation
 {
     /// <summary>
     /// Abstract class to handle std color transformations
     /// </summary>
     public abstract partial class ColorTransformBase : ColorTransformInterface
     {
+      
         //---------------- Base description ---------------------------------
         public ColorTransformType Type { get; protected init; }
         public String Name { get; set; } = "";
         public string Description { get; protected set; } = "";
 
         //---------------- Source properties --------------------------------------
-        public ColorHistogram InputHistogram { get; protected set; } = new ColorHistogram();
-        public ColorPalette InputFixedColorPalette { get; protected set; } = new ColorPalette();
+        //public Histogram InputHistogram { get; protected set; } = new Histogram();
+        public Palette InputFixedColorPalette { get; protected set; } = new Palette();
         protected int InputFixedColors => InputFixedColorPalette?.Count ?? 0;
 
         //---------------- Transformation properties------------------------------
-        public ColorHistogram OutputHistogram { get; protected set; } = new ColorHistogram();
-        public ColorPalette OutputPalette { get; set; } = new ColorPalette();
+        public Histogram OutputHistogram { get; protected set; } = new Histogram();
+        public Palette OutputPalette { get; set; } = new Palette();
         public int OutputColors => OutputPalette?.Count ?? 0;
         public ColorTransformationMap ColorTransformationMapper { get; protected set; } = new ColorTransformationMap();
 
@@ -71,28 +73,28 @@ namespace ColourClashNet.Colors.Transformation
         }
 
 
-        public ColorTransformInterface? Create(int[,]? oDataSource, ColorPalette? oFixedColorPalette)
+        public ColorTransformInterface? Create(int[,]? oDataSource, Palette? oFixedColorPalette)
         {
             Reset();
             if (oDataSource == null)
             {
                 return null;
             }
-            InputFixedColorPalette = oFixedColorPalette ?? new ColorPalette();
+            InputFixedColorPalette = oFixedColorPalette ?? new Palette();
             OutputHistogram.Create(oDataSource);
             OutputPalette = OutputHistogram.ToColorPalette();
             CreateTrasformationMap();
             return this;
         }
 
-        public ColorTransformInterface? Create(ColorHistogram oSourceColorHistogram, ColorPalette? oFixedColorPalette)
+        public ColorTransformInterface? Create(Histogram oSourceColorHistogram, Palette? oFixedColorPalette)
         {
             Reset();
             if (oSourceColorHistogram == null)
             {
                 return null;
             }
-            InputFixedColorPalette = oFixedColorPalette ?? new ColorPalette();
+            InputFixedColorPalette = oFixedColorPalette ?? new Palette();
             foreach (var kvp in oSourceColorHistogram.rgbHistogram)
             {
                 OutputHistogram.rgbHistogram.Add(kvp.Key, kvp.Value);
@@ -102,14 +104,14 @@ namespace ColourClashNet.Colors.Transformation
             return this;
         }
 
-        public ColorTransformInterface? Create(ColorPalette oSourceColorPalette, ColorPalette? oFixedColorPalette)
+        public ColorTransformInterface? Create(Palette oSourceColorPalette, Palette? oFixedColorPalette)
         {
             Reset();
             if (oSourceColorPalette == null)
             {
                 return null;
             }
-            InputFixedColorPalette = oFixedColorPalette ?? new ColorPalette();
+            InputFixedColorPalette = oFixedColorPalette ?? new Palette();
             foreach (var rgb in oSourceColorPalette.rgbPalette)
             {
                 OutputHistogram.rgbHistogram.Add(rgb, 0);
@@ -124,6 +126,7 @@ namespace ColourClashNet.Colors.Transformation
 
         public ColorTransformResults ProcessColors(int[,]? oDataSource)
         {
+            string sMethod = nameof(ProcessColors);
             var oRet = new ColorTransformResults()
             {
                 DataSource = oDataSource,
@@ -132,10 +135,17 @@ namespace ColourClashNet.Colors.Transformation
             {
                 if (cancToken != null)
                 {
-                    oRet.AddMessage($"{Type} : Processing already running");
+                    string sMSG = $"{Type} : Processing already running";   
+                    LogMan.Error(sClass, sMethod, sMSG);
+                    oRet.AddMessage(sMSG);
+                    oRet.Valid = false;
                     return oRet;
                 }
-                cancToken = new CancellationTokenSource();
+                else
+                {
+                    LogMan.Debug(sClass, sMethod, $"{Type} : Generating internal CancellationTokenSource");
+                    cancToken = new CancellationTokenSource();
+                }
             }
             try
             {
@@ -235,49 +245,6 @@ namespace ColourClashNet.Colors.Transformation
         }
 
 
-        protected int[,] HalveHorizontalRes(int[,]? oTmpDataSource)
-        {
-            if (oTmpDataSource == null)
-                return null;
-            var R = oTmpDataSource.GetLength(0);
-            var C = oTmpDataSource.GetLength(1);
-            var oRet = new int[R, (C + 1) / 2];
-            Parallel.For(0, R, r =>
-            {
-                for (int c = 0, co = 0; c < C; c += 2, co++)
-                {
-                    if (c < C - 1)
-                    {
-                        var a = oTmpDataSource[r, c];
-                        var b = oTmpDataSource[r, c + 1];
-                        oRet[r, co] = ColorIntExt.GetColorMean(a, b);
-                    }
-                }
-            });
-            return oRet;
-        }
-
-
-        protected int[,] DoubleHorizontalRes(int[,]? oTmpDataSource)
-        {
-            if (oTmpDataSource == null)
-                return null;
-            var R = oTmpDataSource.GetLength(0);
-            var C = oTmpDataSource.GetLength(1);
-            var oRet = new int[R, C * 2];
-
-            Parallel.For(0, R, r =>
-            {
-                for (int c = 0, co = 0; c < C; c++)
-                {
-                    var a = oTmpDataSource[r, c];
-                    oRet[r, co++] = a;
-                    oRet[r, co++] = a;
-                }
-            });
-            return oRet;
-        }
-
         public virtual ColorTransformInterface? SetProperty(ColorTransformProperties eProperty, object oValue)
         {
             switch (eProperty)
@@ -293,15 +260,15 @@ namespace ColourClashNet.Colors.Transformation
                     {
                         if (oValue is List<int> oPalette)
                         {
-                            OutputPalette = ColorPalette.CreateColorPalette(oPalette);
+                            OutputPalette = Palette.CreateColorPalette(oPalette);
                         }
-                        else if (oValue is ColorPalette oPal)
+                        else if (oValue is Palette oPal)
                         {
                             OutputPalette = oPal;
                         }
                         else
                         {
-                            OutputPalette = new ColorPalette();
+                            OutputPalette = new Palette();
                         }
                         return this;
                     }

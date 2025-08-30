@@ -5,11 +5,9 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashLib;
-using ColourClashLib.Color;
-using ColourClashNet.Colors;
+using ColourClashNet.Color;
 
-namespace ColourClashNet.Colors.Transformation
+namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformBkgRemover : ColorTransformBase
     {
@@ -20,7 +18,7 @@ namespace ColourClashNet.Colors.Transformation
             Description = "Substitute a colorlist with a single color";
         }
 
-        public ColorPalette BackgroundPalette { get; set; } = new ColorPalette();
+        public Palette BackgroundPalette { get; set; } = new Palette();
         public int ColorBackgroundReplacement { get; set; } = 0;
 
         public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
@@ -31,16 +29,16 @@ namespace ColourClashNet.Colors.Transformation
             {
                 case ColorTransformProperties.ColorBackgroundList:
                     {
-                        BackgroundPalette = new ColorPalette();
+                        BackgroundPalette = new Palette();
                         if (oValue is List<int> oList)
                         {
-                            BackgroundPalette = ColorPalette.CreateColorPalette(oList);
+                            BackgroundPalette = Palette.CreateColorPalette(oList);
                             if (BackgroundPalette == null)
                             {
-                                BackgroundPalette = new ColorPalette();
+                                BackgroundPalette = new Palette();
                             }
                         }
-                        else if (oValue is ColorPalette oPalette)
+                        else if (oValue is Palette oPalette)
                         {
                             BackgroundPalette = oPalette;
                         }

@@ -1,12 +1,14 @@
-﻿using ColourClashNet.Colors;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.ImageTools
+namespace ColourClashNet.Imaging
 {
     public static partial class ImageTools
     {
@@ -40,7 +42,7 @@ namespace ColourClashNet.ImageTools
             ColorPalette oPalette = oBmp.Palette;
             for (int i = 0; i < oBmp.Palette.Entries.Length; i++)
             {
-                oPalette.Entries[i] = Color.FromArgb(255, (i % 16) * 16 + 15, (i % 16) * 16 + 15, (i % 16) * 16 + 15);
+                oPalette.Entries[i] = System.Drawing.Color.FromArgb(255, (i % 16) * 16 + 15, (i % 16) * 16 + 15, (i % 16) * 16 + 15);
             }
             oBmp.Palette = oPalette;
         }
@@ -52,7 +54,7 @@ namespace ColourClashNet.ImageTools
             ColorPalette oPalette = oBmp.Palette;
             for (int i = 0; i < oBmp.Palette.Entries.Length; i++)
             {
-                oPalette.Entries[i] = Color.Black;
+                oPalette.Entries[i] = System.Drawing.Color.Black;
             }
             for (int i = 0; i < Math.Min(oBmp.Palette.Entries.Length, lPaletteSrc.Count); i++)
             {

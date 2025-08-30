@@ -1,14 +1,14 @@
-﻿using ColourClashLib.Color;
-using ColourClashNet.Colors;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashNet.Colors.Transformation.ColorTransformReductionZxSpectrum;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum;
 
-namespace ColourClashNet.Colors.Transformation
+namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformReductionScanLine : ColorTransformBase
     {
@@ -96,7 +96,7 @@ namespace ColourClashNet.Colors.Transformation
             // MainPaletteUsed = false;
             if (CreateSharedPalette)
             {
-                var oMainHist = new ColorHistogram().Create(oSource);
+                var oMainHist = new Histogram().Create(oSource);
                 var oMainPalette = oMainHist.ToColorPalette();
                 if (oMainPalette.Count > ColorsMaxWanted)
                 {
@@ -121,7 +121,7 @@ namespace ColourClashNet.Colors.Transformation
 
                     var oMainRet = oLineTrasf.ProcessColors(oSource);
                     oSourceNew = oMainRet.DataOut;
-                    oLineFixedPalette = new ColorHistogram().Create(oSourceNew).ToColorPalette();
+                    oLineFixedPalette = new Histogram().Create(oSourceNew).ToColorPalette();
                 }
                 else
                 {
@@ -145,9 +145,9 @@ namespace ColourClashNet.Colors.Transformation
                     oCols[0, c] = oSourceNew[r, c];
                 }
                 // Create row histogram and take the most used colors
-                var oRowHist = ColorHistogram.CreateColorHistogram(oCols).SortColorsDescending();
+                var oRowHist = Histogram.CreateColorHistogram(oCols).SortColorsDescending();
                 var oRowPal = oRowHist.ToColorPalette();
-                var oNewPal = ColorPalette.CreateColorPalette(oRowPal.ToList().Take(LineReductionMaxColors));
+                var oNewPal = Palette.CreateColorPalette(oRowPal.ToList().Take(LineReductionMaxColors));
                 // Create 
                 //--------------------------------------------------------------
                 //    Trace.WriteLine($"Row - {r}");

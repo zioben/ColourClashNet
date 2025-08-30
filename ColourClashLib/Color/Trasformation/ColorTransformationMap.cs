@@ -1,11 +1,11 @@
-﻿using ColourClashNet.Colors;
+﻿using ColourClashNet.Color;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashLib.Color.Trasformation
+namespace ColourClashNet.Color.Trasformation
 {
     /// <summary>
     /// Class to transform palette colors.
@@ -23,7 +23,7 @@ namespace ColourClashLib.Color.Trasformation
 
         public int Colors => rgbTransformationMap.Count;
 
-        public bool Create(ColorPalette oPalette)
+        public bool Create(Palette oPalette)
         {
             Reset();
             if (oPalette == null)
@@ -46,7 +46,7 @@ namespace ColourClashLib.Color.Trasformation
             {
                 return false;
             }
-            ColorPalette oPalette = new ColorPalette();
+            Palette oPalette = new Palette();
             foreach (var rgb in oDataSource) 
             {
                 oPalette.Add(rgb);
@@ -78,9 +78,9 @@ namespace ColourClashLib.Color.Trasformation
         }
 
 
-        public ColorPalette ToColorPalette()
+        public Palette ToColorPalette()
         {
-            var oCP = new ColorPalette();
+            var oCP = new Palette();
             foreach (var kvp in rgbTransformationMap)
             {
                 if (kvp.Value < 0)

@@ -5,13 +5,12 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashLib;
-using ColourClashLib.Color;
-using ColourClashNet.Colors;
-using ColourClashSupport.Log;
-using static ColourClashNet.Colors.Transformation.ColorTransformReductionC64;
 
-namespace ColourClashNet.Colors.Transformation
+using ColourClashNet.Color;
+using ColourClashNet.Log;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionC64;
+
+namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformQuantization : ColorTransformBase
     {
@@ -87,7 +86,7 @@ namespace ColourClashNet.Colors.Transformation
                     dB = Math.Round(dB / 4) * 4;
                     break;
                 default:
-                    return ColorDefaults.DefaultInvalidColor;
+                    return ColorDefaults.DefaultInvalidColorRGB;
             }
             var iRGBOut = ColorIntExt.FromRGB(dR, dG, dB);
             return iRGBOut;
@@ -116,7 +115,7 @@ namespace ColourClashNet.Colors.Transformation
                 case ColorQuantizationMode.RGB666:
                     return iRGB & 0x00FCFCFC;
                 default:
-                    return ColorDefaults.DefaultInvalidColor;
+                    return ColorDefaults.DefaultInvalidColorRGB;
             }
         }
 
@@ -233,7 +232,7 @@ namespace ColourClashNet.Colors.Transformation
                         //return rgb;
                     }
                 default:
-                    return ColorDefaults.DefaultInvalidColor;
+                    return ColorDefaults.DefaultInvalidColorRGB;
             }
         }
 
@@ -309,7 +308,7 @@ namespace ColourClashNet.Colors.Transformation
                         return rgb;
                     }
                 default:
-                    return ColorDefaults.DefaultInvalidColor;
+                    return ColorDefaults.DefaultInvalidColorRGB;
             }
         }
 
@@ -336,7 +335,7 @@ namespace ColourClashNet.Colors.Transformation
             var C = oSource.GetLength(1);
             var oRet = new int[R, C];
             var oCols = new int[1, C];
-            OutputPalette = new ColorPalette();
+            OutputPalette = new Palette();
             for (int r = 0; r < R; r++)
             {
                 for (int c = 0; c < C; c++)

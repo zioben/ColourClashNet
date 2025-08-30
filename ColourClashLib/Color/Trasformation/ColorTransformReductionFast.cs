@@ -1,13 +1,13 @@
-﻿using ColourClashLib.Color;
-using ColourClashNet.Colors;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashNet.Colors.Transformation.ColorTransformReductionAmiga;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionAmiga;
 
-namespace ColourClashNet.Colors.Transformation
+namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformReductionFast : ColorTransformBase
     {
@@ -44,7 +44,7 @@ namespace ColourClashNet.Colors.Transformation
         {
             OutputPalette.Reset();
             OutputHistogram.SortColorsDescending();
-            var oTempPalette = ColorPalette.MergeColorPalette(InputFixedColorPalette, OutputHistogram.ToColorPalette());
+            var oTempPalette = Palette.MergeColorPalette(InputFixedColorPalette, OutputHistogram.ToColorPalette());
             if (oTempPalette.Count < ColorsMaxWanted)
             {
                 foreach (var kvp in OutputHistogram.rgbHistogram )
