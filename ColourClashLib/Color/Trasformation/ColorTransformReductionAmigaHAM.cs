@@ -34,7 +34,7 @@ namespace ColourClashNet.Color.Transformation
 
         public EnumHamFirstColorReductionMode HamColorReductionMode { get; set; } = EnumHamFirstColorReductionMode.Fast;
 
-        ColorTransformQuantization oQuantization = new ColorTransformQuantization();
+        //ColorTransformQuantization oQuantization = new ColorTransformQuantization();
 
         public ColorTransformReductionAmiga()
         {
@@ -76,7 +76,10 @@ namespace ColourClashNet.Color.Transformation
         {
             int R = oDataSource.GetLength(0);
             int C = oDataSource.GetLength(1);
+
+            var oQuantization = new ColorTransformQuantization();
             oQuantization.QuantizationMode = eQuantization;
+            oQuantization.Create(oDataPreProcessed, null);
 
             var oRet = new int[R, C];
             for (int r = 0; r < R; r++)

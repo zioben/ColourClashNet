@@ -194,6 +194,7 @@ namespace ColourClashNet.Controls
                 LogMan.Trace(sClass, sMethod, "Colen Quantizer Output");
                 DataProcessed = DataQuantized.Clone() as int[,];
                 ImageProcessed = ImageTools.ToBitmap(DataProcessed);
+                oTrasformProcessing = oTrasformQuantizer;
                         
                 LogMan.Trace(sClass, sMethod, "Calling Event");
                 if (bRaiseEvent)

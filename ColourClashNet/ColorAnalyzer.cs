@@ -149,8 +149,8 @@ namespace ColourClashNet
 
         void ShowImage()
         {
-            oBitmapRenderSource.Image = oColorManager.ImageSource;
-            oBitmapRenderDest.Image = oColorManager.ImageProcessed;
+            oBitmapRenderSource.Image = oColorManager.ImageSource.Clone() as Image;
+            oBitmapRenderDest.Image = oColorManager.ImageProcessed.Clone() as Image;
             Invalidate();
         }
 

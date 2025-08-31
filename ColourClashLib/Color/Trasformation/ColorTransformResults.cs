@@ -35,7 +35,7 @@ namespace ColourClashNet.Color.Transformation
             {
                 Message += $"{Environment.NewLine}{sMessage}";
             }
-            LogMan.Message(sClass, sMethod, sMessage);
+            LogMan.Trace(sClass, sMethod, sMessage);
         }
     }
 }

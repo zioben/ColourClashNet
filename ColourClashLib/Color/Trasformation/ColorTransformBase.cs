@@ -162,23 +162,19 @@ namespace ColourClashNet.Color.Transformation
                     oRet.AddMessage($"{Type} : Transformation error");
                     return oRet;
                 }
-                if (Dithering == null || BypassDithering)
-                {
-                    oRet.DataOut = oRet.DataTemp;
-                    oRet.Valid = true;
-                    oRet.AddMessage($"{Type} : Valid");
-                    return oRet;
-                }
                 var oHash = new HashSet<int>();
                 foreach (var rgb in oRet.DataTemp)
                 {
                     if (rgb < 0)
+                    {
                         continue;
+                    }
                     oHash.Add(rgb);
                 }
-                if (oHash.Count >= 256)
+                if (Dithering == null || BypassDithering || oHash.Count > 256)
                 {
-                    oRet.AddMessage($"{Type} : Processing Completed");
+                    oRet.AddMessage($"{Type} : Processing Completed - No dithering");
+                    oRet.DataOut = oRet.DataTemp.Clone() as int[,];
                     oRet.Valid = true;
                     return oRet;
                 }

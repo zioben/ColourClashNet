@@ -352,7 +352,7 @@
             // 
             splitContainer1.Panel2.Controls.Add(tableLayoutPanel2);
             splitContainer1.Size = new Size(357, 785);
-            splitContainer1.SplitterDistance = 520;
+            splitContainer1.SplitterDistance = 513;
             splitContainer1.TabIndex = 10;
             // 
             // tableLayoutPanel3
@@ -367,12 +367,11 @@
             tableLayoutPanel3.Location = new Point(0, 0);
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 4;
-            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 58F));
-            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 37F));
-            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 55F));
+            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 64F));
+            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
+            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 64F));
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel3.Size = new Size(357, 520);
+            tableLayoutPanel3.Size = new Size(357, 513);
             tableLayoutPanel3.TabIndex = 9;
             // 
             // panelColors
@@ -380,10 +379,10 @@
             panelColors.Controls.Add(nudColorsWanted);
             panelColors.Controls.Add(label2);
             panelColors.Dock = DockStyle.Fill;
-            panelColors.Location = new Point(0, 58);
+            panelColors.Location = new Point(0, 64);
             panelColors.Margin = new Padding(0);
             panelColors.Name = "panelColors";
-            panelColors.Size = new Size(357, 37);
+            panelColors.Size = new Size(357, 42);
             panelColors.TabIndex = 29;
             // 
             // nudColorsWanted
@@ -418,7 +417,7 @@
             panelViewColors.Location = new Point(0, 0);
             panelViewColors.Margin = new Padding(0);
             panelViewColors.Name = "panelViewColors";
-            panelViewColors.Size = new Size(357, 58);
+            panelViewColors.Size = new Size(357, 64);
             panelViewColors.TabIndex = 28;
             // 
             // pbMouseColor
@@ -477,10 +476,10 @@
             panelDithering.Controls.Add(tbDitherStrenght);
             panelDithering.Controls.Add(label5);
             panelDithering.Dock = DockStyle.Fill;
-            panelDithering.Location = new Point(0, 95);
+            panelDithering.Location = new Point(0, 106);
             panelDithering.Margin = new Padding(0);
             panelDithering.Name = "panelDithering";
-            panelDithering.Size = new Size(357, 55);
+            panelDithering.Size = new Size(357, 64);
             panelDithering.TabIndex = 31;
             // 
             // nudDitheringStrenght
@@ -526,10 +525,10 @@
             tabControlMain.Controls.Add(tpMainSinclair);
             tabControlMain.Controls.Add(tpMainAmstrad);
             tabControlMain.Dock = DockStyle.Fill;
-            tabControlMain.Location = new Point(3, 153);
+            tabControlMain.Location = new Point(3, 173);
             tabControlMain.Name = "tabControlMain";
             tabControlMain.SelectedIndex = 0;
-            tabControlMain.Size = new Size(351, 364);
+            tabControlMain.Size = new Size(351, 337);
             tabControlMain.TabIndex = 32;
             // 
             // tpMainGeneric
@@ -548,7 +547,7 @@
             tpMainGeneric.Location = new Point(4, 24);
             tpMainGeneric.Name = "tpMainGeneric";
             tpMainGeneric.Padding = new Padding(3);
-            tpMainGeneric.Size = new Size(343, 336);
+            tpMainGeneric.Size = new Size(343, 309);
             tpMainGeneric.TabIndex = 0;
             tpMainGeneric.Text = "Base";
             tpMainGeneric.UseVisualStyleBackColor = true;
@@ -557,7 +556,7 @@
             // 
             nudBright.DecimalPlaces = 2;
             nudBright.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
-            nudBright.Location = new Point(158, 187);
+            nudBright.Location = new Point(163, 203);
             nudBright.Name = "nudBright";
             nudBright.Size = new Size(65, 23);
             nudBright.TabIndex = 20;
@@ -566,7 +565,7 @@
             // nudHue
             // 
             nudHue.Increment = new decimal(new int[] { 30, 0, 0, 0 });
-            nudHue.Location = new Point(3, 187);
+            nudHue.Location = new Point(11, 203);
             nudHue.Maximum = new decimal(new int[] { 360, 0, 0, 0 });
             nudHue.Name = "nudHue";
             nudHue.Size = new Size(65, 23);
@@ -575,7 +574,7 @@
             // lblBright
             // 
             lblBright.AutoSize = true;
-            lblBright.Location = new Point(158, 169);
+            lblBright.Location = new Point(163, 180);
             lblBright.Name = "lblBright";
             lblBright.Size = new Size(62, 15);
             lblBright.TabIndex = 19;
@@ -584,7 +583,7 @@
             // lblHue
             // 
             lblHue.AutoSize = true;
-            lblHue.Location = new Point(16, 169);
+            lblHue.Location = new Point(11, 180);
             lblHue.Name = "lblHue";
             lblHue.Size = new Size(29, 15);
             lblHue.TabIndex = 22;
@@ -594,7 +593,7 @@
             // 
             nudSat.DecimalPlaces = 2;
             nudSat.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
-            nudSat.Location = new Point(80, 187);
+            nudSat.Location = new Point(87, 203);
             nudSat.Name = "nudSat";
             nudSat.Size = new Size(65, 23);
             nudSat.TabIndex = 16;
@@ -602,7 +601,7 @@
             // 
             // label6
             // 
-            label6.Location = new Point(0, 81);
+            label6.Location = new Point(6, 81);
             label6.Name = "label6";
             label6.Size = new Size(134, 23);
             label6.TabIndex = 20;
@@ -611,7 +610,7 @@
             // lblSat
             // 
             lblSat.AutoSize = true;
-            lblSat.Location = new Point(82, 169);
+            lblSat.Location = new Point(87, 180);
             lblSat.Name = "lblSat";
             lblSat.Size = new Size(61, 15);
             lblSat.TabIndex = 18;
@@ -620,9 +619,9 @@
             // btnReduceColorCluster
             // 
             btnReduceColorCluster.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            btnReduceColorCluster.Location = new Point(0, 112);
+            btnReduceColorCluster.Location = new Point(6, 112);
             btnReduceColorCluster.Name = "btnReduceColorCluster";
-            btnReduceColorCluster.Size = new Size(343, 50);
+            btnReduceColorCluster.Size = new Size(331, 50);
             btnReduceColorCluster.TabIndex = 5;
             btnReduceColorCluster.Text = "Clustering Reduction";
             btnReduceColorCluster.UseVisualStyleBackColor = true;
@@ -641,9 +640,9 @@
             // btnReduceColors
             // 
             btnReduceColors.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            btnReduceColors.Location = new Point(0, 15);
+            btnReduceColors.Location = new Point(6, 15);
             btnReduceColors.Name = "btnReduceColors";
-            btnReduceColors.Size = new Size(343, 49);
+            btnReduceColors.Size = new Size(331, 49);
             btnReduceColors.TabIndex = 3;
             btnReduceColors.Text = "Color Mean Reduction";
             btnReduceColors.UseVisualStyleBackColor = true;
@@ -652,9 +651,9 @@
             // btnChromaAdapt
             // 
             btnChromaAdapt.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            btnChromaAdapt.Location = new Point(0, 216);
+            btnChromaAdapt.Location = new Point(8, 232);
             btnChromaAdapt.Name = "btnChromaAdapt";
-            btnChromaAdapt.Size = new Size(343, 54);
+            btnChromaAdapt.Size = new Size(331, 54);
             btnChromaAdapt.TabIndex = 14;
             btnChromaAdapt.Text = "Chroma Adapter";
             btnChromaAdapt.UseVisualStyleBackColor = true;
@@ -666,7 +665,7 @@
             tpMainIndexed.Location = new Point(4, 24);
             tpMainIndexed.Name = "tpMainIndexed";
             tpMainIndexed.Padding = new Padding(3);
-            tpMainIndexed.Size = new Size(343, 353);
+            tpMainIndexed.Size = new Size(343, 336);
             tpMainIndexed.TabIndex = 4;
             tpMainIndexed.Text = "Indexed";
             tpMainIndexed.UseVisualStyleBackColor = true;
@@ -674,9 +673,9 @@
             // btnReduceColorsEga
             // 
             btnReduceColorsEga.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            btnReduceColorsEga.Location = new Point(1, 26);
+            btnReduceColorsEga.Location = new Point(6, 26);
             btnReduceColorsEga.Name = "btnReduceColorsEga";
-            btnReduceColorsEga.Size = new Size(342, 48);
+            btnReduceColorsEga.Size = new Size(331, 48);
             btnReduceColorsEga.TabIndex = 15;
             btnReduceColorsEga.Text = "EGA Palette Color Reduction";
             btnReduceColorsEga.UseVisualStyleBackColor = true;
@@ -688,7 +687,7 @@
             tpMainCbm.Location = new Point(4, 24);
             tpMainCbm.Name = "tpMainCbm";
             tpMainCbm.Padding = new Padding(3);
-            tpMainCbm.Size = new Size(343, 353);
+            tpMainCbm.Size = new Size(343, 336);
             tpMainCbm.TabIndex = 1;
             tpMainCbm.Text = "Cbm";
             tpMainCbm.UseVisualStyleBackColor = true;
@@ -701,7 +700,7 @@
             tabCbm.Location = new Point(3, 3);
             tabCbm.Name = "tabCbm";
             tabCbm.SelectedIndex = 0;
-            tabCbm.Size = new Size(337, 347);
+            tabCbm.Size = new Size(337, 330);
             tabCbm.TabIndex = 0;
             // 
             // tpCbm64
@@ -712,7 +711,7 @@
             tpCbm64.Location = new Point(4, 24);
             tpCbm64.Name = "tpCbm64";
             tpCbm64.Padding = new Padding(3);
-            tpCbm64.Size = new Size(329, 319);
+            tpCbm64.Size = new Size(329, 302);
             tpCbm64.TabIndex = 0;
             tpCbm64.Text = "C= 64";
             tpCbm64.UseVisualStyleBackColor = true;
@@ -721,14 +720,14 @@
             // 
             cbC64VideoMode.DropDownStyle = ComboBoxStyle.DropDownList;
             cbC64VideoMode.FormattingEnabled = true;
-            cbC64VideoMode.Location = new Point(84, 9);
+            cbC64VideoMode.Location = new Point(98, 22);
             cbC64VideoMode.Name = "cbC64VideoMode";
             cbC64VideoMode.Size = new Size(101, 23);
             cbC64VideoMode.TabIndex = 19;
             // 
             // lblC64VideoMode
             // 
-            lblC64VideoMode.Location = new Point(9, 12);
+            lblC64VideoMode.Location = new Point(9, 25);
             lblC64VideoMode.Name = "lblC64VideoMode";
             lblC64VideoMode.Size = new Size(83, 21);
             lblC64VideoMode.TabIndex = 23;
@@ -737,9 +736,9 @@
             // btnReduceColorsC64v1
             // 
             btnReduceColorsC64v1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            btnReduceColorsC64v1.Location = new Point(0, 46);
+            btnReduceColorsC64v1.Location = new Point(9, 66);
             btnReduceColorsC64v1.Name = "btnReduceColorsC64v1";
-            btnReduceColorsC64v1.Size = new Size(329, 48);
+            btnReduceColorsC64v1.Size = new Size(314, 48);
             btnReduceColorsC64v1.TabIndex = 18;
             btnReduceColorsC64v1.Text = "To C64";
             btnReduceColorsC64v1.UseVisualStyleBackColor = true;
@@ -760,16 +759,16 @@
             tpCbmAmiga.Location = new Point(4, 24);
             tpCbmAmiga.Name = "tpCbmAmiga";
             tpCbmAmiga.Padding = new Padding(3);
-            tpCbmAmiga.Size = new Size(329, 319);
+            tpCbmAmiga.Size = new Size(329, 302);
             tpCbmAmiga.TabIndex = 1;
             tpCbmAmiga.Text = "Amiga";
             tpCbmAmiga.UseVisualStyleBackColor = true;
             // 
             // btnReduceAmiga
             // 
-            btnReduceAmiga.Location = new Point(0, 234);
+            btnReduceAmiga.Location = new Point(6, 234);
             btnReduceAmiga.Name = "btnReduceAmiga";
-            btnReduceAmiga.Size = new Size(320, 48);
+            btnReduceAmiga.Size = new Size(314, 48);
             btnReduceAmiga.TabIndex = 18;
             btnReduceAmiga.Text = "To Amiga";
             btnReduceAmiga.UseVisualStyleBackColor = true;
@@ -779,7 +778,7 @@
             // 
             cbAmigaVideoMode.DropDownStyle = ComboBoxStyle.DropDownList;
             cbAmigaVideoMode.FormattingEnabled = true;
-            cbAmigaVideoMode.Location = new Point(218, 204);
+            cbAmigaVideoMode.Location = new Point(89, 204);
             cbAmigaVideoMode.Name = "cbAmigaVideoMode";
             cbAmigaVideoMode.Size = new Size(101, 23);
             cbAmigaVideoMode.TabIndex = 19;
@@ -803,7 +802,7 @@
             // nudScanlineTrainEpochs
             // 
             nudScanlineTrainEpochs.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            nudScanlineTrainEpochs.Location = new Point(261, 97);
+            nudScanlineTrainEpochs.Location = new Point(125, 100);
             nudScanlineTrainEpochs.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
             nudScanlineTrainEpochs.Minimum = new decimal(new int[] { 30, 0, 0, 0 });
             nudScanlineTrainEpochs.Name = "nudScanlineTrainEpochs";
@@ -814,7 +813,7 @@
             // nudScanlineLineColors
             // 
             nudScanlineLineColors.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            nudScanlineLineColors.Location = new Point(261, 68);
+            nudScanlineLineColors.Location = new Point(125, 68);
             nudScanlineLineColors.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
             nudScanlineLineColors.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             nudScanlineLineColors.Name = "nudScanlineLineColors";
@@ -838,15 +837,15 @@
             chkScanlineSharedPal.Name = "chkScanlineSharedPal";
             chkScanlineSharedPal.Size = new Size(83, 21);
             chkScanlineSharedPal.TabIndex = 24;
-            chkScanlineSharedPal.Text = "Share Pal";
+            chkScanlineSharedPal.Text = "Use global palette";
             chkScanlineSharedPal.UseVisualStyleBackColor = true;
             // 
             // btnReduceColorsScanline
             // 
-            btnReduceColorsScanline.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            btnReduceColorsScanline.Location = new Point(3, 61);
+            btnReduceColorsScanline.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            btnReduceColorsScanline.Location = new Point(6, 140);
             btnReduceColorsScanline.Name = "btnReduceColorsScanline";
-            btnReduceColorsScanline.Size = new Size(324, 48);
+            btnReduceColorsScanline.Size = new Size(313, 48);
             btnReduceColorsScanline.TabIndex = 9;
             btnReduceColorsScanline.Text = "Scanline Reduction For Copperlist";
             btnReduceColorsScanline.UseVisualStyleBackColor = true;
@@ -873,7 +872,7 @@
             tpMainSinclair.Location = new Point(4, 24);
             tpMainSinclair.Name = "tpMainSinclair";
             tpMainSinclair.Padding = new Padding(3);
-            tpMainSinclair.Size = new Size(343, 353);
+            tpMainSinclair.Size = new Size(343, 336);
             tpMainSinclair.TabIndex = 2;
             tpMainSinclair.Text = "Sinclair";
             tpMainSinclair.UseVisualStyleBackColor = true;
@@ -893,9 +892,9 @@
             // btnReduceColorsZx
             // 
             btnReduceColorsZx.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            btnReduceColorsZx.Location = new Point(0, 147);
+            btnReduceColorsZx.Location = new Point(7, 147);
             btnReduceColorsZx.Name = "btnReduceColorsZx";
-            btnReduceColorsZx.Size = new Size(343, 48);
+            btnReduceColorsZx.Size = new Size(330, 48);
             btnReduceColorsZx.TabIndex = 14;
             btnReduceColorsZx.Text = "To ZX";
             btnReduceColorsZx.UseVisualStyleBackColor = true;
@@ -957,7 +956,7 @@
             tpMainAmstrad.Location = new Point(4, 24);
             tpMainAmstrad.Name = "tpMainAmstrad";
             tpMainAmstrad.Padding = new Padding(3);
-            tpMainAmstrad.Size = new Size(343, 353);
+            tpMainAmstrad.Size = new Size(343, 336);
             tpMainAmstrad.TabIndex = 3;
             tpMainAmstrad.Text = "Amstrad";
             tpMainAmstrad.UseVisualStyleBackColor = true;
@@ -1000,7 +999,7 @@
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 1;
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 64F));
-            tableLayoutPanel2.Size = new Size(357, 261);
+            tableLayoutPanel2.Size = new Size(357, 268);
             tableLayoutPanel2.TabIndex = 1;
             // 
             // gbColorProcessor
@@ -1009,7 +1008,7 @@
             gbColorProcessor.Dock = DockStyle.Fill;
             gbColorProcessor.Location = new Point(3, 3);
             gbColorProcessor.Name = "gbColorProcessor";
-            gbColorProcessor.Size = new Size(351, 255);
+            gbColorProcessor.Size = new Size(351, 262);
             gbColorProcessor.TabIndex = 0;
             gbColorProcessor.TabStop = false;
             gbColorProcessor.Text = "Color Processor Data";
@@ -1019,7 +1018,7 @@
             pgColorProcessor.Dock = DockStyle.Fill;
             pgColorProcessor.Location = new Point(3, 19);
             pgColorProcessor.Name = "pgColorProcessor";
-            pgColorProcessor.Size = new Size(345, 233);
+            pgColorProcessor.Size = new Size(345, 240);
             pgColorProcessor.TabIndex = 0;
             // 
             // scLayout
@@ -1089,6 +1088,10 @@
             // 
             // oColorManager
             // 
+            oColorManager.DataBkgRemoved = null;
+            oColorManager.DataProcessed = null;
+            oColorManager.DataQuantized = null;
+            oColorManager.DataSourceX = null;
             oColorManager.InvalidatePreProcess = true;
             // 
             // sfdExportImage

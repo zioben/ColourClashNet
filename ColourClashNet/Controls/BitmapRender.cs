@@ -15,6 +15,7 @@ namespace ColourClashNet.Controls
 
     public partial class BitmapRender : Component
     {
+        #region Enums
 
         /// <summary>
         /// Zoom modes
@@ -34,44 +35,16 @@ namespace ColourClashNet.Controls
             Manual = 100
         }
 
-
-        #region Windows OS ony - PInvoke declarations
-        /*------------------------------------------
-        // Windows OS ony - PInvoke declarations
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct POINT
+        /// <summary>
+        /// ROI modes
+        /// </summary>
+        public enum EnumRoiMode
         {
-            public int X;
-            public int Y;
+            Disabled,
+            Rectangle,
+            Polygon,
         }
 
-        [DllImport("user32.dll")]
-        static extern bool GetCursorPos(out POINT lpPoint);
-
-        [DllImport("user32.dll")]
-        static extern IntPtr GetDC(IntPtr hWnd);
-
-        [DllImport("gdi32.dll")]
-        static extern uint GetPixel(IntPtr hdc, int nXPos, int nYPos);
-
-        [DllImport("user32.dll")]
-        static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
-
-        static Color GetColorAt(int x, int y)
-        {
-            IntPtr hdc = GetDC(IntPtr.Zero); // DC globale (schermo intero)
-            uint pixel = GetPixel(hdc, x, y);
-            ReleaseDC(IntPtr.Zero, hdc);
-
-            // Estrae RGB
-            int r = (int)(pixel & 0x000000FF);
-            int g = (int)((pixel & 0x0000FF00) >> 8);
-            int b = (int)((pixel & 0x00FF0000) >> 16);
-
-            return Color.FromArgb(r, g, b);
-        }
-        */
         #endregion
 
         #region Constructor
@@ -109,13 +82,33 @@ namespace ColourClashNet.Controls
 
         #endregion
 
+        #region ROI Picking
+
+        EnumRoiMode enumRoiMode = EnumRoiMode.Rectangle;
+        public EnumRoiMode RoiMode
+        {
+            get { return enumRoiMode; }
+            set
+            {
+                if (enumRoiMode != value)
+                {
+                    enumRoiMode = value;
+                    SetClipAndZoom();
+                }
+            }
+        }
+
+        #endregion
+
+
+
         #region Coordinates and Color Picking
 
         /// <summary>
         /// If true the color under the mouse pointer is tracked
         /// </summary>
         public bool PeekMouseColor { get; set; }
- 
+
 
         /// <summary>
         /// Color under the mouse pointer
@@ -143,7 +136,7 @@ namespace ColourClashNet.Controls
         {
             MouseCoordinates = oMousePoint;
             ImageCoordinates = PointControlToPointBitmap(oMousePoint);
-            if( Image == null)
+            if (Image == null)
             {
                 MouseColor = System.Drawing.Color.Transparent;
                 return MouseColor;
@@ -249,9 +242,9 @@ namespace ColourClashNet.Controls
                 tsi.Text = $"R:{c.R} G:{c.G} B:{c.B}";
                 tsi.BackColor = c;
                 tsi.ForeColor = (c.R + c.G + c.B) / 3 < 128 ? System.Drawing.Color.White : System.Drawing.Color.Black;
-                tsi.Click += (s, e) => 
-                { 
-                    RemoveSelectedColor(c); 
+                tsi.Click += (s, e) =>
+                {
+                    RemoveSelectedColor(c);
                     RebuildMouseColorItems();
                     ColorRemoved?.Invoke(this, EventArgs.Empty);
                 };
@@ -351,8 +344,8 @@ namespace ColourClashNet.Controls
         #region Render Code
 
         SolidBrush BrushBlack = new SolidBrush(System.Drawing.Color.Black);
-        RectangleF RoiDst = new RectangleF();
-        RectangleF RoiSrc = new RectangleF();
+        RectangleF RoiCtrlDst = new RectangleF();
+        RectangleF RoiImgSrc = new RectangleF();
         //public float RoiZoomX = 1;
         //public float RoiZoomY = 1;
         public float RoiZoomM = 1;
@@ -360,34 +353,47 @@ namespace ColourClashNet.Controls
         [Browsable(true), Category("Appearance")]
         public float ZoomControlX
         {
-            get { SetRoiAndZoom(); return (float)(BitmapCoordinates.Zoom.X != 0 ? 1.0f / BitmapCoordinates.Zoom.X : 0); }
+            get { SetClipAndZoom(); return (float)(BitmapCoordinates.Zoom.X != 0 ? 1.0f / BitmapCoordinates.Zoom.X : 0); }
         }
 
         [Browsable(true), Category("Appearance")]
         public float ZoomControlY
         {
-            get { SetRoiAndZoom(); return (float)(BitmapCoordinates.Zoom.Y != 0 ? 1.0f / BitmapCoordinates.Zoom.Y : 0); }
+            get { SetClipAndZoom(); return (float)(BitmapCoordinates.Zoom.Y != 0 ? 1.0f / BitmapCoordinates.Zoom.Y : 0); }
         }
 
         [Browsable(true), Category("Appearance")]
         public float ZoomImageX
         {
-            get { SetRoiAndZoom(); return (float)(BitmapCoordinates.Zoom.X); }
+            get { SetClipAndZoom(); return (float)(BitmapCoordinates.Zoom.X); }
         }
 
         [Browsable(true), Category("Appearance")]
         public float ZoomImageY
         {
-            get { SetRoiAndZoom(); return (float)(BitmapCoordinates.Zoom.Y); }
+            get { SetClipAndZoom(); return (float)(BitmapCoordinates.Zoom.Y); }
         }
 
 
-        void SetRoiAndZoom()
+        void SetClipAndZoom()
         {
+
             float RoiZoomX = 0;
             float RoiZoomY = 0;
             BitmapCoordinates.Zoom = new PointF(1, 1);
-            if (Control == null || Control.Size.Width <= 0 || Control.Size.Height <= 0 || Image == null || Image.Size.Width <= 0 && Image.Size.Height <= 0) return;
+            if (oControl == null || Control.Size.Width <= 0 || Control.Size.Height <= 0)
+            {
+                return;
+            }
+            var oBmp = Image as Bitmap;
+            if (oBmp is null)
+            {
+                return;
+            }
+            if (oBmp.Width <= 0 && oBmp.Height <= 0)
+            {
+                return;
+            }
             // Il + facile
             // Determina la roi da disegnare
             float fiw = Control.Size.Width;
@@ -438,13 +444,26 @@ namespace ColourClashNet.Controls
                 case EnumZoom.Manual: RoiZoomX = RoiZoomY = RoiZoomM; fiw *= RoiZoomM; fih *= RoiZoomM; break;
             }
             BitmapCoordinates.Zoom = new PointF((float)RoiZoomX, (float)RoiZoomY);
-            RoiDst.X = RoiDst.Y = 0;
-            RoiDst.Width = Control.Size.Width;
-            RoiDst.Height = Control.Size.Height;
-            RoiSrc.X = -(float)BitmapCoordinates.Origin.X;
-            RoiSrc.Y = -(float)BitmapCoordinates.Origin.Y;
-            RoiSrc.Width = fiw;
-            RoiSrc.Height = fih;
+            RoiCtrlDst.X = RoiCtrlDst.Y = 0;
+            RoiCtrlDst.Width = Control.Size.Width;
+            RoiCtrlDst.Height = Control.Size.Height;
+            RoiImgSrc.X = -(float)BitmapCoordinates.Origin.X;
+            RoiImgSrc.Y = -(float)BitmapCoordinates.Origin.Y;
+            RoiImgSrc.Width = fiw;
+            RoiImgSrc.Height = fih;
+            //
+            if (Control != null)
+            {
+                switch (RoiMode)
+                {
+                    case EnumRoiMode.Disabled:
+                        oControl.ContextMenuStrip = oContextMenuStrip;
+                        break;
+                    default:
+                        oControl.ContextMenuStrip = null;
+                        break;
+                }
+            }
         }
 
         public event PaintEventHandler Paint;
@@ -453,9 +472,39 @@ namespace ColourClashNet.Controls
         {
             if (Control != null && Image != null)
             {
-                SetRoiAndZoom();
-                e.Graphics.DrawImage(Image, RoiDst, RoiSrc, GraphicsUnit.Pixel);
-                if (Paint != null) Paint(sender, e);
+                SetClipAndZoom();
+                e.Graphics.DrawImage(Image, RoiCtrlDst, RoiImgSrc, GraphicsUnit.Pixel);
+                switch (enumRoiMode)
+                {
+                    case EnumRoiMode.Rectangle:
+                        {
+                            if (RoiRectanglePointList.Count == 2)
+                            {
+                                var P1 = BitmapCoordinates.LocalToWorld(RoiRectanglePointList[0]);
+                                var P2 = BitmapCoordinates.LocalToWorld(RoiRectanglePointList[1]);
+                                var R = new RectangleF(Math.Min(P1.X, P2.X), Math.Min(P1.Y, P2.Y), Math.Abs(P2.X - P1.X), Math.Abs(P2.Y - P1.Y));
+                                using (var PenRoi = new Pen(System.Drawing.Color.Red, 2))
+                                {
+                                    e.Graphics.DrawRectangle(PenRoi, R.X, R.Y, R.Width, R.Height);
+                                }
+                            }
+                            else if (RoiRectanglePointList.Count == 1)
+                            {
+                                var P1 = BitmapCoordinates.LocalToWorld(RoiRectanglePointList[0]);
+                                using (var PenRoi = new Pen(System.Drawing.Color.Red, 2))
+                                {
+                                    e.Graphics.DrawEllipse(PenRoi, P1.X - 2, P1.Y - 2, 4, 4);
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                if (Paint != null)
+                {
+                    Paint(sender, e);
+                }
             }
         }
         #endregion
@@ -476,7 +525,7 @@ namespace ColourClashNet.Controls
         {
             if (!ImageBlockScroll)
             {
-                SetRoiAndZoom();
+                SetClipAndZoom();
                 BitmapCoordinates.MoveOriginPointRespectWorldCoordinates(deltaX, deltaY);
                 ForceRefresh();
             }
@@ -512,9 +561,13 @@ namespace ColourClashNet.Controls
         #region MouseTracker
 
         [Browsable(true), Category("Appearance")]
-        public MouseButtons MouseMovingButton { get; set; }
+        public MouseButtons MouseMovingButton { get; set; } = MouseButtons.Left;
 
-        protected Boolean MousePushed = false;
+        [Browsable(true), Category("Appearance")]
+        public MouseButtons MouseRoiButton { get; set; } = MouseButtons.Right;
+
+        protected Boolean MouseMovePushed = false;
+        protected Boolean MouseRoiPushed = false;
         protected Point MousePushedPoint = new Point();
         protected Point MousePushedPointLast = new Point();
 
@@ -541,24 +594,81 @@ namespace ColourClashNet.Controls
             }
         }
 
+        List<PointF> RoiRectanglePointList = new List<PointF>();
+        List<PointF> RoiPolygonPointList = new List<PointF>();
+
+
         protected void OnMouseDown(object Sender, MouseEventArgs args)
         {
             if (args.Button == MouseMovingButton)
             {
-                if (!MousePushed)
+                if (!MouseMovePushed)
                 {
-                    MousePushed = true;
+                    MouseMovePushed = true;
                     MousePushedPoint = args.Location;
                     MousePushedPointLast = args.Location;
                 }
             }
+            if (enumRoiMode != EnumRoiMode.Disabled)
+            {
+                if (args.Button == MouseRoiButton)
+                {
+                    if (!MouseRoiPushed)
+                    {
+                        MouseRoiPushed = true;
+                        RoiPolygonPointList.Clear();
+                        RoiRectanglePointList.Clear();
+                        if (RoiMode == EnumRoiMode.Rectangle)
+                        {                           
+                            HandleRectangleRoi(args);
+                        }
+                        else if (RoiMode == EnumRoiMode.Polygon)
+                        {
+                            HandlePolygonRoi(args);
+                        }
+                        ForceRefresh();
+                    }
+                }
+            }
+        }
+
+        private void HandleRectangleRoi(MouseEventArgs args)
+        {
+            if (RoiRectanglePointList.Count == 0)
+            {
+                var P1 = PointControlToPointBitmap(args.Location);
+                RoiRectanglePointList.Add(P1);
+            }
+            else
+            {
+                var P1 = RoiRectanglePointList[0];
+                var P2 = PointControlToPointBitmap(args.Location);
+                var P3 = new PointF(Math.Min(P1.X, P2.X), Math.Min(P1.Y, P2.Y));
+                var P4 = new PointF(Math.Max(P1.X, P2.X), Math.Max(P1.Y, P2.Y));
+                RoiRectanglePointList.Clear();
+                RoiRectanglePointList.Add(P3);
+                RoiRectanglePointList.Add(P4);
+            }
+            ForceRefresh();
+        }
+
+        private void HandlePolygonRoi(MouseEventArgs args)
+        {
+            RoiRectanglePointList.Clear();
+            var P1 = PointControlToPointBitmap(args.Location);
+            RoiRectanglePointList.Add(P1);
+            ForceRefresh();
         }
 
         protected void OnMouseUp(object Sender, MouseEventArgs args)
         {
-            if (MousePushed)
+            if (MouseMovePushed)
             {
-                MousePushed = false;
+                MouseMovePushed = false;
+            }
+            if (MouseRoiPushed)
+            {
+                MouseRoiPushed = false;
             }
         }
 
@@ -572,7 +682,7 @@ namespace ColourClashNet.Controls
         protected void OnMouseMove(object Sender, MouseEventArgs args)
         {
             UpdateMouseData(new Point(args.X, args.Y));
-            if (MousePushed)
+            if (MouseMovePushed)
             {
                 int DX = MousePushedPointLast.X - args.Location.X;
                 int DY = MousePushedPointLast.Y - args.Location.Y;
@@ -582,6 +692,20 @@ namespace ColourClashNet.Controls
             if (MouseMove != null)
             {
                 MouseMove(Sender, args);
+            }
+            if (MouseRoiPushed)
+            {
+                switch (enumRoiMode)
+                {
+                    case EnumRoiMode.Rectangle:
+                            HandleRectangleRoi(args);
+                        break;
+                    case EnumRoiMode.Polygon:
+                            HandlePolygonRoi(args);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
