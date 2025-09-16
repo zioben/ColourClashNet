@@ -1,13 +1,18 @@
-﻿using System;
+﻿using ColourClashNet.Imaging;
+using ColourClashNet.Log;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
+using System.ComponentModel.Design.Serialization;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static ColourClashNet.Controls.BitmapRenderOld;
 
 namespace ColourClashNet.Controls
 {
@@ -36,14 +41,165 @@ namespace ColourClashNet.Controls
         }
 
         /// <summary>
-        /// ROI modes
+        /// Operative mode
         /// </summary>
-        public enum EnumRoiMode
+        public enum EnumOperation
         {
-            Disabled,
-            Rectangle,
-            Polygon,
+            None,
+            TrackMouse,
+            SetRoiRect,
+            SetRoiPolygon,
+            EditRoi,
+            GetColor,
         }
+
+        #endregion
+
+        public class ColorEventArgs : EventArgs
+        {
+            public System.Drawing.Color Color { get; internal set; } = System.Drawing.Color.Transparent;
+            public Point ComponentCoordinates { get; internal set; } = new Point();
+            public Point ImageCoordinates { get; internal set; } = new Point();
+        }
+
+      
+        #region Events
+
+        [Browsable(true), Category("Appearance")]
+        [Description("Raised when Image Control needs repaint")]
+        public event PaintEventHandler Paint;
+
+        [Browsable(true), Category("Mouse")]
+        [Description("Raised when a mouse button is released in Image Control")]
+        public event MouseEventHandler MouseUp;
+
+        [Browsable(true), Category("Mouse")]
+        [Description("Raised when a mouse button is released in Image Control")]
+        public event MouseEventHandler MouseDown;
+
+        [Browsable(true), Category("Mouse")]
+        [Description("Raised when mouse is moved in Image Control")]
+        public event MouseEventHandler MouseMove;
+
+        [Browsable(true), Category("Color")]
+        [Description("Raised when a color is selected by operation")]
+        public event EventHandler<ColorEventArgs> ColorSelected;
+
+        [Browsable(true), Category("Color")]
+        [Description("Raised when a color is added on ColorList")]
+        public event EventHandler<ColorEventArgs> ColorAdded;
+
+        [Browsable(true), Category("Color")]
+        [Description("Raised when a color is removed from ColorList")]
+        public event EventHandler<ColorEventArgs> ColorRemoved;
+
+        [Browsable(true), Category("Color")]
+        [Description("Raised when a color list is cleared()")]
+        public event EventHandler ColorReset;
+
+        #endregion
+
+        #region Fields/Properties
+
+        public object locker = new object();
+
+        [Browsable(true), Category("Appearance")]
+        public Boolean ImageBlockScroll { get; set; }
+
+        [Browsable(true), Category("Appearance")]
+        public EnumZoom ImageZoomMode { get; set; }
+
+        [Browsable(true), Category("Appearance")]
+        public Boolean ImageMoveOverControlBorder { get; set; }
+
+
+        float fRoiZoomM = 1;
+
+        [Browsable(true), Category("Appearance")]
+        public float ImageZoomManual
+        {
+            get { return fRoiZoomM; }
+            set { if (value > 0) fRoiZoomM = value; ForceRefresh(); }
+        }
+
+        [Browsable(true), Category("Behavior")]
+        public MouseButtons MouseMovingButton { get; set; } = MouseButtons.Left;
+
+        [Browsable(true), Category("Behavior")]
+        public MouseButtons MouseSelectButton { get; set; } = MouseButtons.Right;
+
+        public bool ContinuousFollowing { get; set; } = true;
+
+        [Browsable(false), Category("Appearance")]
+        MouseHandlerCoordinateManager.PointTrack MouseControlTrack => ContinuousFollowing ? oMouseManager.PointTrackHistory : oMouseManager.PointTrackCurrent;
+
+        [Browsable(true), Category("Appearance")]
+        public Point MouseControlCoordinatesX => MouseControlTrack.ControlPointCurrent;
+
+        [Browsable(false), Category("Appearance")]
+        MouseHandlerCoordinateManager.ImageTrack MouseImageTrack => ContinuousFollowing ? oMouseManager.ImageTrackHistoryX : oMouseManager.ImageTrackCurrentX;
+
+        [Browsable(true), Category("Appearance")]
+        public PointF MouseImageCoordinatesX => MouseImageTrack.ImagePointCurrent;
+
+        [Browsable(true), Category("Appearance")]
+        public PointF MouseControlCoordinatesClip => new PointF(
+            Math.Min(Control?.Width ?? 0, Math.Max(0, MouseControlCoordinatesX.X)),
+            Math.Min(Control?.Height ?? 0, Math.Max(0, MouseControlCoordinatesX.Y))
+         );
+
+        [Browsable(true), Category("Appearance")]
+        public PointF MouseImageCoordinatesClip => new PointF(
+            Math.Min( Image?.Width ?? 0, Math.Max(0, MouseImageCoordinatesX.X)),
+            Math.Min( Image?.Height ?? 0, Math.Max(0, MouseImageCoordinatesX.Y))
+         );
+
+        [Browsable(true), Category("Appearance")]
+        public System.Drawing.Color MouseImageColor { get; private set; }
+
+            
+
+
+        [Browsable(true), Category("Behavior")]
+        public EnumOperation ComponentOperationMode { get; private set; }
+
+        Control oControl;
+        [Browsable(true), Category("Appearance")]
+        public Control Control
+        {
+            get { return oControl; }
+            set
+            {
+                if (oControl != value)
+                {
+                    UnregisterControlEvents(); 
+                    oControl = value;
+                    RegisterControlEvents();
+                }
+            }
+        }
+
+        Image oImage;
+        [Browsable(true), Category("Appearance")]
+        public Image Image
+        {
+            get { return oImage; }
+            set
+            {
+                if (oImage != value)
+                {
+                    oImage = value;
+                    oMouseManager.Reset();
+                    oControl?.Refresh();
+                }
+            }
+        }
+
+
+        MouseHandlerCoordinateManager oMouseManager= new MouseHandlerCoordinateManager();
+        CoordinateManager oCoordinateManager => oMouseManager.CoordinateManager;
+
+        public List<System.Drawing.Color> SelectedColors { get; protected set; } = new List<System.Drawing.Color>();
 
         #endregion
 
@@ -65,8 +221,6 @@ namespace ColourClashNet.Controls
         public BitmapRender(IContainer container)
         {
             container.Add(this);
-
-            InitializeComponent();
             Create();
         }
 
@@ -76,177 +230,244 @@ namespace ColourClashNet.Controls
         protected void Create()
         {
             MouseMovingButton = MouseButtons.Left;
+            MouseSelectButton = MouseButtons.Right;
             InitializeComponent();
+            InitializeGUI();
             RegisterToolStripItems();
+            SetOperationMode(EnumOperation.TrackMouse);
         }
-
-        #endregion
-
-        #region ROI Picking
-
-        EnumRoiMode enumRoiMode = EnumRoiMode.Rectangle;
-        public EnumRoiMode RoiMode
+      
+        void InitializeGUI()
         {
-            get { return enumRoiMode; }
-            set
-            {
-                if (enumRoiMode != value)
-                {
-                    enumRoiMode = value;
-                    SetClipAndZoom();
-                }
-            }
+            toolStripMenuItemBlockMoving.Checked = ImageBlockScroll;
         }
 
-        #endregion
-
-
-
-        #region Coordinates and Color Picking
-
-        /// <summary>
-        /// If true the color under the mouse pointer is tracked
-        /// </summary>
-        public bool PeekMouseColor { get; set; }
-
-
-        /// <summary>
-        /// Color under the mouse pointer
-        /// </summary>
-        public System.Drawing.Color MouseColor { get; private set; }
-
-        /// <summary>
-        /// Mouse coordinates in the control
-        /// </summary>
-        public Point MouseCoordinates { get; set; }
-
-        /// <summary>
-        /// Mouse coordinates in the image
-        /// </summary>
-        public PointF ImageCoordinates { get; set; }
-
-        /// <summary>
-        /// List of selected colors
-        /// </summary>
-        public List<System.Drawing.Color> SelectedColors { get; private set; } = new List<System.Drawing.Color>();
-
-        System.Drawing.Color oContextMenuColor = System.Drawing.Color.Transparent;
-
-        System.Drawing.Color UpdateMouseData(Point oMousePoint)
+        void SetClickZoom(EnumZoom z)
         {
-            MouseCoordinates = oMousePoint;
-            ImageCoordinates = PointControlToPointBitmap(oMousePoint);
-            if (Image == null)
-            {
-                MouseColor = System.Drawing.Color.Transparent;
-                return MouseColor;
-            }
-            if (PeekMouseColor)
-            {
-                if (Image is Bitmap oBmp)
-                {
-                    var ImgX = ImageCoordinates.X;
-                    var ImgY = ImageCoordinates.Y;
-                    if (ImgX >= 0 && ImgX < oBmp.Width)
-                    {
-                        if (ImgY >= 0 && ImgY < oBmp.Height)
-                        {
-                            MouseColor = oBmp.GetPixel((int)ImgX, (int)ImgY);
-                            return MouseColor;
-                        }
-                    }
-                }
-            }
-            MouseColor = System.Drawing.Color.Transparent;
-            return MouseColor;
+            ImageZoomMode = z;
+            oControl?.Refresh();
         }
-
-
-        public void AddSelectedColor(System.Drawing.Color oColor)
+        void SetClickScroll()
         {
-            if (!SelectedColors.Contains(oColor))
-            {
-                SelectedColors.Add(oColor);
-            }
+            ImageBlockScroll = !ImageBlockScroll; 
+            toolStripMenuItemBlockMoving.Checked = ImageBlockScroll;
         }
-
-        public void ResetSelectedColors()
-        {
-            SelectedColors.Clear();
-        }
-
-        public void RemoveSelectedColor(System.Drawing.Color oColor)
-        {
-            if (!SelectedColors.Contains(oColor))
-            {
-                SelectedColors.Remove(oColor);
-            }
-        }
-
-        #endregion  
-
-        #region ToolStripItemZoom
 
         void RegisterToolStripItems()
         {
-            this.toolStripMenuItem1_4.Click += new EventHandler(OnZoom14);
-            this.toolStripMenuItem1_2.Click += new EventHandler(OnZoom12);
-            this.toolStripMenuItem1_1.Click += new EventHandler(OnZoom11);
-            this.toolStripMenuItem2_1.Click += new EventHandler(OnZoom21);
-            this.toolStripMenuItem3_1.Click += new EventHandler(OnZoom31);
-            this.toolStripMenuItem4_1.Click += new EventHandler(OnZoom41);
-            this.toolStripMenuItemFit.Click += new EventHandler(OnZoomF);
-            this.toolStripMenuItemFitW.Click += new EventHandler(OnZoomFW);
-            this.toolStripMenuItemFitH.Click += new EventHandler(OnZoomFH);
-            this.toolStripMenuItemStretch.Click += new EventHandler(OnZoomS);
-            this.toolStripMenuItemManual.Click += new EventHandler(OnZoomM);
-            this.toolStripMenuItemBlockMoving.Click += new EventHandler(OnBlockMoving);
+
+            this.toolStripMenuItem1_4.Click += (s, e) =>  { SetClickZoom(EnumZoom.ZoomQ); };
+            this.toolStripMenuItem1_2.Click += (s, e) =>  { SetClickZoom(EnumZoom.ZoomH); };
+            this.toolStripMenuItem1_1.Click += (s, e) =>  { SetClickZoom(EnumZoom.Zoom1); };
+            this.toolStripMenuItem2_1.Click += (s, e) =>  { SetClickZoom(EnumZoom.Zoom2); };
+            this.toolStripMenuItem3_1.Click += (s, e) =>  { SetClickZoom(EnumZoom.Zoom3); };
+            this.toolStripMenuItem4_1.Click += (s, e) =>  { SetClickZoom(EnumZoom.Zoom4); };
+            this.toolStripMenuItemFit.Click += (s, e) =>  { SetClickZoom(EnumZoom.Fit); }; 
+            this.toolStripMenuItemFitW.Click += (s, e) => { SetClickZoom(EnumZoom.FitW); }; 
+            this.toolStripMenuItemFitH.Click += (s, e) => { SetClickZoom(EnumZoom.FitH); }; 
+            this.toolStripMenuItemStretch.Click += (s, e) => { SetClickZoom(EnumZoom.Stretch); }; 
+            this.toolStripMenuItemManual.Click += (s, e) =>  { SetClickZoom(EnumZoom.Manual); };
+            this.toolStripMenuItemBlockMoving.Click += (s, e) => { SetClickScroll(); };
             this.toolStripMenuItemAddColor.Click += new EventHandler(OnAddColor);
             this.toolStripMenuItemResetColors.Click += new EventHandler(OnResetColors);
-            toolStripMenuItemBlockMoving.Checked = ImageBlockScroll;
         }
 
-        void SetZoom(EnumZoom z)
+        #endregion
+
+
+        public void SetOperationMode(EnumOperation eOperationMode)
         {
-            ImageZoomMode = z;
-            if (oControl != null)
+            lock (locker)
             {
-                oControl.Refresh();
+                ComponentOperationMode = eOperationMode;
+                switch (ComponentOperationMode)
+                {
+                    case EnumOperation.None:
+                        break;
+                    case EnumOperation.TrackMouse:
+                        break;
+                    case EnumOperation.SetRoiRect:
+                        break;
+                    case EnumOperation.SetRoiPolygon:
+                        break;
+                    case EnumOperation.EditRoi:
+                        break;
+                    case EnumOperation.GetColor:
+                    default:
+                        break;
+                }
             }
         }
 
-        void OnZoom14(object sender, EventArgs e) { SetZoom(EnumZoom.ZoomQ); }
-        void OnZoom12(object sender, EventArgs e) { SetZoom(EnumZoom.ZoomH); }
-        void OnZoom11(object sender, EventArgs e) { SetZoom(EnumZoom.Zoom1); }
-        void OnZoom21(object sender, EventArgs e) { SetZoom(EnumZoom.Zoom2); }
-        void OnZoom31(object sender, EventArgs e) { SetZoom(EnumZoom.Zoom3); }
-        void OnZoom41(object sender, EventArgs e) { SetZoom(EnumZoom.Zoom4); }
-        void OnZoomF(object sender, EventArgs e) { SetZoom(EnumZoom.Fit); }
-        void OnZoomFW(object sender, EventArgs e) { SetZoom(EnumZoom.FitW); }
-        void OnZoomFH(object sender, EventArgs e) { SetZoom(EnumZoom.FitH); }
-        void OnZoomS(object sender, EventArgs e) { SetZoom(EnumZoom.Stretch); }
-        void OnZoomM(object sender, EventArgs e) { SetZoom(EnumZoom.Manual); }
-
-        void OnBlockMoving(object sender, EventArgs e)
+        void RegisterControlEvents()
         {
-            ImageBlockScroll = !ImageBlockScroll;
-            toolStripMenuItemBlockMoving.Checked = ImageBlockScroll;
+            if (oControl != null)
+            {
+                oControl.Paint += OnPaint;
+                oControl.MouseUp += OnMouseUp;
+                oControl.MouseDown += OnMouseDown;
+                oControl.MouseMove += OnMouseMove;
+                oControl.MouseWheel += OnMouseWheel;
+                oControl.ContextMenuStrip = oContextMenuStrip;
+            }
         }
 
-        void RebuildMouseColorItems()
+        void UnregisterControlEvents()
+        {
+            if (oControl != null)
+            {
+                oControl.ContextMenuStrip = null;
+                oControl.Paint -= OnPaint;
+                oControl.MouseUp -= OnMouseUp;
+                oControl.MouseDown -= OnMouseDown;
+                oControl.MouseMove -= OnMouseMove;
+                oControl.MouseWheel -= OnMouseWheel;
+            }
+        }
+
+        #region Event codes - core of the component 
+
+
+        protected void OnMouseWheel(object Sender, MouseEventArgs args)
+        {
+            if (args.Delta != 0)
+            {
+                if (ImageZoomMode == EnumZoom.Manual)
+                {
+                    ImageZoomManual += 0.5f * args.Delta;
+                }
+                else
+                {
+                    if (args.Delta < 0 && (int)ImageZoomMode > (int)EnumZoom.ZoomQ)
+                    {
+                        ImageZoomMode--;
+                    }
+                    else if (args.Delta > 0 && (int)ImageZoomMode < (int)EnumZoom.Zoom4)
+                    {
+                        ImageZoomMode++;
+                    }
+                }
+                ForceRefresh();
+            }
+        }
+
+        void UpdateMouseImageColor()
+        {
+            if (oMouseManager.MouseState == MouseHandlerBase.EnumMouseState.tracking)
+            {
+                return;
+            }
+            if (Image is Bitmap oBmp)
+            {
+                // Control Origin point
+                var oPointC = new PointF(RoiControl.X,RoiControl.Y);
+                // Current mouse coordinates
+                var oPointM = new PointF(MouseControlCoordinatesX.X, MouseControlCoordinatesX.Y);
+                // Transalte to control roi
+                var oPointT = oPointM.Sub(oPointC);
+                // convert to image coordinates
+                var oPointI = oCoordinateManager.WorldToLocal(oPointT);
+                if (oPointI.X < 0 || oPointI.Y < 0 || oPointI.X >= oBmp.Width || oPointI.Y >= oBmp.Height)
+                {
+                    MouseImageColor = System.Drawing.Color.Transparent;
+                    return;
+                }
+                MouseImageColor = oBmp.GetPixel((int)oPointI.X, (int)oPointI.Y);
+            }
+            else
+            {
+                MouseImageColor = System.Drawing.Color.Transparent;
+            }   
+        }
+
+        protected void OnMouseDown(object Sender, MouseEventArgs args)
+        {
+            if (oMouseManager.OnMouseDown(args))
+            {
+                UpdateMouseImageColor();
+                ForceRefresh();
+            }
+            MouseDown?.Invoke(Sender, args);
+        }
+
+        protected void OnMouseUp(object Sender, MouseEventArgs args)
+        {
+            if (oMouseManager.OnMouseUp(args))
+            {
+                UpdateMouseImageColor();
+                ForceRefresh();
+            }
+            MouseUp?.Invoke(Sender, args);
+        }
+
+        protected void OnMouseMove(object Sender, MouseEventArgs args)
+        {
+            if (oMouseManager.OnMouseMove(args))
+            {
+                UpdateMouseImageColor();
+                ForceRefresh();
+            }
+            MouseMove?.Invoke(Sender, args);
+        }
+
+        public void OnPaint(object sender, PaintEventArgs e)
+        {
+            if (Control != null && Image != null)
+            {
+                UpdateControlAndImageRoi();
+                e.Graphics.DrawImage(Image, RoiControl, RoiImage, GraphicsUnit.Pixel);
+            }
+            Paint?.Invoke(sender, e);
+        }
+
+        #endregion
+
+        #region Selected Colors Management
+
+        public void AddMouseSelectedColor(System.Drawing.Color c)
+        {
+            lock (locker)
+            {
+                if (!SelectedColors.Contains(c))
+                {
+                    SelectedColors.Add(c);
+                }
+            }
+        }
+
+        public void RemoveMouseSelectedColor(System.Drawing.Color c)
+        {
+            lock (locker)
+            {
+                if (SelectedColors.Contains(c))
+                {
+                    SelectedColors.Remove(c);
+                }
+            }
+        }
+
+        public void ResetMouseSelectedColors()
+        {
+            lock (locker)
+            {
+                SelectedColors.Clear();
+            }
+        }
+
+        void RebuildMouseColorToolStripItems()
         {
             toolStripMenuItemColors.DropDownItems.Clear();
             foreach (var c in SelectedColors)
             {
                 var tsi = new ToolStripMenuItem();
-                tsi.Text = $"R:{c.R} G:{c.G} B:{c.B}";
+                tsi.Text = $"RGB : 0x00_{c.R:X2}_{c.G:X2}_{c.B:X2}";
                 tsi.BackColor = c;
                 tsi.ForeColor = (c.R + c.G + c.B) / 3 < 128 ? System.Drawing.Color.White : System.Drawing.Color.Black;
                 tsi.Click += (s, e) =>
                 {
-                    RemoveSelectedColor(c);
-                    RebuildMouseColorItems();
-                    ColorRemoved?.Invoke(this, EventArgs.Empty);
+                    RemoveMouseSelectedColor(c);
+                    RebuildMouseColorToolStripItems();
+                    ColorRemoved?.Invoke(this, new ColorEventArgs() {  Color  = tsi.BackColor } );
                 };
                 toolStripMenuItemColors.DropDownItems.Add(tsi);
             }
@@ -255,132 +476,66 @@ namespace ColourClashNet.Controls
 
         void OnAddColor(object sender, EventArgs e)
         {
-            if (oContextMenuColor != System.Drawing.Color.Transparent)
+            if (MouseImageColor != System.Drawing.Color.Transparent)
             {
-                AddSelectedColor(oContextMenuColor);
+                AddMouseSelectedColor(MouseImageColor);
             }
-            RebuildMouseColorItems();
-            ColorAdded?.Invoke(this, EventArgs.Empty);
+            RebuildMouseColorToolStripItems();
+            ColorAdded?.Invoke(this, new ColorEventArgs() { Color = MouseImageColor });
         }
         void OnResetColors(object sender, EventArgs e)
         {
-            ResetSelectedColors();
-            RebuildMouseColorItems();
-            ColorRemoved?.Invoke(this, EventArgs.Empty);
+            ResetMouseSelectedColors();
+            RebuildMouseColorToolStripItems();
+            ColorReset?.Invoke(this, EventArgs.Empty);
         }
         #endregion
 
         #region RAD Setup
 
-        Image oImage;
-        [Browsable(true), Category("Appearance")]
-        public Image Image
-        {
-            get { return oImage; }
-            set
-            {
-                oImage = value;
-                if (value != null)
-                {
-                    if (oControl != null)
-                    {
-                        oControl.Refresh();
-                    }
-                }
-            }
-        }
-
-        Control oControl;
-        [Browsable(true), Category("Appearance")]
-        public Control Control
-        {
-            get { return oControl; }
-            set
-            {
-                if (oControl != value)
-                {
-                    if (oControl != null)
-                    {
-                        oControl.ContextMenuStrip = null;
-                        oControl.Paint -= OnPaint;
-                        oControl.MouseUp -= OnMouseUp;
-                        oControl.MouseDown -= OnMouseDown;
-                        oControl.MouseMove -= OnMouseMove;
-                        oControl.MouseWheel -= OnMouseWheel;
-                    }
-                    oControl = value;
-                    if (oControl != null)
-                    {
-                        oControl.ContextMenuStrip = oContextMenuStrip;
-                        oControl.Paint += OnPaint;
-                        oControl.MouseUp += OnMouseUp;
-                        oControl.MouseDown += OnMouseDown;
-                        oControl.MouseMove += OnMouseMove;
-                        oControl.MouseWheel += OnMouseWheel;
-                        oControl.Refresh();
-                    }
-                }
-            }
-        }
-
-        [Browsable(true), Category("Appearance")]
-        public Boolean ImageBlockScroll { get; set; }
-
-        [Browsable(true), Category("Appearance")]
-        public EnumZoom ImageZoomMode { get; set; }
-
-        [Browsable(true), Category("Appearance")]
-        public Boolean ImageMoveOverControlBorder { get; set; }
-
-        [Browsable(true), Category("Appearance")]
-        public float ImageZoomManual
-        {
-            get { return RoiZoomM; }
-            set { if (value > 0) RoiZoomM = value; ForceRefresh(); }
-        }
+      
+       
 
         #endregion
 
-        #region Render Code
+        #region Clip and Zoom Code
 
         SolidBrush BrushBlack = new SolidBrush(System.Drawing.Color.Black);
-        RectangleF RoiCtrlDst = new RectangleF();
-        RectangleF RoiImgSrc = new RectangleF();
-        //public float RoiZoomX = 1;
-        //public float RoiZoomY = 1;
-        public float RoiZoomM = 1;
+        RectangleF RoiControl = new RectangleF();
+        RectangleF RoiImage = new RectangleF();
+
 
         [Browsable(true), Category("Appearance")]
         public float ZoomControlX
         {
-            get { SetClipAndZoom(); return (float)(BitmapCoordinates.Zoom.X != 0 ? 1.0f / BitmapCoordinates.Zoom.X : 0); }
+            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.Zoom.X != 0 ? 1.0f / oCoordinateManager.Zoom.X : 0); }
         }
 
         [Browsable(true), Category("Appearance")]
         public float ZoomControlY
         {
-            get { SetClipAndZoom(); return (float)(BitmapCoordinates.Zoom.Y != 0 ? 1.0f / BitmapCoordinates.Zoom.Y : 0); }
+            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.Zoom.Y != 0 ? 1.0f / oCoordinateManager.Zoom.Y : 0); }
         }
 
         [Browsable(true), Category("Appearance")]
         public float ZoomImageX
         {
-            get { SetClipAndZoom(); return (float)(BitmapCoordinates.Zoom.X); }
+            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.Zoom.X); }
         }
 
         [Browsable(true), Category("Appearance")]
         public float ZoomImageY
         {
-            get { SetClipAndZoom(); return (float)(BitmapCoordinates.Zoom.Y); }
+            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.Zoom.Y); }
         }
 
 
-        void SetClipAndZoom()
+      
+        void UpdateControlAndImageRoi()
         {
 
             float RoiZoomX = 0;
             float RoiZoomY = 0;
-            BitmapCoordinates.Zoom = new PointF(1, 1);
             if (oControl == null || Control.Size.Width <= 0 || Control.Size.Height <= 0)
             {
                 return;
@@ -396,6 +551,7 @@ namespace ColourClashNet.Controls
             }
             // Il + facile
             // Determina la roi da disegnare
+            oCoordinateManager.SetZoom(1);
             float fiw = Control.Size.Width;
             float fih = Control.Size.Height;
             // Stretch Zoom
@@ -404,12 +560,12 @@ namespace ColourClashNet.Controls
             switch (ImageZoomMode)
             {
                 // Zoom: restringe o allarga la roi
-                case EnumZoom.ZoomQ: RoiZoomX = RoiZoomY = 1.0f * 4; fiw *= RoiZoomX; fih *= RoiZoomY; break;
-                case EnumZoom.ZoomH: RoiZoomX = RoiZoomY = 1.0f * 2; fiw *= RoiZoomX; fih *= RoiZoomY; break;
-                case EnumZoom.Zoom1: RoiZoomX = RoiZoomY = 1.0f / 1; fiw *= RoiZoomX; fih *= RoiZoomY; break;
-                case EnumZoom.Zoom2: RoiZoomX = RoiZoomY = 1.0f / 2; fiw *= RoiZoomX; fih *= RoiZoomY; break;
-                case EnumZoom.Zoom3: RoiZoomX = RoiZoomY = 1.0f / 3; fiw *= RoiZoomX; fih *= RoiZoomY; break;
-                case EnumZoom.Zoom4: RoiZoomX = RoiZoomY = 1.0f / 4; fiw *= RoiZoomX; fih *= RoiZoomY; break;
+                case EnumZoom.ZoomQ: RoiZoomX = RoiZoomY = 1.0f * 4; break;
+                case EnumZoom.ZoomH: RoiZoomX = RoiZoomY = 1.0f * 2; break;
+                case EnumZoom.Zoom1: RoiZoomX = RoiZoomY = 1.0f / 1; break;
+                case EnumZoom.Zoom2: RoiZoomX = RoiZoomY = 1.0f / 2; break;
+                case EnumZoom.Zoom3: RoiZoomX = RoiZoomY = 1.0f / 3; break;
+                case EnumZoom.Zoom4: RoiZoomX = RoiZoomY = 1.0f / 4; break;
                 // Stretch: 
                 case EnumZoom.Stretch: fiw = (float)Image.Size.Width; fih = (float)Image.Size.Height; break;
                 // Fit w e h
@@ -441,92 +597,45 @@ namespace ColourClashNet.Controls
                         }
                     }
                     break;
-                case EnumZoom.Manual: RoiZoomX = RoiZoomY = RoiZoomM; fiw *= RoiZoomM; fih *= RoiZoomM; break;
+                case EnumZoom.Manual: RoiZoomX = RoiZoomY = fRoiZoomM; fiw *= fRoiZoomM; fih *= fRoiZoomM; break;
             }
-            BitmapCoordinates.Zoom = new PointF((float)RoiZoomX, (float)RoiZoomY);
-            RoiCtrlDst.X = RoiCtrlDst.Y = 0;
-            RoiCtrlDst.Width = Control.Size.Width;
-            RoiCtrlDst.Height = Control.Size.Height;
-            RoiImgSrc.X = -(float)BitmapCoordinates.Origin.X;
-            RoiImgSrc.Y = -(float)BitmapCoordinates.Origin.Y;
-            RoiImgSrc.Width = fiw;
-            RoiImgSrc.Height = fih;
+            oCoordinateManager.Zoom = new PointF((float)RoiZoomX, (float)RoiZoomY);
+            
+            // Convert Image ROI in Co
+            // In soldoni questa è la roi sul controllo da disegnare
+            RoiControl = oMouseManager.ToControlRectangle(0, 0, oBmp.Width, oBmp.Height);
+            RoiControl.X += MouseControlTrack.ControlPointTranslation.X;
+            RoiControl.Y += MouseControlTrack.ControlPointTranslation.Y;
+
+            // Converto le coordinate in pixel in quelle dell'immagine
+            // In soldoni è porzione di immagine da disegnare 
+            // Per ora teniamo tutta l'immagine
+            RoiImage = new RectangleF(0, 0, oBmp.Width, oBmp.Height);
             //
-            if (Control != null)
-            {
-                switch (RoiMode)
-                {
-                    case EnumRoiMode.Disabled:
-                        oControl.ContextMenuStrip = oContextMenuStrip;
-                        break;
-                    default:
-                        oControl.ContextMenuStrip = null;
-                        break;
-                }
-            }
+            // Ragionamento semplice, la RoiImage viene Riscalata nella RoiControl
+
         }
 
-        public event PaintEventHandler Paint;
 
-        public void OnPaint(object sender, PaintEventArgs e)
-        {
-            if (Control != null && Image != null)
-            {
-                SetClipAndZoom();
-                e.Graphics.DrawImage(Image, RoiCtrlDst, RoiImgSrc, GraphicsUnit.Pixel);
-                switch (enumRoiMode)
-                {
-                    case EnumRoiMode.Rectangle:
-                        {
-                            if (RoiRectanglePointList.Count == 2)
-                            {
-                                var P1 = BitmapCoordinates.LocalToWorld(RoiRectanglePointList[0]);
-                                var P2 = BitmapCoordinates.LocalToWorld(RoiRectanglePointList[1]);
-                                var R = new RectangleF(Math.Min(P1.X, P2.X), Math.Min(P1.Y, P2.Y), Math.Abs(P2.X - P1.X), Math.Abs(P2.Y - P1.Y));
-                                using (var PenRoi = new Pen(System.Drawing.Color.Red, 2))
-                                {
-                                    e.Graphics.DrawRectangle(PenRoi, R.X, R.Y, R.Width, R.Height);
-                                }
-                            }
-                            else if (RoiRectanglePointList.Count == 1)
-                            {
-                                var P1 = BitmapCoordinates.LocalToWorld(RoiRectanglePointList[0]);
-                                using (var PenRoi = new Pen(System.Drawing.Color.Red, 2))
-                                {
-                                    e.Graphics.DrawEllipse(PenRoi, P1.X - 2, P1.Y - 2, 4, 4);
-                                }
-                            }
-                        }
-                        break;
-                    default:
-                        break;
-                }
-                if (Paint != null)
-                {
-                    Paint(sender, e);
-                }
-            }
-        }
+
+       
         #endregion
 
         #region Moving Origin Point
 
         protected void ForceRefresh()
         {
-            if (oControl != null)
-            {
-                oControl.Invalidate();
-            }
+            oControl?.Invalidate();
         }
 
-        protected Coordinates2D BitmapCoordinates = new Coordinates2D();
+        //protected CoordinateManager oCoordinateManager = new CoordinateManager();
 
         public void WorldOriginMove(double deltaX, double deltaY)
         {
             if (!ImageBlockScroll)
             {
-                SetClipAndZoom();
-                BitmapCoordinates.MoveOriginPointRespectWorldCoordinates(deltaX, deltaY);
+                UpdateControlAndImageRoi();
+                oCoordinateManager.TranslateOriginPointRespectWorldCoordinates(deltaX, deltaY);
                 ForceRefresh();
             }
         }
@@ -543,7 +652,7 @@ namespace ColourClashNet.Controls
 
         public void OriginZero()
         {
-            BitmapCoordinates.Origin = new PointF(0, 0);
+            oCoordinateManager.Origin = new PointF(0, 0);
             ForceRefresh();
         }
 
@@ -551,7 +660,7 @@ namespace ColourClashNet.Controls
         {
             if (oControl != null && Image != null)
             {
-                return BitmapCoordinates.WorldToLocal(p);
+                return oCoordinateManager.WorldToLocal(p);
             }
             return new PointF(-1, -1);
         }
@@ -560,154 +669,14 @@ namespace ColourClashNet.Controls
 
         #region MouseTracker
 
-        [Browsable(true), Category("Appearance")]
-        public MouseButtons MouseMovingButton { get; set; } = MouseButtons.Left;
-
-        [Browsable(true), Category("Appearance")]
-        public MouseButtons MouseRoiButton { get; set; } = MouseButtons.Right;
+      
 
         protected Boolean MouseMovePushed = false;
         protected Boolean MouseRoiPushed = false;
         protected Point MousePushedPoint = new Point();
         protected Point MousePushedPointLast = new Point();
 
-        protected void OnMouseWheel(object Sender, MouseEventArgs args)
-        {
-            if (args.Delta != 0)
-            {
-                if (ImageZoomMode == EnumZoom.Manual)
-                {
-                    ImageZoomManual += 0.5f * args.Delta;
-                }
-                else
-                {
-                    if (args.Delta < 0 && (int)ImageZoomMode > (int)EnumZoom.ZoomQ)
-                    {
-                        ImageZoomMode--;
-                    }
-                    else if (args.Delta > 0 && (int)ImageZoomMode < (int)EnumZoom.Zoom4)
-                    {
-                        ImageZoomMode++;
-                    }
-                }
-                ForceRefresh();
-            }
-        }
-
-        List<PointF> RoiRectanglePointList = new List<PointF>();
-        List<PointF> RoiPolygonPointList = new List<PointF>();
-
-
-        protected void OnMouseDown(object Sender, MouseEventArgs args)
-        {
-            if (args.Button == MouseMovingButton)
-            {
-                if (!MouseMovePushed)
-                {
-                    MouseMovePushed = true;
-                    MousePushedPoint = args.Location;
-                    MousePushedPointLast = args.Location;
-                }
-            }
-            if (enumRoiMode != EnumRoiMode.Disabled)
-            {
-                if (args.Button == MouseRoiButton)
-                {
-                    if (!MouseRoiPushed)
-                    {
-                        MouseRoiPushed = true;
-                        RoiPolygonPointList.Clear();
-                        RoiRectanglePointList.Clear();
-                        if (RoiMode == EnumRoiMode.Rectangle)
-                        {                           
-                            HandleRectangleRoi(args);
-                        }
-                        else if (RoiMode == EnumRoiMode.Polygon)
-                        {
-                            HandlePolygonRoi(args);
-                        }
-                        ForceRefresh();
-                    }
-                }
-            }
-        }
-
-        private void HandleRectangleRoi(MouseEventArgs args)
-        {
-            if (RoiRectanglePointList.Count == 0)
-            {
-                var P1 = PointControlToPointBitmap(args.Location);
-                RoiRectanglePointList.Add(P1);
-            }
-            else
-            {
-                var P1 = RoiRectanglePointList[0];
-                var P2 = PointControlToPointBitmap(args.Location);
-                var P3 = new PointF(Math.Min(P1.X, P2.X), Math.Min(P1.Y, P2.Y));
-                var P4 = new PointF(Math.Max(P1.X, P2.X), Math.Max(P1.Y, P2.Y));
-                RoiRectanglePointList.Clear();
-                RoiRectanglePointList.Add(P3);
-                RoiRectanglePointList.Add(P4);
-            }
-            ForceRefresh();
-        }
-
-        private void HandlePolygonRoi(MouseEventArgs args)
-        {
-            RoiRectanglePointList.Clear();
-            var P1 = PointControlToPointBitmap(args.Location);
-            RoiRectanglePointList.Add(P1);
-            ForceRefresh();
-        }
-
-        protected void OnMouseUp(object Sender, MouseEventArgs args)
-        {
-            if (MouseMovePushed)
-            {
-                MouseMovePushed = false;
-            }
-            if (MouseRoiPushed)
-            {
-                MouseRoiPushed = false;
-            }
-        }
-
-        public event MouseEventHandler MouseMove;
-
-        public event EventHandler ColorAdded;
-        public event EventHandler ColorRemoved;
-
-
-
-        protected void OnMouseMove(object Sender, MouseEventArgs args)
-        {
-            UpdateMouseData(new Point(args.X, args.Y));
-            if (MouseMovePushed)
-            {
-                int DX = MousePushedPointLast.X - args.Location.X;
-                int DY = MousePushedPointLast.Y - args.Location.Y;
-                WorldOriginMove(DX, DY);
-                MousePushedPointLast = args.Location;
-            }
-            if (MouseMove != null)
-            {
-                MouseMove(Sender, args);
-            }
-            if (MouseRoiPushed)
-            {
-                switch (enumRoiMode)
-                {
-                    case EnumRoiMode.Rectangle:
-                            HandleRectangleRoi(args);
-                        break;
-                    case EnumRoiMode.Polygon:
-                            HandlePolygonRoi(args);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+       
 
         #endregion
 
@@ -728,9 +697,9 @@ namespace ColourClashNet.Controls
 
         private void oContextMenuStrip_Opening(object sender, CancelEventArgs e)
         {
-            oContextMenuColor = UpdateMouseData(MouseCoordinates);
+            //oContextMenuColor = HandleMouseColorPick(MouseCoordinates);
             toolStripMenuItemAddColor.Image?.Dispose();
-            toolStripMenuItemAddColor.Image = MakeColorSwatch(oContextMenuColor, 16, 2);
+            toolStripMenuItemAddColor.Image = MakeColorSwatch(MouseImageColor, 16, 2);
         }
     }
 }

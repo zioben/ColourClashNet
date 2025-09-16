@@ -30,8 +30,8 @@
         {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ColorAnalyzer));
-            openFileDialog1 = new OpenFileDialog();
-            menuStrip1 = new MenuStrip();
+            ofdSelectImage = new OpenFileDialog();
+            menuStripMain = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             newToolStripMenuItem = new ToolStripMenuItem();
             openToolStripMenuItem = new ToolStripMenuItem();
@@ -49,19 +49,18 @@
             colorModeToolStripMenuItem = new ToolStripMenuItem();
             colorDistanceToolStripMenuItem = new ToolStripMenuItem();
             ditheringToolStripMenuItem = new ToolStripMenuItem();
-            scMain = new SplitContainer();
+            splitMain = new SplitContainer();
             tableLayoutPanel1 = new TableLayoutPanel();
-            splitContainer1 = new SplitContainer();
-            tableLayoutPanel3 = new TableLayoutPanel();
-            panelColors = new Panel();
+            splitProcessing = new SplitContainer();
+            tlConfig = new TableLayoutPanel();
+            panelSelectColors = new Panel();
             nudColorsWanted = new NumericUpDown();
             label2 = new Label();
-            panelViewColors = new Panel();
-            pbMouseColor = new PictureBox();
-            rbLayoutH = new RadioButton();
-            gbLayoutV = new RadioButton();
             pbBkColor = new PictureBox();
             label3 = new Label();
+            panelLAyout = new Panel();
+            rbLayoutH = new RadioButton();
+            gbLayoutV = new RadioButton();
             panelDithering = new Panel();
             nudDitheringStrenght = new NumericUpDown();
             tbDitherStrenght = new TrackBar();
@@ -110,33 +109,38 @@
             cbCpcVideoMode = new ComboBox();
             lblCpcVideoMode = new Label();
             btnReduceColorCPC = new Button();
-            tableLayoutPanel2 = new TableLayoutPanel();
+            tlProcessing = new TableLayoutPanel();
             gbColorProcessor = new GroupBox();
             pgColorProcessor = new PropertyGrid();
-            scLayout = new SplitContainer();
+            stImageData = new StatusStrip();
+            tsImageLabel = new ToolStripStatusLabel();
+            tsImageCoord = new ToolStripStatusLabel();
+            tsMouseLabel = new ToolStripStatusLabel();
+            tsMouseCoord = new ToolStripStatusLabel();
+            tsColor = new ToolStripStatusLabel();
+            tsColorData = new ToolStripStatusLabel();
+            splitRenderLayout = new SplitContainer();
             pictureBoxSrc = new PictureBox();
             pictureBoxProc = new PictureBox();
             oBitmapRenderSource = new ColourClashNet.Controls.BitmapRender(components);
             oBitmapRenderDest = new ColourClashNet.Controls.BitmapRender(components);
             oColorManager = new ColourClashNet.Controls.ColorManager(components);
             sfdExportImage = new SaveFileDialog();
-            bitmapRender1 = new ColourClashNet.Controls.BitmapRender(components);
-            menuStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)scMain).BeginInit();
-            scMain.Panel1.SuspendLayout();
-            scMain.Panel2.SuspendLayout();
-            scMain.SuspendLayout();
+            menuStripMain.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitMain).BeginInit();
+            splitMain.Panel1.SuspendLayout();
+            splitMain.Panel2.SuspendLayout();
+            splitMain.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
-            splitContainer1.Panel1.SuspendLayout();
-            splitContainer1.Panel2.SuspendLayout();
-            splitContainer1.SuspendLayout();
-            tableLayoutPanel3.SuspendLayout();
-            panelColors.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitProcessing).BeginInit();
+            splitProcessing.Panel1.SuspendLayout();
+            splitProcessing.Panel2.SuspendLayout();
+            splitProcessing.SuspendLayout();
+            tlConfig.SuspendLayout();
+            panelSelectColors.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nudColorsWanted).BeginInit();
-            panelViewColors.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pbMouseColor).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pbBkColor).BeginInit();
+            panelLAyout.SuspendLayout();
             panelDithering.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nudDitheringStrenght).BeginInit();
             ((System.ComponentModel.ISupportInitialize)tbDitherStrenght).BeginInit();
@@ -157,30 +161,31 @@
             ((System.ComponentModel.ISupportInitialize)nudZxColorHI).BeginInit();
             ((System.ComponentModel.ISupportInitialize)nudZxColorLO).BeginInit();
             tpMainAmstrad.SuspendLayout();
-            tableLayoutPanel2.SuspendLayout();
+            tlProcessing.SuspendLayout();
             gbColorProcessor.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)scLayout).BeginInit();
-            scLayout.Panel1.SuspendLayout();
-            scLayout.Panel2.SuspendLayout();
-            scLayout.SuspendLayout();
+            stImageData.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitRenderLayout).BeginInit();
+            splitRenderLayout.Panel1.SuspendLayout();
+            splitRenderLayout.Panel2.SuspendLayout();
+            splitRenderLayout.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBoxSrc).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBoxProc).BeginInit();
             SuspendLayout();
             // 
-            // openFileDialog1
+            // ofdSelectImage
             // 
-            openFileDialog1.Filter = "Bmp|*.bmp|Png|*.png|Jpg|*.jpg|All Files|*.*";
-            openFileDialog1.FilterIndex = 4;
-            openFileDialog1.Title = "Load Image";
+            ofdSelectImage.Filter = "Bmp|*.bmp|Png|*.png|Jpg|*.jpg|All Files|*.*";
+            ofdSelectImage.FilterIndex = 4;
+            ofdSelectImage.Title = "Load Image";
             // 
-            // menuStrip1
+            // menuStripMain
             // 
-            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, colorModeToolStripMenuItem, colorDistanceToolStripMenuItem, ditheringToolStripMenuItem });
-            menuStrip1.Location = new Point(0, 0);
-            menuStrip1.Name = "menuStrip1";
-            menuStrip1.Size = new Size(1134, 24);
-            menuStrip1.TabIndex = 0;
-            menuStrip1.Text = "menuStrip1";
+            menuStripMain.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, colorModeToolStripMenuItem, colorDistanceToolStripMenuItem, ditheringToolStripMenuItem });
+            menuStripMain.Location = new Point(0, 0);
+            menuStripMain.Name = "menuStripMain";
+            menuStripMain.Size = new Size(1134, 24);
+            menuStripMain.TabIndex = 0;
+            menuStripMain.Text = "menuStrip1";
             // 
             // fileToolStripMenuItem
             // 
@@ -304,31 +309,31 @@
             ditheringToolStripMenuItem.Size = new Size(68, 20);
             ditheringToolStripMenuItem.Text = "Dithering";
             // 
-            // scMain
+            // splitMain
             // 
-            scMain.Dock = DockStyle.Fill;
-            scMain.Location = new Point(0, 24);
-            scMain.Name = "scMain";
+            splitMain.Dock = DockStyle.Fill;
+            splitMain.Location = new Point(0, 24);
+            splitMain.Name = "splitMain";
             // 
-            // scMain.Panel1
+            // splitMain.Panel1
             // 
-            scMain.Panel1.Controls.Add(tableLayoutPanel1);
+            splitMain.Panel1.Controls.Add(tableLayoutPanel1);
             // 
-            // scMain.Panel2
+            // splitMain.Panel2
             // 
-            scMain.Panel2.Controls.Add(scLayout);
-            scMain.Size = new Size(1134, 791);
-            scMain.SplitterDistance = 363;
-            scMain.TabIndex = 1;
-            scMain.SplitterMoved += scMain_SplitterMoved;
-            scMain.SizeChanged += scMain_SizeChanged;
+            splitMain.Panel2.Controls.Add(splitRenderLayout);
+            splitMain.Size = new Size(1134, 791);
+            splitMain.SplitterDistance = 363;
+            splitMain.TabIndex = 1;
+            splitMain.SplitterMoved += scMain_SplitterMoved;
+            splitMain.SizeChanged += scMain_SizeChanged;
             // 
             // tableLayoutPanel1
             // 
             tableLayoutPanel1.ColumnCount = 1;
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 360F));
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel1.Controls.Add(splitContainer1, 0, 0);
+            tableLayoutPanel1.Controls.Add(splitProcessing, 0, 0);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
@@ -337,59 +342,61 @@
             tableLayoutPanel1.Size = new Size(363, 791);
             tableLayoutPanel1.TabIndex = 0;
             // 
-            // splitContainer1
+            // splitProcessing
             // 
-            splitContainer1.Dock = DockStyle.Fill;
-            splitContainer1.Location = new Point(3, 3);
-            splitContainer1.Name = "splitContainer1";
-            splitContainer1.Orientation = Orientation.Horizontal;
+            splitProcessing.Dock = DockStyle.Fill;
+            splitProcessing.Location = new Point(3, 3);
+            splitProcessing.Name = "splitProcessing";
+            splitProcessing.Orientation = Orientation.Horizontal;
             // 
-            // splitContainer1.Panel1
+            // splitProcessing.Panel1
             // 
-            splitContainer1.Panel1.Controls.Add(tableLayoutPanel3);
+            splitProcessing.Panel1.Controls.Add(tlConfig);
             // 
-            // splitContainer1.Panel2
+            // splitProcessing.Panel2
             // 
-            splitContainer1.Panel2.Controls.Add(tableLayoutPanel2);
-            splitContainer1.Size = new Size(357, 785);
-            splitContainer1.SplitterDistance = 513;
-            splitContainer1.TabIndex = 10;
+            splitProcessing.Panel2.Controls.Add(tlProcessing);
+            splitProcessing.Size = new Size(357, 785);
+            splitProcessing.SplitterDistance = 513;
+            splitProcessing.TabIndex = 10;
             // 
-            // tableLayoutPanel3
+            // tlConfig
             // 
-            tableLayoutPanel3.ColumnCount = 1;
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            tableLayoutPanel3.Controls.Add(panelColors, 0, 1);
-            tableLayoutPanel3.Controls.Add(panelViewColors, 0, 0);
-            tableLayoutPanel3.Controls.Add(panelDithering, 0, 2);
-            tableLayoutPanel3.Controls.Add(tabControlMain, 0, 3);
-            tableLayoutPanel3.Dock = DockStyle.Fill;
-            tableLayoutPanel3.Location = new Point(0, 0);
-            tableLayoutPanel3.Name = "tableLayoutPanel3";
-            tableLayoutPanel3.RowCount = 4;
-            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 64F));
-            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
-            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 64F));
-            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel3.Size = new Size(357, 513);
-            tableLayoutPanel3.TabIndex = 9;
+            tlConfig.ColumnCount = 1;
+            tlConfig.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tlConfig.Controls.Add(panelSelectColors, 0, 1);
+            tlConfig.Controls.Add(panelLAyout, 0, 0);
+            tlConfig.Controls.Add(panelDithering, 0, 2);
+            tlConfig.Controls.Add(tabControlMain, 0, 3);
+            tlConfig.Dock = DockStyle.Fill;
+            tlConfig.Location = new Point(0, 0);
+            tlConfig.Name = "tlConfig";
+            tlConfig.RowCount = 4;
+            tlConfig.RowStyles.Add(new RowStyle(SizeType.Absolute, 56F));
+            tlConfig.RowStyles.Add(new RowStyle(SizeType.Absolute, 69F));
+            tlConfig.RowStyles.Add(new RowStyle(SizeType.Absolute, 60F));
+            tlConfig.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tlConfig.Size = new Size(357, 513);
+            tlConfig.TabIndex = 9;
             // 
-            // panelColors
+            // panelSelectColors
             // 
-            panelColors.Controls.Add(nudColorsWanted);
-            panelColors.Controls.Add(label2);
-            panelColors.Dock = DockStyle.Fill;
-            panelColors.Location = new Point(0, 64);
-            panelColors.Margin = new Padding(0);
-            panelColors.Name = "panelColors";
-            panelColors.Size = new Size(357, 42);
-            panelColors.TabIndex = 29;
+            panelSelectColors.Controls.Add(nudColorsWanted);
+            panelSelectColors.Controls.Add(label2);
+            panelSelectColors.Controls.Add(pbBkColor);
+            panelSelectColors.Controls.Add(label3);
+            panelSelectColors.Dock = DockStyle.Fill;
+            panelSelectColors.Location = new Point(0, 56);
+            panelSelectColors.Margin = new Padding(0);
+            panelSelectColors.Name = "panelSelectColors";
+            panelSelectColors.Size = new Size(357, 69);
+            panelSelectColors.TabIndex = 29;
             // 
             // nudColorsWanted
             // 
             nudColorsWanted.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             nudColorsWanted.Increment = new decimal(new int[] { 8, 0, 0, 0 });
-            nudColorsWanted.Location = new Point(281, 6);
+            nudColorsWanted.Location = new Point(152, 7);
             nudColorsWanted.Maximum = new decimal(new int[] { 256, 0, 0, 0 });
             nudColorsWanted.Minimum = new decimal(new int[] { 2, 0, 0, 0 });
             nudColorsWanted.Name = "nudColorsWanted";
@@ -400,63 +407,17 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(3, 8);
+            label2.Location = new Point(7, 9);
             label2.Name = "label2";
             label2.Size = new Size(80, 15);
             label2.TabIndex = 10;
             label2.Text = "Color Wanted";
             // 
-            // panelViewColors
-            // 
-            panelViewColors.Controls.Add(pbMouseColor);
-            panelViewColors.Controls.Add(rbLayoutH);
-            panelViewColors.Controls.Add(gbLayoutV);
-            panelViewColors.Controls.Add(pbBkColor);
-            panelViewColors.Controls.Add(label3);
-            panelViewColors.Dock = DockStyle.Fill;
-            panelViewColors.Location = new Point(0, 0);
-            panelViewColors.Margin = new Padding(0);
-            panelViewColors.Name = "panelViewColors";
-            panelViewColors.Size = new Size(357, 64);
-            panelViewColors.TabIndex = 28;
-            // 
-            // pbMouseColor
-            // 
-            pbMouseColor.Location = new Point(125, 3);
-            pbMouseColor.Name = "pbMouseColor";
-            pbMouseColor.Size = new Size(47, 19);
-            pbMouseColor.TabIndex = 15;
-            pbMouseColor.TabStop = false;
-            // 
-            // rbLayoutH
-            // 
-            rbLayoutH.AutoSize = true;
-            rbLayoutH.Checked = true;
-            rbLayoutH.Location = new Point(178, 28);
-            rbLayoutH.Name = "rbLayoutH";
-            rbLayoutH.Size = new Size(119, 19);
-            rbLayoutH.TabIndex = 14;
-            rbLayoutH.TabStop = true;
-            rbLayoutH.Text = "Horizontal Layout";
-            rbLayoutH.UseVisualStyleBackColor = true;
-            rbLayoutH.CheckedChanged += rbLayoutH_CheckedChanged;
-            // 
-            // gbLayoutV
-            // 
-            gbLayoutV.AutoSize = true;
-            gbLayoutV.Location = new Point(178, 3);
-            gbLayoutV.Name = "gbLayoutV";
-            gbLayoutV.Size = new Size(102, 19);
-            gbLayoutV.TabIndex = 13;
-            gbLayoutV.Text = "Vertical Layout";
-            gbLayoutV.UseVisualStyleBackColor = true;
-            gbLayoutV.CheckedChanged += gbLayoutV_CheckedChanged;
-            // 
             // pbBkColor
             // 
-            pbBkColor.Location = new Point(7, 21);
+            pbBkColor.Location = new Point(152, 34);
             pbBkColor.Name = "pbBkColor";
-            pbBkColor.Size = new Size(165, 30);
+            pbBkColor.Size = new Size(194, 30);
             pbBkColor.TabIndex = 12;
             pbBkColor.TabStop = false;
             pbBkColor.DoubleClick += pbBkColor_DoubleClick;
@@ -464,11 +425,46 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(6, 3);
+            label3.Location = new Point(7, 41);
             label3.Name = "label3";
-            label3.Size = new Size(113, 15);
+            label3.Size = new Size(142, 15);
             label3.TabIndex = 11;
-            label3.Text = "Background Color/s";
+            label3.Text = "Background Color Palette";
+            // 
+            // panelLAyout
+            // 
+            panelLAyout.Controls.Add(rbLayoutH);
+            panelLAyout.Controls.Add(gbLayoutV);
+            panelLAyout.Dock = DockStyle.Fill;
+            panelLAyout.Location = new Point(0, 0);
+            panelLAyout.Margin = new Padding(0);
+            panelLAyout.Name = "panelLAyout";
+            panelLAyout.Size = new Size(357, 56);
+            panelLAyout.TabIndex = 28;
+            // 
+            // rbLayoutH
+            // 
+            rbLayoutH.AutoSize = true;
+            rbLayoutH.Location = new Point(7, 34);
+            rbLayoutH.Name = "rbLayoutH";
+            rbLayoutH.Size = new Size(119, 19);
+            rbLayoutH.TabIndex = 14;
+            rbLayoutH.Text = "Horizontal Layout";
+            rbLayoutH.UseVisualStyleBackColor = true;
+            rbLayoutH.CheckedChanged += rbLayoutH_CheckedChanged;
+            // 
+            // gbLayoutV
+            // 
+            gbLayoutV.AutoSize = true;
+            gbLayoutV.Checked = true;
+            gbLayoutV.Location = new Point(7, 9);
+            gbLayoutV.Name = "gbLayoutV";
+            gbLayoutV.Size = new Size(102, 19);
+            gbLayoutV.TabIndex = 13;
+            gbLayoutV.TabStop = true;
+            gbLayoutV.Text = "Vertical Layout";
+            gbLayoutV.UseVisualStyleBackColor = true;
+            gbLayoutV.CheckedChanged += gbLayoutV_CheckedChanged;
             // 
             // panelDithering
             // 
@@ -476,10 +472,10 @@
             panelDithering.Controls.Add(tbDitherStrenght);
             panelDithering.Controls.Add(label5);
             panelDithering.Dock = DockStyle.Fill;
-            panelDithering.Location = new Point(0, 106);
+            panelDithering.Location = new Point(0, 125);
             panelDithering.Margin = new Padding(0);
             panelDithering.Name = "panelDithering";
-            panelDithering.Size = new Size(357, 64);
+            panelDithering.Size = new Size(357, 60);
             panelDithering.TabIndex = 31;
             // 
             // nudDitheringStrenght
@@ -487,7 +483,7 @@
             nudDitheringStrenght.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             nudDitheringStrenght.DecimalPlaces = 2;
             nudDitheringStrenght.Increment = new decimal(new int[] { 5, 0, 0, 131072 });
-            nudDitheringStrenght.Location = new Point(281, 10);
+            nudDitheringStrenght.Location = new Point(281, 16);
             nudDitheringStrenght.Maximum = new decimal(new int[] { 1, 0, 0, 0 });
             nudDitheringStrenght.Name = "nudDitheringStrenght";
             nudDitheringStrenght.Size = new Size(65, 23);
@@ -499,7 +495,7 @@
             // tbDitherStrenght
             // 
             tbDitherStrenght.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            tbDitherStrenght.Location = new Point(71, 3);
+            tbDitherStrenght.Location = new Point(71, 9);
             tbDitherStrenght.Maximum = 100;
             tbDitherStrenght.Name = "tbDitherStrenght";
             tbDitherStrenght.Size = new Size(204, 45);
@@ -511,7 +507,7 @@
             // 
             // label5
             // 
-            label5.Location = new Point(3, 5);
+            label5.Location = new Point(3, 11);
             label5.Name = "label5";
             label5.Size = new Size(62, 40);
             label5.TabIndex = 20;
@@ -525,10 +521,10 @@
             tabControlMain.Controls.Add(tpMainSinclair);
             tabControlMain.Controls.Add(tpMainAmstrad);
             tabControlMain.Dock = DockStyle.Fill;
-            tabControlMain.Location = new Point(3, 173);
+            tabControlMain.Location = new Point(3, 188);
             tabControlMain.Name = "tabControlMain";
             tabControlMain.SelectedIndex = 0;
-            tabControlMain.Size = new Size(351, 337);
+            tabControlMain.Size = new Size(351, 322);
             tabControlMain.TabIndex = 32;
             // 
             // tpMainGeneric
@@ -547,7 +543,7 @@
             tpMainGeneric.Location = new Point(4, 24);
             tpMainGeneric.Name = "tpMainGeneric";
             tpMainGeneric.Padding = new Padding(3);
-            tpMainGeneric.Size = new Size(343, 309);
+            tpMainGeneric.Size = new Size(343, 294);
             tpMainGeneric.TabIndex = 0;
             tpMainGeneric.Text = "Base";
             tpMainGeneric.UseVisualStyleBackColor = true;
@@ -665,7 +661,7 @@
             tpMainIndexed.Location = new Point(4, 24);
             tpMainIndexed.Name = "tpMainIndexed";
             tpMainIndexed.Padding = new Padding(3);
-            tpMainIndexed.Size = new Size(343, 336);
+            tpMainIndexed.Size = new Size(343, 294);
             tpMainIndexed.TabIndex = 4;
             tpMainIndexed.Text = "Indexed";
             tpMainIndexed.UseVisualStyleBackColor = true;
@@ -687,7 +683,7 @@
             tpMainCbm.Location = new Point(4, 24);
             tpMainCbm.Name = "tpMainCbm";
             tpMainCbm.Padding = new Padding(3);
-            tpMainCbm.Size = new Size(343, 336);
+            tpMainCbm.Size = new Size(343, 294);
             tpMainCbm.TabIndex = 1;
             tpMainCbm.Text = "Cbm";
             tpMainCbm.UseVisualStyleBackColor = true;
@@ -700,7 +696,7 @@
             tabCbm.Location = new Point(3, 3);
             tabCbm.Name = "tabCbm";
             tabCbm.SelectedIndex = 0;
-            tabCbm.Size = new Size(337, 330);
+            tabCbm.Size = new Size(337, 288);
             tabCbm.TabIndex = 0;
             // 
             // tpCbm64
@@ -711,7 +707,7 @@
             tpCbm64.Location = new Point(4, 24);
             tpCbm64.Name = "tpCbm64";
             tpCbm64.Padding = new Padding(3);
-            tpCbm64.Size = new Size(329, 302);
+            tpCbm64.Size = new Size(329, 260);
             tpCbm64.TabIndex = 0;
             tpCbm64.Text = "C= 64";
             tpCbm64.UseVisualStyleBackColor = true;
@@ -759,7 +755,7 @@
             tpCbmAmiga.Location = new Point(4, 24);
             tpCbmAmiga.Name = "tpCbmAmiga";
             tpCbmAmiga.Padding = new Padding(3);
-            tpCbmAmiga.Size = new Size(329, 302);
+            tpCbmAmiga.Size = new Size(329, 260);
             tpCbmAmiga.TabIndex = 1;
             tpCbmAmiga.Text = "Amiga";
             tpCbmAmiga.UseVisualStyleBackColor = true;
@@ -872,7 +868,7 @@
             tpMainSinclair.Location = new Point(4, 24);
             tpMainSinclair.Name = "tpMainSinclair";
             tpMainSinclair.Padding = new Padding(3);
-            tpMainSinclair.Size = new Size(343, 336);
+            tpMainSinclair.Size = new Size(343, 294);
             tpMainSinclair.TabIndex = 2;
             tpMainSinclair.Text = "Sinclair";
             tpMainSinclair.UseVisualStyleBackColor = true;
@@ -956,7 +952,7 @@
             tpMainAmstrad.Location = new Point(4, 24);
             tpMainAmstrad.Name = "tpMainAmstrad";
             tpMainAmstrad.Padding = new Padding(3);
-            tpMainAmstrad.Size = new Size(343, 336);
+            tpMainAmstrad.Size = new Size(343, 294);
             tpMainAmstrad.TabIndex = 3;
             tpMainAmstrad.Text = "Amstrad";
             tpMainAmstrad.UseVisualStyleBackColor = true;
@@ -989,18 +985,20 @@
             btnReduceColorCPC.UseVisualStyleBackColor = true;
             btnReduceColorCPC.Click += btnReduceColorCPC_Click;
             // 
-            // tableLayoutPanel2
+            // tlProcessing
             // 
-            tableLayoutPanel2.ColumnCount = 1;
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            tableLayoutPanel2.Controls.Add(gbColorProcessor, 0, 0);
-            tableLayoutPanel2.Dock = DockStyle.Fill;
-            tableLayoutPanel2.Location = new Point(0, 0);
-            tableLayoutPanel2.Name = "tableLayoutPanel2";
-            tableLayoutPanel2.RowCount = 1;
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 64F));
-            tableLayoutPanel2.Size = new Size(357, 268);
-            tableLayoutPanel2.TabIndex = 1;
+            tlProcessing.ColumnCount = 1;
+            tlProcessing.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tlProcessing.Controls.Add(gbColorProcessor, 0, 0);
+            tlProcessing.Controls.Add(stImageData, 0, 1);
+            tlProcessing.Dock = DockStyle.Fill;
+            tlProcessing.Location = new Point(0, 0);
+            tlProcessing.Name = "tlProcessing";
+            tlProcessing.RowCount = 2;
+            tlProcessing.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tlProcessing.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tlProcessing.Size = new Size(357, 268);
+            tlProcessing.TabIndex = 1;
             // 
             // gbColorProcessor
             // 
@@ -1008,7 +1006,7 @@
             gbColorProcessor.Dock = DockStyle.Fill;
             gbColorProcessor.Location = new Point(3, 3);
             gbColorProcessor.Name = "gbColorProcessor";
-            gbColorProcessor.Size = new Size(351, 262);
+            gbColorProcessor.Size = new Size(351, 242);
             gbColorProcessor.TabIndex = 0;
             gbColorProcessor.TabStop = false;
             gbColorProcessor.Text = "Color Processor Data";
@@ -1018,26 +1016,73 @@
             pgColorProcessor.Dock = DockStyle.Fill;
             pgColorProcessor.Location = new Point(3, 19);
             pgColorProcessor.Name = "pgColorProcessor";
-            pgColorProcessor.Size = new Size(345, 240);
+            pgColorProcessor.Size = new Size(345, 220);
             pgColorProcessor.TabIndex = 0;
             // 
-            // scLayout
+            // stImageData
             // 
-            scLayout.Dock = DockStyle.Fill;
-            scLayout.Location = new Point(0, 0);
-            scLayout.Name = "scLayout";
-            scLayout.Orientation = Orientation.Horizontal;
+            stImageData.Items.AddRange(new ToolStripItem[] { tsImageLabel, tsImageCoord, tsMouseLabel, tsMouseCoord, tsColor, tsColorData });
+            stImageData.Location = new Point(0, 248);
+            stImageData.Name = "stImageData";
+            stImageData.Size = new Size(357, 20);
+            stImageData.TabIndex = 1;
+            stImageData.Text = "statusStrip1";
             // 
-            // scLayout.Panel1
+            // tsImageLabel
             // 
-            scLayout.Panel1.Controls.Add(pictureBoxSrc);
+            tsImageLabel.Name = "tsImageLabel";
+            tsImageLabel.Size = new Size(40, 15);
+            tsImageLabel.Text = "Image";
             // 
-            // scLayout.Panel2
+            // tsImageCoord
             // 
-            scLayout.Panel2.Controls.Add(pictureBoxProc);
-            scLayout.Size = new Size(767, 791);
-            scLayout.SplitterDistance = 395;
-            scLayout.TabIndex = 0;
+            tsImageCoord.AutoSize = false;
+            tsImageCoord.Name = "tsImageCoord";
+            tsImageCoord.Size = new Size(80, 15);
+            tsImageCoord.Text = "(:)";
+            // 
+            // tsMouseLabel
+            // 
+            tsMouseLabel.Name = "tsMouseLabel";
+            tsMouseLabel.Size = new Size(47, 15);
+            tsMouseLabel.Text = "Control";
+            // 
+            // tsMouseCoord
+            // 
+            tsMouseCoord.AutoSize = false;
+            tsMouseCoord.Name = "tsMouseCoord";
+            tsMouseCoord.Size = new Size(80, 15);
+            tsMouseCoord.Text = "(:)";
+            // 
+            // tsColor
+            // 
+            tsColor.Name = "tsColor";
+            tsColor.Size = new Size(36, 15);
+            tsColor.Text = "Color";
+            // 
+            // tsColorData
+            // 
+            tsColorData.AutoSize = false;
+            tsColorData.BackColor = System.Drawing.Color.Black;
+            tsColorData.Name = "tsColorData";
+            tsColorData.Size = new Size(22, 15);
+            // 
+            // splitRenderLayout
+            // 
+            splitRenderLayout.Dock = DockStyle.Fill;
+            splitRenderLayout.Location = new Point(0, 0);
+            splitRenderLayout.Name = "splitRenderLayout";
+            // 
+            // splitRenderLayout.Panel1
+            // 
+            splitRenderLayout.Panel1.Controls.Add(pictureBoxSrc);
+            // 
+            // splitRenderLayout.Panel2
+            // 
+            splitRenderLayout.Panel2.Controls.Add(pictureBoxProc);
+            splitRenderLayout.Size = new Size(767, 791);
+            splitRenderLayout.SplitterDistance = 395;
+            splitRenderLayout.TabIndex = 0;
             // 
             // pictureBoxSrc
             // 
@@ -1045,7 +1090,7 @@
             pictureBoxSrc.Dock = DockStyle.Fill;
             pictureBoxSrc.Location = new Point(0, 0);
             pictureBoxSrc.Name = "pictureBoxSrc";
-            pictureBoxSrc.Size = new Size(767, 395);
+            pictureBoxSrc.Size = new Size(395, 791);
             pictureBoxSrc.TabIndex = 0;
             pictureBoxSrc.TabStop = false;
             // 
@@ -1055,36 +1100,34 @@
             pictureBoxProc.Dock = DockStyle.Fill;
             pictureBoxProc.Location = new Point(0, 0);
             pictureBoxProc.Name = "pictureBoxProc";
-            pictureBoxProc.Size = new Size(767, 392);
+            pictureBoxProc.Size = new Size(368, 791);
             pictureBoxProc.TabIndex = 0;
             pictureBoxProc.TabStop = false;
             // 
             // oBitmapRenderSource
             // 
+            oBitmapRenderSource.ContinuousFollowing = true;
             oBitmapRenderSource.Control = pictureBoxSrc;
             oBitmapRenderSource.Image = null;
             oBitmapRenderSource.ImageBlockScroll = false;
-            oBitmapRenderSource.ImageCoordinates = (PointF)resources.GetObject("oBitmapRenderSource.ImageCoordinates");
-            oBitmapRenderSource.ImageMoveOverControlBorder = false;
+            oBitmapRenderSource.ImageMoveOverControlBorder = true;
             oBitmapRenderSource.ImageZoomManual = 1F;
             oBitmapRenderSource.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
-            oBitmapRenderSource.MouseCoordinates = new Point(0, 0);
             oBitmapRenderSource.MouseMovingButton = MouseButtons.Left;
-            oBitmapRenderSource.PeekMouseColor = true;
+            oBitmapRenderSource.MouseSelectButton = MouseButtons.Right;
             oBitmapRenderSource.MouseMove += oBitmapRenderSource_MouseMove;
             // 
             // oBitmapRenderDest
             // 
+            oBitmapRenderDest.ContinuousFollowing = true;
             oBitmapRenderDest.Control = pictureBoxProc;
             oBitmapRenderDest.Image = null;
             oBitmapRenderDest.ImageBlockScroll = false;
-            oBitmapRenderDest.ImageCoordinates = (PointF)resources.GetObject("oBitmapRenderDest.ImageCoordinates");
-            oBitmapRenderDest.ImageMoveOverControlBorder = false;
+            oBitmapRenderDest.ImageMoveOverControlBorder = true;
             oBitmapRenderDest.ImageZoomManual = 1F;
             oBitmapRenderDest.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
-            oBitmapRenderDest.MouseCoordinates = new Point(0, 0);
             oBitmapRenderDest.MouseMovingButton = MouseButtons.Left;
-            oBitmapRenderDest.PeekMouseColor = true;
+            oBitmapRenderDest.MouseSelectButton = MouseButtons.Right;
             // 
             // oColorManager
             // 
@@ -1098,46 +1141,32 @@
             // 
             sfdExportImage.AddExtension = false;
             // 
-            // bitmapRender1
-            // 
-            bitmapRender1.Control = null;
-            bitmapRender1.Image = null;
-            bitmapRender1.ImageBlockScroll = false;
-            bitmapRender1.ImageCoordinates = (PointF)resources.GetObject("bitmapRender1.ImageCoordinates");
-            bitmapRender1.ImageMoveOverControlBorder = false;
-            bitmapRender1.ImageZoomManual = 1F;
-            bitmapRender1.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.ZoomQ;
-            bitmapRender1.MouseCoordinates = new Point(0, 0);
-            bitmapRender1.MouseMovingButton = MouseButtons.Left;
-            bitmapRender1.PeekMouseColor = false;
-            // 
             // ColorAnalyzer
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            Controls.Add(scMain);
-            Controls.Add(menuStrip1);
+            Controls.Add(splitMain);
+            Controls.Add(menuStripMain);
             Name = "ColorAnalyzer";
             Size = new Size(1134, 815);
-            menuStrip1.ResumeLayout(false);
-            menuStrip1.PerformLayout();
-            scMain.Panel1.ResumeLayout(false);
-            scMain.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)scMain).EndInit();
-            scMain.ResumeLayout(false);
+            menuStripMain.ResumeLayout(false);
+            menuStripMain.PerformLayout();
+            splitMain.Panel1.ResumeLayout(false);
+            splitMain.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitMain).EndInit();
+            splitMain.ResumeLayout(false);
             tableLayoutPanel1.ResumeLayout(false);
-            splitContainer1.Panel1.ResumeLayout(false);
-            splitContainer1.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
-            splitContainer1.ResumeLayout(false);
-            tableLayoutPanel3.ResumeLayout(false);
-            panelColors.ResumeLayout(false);
-            panelColors.PerformLayout();
+            splitProcessing.Panel1.ResumeLayout(false);
+            splitProcessing.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitProcessing).EndInit();
+            splitProcessing.ResumeLayout(false);
+            tlConfig.ResumeLayout(false);
+            panelSelectColors.ResumeLayout(false);
+            panelSelectColors.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)nudColorsWanted).EndInit();
-            panelViewColors.ResumeLayout(false);
-            panelViewColors.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)pbMouseColor).EndInit();
             ((System.ComponentModel.ISupportInitialize)pbBkColor).EndInit();
+            panelLAyout.ResumeLayout(false);
+            panelLAyout.PerformLayout();
             panelDithering.ResumeLayout(false);
             panelDithering.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)nudDitheringStrenght).EndInit();
@@ -1161,12 +1190,15 @@
             ((System.ComponentModel.ISupportInitialize)nudZxColorHI).EndInit();
             ((System.ComponentModel.ISupportInitialize)nudZxColorLO).EndInit();
             tpMainAmstrad.ResumeLayout(false);
-            tableLayoutPanel2.ResumeLayout(false);
+            tlProcessing.ResumeLayout(false);
+            tlProcessing.PerformLayout();
             gbColorProcessor.ResumeLayout(false);
-            scLayout.Panel1.ResumeLayout(false);
-            scLayout.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)scLayout).EndInit();
-            scLayout.ResumeLayout(false);
+            stImageData.ResumeLayout(false);
+            stImageData.PerformLayout();
+            splitRenderLayout.Panel1.ResumeLayout(false);
+            splitRenderLayout.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitRenderLayout).EndInit();
+            splitRenderLayout.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBoxSrc).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBoxProc).EndInit();
             ResumeLayout(false);
@@ -1174,12 +1206,12 @@
         }
 
         #endregion
-        private OpenFileDialog openFileDialog1;
-        private MenuStrip menuStrip1;
+        private OpenFileDialog ofdSelectImage;
+        private MenuStrip menuStripMain;
         private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem newToolStripMenuItem;
         private ToolStripMenuItem openToolStripMenuItem;
-        private SplitContainer scMain;
+        private SplitContainer splitMain;
         private PictureBox pictureBoxSrc;
         private ToolStripMenuItem exportToolStripMenuItem;
         private TableLayoutPanel tableLayoutPanel1;
@@ -1196,21 +1228,19 @@
         private ToolStripMenuItem sourceCodeToolStripMenuItem;
         private ToolStripMenuItem rawBitplaneAndOCSCopperlistToolStripMenuItem;
         private ToolStripMenuItem toolStripMenuItemSave;
-        private SplitContainer scLayout;
+        private SplitContainer splitRenderLayout;
         private PictureBox pictureBoxProc;
         private Controls.BitmapRender oBitmapRenderDest;
         private SaveFileDialog sfdExportImage;
         private ToolStripMenuItem ditheringToolStripMenuItem;
         private ToolStripMenuItem colorModeToolStripMenuItem;
-        private Controls.BitmapRender bitmapRender1;
         private PropertyGrid pgColorProcessor;
-        private SplitContainer splitContainer1;
-        private TableLayoutPanel tableLayoutPanel3;
-        private Panel panelColors;
+        private SplitContainer splitProcessing;
+        private TableLayoutPanel tlConfig;
+        private Panel panelSelectColors;
         private NumericUpDown nudColorsWanted;
         private Label label2;
-        private Panel panelViewColors;
-        private PictureBox pbMouseColor;
+        private Panel panelLAyout;
         private RadioButton rbLayoutH;
         private RadioButton gbLayoutV;
         private PictureBox pbBkColor;
@@ -1263,7 +1293,14 @@
         private ComboBox cbCpcVideoMode;
         private Label lblCpcVideoMode;
         private Button btnReduceColorCPC;
-        private TableLayoutPanel tableLayoutPanel2;
+        private TableLayoutPanel tlProcessing;
         private GroupBox gbColorProcessor;
+        private StatusStrip stImageData;
+        private ToolStripStatusLabel tsImageLabel;
+        private ToolStripStatusLabel tsImageCoord;
+        private ToolStripStatusLabel tsMouseLabel;
+        private ToolStripStatusLabel tsMouseCoord;
+        private ToolStripStatusLabel tsColor;
+        private ToolStripStatusLabel tsColorData;
     }
 }

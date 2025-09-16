@@ -7,10 +7,17 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Controls
 {
+    /// <summary>
+    /// <para>
+    /// World = Control Coordinates
+    /// Local = Bitmap Coordinates
+    /// </para>
+    /// </summary>
     [Serializable]
-    public class Coordinates2D
+   
+    public class CoordinateManager
     {
-        public Coordinates2D()
+        public CoordinateManager()
         {
             Origin = new PointF();
             RotationPoint = new PointF();
@@ -23,7 +30,7 @@ namespace ColourClashNet.Controls
         [Browsable(true), Category("Coordinates")]
         public PointF RotationPoint { get; set; }
         [Browsable(true), Category("Coordinates")]
-        public PointF Zoom { get; set; }
+        public PointF Zoom { get;  set; }
 
         [Browsable(true), Category("Coordinates")]
         public double RotationAngle
@@ -43,27 +50,50 @@ namespace ColourClashNet.Controls
         double cos;
         double sin;
 
-        public void MoveOriginPointRespectWorldCoordinates(double dx, double dy)
+        public void SetZoom(float fX, float fY)
+        {
+            Zoom = new PointF(fX,fY);
+        }
+
+        public void SetZoom(int iX, int iY) => SetZoom((float)iX,(float)iY);
+
+        public void SetZoom(double dX, double dY) => SetZoom((float)dX, (float)dY);
+        public void SetZoom(float fScale) => SetZoom(fScale, fScale);
+        public void SetZoom(int iScale) => SetZoom(iScale, iScale);
+        public void SetZoom(double dScale) => SetZoom(dScale, dScale);
+
+        public void SetZoom(float fScaleWX, float fScaleWY, float fScaleLX, float fScaleLY )
+        {
+            Zoom = new PointF(
+                fScaleLX != 0 ? fScaleWX / fScaleLX : 0,
+                fScaleLY != 0 ? fScaleWY / fScaleLY : 0);
+        }
+        public void SetZoom(int iScaleWX, int iScaleWY, int iScaleLX, int iScaleLY) 
+            => SetZoom((float)iScaleWX,(float)iScaleWY, (float)iScaleLX, (float) iScaleLY);
+        public void SetZoom(double dScaleWX, double dScaleWY, double dScaleLX, double dScaleLY)
+            => SetZoom((float)dScaleWX, (float)dScaleWY, (float)dScaleLX, (float)dScaleLY);
+
+        public void TranslateOriginPointRespectWorldCoordinates(double dx, double dy)
         {
             Origin = new PointF( Origin.X -(float)(dx * Zoom.X ), Origin.Y - (float)(dy * Zoom.Y));
         }
 
-        public void MoveRotationPointRespectWorldCoordinates(double dx, double dy)
+        public void TranslateRotationPointRespectWorldCoordinates(double dx, double dy)
         {
             RotationPoint = new PointF(RotationPoint.X - (float)(dx * Zoom.X), RotationPoint.Y - (float)(dy * Zoom.Y));
         }
 
-        public void MoveOriginPoint(double dx, double dy)
+        public void TranslateOriginPoint(double dx, double dy)
         {
             Origin = new PointF(Origin.X - (float)(dx), Origin.Y - (float)(dy));
         }
 
-        public void MoveRotationPoint(double dx, double dy)
+        public void TranslateRotationPoint(double dx, double dy)
         {
             RotationPoint = new PointF(RotationPoint.X - (float)(dx), RotationPoint.Y - (float)(dy));
         }
 
-        public void MoveRotationAngle(double deltaDegrees)
+        public void AddRotationAngle(double deltaDegrees)
         {
             RotationAngle += deltaDegrees;
         }

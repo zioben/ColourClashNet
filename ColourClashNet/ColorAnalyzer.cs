@@ -163,12 +163,12 @@ namespace ColourClashNet
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            if (ofdSelectImage.ShowDialog() == DialogResult.OK)
             {
-                var oBmp = Bitmap.FromFile(openFileDialog1.FileName) as Bitmap;
-                oBitmapRenderDest.ResetSelectedColors();
+                var oBmp = Bitmap.FromFile(ofdSelectImage.FileName) as Bitmap;
+                oBitmapRenderDest.ResetMouseSelectedColors();
                 oBitmapRenderDest.OriginZero();
-                oBitmapRenderSource.ResetSelectedColors();
+                oBitmapRenderSource.ResetMouseSelectedColors();
                 oBitmapRenderSource.OriginZero();
                 //
                 oColorManager.Config.BackgroundColorList = GetBkgColors();
@@ -353,33 +353,37 @@ namespace ColourClashNet
 
         private void gbLayoutV_CheckedChanged(object sender, EventArgs e)
         {
-            scLayout.Orientation = Orientation.Vertical;
+            splitRenderLayout.Orientation = Orientation.Vertical;
         }
 
         private void rbLayoutH_CheckedChanged(object sender, EventArgs e)
         {
-            scLayout.Orientation = Orientation.Horizontal;
+            splitRenderLayout.Orientation = Orientation.Horizontal;
         }
 
         private void scMain_SplitterMoved(object sender, SplitterEventArgs e)
         {
-            if (scMain.Panel1.Width > Panel1MaxWidth)
+            if (splitMain.Panel1.Width > Panel1MaxWidth)
             {
-                scMain.SplitterDistance = Panel1MaxWidth;
+                splitMain.SplitterDistance = Panel1MaxWidth;
             }
         }
 
         private void scMain_SizeChanged(object sender, EventArgs e)
         {
-            if (scMain.Panel1.Width > Panel1MaxWidth)
+            if (splitMain.Panel1.Width > Panel1MaxWidth)
             {
-                scMain.SplitterDistance = Panel1MaxWidth;
+                splitMain.SplitterDistance = Panel1MaxWidth;
             }
         }
 
         private void oBitmapRenderSource_MouseMove(object sender, MouseEventArgs e)
         {
-            pbMouseColor.BackColor = oBitmapRenderSource.MouseColor;
+            var oPointC = oBitmapRenderSource.MouseControlCoordinatesX;
+            tsMouseCoord.Text = $"X:{oPointC.X} Y:{oPointC.Y}";
+            var oPointI = oBitmapRenderSource.MouseImageCoordinatesClip;
+            tsImageCoord.Text = $"X:{oPointI.X:f1} Y:{oPointI.Y:f1}";
+            tsColorData.BackColor = oBitmapRenderSource.MouseImageColor;
         }
 
     }
