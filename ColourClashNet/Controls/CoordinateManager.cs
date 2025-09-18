@@ -1,6 +1,8 @@
-﻿using System;
+﻿using NLog.LayoutRenderers;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -198,6 +200,16 @@ namespace ColourClashNet.Controls
         public PointF InverseTransform(int trX, int trY)
             => InverseTransform(new PointF((float)trX, (float)trY));
 
+        //// Tralsare sull'origine rototraslazione
+        //PointF PL = oP.Sub(WorldOrigin).Sub(WorldRotationPoint);
+        //// Ruotare punti
+        //double xl = cos * PL.X + sin * PL.Y;
+        //double yl = -sin * PL.X + cos * PL.Y;
+        //// Tralsare sull'origine mondo
+        //PointF PLL = new PointF((float)xl, (float)yl).Add(WorldRotationPoint).MulPP(TransfZoom).Add(TransfOrigin);
+        //    return PLL;
+
+
         public void DrawImage(Graphics oG, Image oImage)
         {
             if (oImage == null || oG == null)
@@ -207,9 +219,11 @@ namespace ColourClashNet.Controls
             var oldTR = oG.Transform;
             try
             {
-                oG.Transform.Reset();
-                oG.Transform.Scale(TransfZoom.X, TransfZoom.Y);
-                oG.Transform.Translate(WorldOrigin.X, WorldOrigin.Y);
+                oG.ResetTransform();
+                oG.TranslateTransform(WorldOrigin.X, WorldOrigin.Y, System.Drawing.Drawing2D.MatrixOrder.Append);
+//                oG.TranslateTransform(WorldRotationPoint.X, WorldRotationPoint.Y, System.Drawing.Drawing2D.MatrixOrder.Append);
+                oG.RotateTransform((float)WorldRotationAngle, System.Drawing.Drawing2D.MatrixOrder.Append);
+                oG.ScaleTransform(TransfZoom.X, TransfZoom.Y);
                 oG.DrawImage(oImage, TransfOrigin);
             }
             catch (Exception ex)

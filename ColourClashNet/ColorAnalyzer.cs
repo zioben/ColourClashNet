@@ -381,8 +381,8 @@ namespace ColourClashNet
         {
             var oPointC = oBitmapRenderSource.MouseControlCoordinatesX;
             tsMouseCoord.Text = $"X:{oPointC.X} Y:{oPointC.Y}";
-            var oPointI = oBitmapRenderSource.MouseImageCoordinatesClip;
-            tsImageCoord.Text = $"X:{oPointI.X:f1} Y:{oPointI.Y:f1}";
+           // var oPointI = oBitmapRenderSource.MouseImageCoordinatesClip;
+           // tsImageCoord.Text = $"X:{oPointI.X:f1} Y:{oPointI.Y:f1}";
             tsColorData.BackColor = oBitmapRenderSource.MouseImageColor;
         }
 

@@ -17,7 +17,7 @@ namespace ColourClashNet.Controls
 {
 
 
-    public partial class BitmapRender : Component
+    public partial class BitmapRenderOld : Component
     {
         #region Enums
 
@@ -135,11 +135,11 @@ namespace ColourClashNet.Controls
         [Browsable(true), Category("Appearance")]
         public Point MouseControlCoordinatesX => MouseControlTrack.ControlPointCurrent;
 
-     //   [Browsable(false), Category("Appearance")]
-       // MouseHandlerCoordinateManager.ImageTrack MouseImageTrack => ContinuousFollowing ? oMouseManager.ImageTrackHistoryX : oMouseManager.ImageTrackCurrentX;
+        [Browsable(false), Category("Appearance")]
+        MouseHandlerCoordinateManager.ImageTrack MouseImageTrack => ContinuousFollowing ? oMouseManager.ImageTrackHistoryX : oMouseManager.ImageTrackCurrentX;
 
-    //    [Browsable(true), Category("Appearance")]
-      //  public PointF MouseImageCoordinatesX => MouseImageTrack.ImagePointCurrent;
+        [Browsable(true), Category("Appearance")]
+        public PointF MouseImageCoordinatesX => MouseImageTrack.ImagePointCurrent;
 
         [Browsable(true), Category("Appearance")]
         public PointF MouseControlCoordinatesClip => new PointF(
@@ -147,11 +147,11 @@ namespace ColourClashNet.Controls
             Math.Min(Control?.Height ?? 0, Math.Max(0, MouseControlCoordinatesX.Y))
          );
 
-        //[Browsable(true), Category("Appearance")]
-        //public PointF MouseImageCoordinatesClip => new PointF(
-        //    Math.Min( Image?.Width ?? 0, Math.Max(0, MouseImageCoordinatesX.X)),
-        //    Math.Min( Image?.Height ?? 0, Math.Max(0, MouseImageCoordinatesX.Y))
-        // );
+        [Browsable(true), Category("Appearance")]
+        public PointF MouseImageCoordinatesClip => new PointF(
+            Math.Min( Image?.Width ?? 0, Math.Max(0, MouseImageCoordinatesX.X)),
+            Math.Min( Image?.Height ?? 0, Math.Max(0, MouseImageCoordinatesX.Y))
+         );
 
         [Browsable(true), Category("Appearance")]
         public System.Drawing.Color MouseImageColor { get; private set; }
@@ -195,8 +195,8 @@ namespace ColourClashNet.Controls
         }
 
 
-        MouseHandlerBase oMouseManager= new MouseHandlerBase();
-        CoordinateManager oCoordinateManager = new CoordinateManager();
+        MouseHandlerCoordinateManager oMouseManager= new MouseHandlerCoordinateManager();
+        CoordinateManager oCoordinateManager => oMouseManager.CoordinateManager;
 
         public List<System.Drawing.Color> SelectedColors { get; protected set; } = new List<System.Drawing.Color>();
 
@@ -207,7 +207,7 @@ namespace ColourClashNet.Controls
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BitmapRender()
+        public BitmapRenderOld()
         {
             InitializeComponent();
             Create();
@@ -217,7 +217,7 @@ namespace ColourClashNet.Controls
         /// Constructor with container
         /// </summary>
         /// <param name="container"></param>
-        public BitmapRender(IContainer container)
+        public BitmapRenderOld(IContainer container)
         {
             container.Add(this);
             Create();
@@ -358,20 +358,20 @@ namespace ColourClashNet.Controls
             }
             if (Image is Bitmap oBmp)
             {
-                //// Control Origin point
-                //var oPointC = new PointF(RoiControl.X,RoiControl.Y);
-                //// Current mouse coordinates
-                //var oPointM = new PointF(MouseControlCoordinatesX.X, MouseControlCoordinatesX.Y);
-                //// Transalte to control roi
-                //var oPointT = oPointM.Sub(oPointC);
-                //// convert to image coordinates
-                //var oPointI = oCoordinateManager.Transform(oPointT);
-                //if (oPointI.X < 0 || oPointI.Y < 0 || oPointI.X >= oBmp.Width || oPointI.Y >= oBmp.Height)
-                //{
-                //    MouseImageColor = System.Drawing.Color.Transparent;
-                //    return;
-                //}
-                //MouseImageColor = oBmp.GetPixel((int)oPointI.X, (int)oPointI.Y);
+                // Control Origin point
+                var oPointC = new PointF(RoiControl.X,RoiControl.Y);
+                // Current mouse coordinates
+                var oPointM = new PointF(MouseControlCoordinatesX.X, MouseControlCoordinatesX.Y);
+                // Transalte to control roi
+                var oPointT = oPointM.Sub(oPointC);
+                // convert to image coordinates
+                var oPointI = oCoordinateManager.Transform(oPointT);
+                if (oPointI.X < 0 || oPointI.Y < 0 || oPointI.X >= oBmp.Width || oPointI.Y >= oBmp.Height)
+                {
+                    MouseImageColor = System.Drawing.Color.Transparent;
+                    return;
+                }
+                MouseImageColor = oBmp.GetPixel((int)oPointI.X, (int)oPointI.Y);
             }
             else
             {
@@ -414,8 +414,7 @@ namespace ColourClashNet.Controls
             if (Control != null && Image != null)
             {
                 UpdateControlAndImageRoi();
-                //oCoordinateManager.WorldRotationAngle += 1;
-                oCoordinateManager.DrawImage(e.Graphics, Image);
+                e.Graphics.DrawImage(Image, RoiControl, RoiImage, GraphicsUnit.Pixel);
             }
             Paint?.Invoke(sender, e);
         }
@@ -500,6 +499,11 @@ namespace ColourClashNet.Controls
 
         #region Clip and Zoom Code
 
+        SolidBrush BrushBlack = new SolidBrush(System.Drawing.Color.Black);
+        RectangleF RoiControl = new RectangleF();
+        RectangleF RoiImage = new RectangleF();
+
+
         [Browsable(true), Category("Appearance")]
         public float ZoomImageX
         {
@@ -547,57 +551,68 @@ namespace ColourClashNet.Controls
             // Il + facile
             // Determina la roi da disegnare
             oCoordinateManager.SetTransfZoom(1);
-            float fcw = Math.Max(1,Control.Size.Width);
-            float fch = Math.Max(1, Control.Size.Height);
-            float fiw = Math.Max(1, Image.Size.Width);
-            float fih = Math.Max(1, Image.Size.Height);
-            //// Stretch Zoom
-            //RoiZoomX = (float)Image.Size.Width / fiw;
-            //RoiZoomY = (float)Image.Size.Height / fih;
+            float fiw = Control.Size.Width;
+            float fih = Control.Size.Height;
+            // Stretch Zoom
+            RoiZoomX = (float)Image.Size.Width / fiw;
+            RoiZoomY = (float)Image.Size.Height / fih;
             switch (ImageZoomMode)
             {
                 // Zoom: restringe o allarga la roi
-                case EnumZoom.ZoomQ: RoiZoomX = RoiZoomY = 1.0f / 4; break;
-                case EnumZoom.ZoomH: RoiZoomX = RoiZoomY = 1.0f / 2; break;
-                case EnumZoom.Zoom1: RoiZoomX = RoiZoomY = 1.0f * 1; break;
-                case EnumZoom.Zoom2: RoiZoomX = RoiZoomY = 1.0f * 2; break;
-                case EnumZoom.Zoom3: RoiZoomX = RoiZoomY = 1.0f * 3; break;
-                case EnumZoom.Zoom4: RoiZoomX = RoiZoomY = 1.0f * 4; break;
+                case EnumZoom.ZoomQ: RoiZoomX = RoiZoomY = 1.0f * 4; break;
+                case EnumZoom.ZoomH: RoiZoomX = RoiZoomY = 1.0f * 2; break;
+                case EnumZoom.Zoom1: RoiZoomX = RoiZoomY = 1.0f / 1; break;
+                case EnumZoom.Zoom2: RoiZoomX = RoiZoomY = 1.0f / 2; break;
+                case EnumZoom.Zoom3: RoiZoomX = RoiZoomY = 1.0f / 3; break;
+                case EnumZoom.Zoom4: RoiZoomX = RoiZoomY = 1.0f / 4; break;
                 // Stretch: 
-                case EnumZoom.Stretch:
-                    {
-                        RoiZoomX = fcw / fiw;
-                        RoiZoomY = fch / fih;
-                    }
-                    break;
+                case EnumZoom.Stretch: fiw = (float)Image.Size.Width; fih = (float)Image.Size.Height; break;
                 // Fit w e h
                 // w : 100 = h : x
                 case EnumZoom.FitW:
-                    RoiZoomX = fcw / fiw;
                     RoiZoomY = RoiZoomX;
+                    fiw = (float)Image.Size.Width;
+                    fih *= RoiZoomY;
                     break;
                 case EnumZoom.FitH:
-                    RoiZoomY = fch / fih;
                     RoiZoomX = RoiZoomY;
+                    fiw *= RoiZoomY;
+                    fih = (float)Image.Size.Height;
                     break;
                 // Fit è il + cancaro
                 case EnumZoom.Fit:
                     {
-                        RoiZoomX = fcw / fiw;
-                        RoiZoomY = fch / fih;
-                        if (RoiZoomX < RoiZoomY)
+                        if (RoiZoomX > RoiZoomY)
                         {
                             RoiZoomY = RoiZoomX;
+                            fiw = (float)Image.Size.Width;
+                            fih *= RoiZoomY;
                         }
                         else
                         {
                             RoiZoomX = RoiZoomY;
+                            fiw *= RoiZoomY;
+                            fih = (float)Image.Size.Height;
                         }
                     }
                     break;
-                case EnumZoom.Manual: RoiZoomX = RoiZoomY = fRoiZoomM; break;
+                case EnumZoom.Manual: RoiZoomX = RoiZoomY = fRoiZoomM; fiw *= fRoiZoomM; fih *= fRoiZoomM; break;
             }
             oCoordinateManager.SetTrasfZoom(RoiZoomX, RoiZoomY);
+            
+            // Convert Image ROI in Co
+            // In soldoni questa è la roi sul controllo da disegnare
+            RoiControl = oMouseManager.ToControlRectangle(0, 0, oBmp.Width, oBmp.Height);
+            RoiControl.X += MouseControlTrack.ControlPointTranslation.X;
+            RoiControl.Y += MouseControlTrack.ControlPointTranslation.Y;
+
+            // Converto le coordinate in pixel in quelle dell'immagine
+            // In soldoni è porzione di immagine da disegnare 
+            // Per ora teniamo tutta l'immagine
+            RoiImage = new RectangleF(0, 0, oBmp.Width, oBmp.Height);
+            //
+            // Ragionamento semplice, la RoiImage viene Riscalata nella RoiControl
+
         }
 
 
@@ -620,7 +635,7 @@ namespace ColourClashNet.Controls
             {
                 UpdateControlAndImageRoi();
                 //--------------------------------------------------------------------------
-                oCoordinateManager.TranslateTrasformationOrigin(deltaX, deltaY);
+               // oCoordinateManager.WorldToLocalTranslate(deltaX, deltaY);
                 ForceRefresh();
             }
         }

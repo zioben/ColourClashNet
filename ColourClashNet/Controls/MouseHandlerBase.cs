@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Controls
 {
-    public abstract class MouseHandlerBase
+    public class MouseHandlerBase
     {
         public enum EnumMouseState
         { 
