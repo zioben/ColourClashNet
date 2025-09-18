@@ -12,7 +12,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static ColourClashNet.Controls.BitmapRenderOld;
 
 namespace ColourClashNet.Controls
 {
@@ -366,7 +365,7 @@ namespace ColourClashNet.Controls
                 // Transalte to control roi
                 var oPointT = oPointM.Sub(oPointC);
                 // convert to image coordinates
-                var oPointI = oCoordinateManager.WorldToLocal(oPointT);
+                var oPointI = oCoordinateManager.Transform(oPointT);
                 if (oPointI.X < 0 || oPointI.Y < 0 || oPointI.X >= oBmp.Width || oPointI.Y >= oBmp.Height)
                 {
                     MouseImageColor = System.Drawing.Color.Transparent;
@@ -506,27 +505,27 @@ namespace ColourClashNet.Controls
 
 
         [Browsable(true), Category("Appearance")]
-        public float ZoomControlX
-        {
-            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.Zoom.X != 0 ? 1.0f / oCoordinateManager.Zoom.X : 0); }
-        }
-
-        [Browsable(true), Category("Appearance")]
-        public float ZoomControlY
-        {
-            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.Zoom.Y != 0 ? 1.0f / oCoordinateManager.Zoom.Y : 0); }
-        }
-
-        [Browsable(true), Category("Appearance")]
         public float ZoomImageX
         {
-            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.Zoom.X); }
+            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.TransfZoom.X != 0 ? 1.0f / oCoordinateManager.TransfZoom.X : 0); }
         }
 
         [Browsable(true), Category("Appearance")]
         public float ZoomImageY
         {
-            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.Zoom.Y); }
+            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.TransfZoom.Y != 0 ? 1.0f / oCoordinateManager.TransfZoom.Y : 0); }
+        }
+
+        [Browsable(true), Category("Appearance")]
+        public float ZoomControlX
+        {
+            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.TransfZoom.X); }
+        }
+
+        [Browsable(true), Category("Appearance")]
+        public float ZoomControY
+        {
+            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.TransfZoom.Y); }
         }
 
 
@@ -551,7 +550,7 @@ namespace ColourClashNet.Controls
             }
             // Il + facile
             // Determina la roi da disegnare
-            oCoordinateManager.SetZoom(1);
+            oCoordinateManager.SetTransfZoom(1);
             float fiw = Control.Size.Width;
             float fih = Control.Size.Height;
             // Stretch Zoom
@@ -599,7 +598,7 @@ namespace ColourClashNet.Controls
                     break;
                 case EnumZoom.Manual: RoiZoomX = RoiZoomY = fRoiZoomM; fiw *= fRoiZoomM; fih *= fRoiZoomM; break;
             }
-            oCoordinateManager.Zoom = new PointF((float)RoiZoomX, (float)RoiZoomY);
+            oCoordinateManager.SetTrasfZoom(RoiZoomX, RoiZoomY);
             
             // Convert Image ROI in Co
             // In soldoni questa è la roi sul controllo da disegnare
@@ -635,7 +634,8 @@ namespace ColourClashNet.Controls
             if (!ImageBlockScroll)
             {
                 UpdateControlAndImageRoi();
-                oCoordinateManager.TranslateOriginPointRespectWorldCoordinates(deltaX, deltaY);
+                //--------------------------------------------------------------------------
+               // oCoordinateManager.WorldToLocalTranslate(deltaX, deltaY);
                 ForceRefresh();
             }
         }
@@ -652,7 +652,8 @@ namespace ColourClashNet.Controls
 
         public void OriginZero()
         {
-            oCoordinateManager.Origin = new PointF(0, 0);
+            //--------------------------------------------------------------------------
+            //oCoordinateManager.LocalOrigin = new PointF(0, 0);
             ForceRefresh();
         }
 
@@ -660,7 +661,8 @@ namespace ColourClashNet.Controls
         {
             if (oControl != null && Image != null)
             {
-                return oCoordinateManager.WorldToLocal(p);
+                //--------------------------------------------------------------------------
+                //return oCoordinateManager.WorldToLocal(p);
             }
             return new PointF(-1, -1);
         }

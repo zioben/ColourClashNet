@@ -56,9 +56,9 @@ namespace ColourClashNet.Controls
 
         void UpdateCoordinates(PointTrack oPoint, ImageTrack oImage)
         {
-            oImage.ImagePointClick = oCMan.WorldToLocal(oPoint.ControlPointClick);
-            oImage.ImagePointTranslation = oCMan.WorldToLocal(oPoint.ControlPointTranslation);
-            oImage.ImagePointCurrent = oCMan.WorldToLocal(oPoint.ControlPointCurrent);
+            oImage.ImagePointClick = oCMan.Transform(oPoint.ControlPointClick);
+            oImage.ImagePointTranslation = oCMan.Transform(oPoint.ControlPointTranslation);
+            oImage.ImagePointCurrent = oCMan.Transform(oPoint.ControlPointCurrent);
         }
 
         bool UpdateCoordinates()
@@ -111,15 +111,15 @@ namespace ColourClashNet.Controls
 
         public RectangleF ToImageRectangle(int iCX, int iCY, int iCW, int iCH)
         {
-            var P1 = oCMan.WorldToLocal(iCX, iCY);
-            var P2 = oCMan.WorldToLocal(iCX+iCW, iCY+iCH);
+            var P1 = oCMan.Transform(iCX, iCY);
+            var P2 = oCMan.Transform(iCX+iCW, iCY+iCH);
             return( ToRectangleF(P1, P2));
         }
 
         public RectangleF ToControlRectangle(int iCX, int iCY, int iCW, int iCH)
         {
-            var P1 = oCMan.LocalToWorld(iCX, iCY);
-            var P2 = oCMan.LocalToWorld(iCX + iCW, iCY + iCH);
+            var P1 = oCMan.InverseTransform(iCX, iCY);
+            var P2 = oCMan.InverseTransform(iCX + iCW, iCY + iCH);
             return (ToRectangleF(P1, P2));
         }
     }

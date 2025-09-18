@@ -19,123 +19,150 @@ namespace ColourClashNet.Controls
     {
         public CoordinateManager()
         {
-            Origin = new PointF();
-            RotationPoint = new PointF();
-            Zoom = new PointF(1.0f, 1.0f);
-            RotationAngle = 0;
+            WorldOrigin = new PointF(0,0);
+            WorldRotationPoint = new PointF(0,0);
+            WorldRotationAngle = 0;
+            TransfZoom = new PointF(1.0f, 1.0f);
+            TransfOrigin = new PointF(0.0f, 0.0f);  
         }
 
         [Browsable(true), Category("Coordinates")]
-        public PointF Origin { get; set; }
-        [Browsable(true), Category("Coordinates")]
-        public PointF RotationPoint { get; set; }
-        [Browsable(true), Category("Coordinates")]
-        public PointF Zoom { get;  set; }
+        public PointF WorldOrigin { get; set; }
 
         [Browsable(true), Category("Coordinates")]
-        public double RotationAngle
+        public PointF WorldRotationPoint { get; set; }
+
+        [Browsable(true), Category("Coordinates")]
+        public double WorldRotationAngle
         {
             get { return rot; }
             set
             {
                 rot = value;
-                rad = RotationAngle / 180 * Math.PI;
+                rad = WorldRotationAngle / 180 * Math.PI;
                 cos = Math.Cos(rad);
                 sin = Math.Sin(rad);
             }
         }
+
+        [Browsable(true), Category("Coordinates")]
+        public PointF TransfZoom { get; set; }
+
+        [Browsable(true), Category("Coordinates")]
+        public PointF TransfOrigin { get; set; }
 
         double rot;
         double rad;
         double cos;
         double sin;
 
-        public void SetZoom(float fX, float fY)
+        public void SetTrasfZoom(float fX, float fY)
         {
-            Zoom = new PointF(fX,fY);
+            TransfZoom = new PointF(fX,fY);
+        }
+        public void SetTransfZoom(int iX, int iY) => SetTrasfZoom((float)iX,(float)iY);
+
+        public void SetTransfZoom(double dX, double dY) => SetTrasfZoom((float)dX, (float)dY);
+        public void SetTransfZoom(float fScale) => SetTrasfZoom(fScale, fScale);
+        public void SetTransfZoom(int iScale) => SetTransfZoom(iScale, iScale);
+        public void SetTransfZoom(double dScale) => SetTransfZoom(dScale, dScale);
+
+        public void SetTransfZoom(Point oP)
+        {
+            TransfZoom = new PointF( oP.X, oP.Y );   
+        }
+        public void SetTransfZoom(PointF oP)
+        {
+            TransfZoom = oP;
         }
 
-        public void SetZoom(int iX, int iY) => SetZoom((float)iX,(float)iY);
-
-        public void SetZoom(double dX, double dY) => SetZoom((float)dX, (float)dY);
-        public void SetZoom(float fScale) => SetZoom(fScale, fScale);
-        public void SetZoom(int iScale) => SetZoom(iScale, iScale);
-        public void SetZoom(double dScale) => SetZoom(dScale, dScale);
-
-        public void SetZoom(float fScaleWX, float fScaleWY, float fScaleLX, float fScaleLY )
+        public void SetTransfZoom(float fScaleWX, float fScaleWY, float fScaleLX, float fScaleLY )
         {
-            Zoom = new PointF(
+            TransfZoom = new PointF(
                 fScaleLX != 0 ? fScaleWX / fScaleLX : 0,
                 fScaleLY != 0 ? fScaleWY / fScaleLY : 0);
         }
-        public void SetZoom(int iScaleWX, int iScaleWY, int iScaleLX, int iScaleLY) 
-            => SetZoom((float)iScaleWX,(float)iScaleWY, (float)iScaleLX, (float) iScaleLY);
-        public void SetZoom(double dScaleWX, double dScaleWY, double dScaleLX, double dScaleLY)
-            => SetZoom((float)dScaleWX, (float)dScaleWY, (float)dScaleLX, (float)dScaleLY);
+        public void SetTransfZoom(int iScaleWX, int iScaleWY, int iScaleLX, int iScaleLY) 
+            => SetTransfZoom((float)iScaleWX,(float)iScaleWY, (float)iScaleLX, (float) iScaleLY);
+        public void SetTransfZoom(double dScaleWX, double dScaleWY, double dScaleLX, double dScaleLY)
+            => SetTransfZoom((float)dScaleWX, (float)dScaleWY, (float)dScaleLX, (float)dScaleLY);
 
-        public void TranslateOriginPointRespectWorldCoordinates(double dx, double dy)
+        //--------------------------------------------------------------------------------
+        public void TranslateWorldOrigin(PointF oP)
         {
-            Origin = new PointF( Origin.X -(float)(dx * Zoom.X ), Origin.Y - (float)(dy * Zoom.Y));
+            WorldOrigin = WorldOrigin.Sub(oP);
         }
-
-        public void TranslateRotationPointRespectWorldCoordinates(double dx, double dy)
+        public void TranslateWorldOrigin(Point oP)
         {
-            RotationPoint = new PointF(RotationPoint.X - (float)(dx * Zoom.X), RotationPoint.Y - (float)(dy * Zoom.Y));
+            WorldOrigin = WorldOrigin.Sub(oP);
         }
+        public void TranslateWorldOrigin(double X, double Y)
+            => TranslateWorldOrigin(new PointF((float)X, (float)Y));
+        public void TranslateWorldOrigin(float X, float Y)
+            => TranslateWorldOrigin(new PointF(X, Y));
+        public void TranslateWorldOrigin(int X, int Y)
+            => TranslateWorldOrigin(new PointF(X, Y));
 
-        public void TranslateOriginPoint(double dx, double dy)
+        //--------------------------------------------------------------------------------
+        public void TranslateRotationPoint(PointF oP)
         {
-            Origin = new PointF(Origin.X - (float)(dx), Origin.Y - (float)(dy));
+            WorldRotationPoint = WorldRotationPoint.Sub(oP);
         }
-
-        public void TranslateRotationPoint(double dx, double dy)
+        public void TranslateRotationPoint(Point oP)
         {
-            RotationPoint = new PointF(RotationPoint.X - (float)(dx), RotationPoint.Y - (float)(dy));
+            WorldRotationPoint = WorldRotationPoint.Sub(oP);
         }
+        public void TranslateRotationPoint(double X, double Y)
+          => TranslateRotationPoint(new PointF((float)X, (float)Y));
+        public void TranslateRotationPoint(float X, float Y)
+            => TranslateRotationPoint(new PointF(X, Y));
+        public void TranslateRotationPoint(int X, int Y)
+            => TranslateRotationPoint(new PointF(X, Y));
 
+        //--------------------------------------------------------------------------------
         public void AddRotationAngle(double deltaDegrees)
         {
-            RotationAngle += deltaDegrees;
+            WorldRotationAngle += deltaDegrees;
         }
 
-
-        // Il trucco, si tratta di traslazione dall'origine seguita da rototraslazione rispetto al punto di rotazione
-        //
-        // Pw = World coordinates
-        // Po = Origin coordinates respect World coordinates
-        // Pr = Rotation point coordinates respect -> Po <-
-        // 
-        //  Rispetto al punto di Origine Po 
-        //  xw' = xw * zoomx - xo
-        //  yw' = yw * zoomy - yo
-        //
-        // Rispetto al punto di rotazione Pr:
-        //  |xl| =  | cos sen | | xw' - xr | + |xr|
-        //  |yl| =  |-sen cos | | yw' - yr | + |yr|
-        // riassumendo:
-        //  |xl| =  | cos sen | | xw * zoomx - xo - xr | + |xr|
-        //  |yl| =  |-sen cos | | yw * zoomy - yo - yr | + |yr|
-
-        public PointF WorldToLocal(double xw, double yw)
+        //--------------------------------------------------------------------------------
+        public void TranslateTrasformationOrigin(PointF oP)
         {
-            // Origine rispetto alle coordinate del mondo
-            double xt = xw * Zoom.X - Origin.X - RotationPoint.X;
-            double yt = yw * Zoom.Y - Origin.Y - RotationPoint.Y;
-            double xl = cos * xt + sin * yt + RotationPoint.X;
-            double yl = -sin * xt + cos * yt + RotationPoint.Y;
-            // Le coordinate sono rispetto al sistema locale 
-            return new PointF((float)xl, (float)yl);
+            TransfOrigin = TransfOrigin.Sub(oP);
+        }
+        public void TranslateTrasformationOrigin(Point oP)
+        {
+            TransfOrigin = TransfOrigin.Sub(oP);
+        }
+        public void TranslateTrasformationOrigin(double X, double Y)
+            => TranslateTrasformationOrigin(new PointF((float)X, (float)Y));
+        public void TranslateTrasformationOrigin(float X, float Y)
+            => TranslateTrasformationOrigin(new PointF(X, Y));
+        public void TranslateTrasformationOrigin(int X, int Y)
+            => TranslateTrasformationOrigin(new PointF(X, Y));
+
+
+        public PointF Transform(PointF oP)
+        {
+            // Tralsare sull'origine rototraslazione
+            PointF PL = oP.Sub(WorldOrigin).Sub(WorldRotationPoint);
+            // Ruotare punti
+            double xl = cos * PL.X + sin * PL.Y;
+            double yl = -sin * PL.X + cos * PL.Y;
+            // Tralsare sull'origine mondo
+            PointF PLL = new PointF((float)xl, (float)yl).Add(WorldRotationPoint).MulPP(TransfZoom).Add(TransfOrigin);
+            return PLL;
         }
 
-        public PointF WorldToLocal(PointF PointWorld)
-        {
-            return WorldToLocal(PointWorld.X, PointWorld.Y);
-        }
+        public PointF Transform(Point p)
+            => Transform(new PointF(p.X,p.Y));
+        public PointF Transform(double xw, double yw)
+            => Transform(new PointF((float)xw, (float)yw));
+        public PointF Transform(float xw, float yw)
+            => Transform(new PointF((float)xw, (float)yw));
+        public PointF Transform(int xw, int yw)
+            => Transform(new PointF((float)xw, (float)yw));
 
-        public PointF WorldToLocal(Point PointWorld)
-        {
-            return WorldToLocal(PointWorld.X, PointWorld.Y);
-        }
 
         // Il trucco, si tratta di calcolare la rototraslazione e traslare rispetto alle origini
         // 
@@ -152,29 +179,47 @@ namespace ColourClashNet.Controls
         //  |xw| =  | | cos sen | | xl - xr | + |xr + xo| | ^ |1/zx|
         //  |yw| =  | |-sen cos | | yl - yr | + |yr + yo| |   |1/zy|
 
-        public PointF LocalToWorld(double xl, double yl)
+        public PointF InverseTransform(PointF oP)
         {
-            double xr = xl - RotationPoint.X;
-            double yr = yl - RotationPoint.Y;
-
-            double xww = (cos * xr - sin * yr + RotationPoint.X + Origin.X);
-            double yww = (sin * xr + cos * yr + RotationPoint.Y + Origin.Y);
-
-            double xw = Zoom.X != 0 ? xww / Zoom.X : 0;
-            double yw = Zoom.Y != 0 ? yww / Zoom.Y : 0;
-
-            return new PointF((float)xw, (float)yw);
+            var PL = oP.Sub(TransfOrigin).DivPP(TransfZoom).Sub(WorldRotationPoint);
+            //
+            double xl = cos * PL.X - sin * PL.Y;
+            double yl = sin * PL.X + cos * PL.Y;
+            PL = new PointF((float)xl, (float)yl).Add(WorldRotationPoint).Add(WorldOrigin);
+            return PL;            
         }
 
+        public PointF InverseTransform(Point oP)
+            => InverseTransform(new PointF((float) oP.X, (float)oP.Y));
+        public PointF InverseTransform(double trX,double trY)
+            => InverseTransform(new PointF((float)trX, (float)trY));
+        public PointF InverseTransform(float trX, float trY)
+            => InverseTransform(new PointF((float)trX, (float)trY));
+        public PointF InverseTransform(int trX, int trY)
+            => InverseTransform(new PointF((float)trX, (float)trY));
 
-        public PointF LocalToWorld(PointF LocalPoint)
+        public void DrawImage(Graphics oG, Image oImage)
         {
-            return LocalToWorld(LocalPoint.X, LocalPoint.Y);
+            if (oImage == null || oG == null)
+            {
+                return;
+            }
+            var oldTR = oG.Transform;
+            try
+            {
+                oG.Transform.Reset();
+                oG.Transform.Scale(TransfZoom.X, TransfZoom.Y);
+                oG.Transform.Translate(WorldOrigin.X, WorldOrigin.Y);
+                oG.DrawImage(oImage, TransfOrigin);
+            }
+            catch (Exception ex)
+            { 
+            }
+            finally
+            {
+                oG.Transform = oldTR;
+            }
         }
 
-        public PointF LocalToWorld(Point LocalPoint)
-        {
-            return LocalToWorld(LocalPoint.X, LocalPoint.Y);
-        }
     }
 }
