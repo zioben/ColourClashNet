@@ -1,5 +1,6 @@
 ﻿using ColourClashNet.Imaging;
 using ColourClashNet.Log;
+using NLog.LayoutRenderers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -122,36 +123,32 @@ namespace ColourClashNet.Controls
         }
 
         [Browsable(true), Category("Behavior")]
+        [Description("Define mouse button for dragging")]
         public MouseButtons MouseMovingButton { get; set; } = MouseButtons.Left;
 
         [Browsable(true), Category("Behavior")]
+        [Description("Define mouse button for selection")]
         public MouseButtons MouseSelectButton { get; set; } = MouseButtons.Right;
 
-        public bool ContinuousFollowing { get; set; } = true;
+        [Browsable(true), Category("Behavior")]
+        [Description("Continuous Image Dragging Mode.")]
+        public bool MouseImageFollowing { get; set; } = true;
 
-        [Browsable(false), Category("Appearance")]
-        MouseHandlerCoordinateManager.PointTrack MouseControlTrack => ContinuousFollowing ? oMouseManager.PointTrackHistory : oMouseManager.PointTrackCurrent;
-
-        [Browsable(true), Category("Appearance")]
-        public Point MouseControlCoordinatesX => MouseControlTrack.ControlPointCurrent;
-
-     //   [Browsable(false), Category("Appearance")]
-       // MouseHandlerCoordinateManager.ImageTrack MouseImageTrack => ContinuousFollowing ? oMouseManager.ImageTrackHistoryX : oMouseManager.ImageTrackCurrentX;
-
-    //    [Browsable(true), Category("Appearance")]
-      //  public PointF MouseImageCoordinatesX => MouseImageTrack.ImagePointCurrent;
+        MouseHandler.PointTrack MouseControlTrack => MouseImageFollowing ? oMouseManager.PointTrackHistory : oMouseManager.PointTrackCurrent;
 
         [Browsable(true), Category("Appearance")]
-        public PointF MouseControlCoordinatesClip => new PointF(
-            Math.Min(Control?.Width ?? 0, Math.Max(0, MouseControlCoordinatesX.X)),
-            Math.Min(Control?.Height ?? 0, Math.Max(0, MouseControlCoordinatesX.Y))
-         );
+        public Point MouseControlCoordinates => MouseControlTrack.ControlPointCurrent;
 
-        //[Browsable(true), Category("Appearance")]
-        //public PointF MouseImageCoordinatesClip => new PointF(
-        //    Math.Min( Image?.Width ?? 0, Math.Max(0, MouseImageCoordinatesX.X)),
-        //    Math.Min( Image?.Height ?? 0, Math.Max(0, MouseImageCoordinatesX.Y))
-        // );
+
+        [Browsable(true), Category("Appearance")]
+        public Point MouseControlCoordinatesClip => MouseControlCoordinates.Clip( Control?.Width ?? 0, Control?.Height ?? 0);
+
+        [Browsable(true), Category("Appearance")]
+        public PointF MouseImageCoordinates => oCoordinateManager.InverseTransform(MouseControlCoordinates);
+
+        
+        [Browsable(true), Category("Appearance")]
+        public PointF MouseImageCoordinatesClip => MouseImageCoordinates.Clip(Image?.Width ?? 0, Image?.Height ?? 0);
 
         [Browsable(true), Category("Appearance")]
         public System.Drawing.Color MouseImageColor { get; private set; }
@@ -195,7 +192,7 @@ namespace ColourClashNet.Controls
         }
 
 
-        MouseHandlerBase oMouseManager= new MouseHandlerBase();
+        MouseHandler oMouseManager= new MouseHandler();
         CoordinateManager oCoordinateManager = new CoordinateManager();
 
         public List<System.Drawing.Color> SelectedColors { get; protected set; } = new List<System.Drawing.Color>();
@@ -324,6 +321,8 @@ namespace ColourClashNet.Controls
             }
         }
 
+      
+
         #region Event codes - core of the component 
 
 
@@ -352,26 +351,21 @@ namespace ColourClashNet.Controls
 
         void UpdateMouseImageColor()
         {
-            if (oMouseManager.MouseState == MouseHandlerBase.EnumMouseState.tracking)
+            if (oMouseManager.MouseState == MouseHandler.EnumMouseState.tracking)
             {
                 return;
             }
             if (Image is Bitmap oBmp)
             {
-                //// Control Origin point
-                //var oPointC = new PointF(RoiControl.X,RoiControl.Y);
-                //// Current mouse coordinates
-                //var oPointM = new PointF(MouseControlCoordinatesX.X, MouseControlCoordinatesX.Y);
-                //// Transalte to control roi
-                //var oPointT = oPointM.Sub(oPointC);
-                //// convert to image coordinates
-                //var oPointI = oCoordinateManager.Transform(oPointT);
-                //if (oPointI.X < 0 || oPointI.Y < 0 || oPointI.X >= oBmp.Width || oPointI.Y >= oBmp.Height)
-                //{
-                //    MouseImageColor = System.Drawing.Color.Transparent;
-                //    return;
-                //}
-                //MouseImageColor = oBmp.GetPixel((int)oPointI.X, (int)oPointI.Y);
+                var oPointI = MouseImageCoordinates;
+                if (oPointI.IsClipped(new Rectangle(0, 0, oBmp.Width, oBmp.Height)))
+                {
+                    MouseImageColor = System.Drawing.Color.Transparent;
+                }
+                else
+                {
+                    MouseImageColor = oBmp.GetPixel((int)oPointI.X, (int)oPointI.Y);
+                }
             }
             else
             {
@@ -379,14 +373,42 @@ namespace ColourClashNet.Controls
             }   
         }
 
+        public PointF oImageOrigin = new PointF(0, 0);
+
+        bool bFirstCLick = true;
+
         protected void OnMouseDown(object Sender, MouseEventArgs args)
         {
             if (oMouseManager.OnMouseDown(args))
             {
+                if (bFirstCLick)
+                {
+                    bFirstCLick = false;
+                    oImageOrigin = oImageOrigin.Sub(MouseControlTrack.ControlPointTranslation);
+                }
+                else
+                {
+                    oImageOrigin = oImageOrigin.Sub(MouseControlTrack.ControlPointClick);
+                }
+                oCoordinateManager.TransfOrigin = oImageOrigin.Add(MouseControlTrack.ControlPointTranslation);
                 UpdateMouseImageColor();
                 ForceRefresh();
             }
             MouseDown?.Invoke(Sender, args);
+        }
+
+        protected void OnMouseMove(object Sender, MouseEventArgs args)
+        {
+            if (oMouseManager.OnMouseMove(args))
+            {
+                if (oMouseManager.MouseState == MouseHandler.EnumMouseState.tracking)
+                {
+                    oCoordinateManager.TransfOrigin = oImageOrigin.Add(MouseControlTrack.ControlPointTranslation);
+                }
+                UpdateMouseImageColor();
+                ForceRefresh();
+            }
+            MouseMove?.Invoke(Sender, args);
         }
 
         protected void OnMouseUp(object Sender, MouseEventArgs args)
@@ -395,19 +417,12 @@ namespace ColourClashNet.Controls
             {
                 UpdateMouseImageColor();
                 ForceRefresh();
+                oImageOrigin = new PointF(0, 0);
             }
             MouseUp?.Invoke(Sender, args);
         }
 
-        protected void OnMouseMove(object Sender, MouseEventArgs args)
-        {
-            if (oMouseManager.OnMouseMove(args))
-            {
-                UpdateMouseImageColor();
-                ForceRefresh();
-            }
-            MouseMove?.Invoke(Sender, args);
-        }
+       
 
         public void OnPaint(object sender, PaintEventArgs e)
         {
@@ -612,8 +627,7 @@ namespace ColourClashNet.Controls
             oControl?.Invalidate();
         }
 
-        //protected CoordinateManager oCoordinateManager = new CoordinateManager();
-
+   
         public void WorldOriginMove(double deltaX, double deltaY)
         {
             if (!ImageBlockScroll)
@@ -642,16 +656,7 @@ namespace ColourClashNet.Controls
             ForceRefresh();
         }
 
-        public PointF PointControlToPointBitmap(Point p)
-        {
-            if (oControl != null && Image != null)
-            {
-                //--------------------------------------------------------------------------
-                //return oCoordinateManager.WorldToLocal(p);
-            }
-            return new PointF(-1, -1);
-        }
-
+      
         #endregion
 
         #region MouseTracker

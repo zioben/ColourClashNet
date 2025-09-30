@@ -173,19 +173,19 @@ namespace ColourClashNet.Color.Tile
             return null;
         }
 
-        public bool CalcExternalImageError(int[,]? oDataSource)
+        public double CalcExternalImageError(int[,]? oDataSource)
         {
             if (oDataSource == null)
             {
-                return false;
+                return double.NaN;
             }
             if (TileW == 0 || TileH == 0)
             {
-                return false;
+                return double.NaN;
             }
             if (TileData == null)
             {
-                return false;
+                return double.NaN;
             }
             int RT = TileData.GetLength(0);
             int CT = TileData.GetLength(1);
@@ -206,8 +206,17 @@ namespace ColourClashNet.Color.Tile
                 });
             });
 #endif
-            return true;
+            double dError = 0;
+            for (int r = 0; r < RT; r++)
+            {
+                for (int c = 0; c < CT; c++)
+                {
+                    dError += TileData[r, c].ExternalImageError;
+                }
+            }
+            return dError;
         }
+
 
         public static TileManager CreateTileManager(int[,]? oDataSource, int iTileW, int iTileH, int iMaxTileColors, Palette oFixedColorPalette, ColorDistanceEvaluationMode eColorDistanceMode, TileBase.EnumColorReductionMode eColorReductionMode)
         {

@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Controls
 {
-    public class MouseHandlerCoordinateManager : MouseHandlerBase
+    public class MouseHandlerCoordinateManagerX : MouseHandler
     {
-        static string sClass = nameof(MouseHandlerCoordinateManager);
+        static string sClass = nameof(MouseHandlerCoordinateManagerX);
 
         public class ImageTrack
         {

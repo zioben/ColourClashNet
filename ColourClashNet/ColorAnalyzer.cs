@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlTypes;
+using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -19,7 +21,47 @@ namespace ColourClashNet
     public partial class ColorAnalyzer : UserControl
     {
 
+        
+        public class GraphicsResolution
+        {
+            public string Name => $"{Width}x{Height}";
+            public int Width { get; set; }
+            public int Height { get; set; }
+        }
+
         int Panel1MaxWidth = 400;
+
+        List<GraphicsResolution> lGfxRes = new List<GraphicsResolution>()
+        {
+            new GraphicsResolution { Width=160, Height = 144 },
+            new GraphicsResolution { Width=176, Height = 184 },
+            new GraphicsResolution { Width=240, Height = 160 },
+            new GraphicsResolution { Width=256, Height = 160 },
+            new GraphicsResolution { Width=256, Height = 192 },
+            new GraphicsResolution { Width=256, Height = 200 },
+            new GraphicsResolution { Width=256, Height = 224 },
+            new GraphicsResolution { Width=256, Height = 240 },
+            new GraphicsResolution { Width=320, Height = 200 },
+            new GraphicsResolution { Width=320, Height = 240 },
+            new GraphicsResolution { Width=320, Height = 256 },
+            new GraphicsResolution { Width=320, Height = 200 },
+            new GraphicsResolution { Width=320, Height = 224 },
+            new GraphicsResolution { Width=320, Height = 240 },
+            new GraphicsResolution { Width=320, Height = 256 },
+            new GraphicsResolution { Width=336, Height = 224 },
+            new GraphicsResolution { Width=512, Height = 242 },
+            new GraphicsResolution { Width=512, Height = 448 },
+            new GraphicsResolution { Width=640, Height = 200 },
+            new GraphicsResolution { Width=640, Height = 224 },
+            new GraphicsResolution { Width=640, Height = 240 },
+            new GraphicsResolution { Width=640, Height = 256 },
+            new GraphicsResolution { Width=640, Height = 400 },
+            new GraphicsResolution { Width=640, Height = 448 },
+            new GraphicsResolution { Width=640, Height = 480 },
+            new GraphicsResolution { Width=640, Height = 512 },
+            new GraphicsResolution { Width=800, Height = 600 },
+            new GraphicsResolution { Width=1024, Height = 768 },
+        };
 
 
         public ColorAnalyzer()
@@ -36,17 +78,40 @@ namespace ColourClashNet
             oBitmapRenderSource.ColorAdded += (s, e) => { BuildBkgPalette(); };
             oBitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };
             oColorManager.OnQuantize += (s, e) => { RefreshData(); };
-            oColorManager.OnProcess += (s, e) => { RefreshData(); };
+            oColorManager.OnProcess += (s, e) => { RefreshData(); RebuildParams(e.Transformation); };
+            CreateScaleMenuItems();
         }
 
+        private void RebuildParams(object sender)
+        {
+            if (sender is ColorTransformReductionZxSpectrum oZX)
+            {
+                nudZxColorLO.Value = oZX.ColL;
+                nudZxColorHI.Value = oZX.ColH;
+            }
+        }
 
         List<ToolStripMenuItem> lTsItems = new List<ToolStripMenuItem>();
+        List<ToolStripMenuItem> lTsItemsRes = new List<ToolStripMenuItem>();
 
         void RebulidSetCheck(string sItem)
         {
-            var ts = lTsItems.FirstOrDefault(X => X.Tag.ToString() == sItem);
+            var ts = lTsItems.FirstOrDefault(X => X.Tag?.ToString() == sItem);
             if (ts != null)
                 ts.Checked = true;
+        }
+        void RebulidSetCheck(GraphicsResolution oRes)
+        {
+            if (oRes == null)
+            {
+                originalToolStripMenuItem.Checked = true;
+            }
+            else
+            {
+                var ts = lTsItemsRes.FirstOrDefault(X => X.Tag == oRes);
+                if (ts != null)
+                    ts.Checked = true;
+            }
         }
 
         void RebuildChecks()
@@ -55,6 +120,8 @@ namespace ColourClashNet
             RebulidSetCheck(oColorManager.Config.ColorQuantizationMode.ToString());
             RebulidSetCheck(oColorManager.Config.ColorDistanceEvaluationMode.ToString());
             RebulidSetCheck(oColorManager.Config.DitheringAlgorithm.ToString());
+            lTsItemsRes.ForEach(X => X.Checked = false);
+            RebulidSetCheck(oWantedRes);
         }
 
         private void TsItem_Click(object? sender, EventArgs e)
@@ -77,6 +144,39 @@ namespace ColourClashNet
             RebuildChecks();
         }
 
+        GraphicsResolution oWantedRes = null;
+
+        private void TsItem_ClickRes(object? sender, EventArgs e)
+        {
+            var oTS = sender as ToolStripMenuItem;
+            var oTag = oTS.Tag;
+            oWantedRes = null;
+            if (oTag is GraphicsResolution oGfxRes)
+            {
+                oWantedRes = oGfxRes;
+            }
+            RebuildChecks();
+            oColorManager.Create(ResizeBitmap(oLoadedBmp));
+        }
+
+
+        void CreateScaleMenuItems()
+        {
+            originalToolStripMenuItem.Click += TsItem_ClickRes;
+            lTsItemsRes.Add(originalToolStripMenuItem);
+            foreach (var res in lGfxRes)
+            {
+                var tsItem = new System.Windows.Forms.ToolStripMenuItem();
+                tsItem.Name = "tsi" + res.Name;
+                tsItem.Size = new System.Drawing.Size(180, 22);
+                tsItem.Text = res.Name;
+                tsItem.CheckOnClick = true;
+                tsItem.Tag = res;
+                tsItem.Click += TsItem_ClickRes;
+                tsmiResolution.DropDownItems.Add(tsItem);
+                lTsItemsRes.Add(tsItem);
+            }
+        }
 
         void CreateMenuItem(ToolStripMenuItem oTsBase, object oItem)
         {
@@ -149,8 +249,8 @@ namespace ColourClashNet
 
         void ShowImage()
         {
-            oBitmapRenderSource.Image = oColorManager.ImageSource.Clone() as Image;
-            oBitmapRenderDest.Image = oColorManager.ImageProcessed.Clone() as Image;
+            oBitmapRenderSource.Image = oColorManager.ImageSource?.Clone() as Image;
+            oBitmapRenderDest.Image = oColorManager.ImageProcessed?.Clone() as Image;
             Invalidate();
         }
 
@@ -160,20 +260,44 @@ namespace ColourClashNet
             ShowImage();
         }
 
+        Bitmap oLoadedBmp;
+
+        public Bitmap ResizeBitmap(Bitmap oSrcBmp)
+        {
+            if (oSrcBmp == null)
+            {
+                return null;
+            }
+            if (oWantedRes == null)
+            {
+                return oSrcBmp;
+            }
+            else
+            {
+                var oBmp2 = new Bitmap(oWantedRes.Width, oWantedRes.Height);
+                using (var oG = Graphics.FromImage(oBmp2))
+                {
+                    oG.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+                    oG.DrawImage(oSrcBmp, new Rectangle(0, 0, oBmp2.Width, oBmp2.Height), new Rectangle(0, 0, oSrcBmp.Width, oSrcBmp.Height), GraphicsUnit.Pixel);
+                }
+                return oBmp2;
+            }
+        }
+
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (ofdSelectImage.ShowDialog() == DialogResult.OK)
             {
-                var oBmp = Bitmap.FromFile(ofdSelectImage.FileName) as Bitmap;
+                oLoadedBmp = Bitmap.FromFile(ofdSelectImage.FileName) as Bitmap;
                 oBitmapRenderDest.ResetMouseSelectedColors();
                 oBitmapRenderDest.OriginZero();
                 oBitmapRenderSource.ResetMouseSelectedColors();
                 oBitmapRenderSource.OriginZero();
                 //
                 oColorManager.Config.BackgroundColorList = GetBkgColors();
-                oColorManager.Config.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
-                oColorManager.Create(oBmp);
+                oColorManager.Config.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);               
+                oColorManager.Create(ResizeBitmap(oLoadedBmp));
             }
         }
 
@@ -207,6 +331,7 @@ namespace ColourClashNet
             oColorManager.Config.HsvHueOffset = (double)nudHue.Value;
             oColorManager.Config.C64ScreenMode = (ColorTransformReductionC64.C64VideoMode)Enum.Parse(typeof(ColorTransformReductionC64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString());
             oColorManager.Config.CPCScreenMode = (ColorTransformReductionCPC.CPCVideoMode)Enum.Parse(typeof(ColorTransformReductionCPC.CPCVideoMode), cbCpcVideoMode.SelectedItem.ToString());
+            oColorManager.Config.ZxEqAutotune = (bool)chkZxAutotune.Checked;
             oColorManager.Config.ZxEqColorLO = (int)nudZxColorLO.Value;
             oColorManager.Config.ZxEqColorHI = (int)nudZxColorHI.Value;
             oColorManager.Config.ZxEqBlackHI = chkZxBlackHI.Checked;
@@ -379,10 +504,10 @@ namespace ColourClashNet
 
         private void oBitmapRenderSource_MouseMove(object sender, MouseEventArgs e)
         {
-            var oPointC = oBitmapRenderSource.MouseControlCoordinatesX;
+            var oPointC = oBitmapRenderSource.MouseControlCoordinates;
             tsMouseCoord.Text = $"X:{oPointC.X} Y:{oPointC.Y}";
-           // var oPointI = oBitmapRenderSource.MouseImageCoordinatesClip;
-           // tsImageCoord.Text = $"X:{oPointI.X:f1} Y:{oPointI.Y:f1}";
+            var oPointI = oBitmapRenderSource.MouseImageCoordinatesClip;
+            tsImageCoord.Text = $"X:{oPointI.X:f2} Y:{oPointI.Y:f2}";
             tsColorData.BackColor = oBitmapRenderSource.MouseImageColor;
         }
 

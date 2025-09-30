@@ -49,6 +49,8 @@
             colorModeToolStripMenuItem = new ToolStripMenuItem();
             colorDistanceToolStripMenuItem = new ToolStripMenuItem();
             ditheringToolStripMenuItem = new ToolStripMenuItem();
+            tsmiResolution = new ToolStripMenuItem();
+            originalToolStripMenuItem = new ToolStripMenuItem();
             splitMain = new SplitContainer();
             tableLayoutPanel1 = new TableLayoutPanel();
             splitProcessing = new SplitContainer();
@@ -126,6 +128,7 @@
             oBitmapRenderDest = new ColourClashNet.Controls.BitmapRender(components);
             oColorManager = new ColourClashNet.Controls.ColorManager(components);
             sfdExportImage = new SaveFileDialog();
+            chkZxAutotune = new CheckBox();
             menuStripMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitMain).BeginInit();
             splitMain.Panel1.SuspendLayout();
@@ -180,7 +183,7 @@
             // 
             // menuStripMain
             // 
-            menuStripMain.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, colorModeToolStripMenuItem, colorDistanceToolStripMenuItem, ditheringToolStripMenuItem });
+            menuStripMain.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, colorModeToolStripMenuItem, colorDistanceToolStripMenuItem, ditheringToolStripMenuItem, tsmiResolution });
             menuStripMain.Location = new Point(0, 0);
             menuStripMain.Name = "menuStripMain";
             menuStripMain.Size = new Size(1134, 24);
@@ -308,6 +311,21 @@
             ditheringToolStripMenuItem.Name = "ditheringToolStripMenuItem";
             ditheringToolStripMenuItem.Size = new Size(68, 20);
             ditheringToolStripMenuItem.Text = "Dithering";
+            // 
+            // tsmiResolution
+            // 
+            tsmiResolution.DropDownItems.AddRange(new ToolStripItem[] { originalToolStripMenuItem });
+            tsmiResolution.Name = "tsmiResolution";
+            tsmiResolution.Size = new Size(75, 20);
+            tsmiResolution.Text = "Resolution";
+            // 
+            // originalToolStripMenuItem
+            // 
+            originalToolStripMenuItem.Checked = true;
+            originalToolStripMenuItem.CheckState = CheckState.Checked;
+            originalToolStripMenuItem.Name = "originalToolStripMenuItem";
+            originalToolStripMenuItem.Size = new Size(203, 22);
+            originalToolStripMenuItem.Text = "Samen as bitmap source";
             // 
             // splitMain
             // 
@@ -858,6 +876,7 @@
             // 
             // tpMainSinclair
             // 
+            tpMainSinclair.Controls.Add(chkZxAutotune);
             tpMainSinclair.Controls.Add(chkZxDitherHI);
             tpMainSinclair.Controls.Add(btnReduceColorsZx);
             tpMainSinclair.Controls.Add(chkZxBlackHI);
@@ -1106,26 +1125,26 @@
             // 
             // oBitmapRenderSource
             // 
-            oBitmapRenderSource.ContinuousFollowing = true;
             oBitmapRenderSource.Control = pictureBoxSrc;
             oBitmapRenderSource.Image = null;
             oBitmapRenderSource.ImageBlockScroll = false;
             oBitmapRenderSource.ImageMoveOverControlBorder = true;
             oBitmapRenderSource.ImageZoomManual = 1F;
             oBitmapRenderSource.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
+            oBitmapRenderSource.MouseImageFollowing = true;
             oBitmapRenderSource.MouseMovingButton = MouseButtons.Left;
             oBitmapRenderSource.MouseSelectButton = MouseButtons.Right;
             oBitmapRenderSource.MouseMove += oBitmapRenderSource_MouseMove;
             // 
             // oBitmapRenderDest
             // 
-            oBitmapRenderDest.ContinuousFollowing = true;
             oBitmapRenderDest.Control = pictureBoxProc;
             oBitmapRenderDest.Image = null;
             oBitmapRenderDest.ImageBlockScroll = false;
             oBitmapRenderDest.ImageMoveOverControlBorder = true;
             oBitmapRenderDest.ImageZoomManual = 1F;
             oBitmapRenderDest.ImageZoomMode = ColourClashNet.Controls.BitmapRender.EnumZoom.Zoom1;
+            oBitmapRenderDest.MouseImageFollowing = true;
             oBitmapRenderDest.MouseMovingButton = MouseButtons.Left;
             oBitmapRenderDest.MouseSelectButton = MouseButtons.Right;
             // 
@@ -1140,6 +1159,18 @@
             // sfdExportImage
             // 
             sfdExportImage.AddExtension = false;
+            // 
+            // chkZxAutotune
+            // 
+            chkZxAutotune.AutoSize = true;
+            chkZxAutotune.Checked = true;
+            chkZxAutotune.CheckState = CheckState.Checked;
+            chkZxAutotune.Location = new Point(177, 21);
+            chkZxAutotune.Name = "chkZxAutotune";
+            chkZxAutotune.Size = new Size(148, 19);
+            chkZxAutotune.TabIndex = 22;
+            chkZxAutotune.Text = "Autotune Colors (slow)";
+            chkZxAutotune.UseVisualStyleBackColor = true;
             // 
             // ColorAnalyzer
             // 
@@ -1302,5 +1333,8 @@
         private ToolStripStatusLabel tsMouseCoord;
         private ToolStripStatusLabel tsColor;
         private ToolStripStatusLabel tsColorData;
+        private ToolStripMenuItem tsmiResolution;
+        private ToolStripMenuItem originalToolStripMenuItem;
+        private CheckBox chkZxAutotune;
     }
 }

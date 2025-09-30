@@ -152,7 +152,7 @@ namespace ColourClashNet.Controls
             double xl = cos * PL.X + sin * PL.Y;
             double yl = -sin * PL.X + cos * PL.Y;
             // Tralsare sull'origine mondo
-            PointF PLL = new PointF((float)xl, (float)yl).Add(WorldRotationPoint).MulPP(TransfZoom).Add(TransfOrigin);
+            PointF PLL = new PointF((float)xl, (float)yl).Add(WorldRotationPoint).MulP2P(TransfZoom).Add(TransfOrigin);
             return PLL;
         }
 
@@ -183,7 +183,7 @@ namespace ColourClashNet.Controls
 
         public PointF InverseTransform(PointF oP)
         {
-            var PL = oP.Sub(TransfOrigin).DivPP(TransfZoom).Sub(WorldRotationPoint);
+            var PL = oP.Sub(TransfOrigin).DivP2P(TransfZoom).Sub(WorldRotationPoint);
             //
             double xl = cos * PL.X - sin * PL.Y;
             double yl = sin * PL.X + cos * PL.Y;
@@ -200,15 +200,19 @@ namespace ColourClashNet.Controls
         public PointF InverseTransform(int trX, int trY)
             => InverseTransform(new PointF((float)trX, (float)trY));
 
-        //// Tralsare sull'origine rototraslazione
-        //PointF PL = oP.Sub(WorldOrigin).Sub(WorldRotationPoint);
-        //// Ruotare punti
-        //double xl = cos * PL.X + sin * PL.Y;
-        //double yl = -sin * PL.X + cos * PL.Y;
-        //// Tralsare sull'origine mondo
-        //PointF PLL = new PointF((float)xl, (float)yl).Add(WorldRotationPoint).MulPP(TransfZoom).Add(TransfOrigin);
-        //    return PLL;
-
+      
+        Matrix RebuildTransform(Graphics oG)
+        {
+            var oldTR = oG.Transform;
+            oG.Transform = new Matrix();
+            oG.ResetTransform();
+            oG.TranslateTransform(WorldOrigin.X, WorldOrigin.Y, System.Drawing.Drawing2D.MatrixOrder.Append);
+            oG.TranslateTransform(WorldRotationPoint.X, WorldRotationPoint.Y, System.Drawing.Drawing2D.MatrixOrder.Append);
+            oG.RotateTransform((float)WorldRotationAngle, System.Drawing.Drawing2D.MatrixOrder.Append);
+            oG.TranslateTransform(-WorldRotationPoint.X, -WorldRotationPoint.Y, System.Drawing.Drawing2D.MatrixOrder.Append);
+            oG.ScaleTransform(TransfZoom.X, TransfZoom.Y);
+            return oldTR;
+        }
 
         public void DrawImage(Graphics oG, Image oImage)
         {
@@ -216,24 +220,12 @@ namespace ColourClashNet.Controls
             {
                 return;
             }
-            var oldTR = oG.Transform;
-            try
-            {
-                oG.ResetTransform();
-                oG.TranslateTransform(WorldOrigin.X, WorldOrigin.Y, System.Drawing.Drawing2D.MatrixOrder.Append);
-//                oG.TranslateTransform(WorldRotationPoint.X, WorldRotationPoint.Y, System.Drawing.Drawing2D.MatrixOrder.Append);
-                oG.RotateTransform((float)WorldRotationAngle, System.Drawing.Drawing2D.MatrixOrder.Append);
-                oG.ScaleTransform(TransfZoom.X, TransfZoom.Y);
-                oG.DrawImage(oImage, TransfOrigin);
-            }
-            catch (Exception ex)
-            { 
-            }
-            finally
-            {
-                oG.Transform = oldTR;
-            }
+            var oldTR = RebuildTransform(oG);
+            // This transaltion is affected by the Zoom Parameters.
+            // To maintains "Original" world size to follow mouse pointer, reversing the zoom is necessaty
+            var oPTO = TransfOrigin.DivP2P(TransfZoom);
+            oG.DrawImage(oImage, oPTO);
+            oG.Transform = oldTR;
         }
-
     }
 }

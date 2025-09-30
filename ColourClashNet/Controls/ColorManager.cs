@@ -268,6 +268,7 @@ namespace ColourClashNet.Controls
                             oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
                             oTrasf.ColL = Config.ZxEqColorLO;
                             oTrasf.ColH = Config.ZxEqColorHI;
+                            oTrasf.AutoTune = Config.ZxEqAutotune;
                             oTrasf.DitherHighColor = Config.ZxEqDitherHI;
                             oTrasf.IncludeBlackInHighColor = Config.ZxEqBlackHI;
                             oTrasformProcessing = oTrasf;
@@ -353,73 +354,5 @@ namespace ColourClashNet.Controls
             return DataProcessed;
         }
 
-
-
-        //Bitmap CreateIndexedBitmap(ImageWidthAlignMode eWidthAlignMode)
-        //{
-        //    if (mDataProcessed == null)
-        //        return null;
-        //    var oTrLast = lTransform.LastOrDefault();
-        //    if (oTrLast == null)
-        //        return null;
-        //    if (oTrLast is ColorTransformReductionScanLine)
-        //    {
-        //        var oTras = oTrLast as ColorTransformReductionScanLine;
-        //        return null;// ImageTools.CreateIndexedBitmap(mDataProcessed, oTras.ColorListRow, ImageTools.ImageWidthAlignMode.MultiplePixel16);
-        //    }
-        //    else
-        //    {
-        //        HashSet<int> iSet = new HashSet<int>();
-        //        int R = mDataProcessed.GetLength(0);
-        //        int C = mDataProcessed.GetLength(1);
-        //        for (int r = 0; r < R; r++)
-        //        {
-        //            for (int c = 0; c < C; c++)
-        //            {
-        //                iSet.Add(mDataProcessed[r, c]);
-        //            }
-        //        }
-        //        if (iSet.Count > 256)
-        //        {
-        //            return null;
-        //        }
-        //        var lPalette = iSet.ToList();
-        //        return null;// CreateIndexedBitmap(mDataProcessed, lPalette, eWidthAlignMode);
-        //    }
-        //}
-
-        //public void WriteBitmapIndex(string sFileName, ImageWidthAlignMode eWidthAlignMode)
-        //{
-        //    var oBmp = CreateIndexedBitmap(eWidthAlignMode);
-        //    oBmp?.Save(sFileName, ImageFormat.Bmp);
-        //}
-        //public void WritePngIndex(string sFileName, ImageWidthAlignMode eWidthAlignMode)
-        //{
-        //    var oBmp = CreateIndexedBitmap(eWidthAlignMode);
-        //    oBmp?.Save(sFileName, ImageFormat.Png);
-        //}
-
-        //public void WriteBitmap(string sFileName)
-        //{
-        //    ImageProcessed?.Save(sFileName, ImageFormat.Bmp);
-        //}
-        //public void WritePng(string sFileName)
-        //{
-        //    ImageProcessed?.Save(sFileName, ImageFormat.Png);
-        //}
-        //public void WriteBitplane(string sFileName, ImageTools.ImageWidthAlignMode eWidthAlignMode, bool bInterleaveData)
-        //{
-        //    var oTrLast = lTransform.LastOrDefault();
-        //    if (oTrLast == null)
-        //        return;
-        //    if (oTrLast is ColorTransformReductionScanLine)
-        //    {
-        //        var oTr = oTrLast as ColorTransformReductionScanLine;
-        //        ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oTr.ColorListRow, eWidthAlignMode, bInterleaveData);
-        //    }
-        //    else
-        //    {
-        //        ImageTools.ImageTools.BitplaneWriteFile(sFileName, mDataProcessed, oTrLast.OutputPalette.ToList(), eWidthAlignMode, bInterleaveData);
-        //    }
     }
 }

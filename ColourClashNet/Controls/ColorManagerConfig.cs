@@ -54,6 +54,7 @@ namespace ColourClashNet.Controls
         public double DitheringStrenght { get; set; } = 1.0;
         public List<int> BackgroundColorList { get; set; } = new List<int>();
         public int BackgroundColorReplacement { get; set; } = 0;
+        public bool ZxEqAutotune { get; set; } = false;
         public int ZxEqColorLO { get; set; } = 0x80;
         public int ZxEqColorHI { get; set; } = 0xFF;
         public bool ZxEqBlackHI { get; set; } = true;

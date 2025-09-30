@@ -13,11 +13,13 @@ using System.Reflection.Emit;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using ColourClashNet.Log;
 
 namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformReductionZxSpectrum : ColorTransformReductionPalette
     {
+        static string sClass = nameof(ColorTransformReductionZxSpectrum);
 
         public enum ZxPaletteMode
         { 
@@ -39,6 +41,8 @@ namespace ColourClashNet.Color.Transformation
         public int ColH { get; set; } = 0x00FF;
         public ZxPaletteMode PaletteMode { get; set; } = ZxPaletteMode.Both;
         public bool IncludeBlackInHighColor { get; set; } = true;
+
+        public bool AutoTune { get; set; } = true;  
         public bool DitherHighColor { get; set; } = true;
 
         int iColOutL = 0x00D8;
@@ -150,7 +154,7 @@ namespace ColourClashNet.Color.Transformation
             return oTileManager;
         }
 
-        protected override int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken)
+        protected int[,]? ExecuteTransformZX(int[,]? oDataSource, CancellationToken oToken)
         {
             if (oDataSource == null)
                 return null;
@@ -176,34 +180,14 @@ namespace ColourClashNet.Color.Transformation
 
             var oZxMapLO = CreateZxMap(icl, iol, true);
             var oZxMapHI = CreateZxMap(ich, ioh, true);
-            //oPalette = new ColorPalette();
-            //foreach (var rgb in oZxMapLO.rgbTransformationMap)
-            //{
-            //    oPalette.Add(rgb.Key);
-            //}
-            //foreach (var rgb in oZxMapHI.rgbTransformationMap)
-            //{
-            //    oPalette.Add(rgb.Key);
-            //}
 
-            //var oTmpData = base.ExecuteTransform(oDataSource);
-            //if (dithering != null)
-            //{
-            //    oTmpData = dithering.Dither(oDataSource, oTmpData, oPalette, ColorDistanceEvaluationMode);
-            //}
             BypassDithering = true;
+
             List<TileManager> lTM = new List<TileManager>();
             TileManager oTileManagerL1 = CreateTiles(oDataSource, icl, iol, true, true, ColorDistanceEvaluationMode, oToken);
             TileManager oTileManagerH1 = CreateTiles(oDataSource, ich, ioh, IncludeBlackInHighColor, DitherHighColor, ColorDistanceEvaluationMode, oToken );
             lTM.Add(oTileManagerL1);    
             lTM.Add(oTileManagerH1);
-            //if (ColorDistanceEvaluationMode != ColorDistanceEvaluationMode.RGBalt)
-            //{
-            //    TileManager oTileManagerL2 = CreateTiles(oDataSource, icl, iol, true, true, ColorDistanceEvaluationMode.RGBalt);
-            //    TileManager oTileManagerH2 = CreateTiles(oDataSource, ich, ioh, IncludeBlackInHighColor, DitherHighColor, ColorDistanceEvaluationMode.RGBalt);
-            //    lTM.Add(oTileManagerL2);
-            //    lTM.Add(oTileManagerH2);
-            //}
 
             var oTileRet = TileManager.MergeData(oDataSource, lTM, TileBase.EnumErrorSourceMode.ExternalImageError);
           
@@ -221,6 +205,101 @@ namespace ColourClashNet.Color.Transformation
             return oRet;
         }
 
-     
+        object locker = new object();
+
+        protected override int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken)
+        {
+            string sMethod = nameof(ExecuteTransform);
+
+            if (oDataSource == null)
+                return null;
+
+            if (!AutoTune)
+            {
+                return ExecuteTransformZX(oDataSource, oToken);
+            }
+
+            BypassDithering = true;
+
+            var dMinError = double.PositiveInfinity;
+            int[,] oTileBest = null;
+            ColorTransformationMap oZxMapLoBest = null;
+            ColorTransformationMap oZxMapHiBest = null;
+            int LBest = 0;
+            int HBest = 0;
+
+            for (int l = 0; l < 256; l += 16)
+            {
+                for (int h = l+15; h < 256; h += 16)
+                {
+                    int icl = l;
+                    int ich = h;
+                    int iol = iColOutL;
+                    int ioh = iColOutH;
+                    switch (PaletteMode)
+                    {
+                        case ZxPaletteMode.PaletteHi:
+                            icl = ColH;
+                            iol = iColOutH;
+                            break;
+                        case ZxPaletteMode.PaletteLo:
+                            ich = ColL;
+                            ioh = iColOutL;
+                            break;
+                        default:
+                            break;
+
+                    }
+
+                    var oZxMapLo = CreateZxMap(icl, iol, true);
+                    var oZxMapHi = CreateZxMap(ich, ioh, true);
+
+                    List<TileManager> lTM = new List<TileManager>();
+                    TileManager oTileManagerL1 = CreateTiles(oDataSource, icl, iol, true, true, ColorDistanceEvaluationMode, oToken);
+                    TileManager oTileManagerH1 = CreateTiles(oDataSource, ich, ioh, IncludeBlackInHighColor, DitherHighColor, ColorDistanceEvaluationMode, oToken);
+                    lTM.Add(oTileManagerL1);
+                    lTM.Add(oTileManagerH1);
+
+                    var oTileRet = TileManager.MergeData(oDataSource, lTM, TileBase.EnumErrorSourceMode.ExternalImageError);
+
+                    var dError = ColorTransformBase.EvaluateError(oDataSource, oTileRet, ColorDistanceEvaluationMode);
+
+                    //oTileManagerL1.CalcExternalImageError(oDataSource) + oTileManagerH1.CalcExternalImageError(oDataSource);
+
+                    lock (locker)
+                    {
+                        if (dMinError > dError)
+                        {
+                            dMinError = dError;
+                            oTileBest = oTileRet;
+                            oZxMapLoBest = oZxMapLo;
+                            oZxMapHiBest = oZxMapHi;
+                            LBest = l;
+                            HBest = h;
+                        }
+                        LogMan.Message(sClass, sMethod, $"Working with : LO = {l:D3} and HI = {h:D3} : Error = {dError} --- Best Result  : LO = {LBest} and HI = {HBest} : Error = {dMinError}");
+                    }
+                }
+            }
+
+            ColL = LBest;
+            ColH = HBest;
+
+            ColorTransformationMapper.Reset();
+            foreach (var rgb in oZxMapLoBest.rgbTransformationMap)
+            {
+                ColorTransformationMapper.Add(rgb.Key, rgb.Value);
+            }
+            foreach (var rgb in oZxMapHiBest.rgbTransformationMap)
+            {
+                ColorTransformationMapper.Add(rgb.Key, rgb.Value);
+            }
+
+            var oRet = ExecuteStdTransform(oTileBest, this, oToken);
+            return oRet;
+        }
+
+
+
     }
 }
