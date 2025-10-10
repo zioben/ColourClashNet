@@ -21,7 +21,7 @@ namespace ColourClashNet
     public partial class ColorAnalyzer : UserControl
     {
 
-        
+
         public class GraphicsResolution
         {
             public string Name => $"{Width}x{Height}";
@@ -296,7 +296,7 @@ namespace ColourClashNet
                 oBitmapRenderSource.OriginZero();
                 //
                 oColorManager.Config.BackgroundColorList = GetBkgColors();
-                oColorManager.Config.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);               
+                oColorManager.Config.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
                 oColorManager.Create(ResizeBitmap(oLoadedBmp));
             }
         }
@@ -511,5 +511,13 @@ namespace ColourClashNet
             tsColorData.BackColor = oBitmapRenderSource.MouseImageColor;
         }
 
+        private void zxBtnReset_Click(object sender, EventArgs e)
+        {
+            if (nudZxColorLO.Value <= 128)
+                nudZxColorLO.Value = 0;
+            else
+                nudZxColorLO.Value = 128;
+            nudZxColorHI.Value = 255;
+        }
     }
 }

@@ -154,23 +154,23 @@ namespace ColourClashNet.Color.Transformation
             return oTileManager;
         }
 
-        protected int[,]? ExecuteTransformZX(int[,]? oDataSource, CancellationToken oToken)
+        protected Tuple<int[,]?,double, ColorTransformationMap, ColorTransformationMap> ExecuteTransformZX(int[,]? oDataSource, int iColL, int iColH, CancellationToken oToken)
         {
             if (oDataSource == null)
                 return null;
 
-            var icl = ColL;
-            var ich = ColH;
+            var icl = iColL;
+            var ich = iColH;
             int iol = iColOutL;
             int ioh = iColOutH;
             switch (PaletteMode)
             {
                 case ZxPaletteMode.PaletteHi:
-                    icl = ColH;
+                    icl = iColH;
                     iol = iColOutH;
                     break;
                 case ZxPaletteMode.PaletteLo:
-                    ich = ColL;
+                    ich = iColL;
                     ioh = iColOutL;
                     break;
                 default: 
@@ -202,7 +202,8 @@ namespace ColourClashNet.Color.Transformation
             }
 
             var oRet = ExecuteStdTransform(oTileRet, this, oToken);
-            return oRet;
+            var dError = ColorTransformBase.EvaluateError(oDataSource, oTileRet, ColorDistanceEvaluationMode);
+            return new Tuple<int[,]?, double, ColorTransformationMap, ColorTransformationMap>(oTileRet, dError, oZxMapLO, oZxMapHI);
         }
 
         object locker = new object();
@@ -214,88 +215,71 @@ namespace ColourClashNet.Color.Transformation
             if (oDataSource == null)
                 return null;
 
-            if (!AutoTune)
-            {
-                return ExecuteTransformZX(oDataSource, oToken);
-            }
-
             BypassDithering = true;
 
-            var dMinError = double.PositiveInfinity;
-            int[,] oTileBest = null;
-            ColorTransformationMap oZxMapLoBest = null;
-            ColorTransformationMap oZxMapHiBest = null;
-            int LBest = 0;
-            int HBest = 0;
-
-            for (int l = 0; l < 256; l += 16)
+            if (!AutoTune)
             {
-                for (int h = l+15; h < 256; h += 16)
+                return ExecuteTransformZX(oDataSource, ColL,ColH, oToken).Item1;
+            }
+
+
+            int LBest = ColL;
+            int HBest = ColH;
+            var oBest = ExecuteTransformZX(oDataSource, LBest, HBest, oToken);
+            var dMinError = oBest.Item2;
+            var dError = double.PositiveInfinity;
+            int iL = 0;
+            int iH = 5000;
+            bool bExit = false;
+            while (!bExit)// (iL + 1) <= iH && dError <= dMinError)
+            {
+                iL = LBest + 8;
+                iH = HBest - 8;
+                var oBaseL = ExecuteTransformZX(oDataSource, iL, HBest, oToken);
+                var oBaseH = ExecuteTransformZX(oDataSource, LBest, iH, oToken);
+                var dErrL = oBaseL.Item2;
+                var dErrH = oBaseH.Item2;
+                if (dErrL < dErrH)
                 {
-                    int icl = l;
-                    int ich = h;
-                    int iol = iColOutL;
-                    int ioh = iColOutH;
-                    switch (PaletteMode)
+                    LBest = iL;
+                    if (dErrL < dMinError)
                     {
-                        case ZxPaletteMode.PaletteHi:
-                            icl = ColH;
-                            iol = iColOutH;
-                            break;
-                        case ZxPaletteMode.PaletteLo:
-                            ich = ColL;
-                            ioh = iColOutL;
-                            break;
-                        default:
-                            break;
-
+                        ColL = iL;
+                        oBest = oBaseL;
                     }
-
-                    var oZxMapLo = CreateZxMap(icl, iol, true);
-                    var oZxMapHi = CreateZxMap(ich, ioh, true);
-
-                    List<TileManager> lTM = new List<TileManager>();
-                    TileManager oTileManagerL1 = CreateTiles(oDataSource, icl, iol, true, true, ColorDistanceEvaluationMode, oToken);
-                    TileManager oTileManagerH1 = CreateTiles(oDataSource, ich, ioh, IncludeBlackInHighColor, DitherHighColor, ColorDistanceEvaluationMode, oToken);
-                    lTM.Add(oTileManagerL1);
-                    lTM.Add(oTileManagerH1);
-
-                    var oTileRet = TileManager.MergeData(oDataSource, lTM, TileBase.EnumErrorSourceMode.ExternalImageError);
-
-                    var dError = ColorTransformBase.EvaluateError(oDataSource, oTileRet, ColorDistanceEvaluationMode);
-
-                    //oTileManagerL1.CalcExternalImageError(oDataSource) + oTileManagerH1.CalcExternalImageError(oDataSource);
-
-                    lock (locker)
+                }
+                else
+                {
+                    HBest = iH;
+                    if (dErrH < dMinError)
                     {
-                        if (dMinError > dError)
-                        {
-                            dMinError = dError;
-                            oTileBest = oTileRet;
-                            oZxMapLoBest = oZxMapLo;
-                            oZxMapHiBest = oZxMapHi;
-                            LBest = l;
-                            HBest = h;
-                        }
-                        LogMan.Message(sClass, sMethod, $"Working with : LO = {l:D3} and HI = {h:D3} : Error = {dError} --- Best Result  : LO = {LBest} and HI = {HBest} : Error = {dMinError}");
+                        ColH = iH;
+                        oBest = oBaseH;
                     }
+                }
+                dError = Math.Min(dErrL, dErrH);
+                LogMan.Message(sClass, sMethod, $"Working with : LO = {iL:D3} and HI = {iH:D3} : Error = {dError} --- Best Error = {oBest.Item2}");
+                if (iH < iL)
+                    bExit = true;
+                if (dError > dMinError )
+                    bExit = true;
+                if (dMinError > dError)
+                {
+                    dMinError = dError;
                 }
             }
 
-            ColL = LBest;
-            ColH = HBest;
-
             ColorTransformationMapper.Reset();
-            foreach (var rgb in oZxMapLoBest.rgbTransformationMap)
+            foreach (var rgb in oBest.Item3.rgbTransformationMap)
             {
                 ColorTransformationMapper.Add(rgb.Key, rgb.Value);
             }
-            foreach (var rgb in oZxMapHiBest.rgbTransformationMap)
+            foreach (var rgb in oBest.Item4.rgbTransformationMap)
             {
                 ColorTransformationMapper.Add(rgb.Key, rgb.Value);
             }
 
-            var oRet = ExecuteStdTransform(oTileBest, this, oToken);
+            var oRet = ExecuteStdTransform(oBest.Item1, this, oToken);
             return oRet;
         }
 

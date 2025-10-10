@@ -100,6 +100,7 @@
             btnReduceColorsScanline = new Button();
             chkScanLineCluster = new CheckBox();
             tpMainSinclair = new TabPage();
+            chkZxAutotune = new CheckBox();
             chkZxDitherHI = new CheckBox();
             btnReduceColorsZx = new Button();
             chkZxBlackHI = new CheckBox();
@@ -128,7 +129,7 @@
             oBitmapRenderDest = new ColourClashNet.Controls.BitmapRender(components);
             oColorManager = new ColourClashNet.Controls.ColorManager(components);
             sfdExportImage = new SaveFileDialog();
-            chkZxAutotune = new CheckBox();
+            zxBtnReset = new Button();
             menuStripMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitMain).BeginInit();
             splitMain.Panel1.SuspendLayout();
@@ -876,6 +877,7 @@
             // 
             // tpMainSinclair
             // 
+            tpMainSinclair.Controls.Add(zxBtnReset);
             tpMainSinclair.Controls.Add(chkZxAutotune);
             tpMainSinclair.Controls.Add(chkZxDitherHI);
             tpMainSinclair.Controls.Add(btnReduceColorsZx);
@@ -891,6 +893,18 @@
             tpMainSinclair.TabIndex = 2;
             tpMainSinclair.Text = "Sinclair";
             tpMainSinclair.UseVisualStyleBackColor = true;
+            // 
+            // chkZxAutotune
+            // 
+            chkZxAutotune.AutoSize = true;
+            chkZxAutotune.Checked = true;
+            chkZxAutotune.CheckState = CheckState.Checked;
+            chkZxAutotune.Location = new Point(177, 21);
+            chkZxAutotune.Name = "chkZxAutotune";
+            chkZxAutotune.Size = new Size(148, 19);
+            chkZxAutotune.TabIndex = 22;
+            chkZxAutotune.Text = "Autotune Colors (slow)";
+            chkZxAutotune.UseVisualStyleBackColor = true;
             // 
             // chkZxDitherHI
             // 
@@ -1160,17 +1174,15 @@
             // 
             sfdExportImage.AddExtension = false;
             // 
-            // chkZxAutotune
+            // zxBtnReset
             // 
-            chkZxAutotune.AutoSize = true;
-            chkZxAutotune.Checked = true;
-            chkZxAutotune.CheckState = CheckState.Checked;
-            chkZxAutotune.Location = new Point(177, 21);
-            chkZxAutotune.Name = "chkZxAutotune";
-            chkZxAutotune.Size = new Size(148, 19);
-            chkZxAutotune.TabIndex = 22;
-            chkZxAutotune.Text = "Autotune Colors (slow)";
-            chkZxAutotune.UseVisualStyleBackColor = true;
+            zxBtnReset.Location = new Point(177, 51);
+            zxBtnReset.Name = "zxBtnReset";
+            zxBtnReset.Size = new Size(75, 23);
+            zxBtnReset.TabIndex = 23;
+            zxBtnReset.Text = "Reset";
+            zxBtnReset.UseVisualStyleBackColor = true;
+            zxBtnReset.Click += zxBtnReset_Click;
             // 
             // ColorAnalyzer
             // 
@@ -1336,5 +1348,6 @@
         private ToolStripMenuItem tsmiResolution;
         private ToolStripMenuItem originalToolStripMenuItem;
         private CheckBox chkZxAutotune;
+        private Button zxBtnReset;
     }
 }
