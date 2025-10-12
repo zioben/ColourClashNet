@@ -29,6 +29,16 @@ namespace ColourClashNet
             public int Height { get; set; }
         }
 
+        public class CopyDataEventArgs : EventArgs
+        {
+            public Image SourceBitmap { get; set; }
+            public Image DestBitmap { get; set; }
+            public Rectangle DestBitmapRoi { get; set; }
+        }
+
+
+        public event EventHandler<CopyDataEventArgs> OnCopyImage;
+
         int Panel1MaxWidth = 400;
 
         List<GraphicsResolution> lGfxRes = new List<GraphicsResolution>()
@@ -284,20 +294,24 @@ namespace ColourClashNet
             }
         }
 
+        public void Create(Image oImage)
+        {
+            oLoadedBmp = oImage as Bitmap;
+            oBitmapRenderDest.ResetMouseSelectedColors();
+            oBitmapRenderDest.OriginZero();
+            oBitmapRenderSource.ResetMouseSelectedColors();
+            oBitmapRenderSource.OriginZero();
+            //
+            oColorManager.Config.BackgroundColorList = GetBkgColors();
+            oColorManager.Config.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
+            oColorManager.Create(ResizeBitmap(oLoadedBmp));
+        }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (ofdSelectImage.ShowDialog() == DialogResult.OK)
             {
-                oLoadedBmp = Bitmap.FromFile(ofdSelectImage.FileName) as Bitmap;
-                oBitmapRenderDest.ResetMouseSelectedColors();
-                oBitmapRenderDest.OriginZero();
-                oBitmapRenderSource.ResetMouseSelectedColors();
-                oBitmapRenderSource.OriginZero();
-                //
-                oColorManager.Config.BackgroundColorList = GetBkgColors();
-                oColorManager.Config.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
-                oColorManager.Create(ResizeBitmap(oLoadedBmp));
+                Create(Bitmap.FromFile(ofdSelectImage.FileName));
             }
         }
 
@@ -518,6 +532,22 @@ namespace ColourClashNet
             else
                 nudZxColorLO.Value = 128;
             nudZxColorHI.Value = 255;
+        }
+
+        private void newContainerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var oS = this.oColorManager.ImageSource;
+            var oD = this.oColorManager.ImageProcessed;
+            if (oS == null || oD == null)
+            {
+                return;
+            }
+            OnCopyImage?.Invoke(this, new CopyDataEventArgs()
+            {
+                SourceBitmap = oS,
+                DestBitmap = oD,
+                DestBitmapRoi = new Rectangle(0, 0, oD.Width, oD.Height)
+            }); 
         }
     }
 }

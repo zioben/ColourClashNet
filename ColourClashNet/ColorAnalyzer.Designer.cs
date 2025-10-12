@@ -100,6 +100,7 @@
             btnReduceColorsScanline = new Button();
             chkScanLineCluster = new CheckBox();
             tpMainSinclair = new TabPage();
+            zxBtnReset = new Button();
             chkZxAutotune = new CheckBox();
             chkZxDitherHI = new CheckBox();
             btnReduceColorsZx = new Button();
@@ -129,7 +130,7 @@
             oBitmapRenderDest = new ColourClashNet.Controls.BitmapRender(components);
             oColorManager = new ColourClashNet.Controls.ColorManager(components);
             sfdExportImage = new SaveFileDialog();
-            zxBtnReset = new Button();
+            newContainerToolStripMenuItem = new ToolStripMenuItem();
             menuStripMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitMain).BeginInit();
             splitMain.Panel1.SuspendLayout();
@@ -204,7 +205,7 @@
             newToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             newToolStripMenuItem.Name = "newToolStripMenuItem";
             newToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.N;
-            newToolStripMenuItem.Size = new Size(146, 22);
+            newToolStripMenuItem.Size = new Size(180, 22);
             newToolStripMenuItem.Text = "&New";
             newToolStripMenuItem.Click += newToolStripMenuItem_Click;
             // 
@@ -214,7 +215,7 @@
             openToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             openToolStripMenuItem.Name = "openToolStripMenuItem";
             openToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.O;
-            openToolStripMenuItem.Size = new Size(146, 22);
+            openToolStripMenuItem.Size = new Size(180, 22);
             openToolStripMenuItem.Text = "&Open";
             openToolStripMenuItem.Click += openToolStripMenuItem_Click;
             // 
@@ -224,41 +225,41 @@
             toolStripMenuItemSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             toolStripMenuItemSave.Name = "toolStripMenuItemSave";
             toolStripMenuItemSave.ShortcutKeys = Keys.Control | Keys.S;
-            toolStripMenuItemSave.Size = new Size(146, 22);
+            toolStripMenuItemSave.Size = new Size(180, 22);
             toolStripMenuItemSave.Text = "&Save";
             toolStripMenuItemSave.Click += toolStripMenuItemSave_Click;
             // 
             // exportToolStripMenuItem
             // 
-            exportToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { bitmapIndexedToolStripMenuItem, indexedPNGToolStripMenuItem, bitmapToolStripMenuItem, pNGToolStripMenuItem, amigaToolStripMenuItem });
+            exportToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newContainerToolStripMenuItem, bitmapIndexedToolStripMenuItem, indexedPNGToolStripMenuItem, bitmapToolStripMenuItem, pNGToolStripMenuItem, amigaToolStripMenuItem });
             exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            exportToolStripMenuItem.Size = new Size(146, 22);
+            exportToolStripMenuItem.Size = new Size(180, 22);
             exportToolStripMenuItem.Text = "Export";
             // 
             // bitmapIndexedToolStripMenuItem
             // 
             bitmapIndexedToolStripMenuItem.Name = "bitmapIndexedToolStripMenuItem";
-            bitmapIndexedToolStripMenuItem.Size = new Size(156, 22);
+            bitmapIndexedToolStripMenuItem.Size = new Size(180, 22);
             bitmapIndexedToolStripMenuItem.Text = "Bitmap Indexed";
             bitmapIndexedToolStripMenuItem.Click += bitmapIndexedToolStripMenuItem_Click;
             // 
             // indexedPNGToolStripMenuItem
             // 
             indexedPNGToolStripMenuItem.Name = "indexedPNGToolStripMenuItem";
-            indexedPNGToolStripMenuItem.Size = new Size(156, 22);
+            indexedPNGToolStripMenuItem.Size = new Size(180, 22);
             indexedPNGToolStripMenuItem.Text = "PNG Indexed";
             // 
             // bitmapToolStripMenuItem
             // 
             bitmapToolStripMenuItem.Name = "bitmapToolStripMenuItem";
-            bitmapToolStripMenuItem.Size = new Size(156, 22);
+            bitmapToolStripMenuItem.Size = new Size(180, 22);
             bitmapToolStripMenuItem.Text = "Bitmap";
             bitmapToolStripMenuItem.Click += bitmapToolStripMenuItem_Click;
             // 
             // pNGToolStripMenuItem
             // 
             pNGToolStripMenuItem.Name = "pNGToolStripMenuItem";
-            pNGToolStripMenuItem.Size = new Size(156, 22);
+            pNGToolStripMenuItem.Size = new Size(180, 22);
             pNGToolStripMenuItem.Text = "PNG";
             pNGToolStripMenuItem.Click += pNGToolStripMenuItem_Click;
             // 
@@ -266,7 +267,7 @@
             // 
             amigaToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { iFFILBMToolStripMenuItem, bitplaneToolStripMenuItem1, rawBitplaneAndOCSCopperlistToolStripMenuItem, sourceCodeToolStripMenuItem });
             amigaToolStripMenuItem.Name = "amigaToolStripMenuItem";
-            amigaToolStripMenuItem.Size = new Size(156, 22);
+            amigaToolStripMenuItem.Size = new Size(180, 22);
             amigaToolStripMenuItem.Text = "Amiga";
             // 
             // iFFILBMToolStripMenuItem
@@ -894,6 +895,16 @@
             tpMainSinclair.Text = "Sinclair";
             tpMainSinclair.UseVisualStyleBackColor = true;
             // 
+            // zxBtnReset
+            // 
+            zxBtnReset.Location = new Point(177, 51);
+            zxBtnReset.Name = "zxBtnReset";
+            zxBtnReset.Size = new Size(75, 23);
+            zxBtnReset.TabIndex = 23;
+            zxBtnReset.Text = "Reset";
+            zxBtnReset.UseVisualStyleBackColor = true;
+            zxBtnReset.Click += zxBtnReset_Click;
+            // 
             // chkZxAutotune
             // 
             chkZxAutotune.AutoSize = true;
@@ -1174,15 +1185,12 @@
             // 
             sfdExportImage.AddExtension = false;
             // 
-            // zxBtnReset
+            // newContainerToolStripMenuItem
             // 
-            zxBtnReset.Location = new Point(177, 51);
-            zxBtnReset.Name = "zxBtnReset";
-            zxBtnReset.Size = new Size(75, 23);
-            zxBtnReset.TabIndex = 23;
-            zxBtnReset.Text = "Reset";
-            zxBtnReset.UseVisualStyleBackColor = true;
-            zxBtnReset.Click += zxBtnReset_Click;
+            newContainerToolStripMenuItem.Name = "newContainerToolStripMenuItem";
+            newContainerToolStripMenuItem.Size = new Size(180, 22);
+            newContainerToolStripMenuItem.Text = "New Container";
+            newContainerToolStripMenuItem.Click += newContainerToolStripMenuItem_Click;
             // 
             // ColorAnalyzer
             // 
@@ -1349,5 +1357,6 @@
         private ToolStripMenuItem originalToolStripMenuItem;
         private CheckBox chkZxAutotune;
         private Button zxBtnReset;
+        private ToolStripMenuItem newContainerToolStripMenuItem;
     }
 }

@@ -258,7 +258,7 @@ namespace ColourClashNet.Color.Transformation
                     }
                 }
                 dError = Math.Min(dErrL, dErrH);
-                LogMan.Message(sClass, sMethod, $"Working with : LO = {iL:D3} and HI = {iH:D3} : Error = {dError} --- Best Error = {oBest.Item2}");
+                LogMan.Message(sClass, sMethod, $"Working with : LO = {iL:D3} and HI = {iH:D3} : Error = {dError:f2} --- Best Error = {oBest.Item2:f2}");
                 if (iH < iL)
                     bExit = true;
                 if (dError > dMinError )

@@ -34,7 +34,7 @@ namespace ColourClashNet
             //var oPoint3 = oMan.InverseTransform(oPoint2);
 
 
-            Application.Run(new Form1());
+            Application.Run(new FormCClash());
         }
     }
 }

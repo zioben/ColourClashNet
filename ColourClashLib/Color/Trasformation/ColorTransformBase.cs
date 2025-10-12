@@ -220,7 +220,7 @@ namespace ColourClashNet.Color.Transformation
             int c1 = oDataA.GetLength(1);
             int r2 = oDataB.GetLength(0);
             int c2 = oDataB.GetLength(1);
-            if (r1 != r2 || c1 != c2)
+            if (r1 != r2 || c1 != c2 || r1 == 0 || r2 == 0 )
             {
                 return double.NaN;
             }
@@ -237,6 +237,8 @@ namespace ColourClashNet.Color.Transformation
                     }
                 }
             }
+            err /= (3 * r1 * c1);
+           // err *= 100;
             return err;
         }
 
