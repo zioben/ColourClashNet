@@ -373,21 +373,21 @@ namespace ColourClashNet
             oColorManager.Config.AmigaVideoMode = (ColorTransformReductionAmiga.EnumAMigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAMigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString());
         }
 
-        private void btnReduceColors_Click(object sender, EventArgs e)
+        private async void btnReduceColors_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorManager.ProcessColors(ColorTransformType.ColorReductionMedianCut);
+            await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionMedianCut);
         }
-        private void btnReduceColorsScanline_Click(object sender, EventArgs e)
+        private async void btnReduceColorsScanline_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorManager.ProcessColors(ColorTransformType.ColorReductionScanline);
+            await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionScanline);
         }
 
-        private void btnReduceColorCluster_Click(object sender, EventArgs e)
+        private async void btnReduceColorCluster_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorManager.ProcessColors(ColorTransformType.ColorReductionClustering);
+            await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionClustering);
         }
 
         private void pbBkColor_DoubleClick(object sender, EventArgs e)
@@ -454,41 +454,41 @@ namespace ColourClashNet
 
 
 
-        private void btnReduceColorsZx_Click(object sender, EventArgs e)
+        private async void btnReduceColorsZx_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorManager.ProcessColors(ColorTransformType.ColorReductionZxSpectrum);
+            await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionZxSpectrum);
         }
 
 
-        private void btnReduceColorsEga_Click(object sender, EventArgs e)
+        private async void btnReduceColorsEga_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorManager.ProcessColors(ColorTransformType.ColorReductionEga);
+            await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionEga);
         }
 
-        private void BtnReduceColorsC64v1_Click(object sender, EventArgs e)
+        private async void BtnReduceColorsC64v1_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorManager.ProcessColors(ColorTransformType.ColorReductionCBM64);
+            await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionCBM64);
         }
 
-        private void btnReduceColorCPC_Click(object sender, EventArgs e)
+        private async void btnReduceColorCPC_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorManager.ProcessColors(ColorTransformType.ColorReductionCPC);
+            await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionCPC);
         }
 
-        private void btnChromaAdapt_Click(object sender, EventArgs e)
+        private async void btnChromaAdapt_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorManager.ProcessColors(ColorTransformType.ColorReductionSaturation);
+            await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionSaturation);
         }
 
-        private void btnReduceHam_Click(object sender, EventArgs e)
+        private async void btnReduceHam_Click(object sender, EventArgs e)
         {
             SetToControl();
-            oColorManager.ProcessColors(ColorTransformType.ColorReductionHam);
+            await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionHam);
         }
 
         bool bDitherStrenghtUpdating = false;

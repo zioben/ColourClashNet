@@ -63,10 +63,10 @@ namespace ColourClashNet.Controls
         public Image ImageQuantized { get; protected set; }
         public Image ImageProcessed { get; protected set; }
 
-        public int ImageSourceColors => oTrasformSource?.OutputColors ?? 0;
-        public int ImageBkgRemovedColors => oTrasformBkgRemover?.OutputColors ?? 0;
-        public int ImageQuantizedColors => oTrasformQuantizer?.OutputColors ?? 0;
-        public int ImageProcessedColors => oTrasformProcessing?.OutputColors ?? 0;
+        public int ImageSourceColors => oTrasformSource?.OutputColorsX ?? 0;
+        public int ImageBkgRemovedColors => oTrasformBkgRemover?.OutputColorsX ?? 0;
+        public int ImageQuantizedColors => oTrasformQuantizer?.OutputColorsX ?? 0;
+        public int ImageProcessedColors => oTrasformProcessing?.OutputColorsX ?? 0;
 
         [Browsable(false)]
         public bool InvalidatePreProcess { get; set; } = true;
@@ -152,18 +152,18 @@ namespace ColourClashNet.Controls
             }
         }
 
-        public void PreProcess()
+        public async Task PreProcess()
         {
-            RemoveBkgAndQuantize(true);
+            await RemoveBkgAndQuantizeAsync(true);
             InvalidatePreProcess = false;
         }
 
         public void Create(System.Drawing.Bitmap oImage) => Create(ImageTools.ToMatrix(oImage));    
 
 
-        int[,] RemoveBkgAndQuantize(bool bRaiseEvent )
+        async Task<int[,]> RemoveBkgAndQuantizeAsync(bool bRaiseEvent )
         {
-            string sMethod = nameof(RemoveBkgAndQuantize);
+            string sMethod = nameof(RemoveBkgAndQuantizeAsync);
             if (DataSourceX == null)
             {
                 LogMan.Error(sClass, sMethod, "No source data");
@@ -175,20 +175,24 @@ namespace ColourClashNet.Controls
                 ResetProcessingData();
                 LogMan.Message(sClass, sMethod, "Starting Processing");
                 LogMan.Trace(sClass, sMethod, "Process Identity Transformation");
-                oTrasformSource.Create(DataSourceX, null);
-                oTrasformSource.ProcessColors(DataSourceX);
+                await oTrasformSource.CreateAsync(DataSourceX, null);
+                await oTrasformSource.ProcessColorsAsync(null);
+
+                CancellationTokenSource cts = new CancellationTokenSource();
 
                 LogMan.Trace(sClass, sMethod, "Process Bkg Remover");
-                oTrasformBkgRemover.Create(oTrasformSource.OutputPalette, null);
+                await oTrasformBkgRemover.CreateAsync(DataSourceX, cts.Token);
                 oTrasformBkgRemover.SetProperty(ColorTransformProperties.ColorBackgroundReplacement, Config.BackgroundColorReplacement);
                 oTrasformBkgRemover.SetProperty(ColorTransformProperties.ColorBackgroundList, Config.BackgroundColorList);
-                DataBkgRemoved = oTrasformBkgRemover.ProcessColors(DataSourceX).DataOut;
+                var DataBkgRemovedRes = (await oTrasformBkgRemover.ProcessColorsAsync(cts.Token));
+                DataBkgRemoved = DataBkgRemovedRes.DataOut;
                 ImageBkgRemoved = ImageTools.ToBitmap(DataBkgRemoved);
 
                 LogMan.Trace(sClass, sMethod, "Process Quantizer");
-                oTrasformQuantizer.Create(oTrasformBkgRemover.OutputPalette, null);
+                await oTrasformQuantizer.CreateAsync(DataBkgRemoved, cts.Token);
                 oTrasformQuantizer.SetProperty(ColorTransformProperties.QuantizationMode, Config.ColorQuantizationMode);
-                DataQuantized = oTrasformQuantizer.ProcessColors(DataBkgRemoved).DataOut;
+                var DataQuantizedRes = (await oTrasformQuantizer.ProcessColorsAsync(cts.Token));
+                DataQuantized = DataQuantizedRes.DataOut;
                 ImageQuantized = ImageTools.ToBitmap(DataQuantized);
 
                 LogMan.Trace(sClass, sMethod, "Colen Quantizer Output");
@@ -218,9 +222,9 @@ namespace ColourClashNet.Controls
         }
 
 
-        public int[,] ProcessColors(ColorTransformType eTrasformType)
+        public async Task<int[,]> ProcessColorsAsync(ColorTransformType eTrasformType)
         {
-            string sMethod = nameof(ProcessColors);
+            string sMethod = nameof(ProcessColorsAsync);
             oTrasformProcessing = null;
             try
             {
@@ -334,9 +338,11 @@ namespace ColourClashNet.Controls
                 {
                     PreProcess();
                 }
-                oTrasformProcessing.Create(DataQuantized, null);
-                oTrasformProcessing.SetDithering(DitherBase.CreateDitherInterface(Config.DitheringAlgorithm, Config.DitheringStrenght));
-                DataProcessed = oTrasformProcessing.ProcessColors(DataQuantized).DataOut;
+                CancellationTokenSource cts = new CancellationTokenSource();
+                await oTrasformProcessing.CreateAsync(DataQuantized, cts.Token);
+                //oTrasformProcessing.SetDithering(DitherBase.CreateDitherInterface(Config.DitheringAlgorithm, Config.DitheringStrenght));
+                var DataProcessedRes = await oTrasformProcessing.ProcessColorsAsync(cts.Token);
+                DataProcessed = DataProcessedRes.DataOut;
                 ImageProcessed = ImageTools.ToBitmap(DataProcessed);
                 OnProcess?.Invoke(this, new ColorManagerProcessEventArgs
                 {
