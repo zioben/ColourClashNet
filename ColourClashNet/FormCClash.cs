@@ -12,27 +12,21 @@ namespace ColourClashNet
             TabManager.TabPages.Clear();
         }
 
-        void CreateTab()
+        ColorAnalyzer CreateTab()
         {
             var caNew = new ColorAnalyzer();
             caNew.Dock = caTemplate.Dock;
             caNew.Location = caTemplate.Location;
             caNew.Name = $"ca.{DateTime.Now.Ticks}";
             caNew.Size = caTemplate.Size;
-            caNew.OnCopyImage += ((s, e) => CreateTab(e.DestBitmap));
-            TabManager.CreatePage(caNew);
+            caNew.ImageCopied += ((s, e) => CreateTab(e.DestBitmap, e.Name));
+            caNew.ImageCreated += ((s, e) => TabManager.SetPageText(caNew, e.Name.Substring(Math.Max(0,e.Name.Length-12))));
+            TabManager.CreatePage(caNew);   
+            return caNew;
         }
-        void CreateTab(Image oSrcImage)
-        {
-            var caNew = new ColorAnalyzer();
-            caNew.Dock = caTemplate.Dock;
-            caNew.Location = caTemplate.Location;
-            caNew.Name = $"ca.{DateTime.Now.Ticks}";
-            caNew.Size = caTemplate.Size;
-            caNew.OnCopyImage += ((s, e) => CreateTab(e.DestBitmap));
-            TabManager.CreatePage(caNew);
-            caNew.Create(oSrcImage);
-        }
+
+
+        void CreateTab(Image oSrcImage, string sName) => CreateTab().Create(oSrcImage, sName);
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {

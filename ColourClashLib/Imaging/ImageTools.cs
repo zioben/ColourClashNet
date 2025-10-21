@@ -1,5 +1,6 @@
 ﻿using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
+using ColourClashNet.Defaults;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
@@ -63,7 +64,7 @@ namespace ColourClashNet.Imaging
                 {
                     var col = mDataSrc[y, x];
                     var idx = llPaletteSrc[y].IndexOf(col);
-                    oRet[y, x] = (byte)(idx >= 0 && idx < 256 ? idx : ColorDefaults.DefaultInvalidColorRGB);
+                    oRet[y, x] = (byte)(idx >= 0 && idx < 256 ? idx : ColorDefaults.DefaultInvalidColorInt);
                 }
             }
             return oRet;
@@ -270,7 +271,7 @@ namespace ColourClashNet.Imaging
                         int* ptrRow = (int*)(oLock.Scan0 + yoff);
                         for (int x = 0; x < oBmp.Width; x++)
                         {
-                            ptrRow[x] = m[y, x] >= 0 ? m[y, x] : ColorDefaults.DefaultBkgColorRGB;
+                            ptrRow[x] = m[y, x] >= 0 ? m[y, x] : ColorDefaults.DefaultBkgColorInt;
                         }
                     }
                 }

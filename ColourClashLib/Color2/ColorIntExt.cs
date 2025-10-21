@@ -1,5 +1,4 @@
-﻿using ColourClashLib.Color2;
-using ColourClashNet.Color2;
+﻿using ColourClashNet.Color;
 using ColourClashNet.Defaults;
 using System;
 using System.Collections.Generic;
@@ -131,31 +130,13 @@ namespace ColourClashNet.Color
         public static HSV ToHSV(this int rgb) => HSV.FromIntRGB(rgb);
 
         /// <summary>
-        /// Converts an integer representation of a color to its RGB (Reg, Green, Blue) representation.
-        /// </summary>
-        /// <param name="rgb"></param>
-        /// <returns></returns>
-        public static RGB ToRGB(this int rgb) => RGB.FromIntRGB(rgb);
-
-        /// <summary>
-        /// Converts an integer representation of a color to its RGB (Reg, Green, Blue) representation.
-        /// </summary>
-        /// <param name="rgb"></param>
-        /// <returns></returns>
-        public static LAB ToLAB(this int rgb) => LAB.FromIntRGB(rgb);
-
-        /// <summary>
         /// Converts an integer representation of a color to its HSV (Hue, Saturation, Value) representation.
         /// </summary>
         /// <param name="rgb"></param>
         /// <returns></returns>
-        public static LAB ToLAB(this int rgb) => LAB.FromRGB(rgb);
-
-
-
-        public static int HSVToRGB(this int rgb)
+        public static int RGBToHSV(this int rgb)
         {
-            var hsv = HSV.FromRGB(rgb);
+            var hsv = HSV.FromIntRGB(rgb);
             int h = (int)Math.Min(0, Math.Max(360, Math.Round(hsv.H))); // 9 bit 
             int s = (int)Math.Min(0, Math.Max(100, Math.Round(hsv.S))); // 7 bit
             int v = (int)Math.Min(0, Math.Max(100, Math.Round(hsv.V))); // 7 bit
@@ -163,77 +144,15 @@ namespace ColourClashNet.Color
         }
 
         /// <summary>
-        /// Converts an integer representation of a color to its Hue component in the HSV color space. 
+        /// Converts an integer representation of a color to its LAB  representation.
         /// </summary>
-        /// <param name="i"></param>
+        /// <param name="rgb"></param>
         /// <returns></returns>
-        public static float ToH(this int i)
-        {
-            if (i < 0)
-                return float.MaxValue;
-            float r = i.ToR() / 255f;
-            float g = i.ToG() / 255f;
-            float b = i.ToB() / 255f;
-            float max = Math.Max(Math.Max(r, g), b);
-            float min = Math.Min(Math.Min(r, g), b);
-            if (max == min)
-                return 0;
-            float delta = max - min;
-            float h = 0;
-            if (r >= g && r >= b)
-            {
-                h = (g - b) / delta;
-                if (h < 0)
-                    h += 6;
-            }
-            else if (g >= r && g >= b)
-            {
-                h = ((b - r) / delta) + 2;
-            }
-            else
-            {
-                h = ((r - g) / delta) + 4;
-            }
-            return h * 60;
-        }
+        public static LAB ToLAB(this int rgb) => LAB.FromIntRGB(rgb);
 
-        /// <summary>
-        /// Calculates the minimum distance between two hue values in the HSV color space, considering the circular nature of hue.
-        /// </summary>
-        /// <param name="hA"></param>
-        /// <param name="hB"></param>
-        /// <returns></returns>
-        public static float DistanceH(float hA, float hB)
-        {
-            // hA -> [0-360] + 2k*Pi
-            // hB -> [0-360] + 2k*Pi
-            return Math.Min(Math.Abs(hA - hB), Math.Abs(hA + 360 - hB));
-        }
 
-        /// <summary>
-        /// Converts an integer representation of a color to its Saturation component in the HSV color space.   
-        /// </summary>
-        /// <param name="i"></param>
-        /// <returns></returns>
-        public static float ToS(this int i)
-        {
-            if (i < 0)
-                return float.MaxValue;
-            int r = i.ToR();
-            int g = i.ToG();
-            int b = i.ToB();
-            float max = Math.Max(Math.Max(r, g), b);
-            float min = Math.Min(Math.Min(r, g), b);
-            if (max == min)
-                return 0;
-            return (1f - min / max) * 100;
-        }
+        public static GRAY ToGray(this int rgb) => GRAY.FromIntRGB(rgb);
 
-        /// <summary>
-        /// Converts an integer representation of a color to its Value (Brightness) component in the HSV color space.
-        /// </summary>
-        /// <param name="i"></param>
-        /// <returns></returns>
         public static float ToY(this int i)
         {
             if (i < 0)
@@ -289,11 +208,23 @@ namespace ColourClashNet.Color
                     }
                 case ColorDistanceEvaluationMode.HSV:
                     {
-                        var H = DistanceH(i.ToH(), j.ToH());
-                        var S = i.ToS() - j.ToS();
-                        var V = i.ToV() - j.ToV();
-                        return H * H + S * S + V * V;
+                        HSV hsvi = HSV.FromIntRGB(i);
+                        HSV hsvj = HSV.FromIntRGB(j);
+                        return HSV.Distance(hsvi, hsvj);
                     }
+                case ColorDistanceEvaluationMode.LAB:
+                    {
+                        LAB labi = LAB.FromIntRGB(i);
+                        LAB labj = LAB.FromIntRGB(j);
+                        return LAB.Distance(labi, labj);
+                    }
+                case ColorDistanceEvaluationMode.GRAY:
+                    {
+                        GRAY yi = GRAY.FromIntRGB(i);
+                        GRAY yj = GRAY.FromIntRGB(j);
+                        return GRAY.Distance(yi, yj);
+                    }
+
                 default:
                     return double.PositiveInfinity;
             }
@@ -528,6 +459,43 @@ namespace ColourClashNet.Color
             int G = (rgbA.ToG() + rgbB.ToG()) / 2;
             int B = (rgbA.ToB() + rgbB.ToB()) / 2;
             return FromRGB(R, G, B);
+        }
+
+        static public double EvaluateError(int rgbA, int rgbB, ColorDistanceEvaluationMode eMode) => Distance(rgbA, rgbB, eMode);
+
+        static public async Task<double> EvaluateErrorAsync(int[,]? oDataA, int[,]? oDataB, ColorDistanceEvaluationMode eMode, CancellationToken? oToken)
+        {
+            return await Task.Run(() =>
+            {
+                if (oDataA == null || oDataB == null)
+                {
+                    return double.NaN;
+                }
+                int r1 = oDataA.GetLength(0);
+                int c1 = oDataA.GetLength(1);
+                int r2 = oDataB.GetLength(0);
+                int c2 = oDataB.GetLength(1);
+                if (r1 != r2 || c1 != c2 || r1 == 0 || r2 == 0)
+                {
+                    return double.NaN;
+                }
+                double err = 0;
+                Parallel.For(0, r1, r => //(int r = 0; r < r1; r++)
+                {
+                    oToken?.ThrowIfCancellationRequested();
+                    for (int c = 0; c < c1; c++)
+                    {
+                        var rgb1 = oDataA[r, c];
+                        var rgb2 = oDataB[r, c];
+                        if (rgb1 >= 0 && rgb2 >= 0)
+                        {
+                            err += ColorIntExt.Distance(rgb1, rgb2, eMode);
+                        }
+                    }
+                });
+                err /= r1 * c1;
+                return err;
+            });
         }
 
     }

@@ -23,7 +23,16 @@ namespace ColourClashNet.Color
         RGB111,
     }
 
-
+    /// <summary>
+    /// Enums to select color space for color distance evaluation
+    /// </summary>
+    public enum Colorspace
+    {
+        RGB,
+        HSV,
+        LAB,
+        XYZ,
+    }
 
     /// <summary>
     /// Enums to select color distance evaluation algorithm
@@ -130,7 +139,8 @@ namespace ColourClashNet.Color
         Zx_PaletteMode,
         Zx_IncludeBlackInHighColor,
         Zx_DitherHighColor,
-        Output_Palette,
+        Fixed_Palette,
+        Dithering_Model
     }
 
     /// <summary>

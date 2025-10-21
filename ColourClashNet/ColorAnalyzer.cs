@@ -1,6 +1,7 @@
 ﻿using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Controls;
+using ColourClashNet.Defaults;
 using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;
@@ -31,15 +32,28 @@ namespace ColourClashNet
 
         public class CopyDataEventArgs : EventArgs
         {
+            public string Name { get; set; }
             public Image SourceBitmap { get; set; }
             public Image DestBitmap { get; set; }
             public Rectangle DestBitmapRoi { get; set; }
         }
 
+        public class DataSourceEventArgs : EventArgs
+        {
+            public String Name { get; set; }
+            public Image SourceBitmap { get; set; }
+            public FileInfo SourceFile { get; set; }
+        }
 
-        public event EventHandler<CopyDataEventArgs> OnCopyImage;
 
-        int Panel1MaxWidth = 400;
+        public event EventHandler<CopyDataEventArgs> ImageCopied;
+        public event EventHandler<DataSourceEventArgs> ImageCreated;
+
+        int iPanel1MaxWidth = 400;
+
+        FileInfo oFileInfo = null;
+        String oName = "";
+
 
         List<GraphicsResolution> lGfxRes = new List<GraphicsResolution>()
         {
@@ -216,8 +230,7 @@ namespace ColourClashNet
             foreach (var X in lColorMode)
             {
                 CreateMenuItem(oTsBase, X);
-            }
-            ;
+            };
         }
 
         void InitMenu()
@@ -294,7 +307,7 @@ namespace ColourClashNet
             }
         }
 
-        public void Create(Image oImage)
+        public void Create(Image oImage, string sName)
         {
             oLoadedBmp = oImage as Bitmap;
             oBitmapRenderDest.ResetMouseSelectedColors();
@@ -305,13 +318,20 @@ namespace ColourClashNet
             oColorManager.Config.BackgroundColorList = GetBkgColors();
             oColorManager.Config.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
             oColorManager.Create(ResizeBitmap(oLoadedBmp));
+            oName = sName;  
+            ImageCreated?.Invoke(this, new DataSourceEventArgs()
+            {
+                 Name = oName,
+                 SourceBitmap = oLoadedBmp,
+            });            
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (ofdSelectImage.ShowDialog() == DialogResult.OK)
             {
-                Create(Bitmap.FromFile(ofdSelectImage.FileName));
+                oFileInfo = new FileInfo(ofdSelectImage.FileName);
+                Create(Bitmap.FromFile(oFileInfo.FullName), oFileInfo.Name);
             }
         }
 
@@ -502,17 +522,17 @@ namespace ColourClashNet
 
         private void scMain_SplitterMoved(object sender, SplitterEventArgs e)
         {
-            if (splitMain.Panel1.Width > Panel1MaxWidth)
+            if (splitMain.Panel1.Width > iPanel1MaxWidth)
             {
-                splitMain.SplitterDistance = Panel1MaxWidth;
+                splitMain.SplitterDistance = iPanel1MaxWidth;
             }
         }
 
         private void scMain_SizeChanged(object sender, EventArgs e)
         {
-            if (splitMain.Panel1.Width > Panel1MaxWidth)
+            if (splitMain.Panel1.Width > iPanel1MaxWidth)
             {
-                splitMain.SplitterDistance = Panel1MaxWidth;
+                splitMain.SplitterDistance = iPanel1MaxWidth;
             }
         }
 
@@ -542,8 +562,9 @@ namespace ColourClashNet
             {
                 return;
             }
-            OnCopyImage?.Invoke(this, new CopyDataEventArgs()
+            ImageCopied?.Invoke(this, new CopyDataEventArgs()
             {
+                Name = oName,
                 SourceBitmap = oS,
                 DestBitmap = oD,
                 DestBitmapRoi = new Rectangle(0, 0, oD.Width, oD.Height)

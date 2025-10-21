@@ -1,5 +1,4 @@
-﻿using ColourClashNet.Color;
-using ColourClashNet.Defaults;
+﻿using ColourClashNet.Defaults;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +8,6 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashNet.Color.Tile.TileBase;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -35,8 +33,6 @@ namespace ColourClashNet.Color.Transformation
 
         public EnumHamFirstColorReductionMode HamColorReductionMode { get; set; } = EnumHamFirstColorReductionMode.Fast;
 
-        //ColorTransformQuantization oQuantization = new ColorTransformQuantization();
-
         public ColorTransformReductionAmiga()
         {
             Type = ColorTransformType.ColorReductionClustering;
@@ -46,41 +42,37 @@ namespace ColourClashNet.Color.Transformation
 
         public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
         {
-            if (base.SetProperty(eProperty, oValue) != null)
-                return this;
             switch (eProperty)
             {
                 case ColorTransformProperties.Amiga_VideoMode:
                     if (Enum.TryParse<EnumAMigaVideoMode>(oValue?.ToString(), out var evm ))
                     {
                         AmigaVideoMode = evm;
-                        return this;
                     }
                     break;
                 case ColorTransformProperties.UseColorMean:
                     if (Enum.TryParse<EnumHamFirstColorReductionMode>(oValue?.ToString(), out var cm))
                     {
                         HamColorReductionMode = cm;
-                        return this;
                     }
                     break;
                 default:
                     break;
             }
-            return null;
+            return this;
         }
 
 
-      
 
-        int[,]? ToHam(int[,]? oDataSource, int[,]? oDataPreProcessed, ColorQuantizationMode eQuantization, CancellationToken oToken)
+
+        async Task<int[,]?> ToHamAsync(int[,]? oDataSource, int[,]? oDataPreProcessed, ColorQuantizationMode eQuantization, CancellationToken? oToken)
         {
             int R = oDataSource.GetLength(0);
             int C = oDataSource.GetLength(1);
 
             var oQuantization = new ColorTransformQuantization();
             oQuantization.QuantizationMode = eQuantization;
-            oQuantization.Create(oDataPreProcessed, null);
+            await oQuantization.CreateAsync(oDataPreProcessed, null);
 
             var oRet = new int[R, C];
             for (int r = 0; r < R; r++)
@@ -100,7 +92,7 @@ namespace ColourClashNet.Color.Transformation
                         int iRgbSrc = oQuantization.QuantizeColor( oDataSource[r, c] );
                         if (iRgbSrc < 0)
                         {
-                            iRgbPrev = ColorDefaults.DefaultInvalidColorInt; ;
+                            iRgbPrev = ColorDefaults.DefaultInvalidColorInt;
                             oRet[r, c] = iRgbSrc;
                             continue;
                         }
@@ -128,20 +120,19 @@ namespace ColourClashNet.Color.Transformation
             return oRet;
         }
 
-        int[,]? ToEhb(int[,]? oDataSource, int[,]? oDataPreProcessed, CancellationToken oToken)
-        {
-            return oDataPreProcessed;
-        }
+        //async Task<int[,]?> ToEhb(int[,]? oDataSource, int[,]? oDataPreProcessed, CancellationToken? oToken)
+        //{
+        //    return await Task.Run(() => { return new int[,]; } );
+        //}
 
-        protected override int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken)
+        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
         {
-            if( oDataSource== null ) 
-            {
-                return null;
-            }
+            string sM = nameof(ExecuteTransformAsync);
 
             ColorTransformInterface oColorReduction;
-            var oQuantization = new ColorTransformQuantization();
+            var oQuantization = new ColorTransformQuantization()
+                .SetProperty(ColorTransformProperties.Fixed_Palette, FixedPalette)
+                .SetProperty(ColorTransformProperties.Dithering_Model, DitheringType);
 
             int iMaxColors = 0;
 
@@ -149,23 +140,22 @@ namespace ColourClashNet.Color.Transformation
             {
                 case EnumAMigaVideoMode.ExtraHalfBright:
                     iMaxColors = 64;
-                    oQuantization.QuantizationMode = ColorQuantizationMode.RGB444;
+                    oQuantization.SetProperty(ColorTransformProperties.QuantizationMode, ColorQuantizationMode.RGB444);
                     break;
                 case EnumAMigaVideoMode.Ham6:
                     iMaxColors = 16;
-                    oQuantization.QuantizationMode = ColorQuantizationMode.RGB444;
+                    oQuantization.SetProperty(ColorTransformProperties.QuantizationMode, ColorQuantizationMode.RGB444);
                     break;
                 case EnumAMigaVideoMode.Ham8:
                     iMaxColors = 64;
-                    oQuantization.QuantizationMode = ColorQuantizationMode.RGB666;
+                    oQuantization.SetProperty(ColorTransformProperties.QuantizationMode, ColorQuantizationMode.RGB666);
                     break;
                 default:
                     return null;
             }
 
-            oQuantization.Create(oDataSource, InputFixedColorPalette);
-            oQuantization.Dithering = Dithering;
-            var oResultQuantized = oQuantization.ProcessColors(oDataSource);
+            await oQuantization.CreateAsync(SourceData, oToken);
+            var oResultQuantized = await oQuantization.ProcessColorsAsync(oToken);
             var oDataQuantized = oResultQuantized.DataOut;
 
             switch (HamColorReductionMode)
@@ -174,51 +164,51 @@ namespace ColourClashNet.Color.Transformation
                 case  EnumHamFirstColorReductionMode.Fast:
                     {
                         oColorReduction = new ColorTransformReductionMedianCut()
-                        {   
-                            UseColorMean = true, 
-                            ColorDistanceEvaluationMode = ColorDistanceEvaluationMode,
-                            ColorsMaxWanted = iMaxColors,
-                        };
+                            .SetProperty(ColorTransformProperties.UseColorMean, true)
+                            .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
+                            .SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors)
+                            .SetProperty(ColorTransformProperties.Dithering_Model, DitheringType);
                     }
                     break;
                 case EnumHamFirstColorReductionMode.Detailed:
                     {
-                        oColorReduction = new ColorTransformReductionCluster
-                        {
-                            TrainingLoop = 10,
-                            UseClusterColorMean = true,
-                            ColorDistanceEvaluationMode = ColorDistanceEvaluationMode,
-                            ColorsMaxWanted = iMaxColors,
-                        };
+                        oColorReduction = new ColorTransformReductionCluster()
+                            .SetProperty(ColorTransformProperties.UseColorMean, true)
+                            .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
+                            .SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors)
+                            .SetProperty(ColorTransformProperties.Dithering_Model, DitheringType)
+                            .SetProperty(ColorTransformProperties.ClusterTrainingLoop, 10);
                     }
                     break;
             }
 
-            oColorReduction.Dithering = Dithering;
-            oColorReduction.Create(oDataSource, InputFixedColorPalette);
-            var oResultPreprocessed = oColorReduction.ProcessColors(oDataQuantized);
-            var oDataPreprocessed = oResultPreprocessed.DataOut;
+            await oColorReduction.CreateAsync(SourceData,oToken);
+            var oDataPreprocessedResult = await oColorReduction.ProcessColorsAsync(oToken);
+            var oDataPreprocessed = oDataPreprocessedResult.DataOut;
             BypassDithering = true;
 
-            int[,] oRet;
+            int[,]? oRet = null; 
             switch (AmigaVideoMode)
             {
                 case EnumAMigaVideoMode.Ham6:
-                    oRet = ToHam(oDataSource, oDataPreprocessed,  ColorQuantizationMode.RGB444, oToken );
+                    oRet = await ToHamAsync(SourceData, oDataPreprocessed,  ColorQuantizationMode.RGB444, oToken );
                     break;
                 case EnumAMigaVideoMode.Ham8:
-                    oRet = ToHam(oDataSource, oDataPreprocessed, ColorQuantizationMode.RGB666, oToken );
+                    oRet = await ToHamAsync(SourceData, oDataPreprocessed, ColorQuantizationMode.RGB666, oToken );
                     break;
                 case EnumAMigaVideoMode.ExtraHalfBright:
-                    oRet = ToEhb(oDataSource, oDataPreprocessed, oToken );
+                    oRet = null;
+                    //oRet = ToEhb(oDataSource, oDataPreprocessed, oToken );
                     break;
                 default:
                     oRet = null;
                     break;
             }
-
-            Create(oRet, InputFixedColorPalette);
-            return oRet;
+            if (oRet != null)
+            {
+                return ColorTransformResults.CreateValidResult(SourceData, oRet);
+            }
+            return new();
         }
 
     }

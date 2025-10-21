@@ -62,6 +62,14 @@ namespace ColourClashNet.Controls
 
         }
 
+        public void SetPageText(Control oControl, string sText)
+        {
+            var sTableID = oControl.Name;
+            if (oTabPages.ContainsKey(sTableID))
+            {
+                oTabPages[sTableID].Text = sText;
+            }
+        }
 
         void TabManager_DrawItem_1(object sender, DrawItemEventArgs e)
         {

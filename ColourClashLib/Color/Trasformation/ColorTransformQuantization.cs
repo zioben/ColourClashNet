@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using ColourClashNet.Color;
+using ColourClashNet.Defaults;
 using ColourClashNet.Log;
 using static ColourClashNet.Color.Transformation.ColorTransformReductionC64;
 
@@ -86,7 +87,7 @@ namespace ColourClashNet.Color.Transformation
                     dB = Math.Round(dB / 4) * 4;
                     break;
                 default:
-                    return ColorDefaults.DefaultInvalidColorRGB;
+                    return ColorDefaults.DefaultInvalidColorInt;
             }
             var iRGBOut = ColorIntExt.FromRGB(dR, dG, dB);
             return iRGBOut;
@@ -115,7 +116,7 @@ namespace ColourClashNet.Color.Transformation
                 case ColorQuantizationMode.RGB666:
                     return iRGB & 0x00FCFCFC;
                 default:
-                    return ColorDefaults.DefaultInvalidColorRGB;
+                    return ColorDefaults.DefaultInvalidColorInt;
             }
         }
 
@@ -232,7 +233,7 @@ namespace ColourClashNet.Color.Transformation
                         //return rgb;
                     }
                 default:
-                    return ColorDefaults.DefaultInvalidColorRGB;
+                    return ColorDefaults.DefaultInvalidColorInt;
             }
         }
 
@@ -308,7 +309,7 @@ namespace ColourClashNet.Color.Transformation
                         return rgb;
                     }
                 default:
-                    return ColorDefaults.DefaultInvalidColorRGB;
+                    return ColorDefaults.DefaultInvalidColorInt;
             }
         }
 

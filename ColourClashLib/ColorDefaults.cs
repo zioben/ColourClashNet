@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 
-namespace ColourClashNet.Color
+namespace ColourClashNet.Defaults
 {
     public static class ColorDefaults
     {
@@ -16,21 +16,21 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Gets or sets the default background color.
         /// </summary>
-        public static int DefaultBkgColorRGB { get; set; } = ColorIntExt.FromRGB(255,0,255);
+        public static int DefaultBkgColorInt { get; set; } = ColorIntExt.FromRGB(255,0,255);
 
-        public static System.Drawing.Color DefaultBkgColor => System.Drawing.Color.FromArgb(DefaultBkgColorRGB);
+        public static System.Drawing.Color DefaultBkgColor => System.Drawing.Color.FromArgb(DefaultBkgColorInt);
 
         /// <summary>
         /// Gets or sets the default mask color used for rendering operations.
         /// </summary>
-        public static int DefaultMaskColorRGB { get; set; } = ColorIntExt.FromRGB(255, 255, 255);
-        public static System.Drawing.Color DefaultMaskColor => System.Drawing.Color.FromArgb(DefaultMaskColorRGB);
+        public static int DefaultMaskColorInt { get; set; } = ColorIntExt.FromRGB(255, 255, 255);
+        public static System.Drawing.Color DefaultMaskColor => System.Drawing.Color.FromArgb(DefaultMaskColorInt);
 
         /// <summary>
         /// Gets or sets the default color used for tile layers.
         /// </summary>
-        public static int DefaultTileColorRGB { get; set; } = ColorIntExt.FromRGB(255, 0, 0);
-        public static System.Drawing.Color DefaultTileColor => System.Drawing.Color.FromArgb(DefaultTileColorRGB);
+        public static int DefaultTileColorInt { get; set; } = ColorIntExt.FromRGB(255, 0, 0);
+        public static System.Drawing.Color DefaultTileColor => System.Drawing.Color.FromArgb(DefaultTileColorInt);
 
         /// <summary>
         /// Gets or sets the default transparent color.
@@ -40,8 +40,8 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Default integer representation of an invalid color.
         /// </summary>
-        public static int DefaultInvalidColorRGB { get; set; } = ColorIntExt.FromRGB(255, 255, 255);
-        public static System.Drawing.Color DefaultInvalidColor => System.Drawing.Color.FromArgb(DefaultInvalidColorRGB);
+        public static int DefaultInvalidColorInt { get; set; } = ColorIntExt.FromRGB(255, 255, 255);
+        public static System.Drawing.Color DefaultInvalidColor => System.Drawing.Color.FromArgb(DefaultInvalidColorInt);
 
     }
 }

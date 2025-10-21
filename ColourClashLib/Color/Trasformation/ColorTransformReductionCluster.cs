@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Log;
+﻿using ColourClashNet.Defaults;
+using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -138,15 +139,15 @@ namespace ColourClashNet.Color.Transformation
             {
                 var dMin = lTupleColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
                 var oItem = lTupleColorCluster.FirstOrDefault(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
-                var iCol = ColorDefaults.DefaultInvalidColorRGB; ;
+                var iCol = ColorDefaults.DefaultInvalidColorInt; ;
                 if (UseClusterColorMean)
                 {
-                    iCol = oItem?.Item1.Last() ?? ColorDefaults.DefaultInvalidColorRGB; ;
+                    iCol = oItem?.Item1.Last() ?? ColorDefaults.DefaultInvalidColorInt; ;
                 }
                 else
                 {
                     var Max = oItem?.Item2.Max(X => X.Value);
-                    iCol = oItem?.Item2.FirstOrDefault(X => X.Value == Max).Key ?? ColorDefaults.DefaultInvalidColorRGB; ;
+                    iCol = oItem?.Item2.FirstOrDefault(X => X.Value == Max).Key ?? ColorDefaults.DefaultInvalidColorInt; ;
                 }
                 OutputPalette.Add(iCol);
                 ColorTransformationMapper.Add(kvp.Key,iCol); 
