@@ -108,7 +108,7 @@ namespace ColourClashNet.Color.Dithering
 
                     var oDataOut = new int[R, C];
 
-                    var dStrenght = DitheringStrenght / 100.0;
+                    var dStrenght = DitheringStrenght;// / 100.0;
 
                     for (int r = 0; r < R; r++)
                     {

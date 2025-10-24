@@ -105,7 +105,7 @@ namespace ColourClashNet.Color.Transformation
 
         public ColorDithering DitheringType { get; set; }
 
-        public double DitheringStrenght { get; set; } = 100.0;
+        public double DitheringStrenght { get; set; } = 1.0;
 
         #endregion
 
@@ -247,6 +247,15 @@ namespace ColourClashNet.Color.Transformation
                         if (Enum.TryParse<ColorDithering>(oValue?.ToString(), true, out var eRes))
                         {
                             DitheringType = eRes;
+                        }
+                    }
+                    break;
+                case ColorTransformProperties.Dithering_Strength:
+                    {
+                        DitheringStrenght = 1.0;
+                        if (double.TryParse(oValue?.ToString(), out var dStrenght))
+                        {
+                            DitheringStrenght = dStrenght;
                         }
                     }
                     break;

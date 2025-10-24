@@ -86,7 +86,7 @@ namespace ColourClashNet.Color.Transformation
                 default:
                     break;
             }
-            return null;
+            return this;
         }
 
 

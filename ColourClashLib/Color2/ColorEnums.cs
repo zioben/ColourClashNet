@@ -133,14 +133,17 @@ namespace ColourClashNet.Color
         Amiga_HamColorReductionMode,
         UseColorMean,
         UseFixedPalette,
+        UseSharedPalette,
         UseClustering,
         Zx_ColL,
         Zx_ColH,
         Zx_PaletteMode,
         Zx_IncludeBlackInHighColor,
         Zx_DitherHighColor,
+        Zx_Autotune,
         Fixed_Palette,
-        Dithering_Model
+        Dithering_Model,
+        Dithering_Strength
     }
 
     /// <summary>

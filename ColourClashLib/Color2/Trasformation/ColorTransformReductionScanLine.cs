@@ -66,6 +66,13 @@ namespace ColourClashNet.Color.Transformation
                         return this;
                     }
                     break;
+                case ColorTransformProperties.UseSharedPalette:
+                    if (bool.TryParse(oValue.ToString(), out var shp))
+                    {
+                        CreateSharedPalette = shp;
+                        return this;
+                    }
+                    break;
                 default:
                     break;
             }

@@ -126,7 +126,7 @@ namespace ColourClashNet.Color.Dithering
                     int R = oDataOriginal.GetLength(0);
                     int C = oDataOriginal.GetLength(1);
                     var oDataOut = new int[R, C];
-                    var dStrenght = DitheringStrenght / 100.0;
+                    var dStrenght = DitheringStrenght;// / 100.0;
                     Parallel.For(0, R, r =>
                     {
                         for (int c = 0; c < C; c++)

@@ -59,8 +59,43 @@ namespace ColourClashNet.Controls
         public int ZxEqColorHI { get; set; } = 0xFF;
         public bool ZxEqBlackHI { get; set; } = true;
         public bool ZxEqDitherHI { get; set; } = true;
-        public ColorTransformReductionAmiga.EnumAMigaVideoMode AmigaVideoMode { get; set; } = ColorTransformReductionAmiga.EnumAMigaVideoMode.Ham6;
+        public ColorTransformReductionAmiga.EnumAMigaVideoMode AmigaScreenMode { get; set; } = ColorTransformReductionAmiga.EnumAMigaVideoMode.Ham6;
         public ColorTransformReductionC64.C64VideoMode C64ScreenMode { get; set; } = ColorTransformReductionC64.C64VideoMode.Multicolor;
         public ColorTransformReductionCPC.CPCVideoMode CPCScreenMode { get; set; } = ColorTransformReductionCPC.CPCVideoMode.Mode0;
+
+        public void SetProperties(ColorTransformInterface oTrasf)
+        {
+            oTrasf
+                .SetProperty(ColorTransformProperties.ColorBackgroundList, BackgroundColorList)
+                .SetProperty(ColorTransformProperties.Amiga_HamColorReductionMode, ColorTransformReductionAmiga.EnumHamFirstColorReductionMode.Fast)
+                .SetProperty(ColorTransformProperties.Amiga_VideoMode, AmigaScreenMode)
+                .SetProperty(ColorTransformProperties.C64_VideoMode, C64ScreenMode)
+                .SetProperty(ColorTransformProperties.ClusterTrainingLoop, ClusteringTrainingLoop)
+
+                .SetProperty(ColorTransformProperties.ColorBackgroundList, BackgroundColorList)
+                .SetProperty(ColorTransformProperties.ColorBackgroundReplacement, BackgroundColorReplacement)
+                .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
+                .SetProperty(ColorTransformProperties.CPC_VideoMode, CPCScreenMode)
+                .SetProperty(ColorTransformProperties.Dithering_Model, DitheringAlgorithm)
+                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght)
+
+                //.SetProperty(ColorTransformProperties.Fixed_Palette, )
+                .SetProperty(ColorTransformProperties.HsvBrightnessMultFactor, BrightnessEnhancement)
+                .SetProperty(ColorTransformProperties.HsvHueShift, HsvHueOffset)
+                .SetProperty(ColorTransformProperties.HsvSaturationMultFactor, SaturationEnhancement)
+                .SetProperty(ColorTransformProperties.MaxColorChangePerLine, ScanlineColorsMax)
+                .SetProperty(ColorTransformProperties.MaxColorsWanted, ColorsMax)
+                .SetProperty(ColorTransformProperties.QuantizationMode, ColorQuantizationMode)
+                .SetProperty(ColorTransformProperties.UseClustering, ScanlineClustering)
+                //.SetProperty(ColorTransformProperties.UseColorMean, )
+                //.SetProperty(ColorTransformProperties.UseFixedPalette, )
+                .SetProperty(ColorTransformProperties.Zx_ColH, ZxEqColorHI)
+                .SetProperty(ColorTransformProperties.Zx_ColL, ZxEqColorLO)
+                .SetProperty(ColorTransformProperties.Zx_DitherHighColor, ZxEqDitherHI)
+                .SetProperty(ColorTransformProperties.Zx_IncludeBlackInHighColor, ZxEqBlackHI)
+                .SetProperty(ColorTransformProperties.Zx_Autotune, ZxEqAutotune);
+
+                //.SetProperty(ColorTransformProperties.Zx_PaletteMode, ZxEqBlackHI)
+        }
     }
 }

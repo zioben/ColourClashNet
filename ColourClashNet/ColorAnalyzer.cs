@@ -370,7 +370,7 @@ namespace ColourClashNet
             oColorManager.Config.ZxEqColorHI = (int)nudZxColorHI.Value;
             oColorManager.Config.ZxEqBlackHI = chkZxBlackHI.Checked;
             oColorManager.Config.ZxEqDitherHI = chkZxDitherHI.Checked;
-            oColorManager.Config.AmigaVideoMode = (ColorTransformReductionAmiga.EnumAMigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAMigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString());
+            oColorManager.Config.AmigaScreenMode = (ColorTransformReductionAmiga.EnumAMigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAMigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString());
         }
 
         private async void btnReduceColors_Click(object sender, EventArgs e)

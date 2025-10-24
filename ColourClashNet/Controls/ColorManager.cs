@@ -239,57 +239,57 @@ namespace ColourClashNet.Controls
                     case ColorTransformType.ColorReductionFast:
                         {
                             var oTrasf = new ColorTransformReductionFast();
-                            oTrasf.ColorsMaxWanted = Config.ColorsMax;
-                            oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
+                            //oTrasf.ColorsMaxWanted = Config.ColorsMax;
+                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
                             oTrasformProcessing = oTrasf;
                         }
                         break;
                     case ColorTransformType.ColorReductionClustering:
                         {
                             var oTrasf = new ColorTransformReductionCluster();
-                            oTrasf.ColorsMaxWanted = Config.ColorsMax;
-                            oTrasf.TrainingLoop = Config.ClusteringTrainingLoop;
-                            oTrasf.UseClusterColorMean = Config.ClusteringUseMeanColor;
-                            oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
+                            //oTrasf.ColorsMaxWanted = Config.ColorsMax;
+                            //oTrasf.TrainingLoop = Config.ClusteringTrainingLoop;
+                            //oTrasf.UseClusterColorMean = Config.ClusteringUseMeanColor;
+                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
                             oTrasformProcessing = oTrasf;
                         }
                         break;
                     case ColorTransformType.ColorReductionScanline:
                         {
                             var oTrasf = new ColorTransformReductionScanLine();
-                            oTrasf.ColorsMaxWanted = Config.ColorsMax;
-                            oTrasf.LineReductionMaxColors = Config.ScanlineColorsMax;
-                            oTrasf.LineReductionClustering = Config.ScanlineClustering;
-                            oTrasf.CreateSharedPalette = Config.ScanlineSharedPalette;
-                            oTrasf.UseColorMean = Config.ClusteringUseMeanColor;
-                            oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
+                            //oTrasf.ColorsMaxWanted = Config.ColorsMax;
+                            //oTrasf.LineReductionMaxColors = Config.ScanlineColorsMax;
+                            //oTrasf.LineReductionClustering = Config.ScanlineClustering;
+                            //oTrasf.CreateSharedPalette = Config.ScanlineSharedPalette;
+                            //oTrasf.UseColorMean = Config.ClusteringUseMeanColor;
+                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
                             oTrasformProcessing = oTrasf;
                         }
                         break;
                     case ColorTransformType.ColorReductionZxSpectrum:
                         {
                             var oTrasf = new ColorTransformReductionZxSpectrum();
-                            oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
-                            oTrasf.ColL = Config.ZxEqColorLO;
-                            oTrasf.ColH = Config.ZxEqColorHI;
-                            oTrasf.AutoTune = Config.ZxEqAutotune;
-                            oTrasf.DitherHighColor = Config.ZxEqDitherHI;
-                            oTrasf.IncludeBlackInHighColor = Config.ZxEqBlackHI;
+                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
+                            //oTrasf.ColL = Config.ZxEqColorLO;
+                            //oTrasf.ColH = Config.ZxEqColorHI;
+                            //oTrasf.AutoTune = Config.ZxEqAutotune;
+                            //oTrasf.DitherHighColor = Config.ZxEqDitherHI;
+                            //oTrasf.IncludeBlackInHighColor = Config.ZxEqBlackHI;
                             oTrasformProcessing = oTrasf;
                         }
                         break;
                     case ColorTransformType.ColorReductionEga:
                         {
                             var oTrasf = new ColorTransformReductionEGA();
-                            oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
+                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
                             oTrasformProcessing = oTrasf;
                         }
                         break;
                     case ColorTransformType.ColorReductionCBM64:
                         {
                             var oTrasf = new ColorTransformReductionC64();
-                            oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
-                            oTrasf.VideoMode = Config.C64ScreenMode;
+                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
+                            //oTrasf.VideoMode = Config.C64ScreenMode;
                             oTrasformProcessing = oTrasf;
                         }
                         break;
@@ -297,8 +297,8 @@ namespace ColourClashNet.Controls
                     case ColorTransformType.ColorReductionCPC:
                         {
                             var oTrasf = new ColorTransformReductionCPC();
-                            oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
-                            oTrasf.VideoMode = Config.CPCScreenMode;
+                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
+                            //oTrasf.VideoMode = Config.CPCScreenMode;
                             oTrasformProcessing = oTrasf;
                         }
                         break;
@@ -306,26 +306,26 @@ namespace ColourClashNet.Controls
                     case ColorTransformType.ColorReductionMedianCut:
                         {
                             var oTrasf = new ColorTransformReductionMedianCut();
-                            oTrasf.ColorsMaxWanted = Config.ColorsMax;
-                            oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
+                            //oTrasf.ColorsMaxWanted = Config.ColorsMax;
+                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
                             oTrasformProcessing = oTrasf;
                         }
                         break;
                     case ColorTransformType.ColorReductionSaturation:
                         {
                             var oTrasf = new ColorTransformLumSat();
-                            oTrasf.SaturationMultFactor = Config.SaturationEnhancement;
-                            oTrasf.BrightnessMultFactor = Config.BrightnessEnhancement;
-                            oTrasf.HueShift = Config.HsvHueOffset;
-                            oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
+                            //oTrasf.SaturationMultFactor = Config.SaturationEnhancement;
+                            //oTrasf.BrightnessMultFactor = Config.BrightnessEnhancement;
+                            //oTrasf.HueShift = Config.HsvHueOffset;
+                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
                             oTrasformProcessing = oTrasf;
                         }
                         break;
                     case ColorTransformType.ColorReductionHam:
                         {
                             var oTrasf = new ColorTransformReductionAmiga();
-                            oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
-                            oTrasf.AmigaVideoMode = Config.AmigaVideoMode;
+                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
+                            //oTrasf.AmigaVideoMode = Config.AmigaScreenMode;
                             oTrasformProcessing = oTrasf;
                         }
                         break;
@@ -334,6 +334,7 @@ namespace ColourClashNet.Controls
                         oTrasformProcessing = null;
                         return null;
                 }
+                Config.SetProperties(oTrasformProcessing);
                 if (InvalidatePreProcess)
                 {
                     PreProcess();
