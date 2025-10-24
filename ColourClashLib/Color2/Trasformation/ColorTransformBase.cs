@@ -341,7 +341,7 @@ namespace ColourClashNet.Color.Transformation
                     }
                 }
                 var oRetRes = new ColorTransformResults();
-                if (BypassDithering || oHash.Count > 256 || DitheringType == ColorDithering.None)
+                if (BypassDithering || oHash.Count > 512 || DitheringType == ColorDithering.None)
                 {
                     if(BypassDithering)
                         LogMan.Message(sC, sM, $"{Name} : Processing Completed - {DitheringType} : Bypass dithering");

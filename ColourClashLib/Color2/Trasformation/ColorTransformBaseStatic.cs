@@ -78,7 +78,8 @@ namespace ColourClashNet.Color.Transformation
                 return null;
             var R = oTmpDataSource.GetLength(0);
             var C = oTmpDataSource.GetLength(1);
-            var oRet = new int[R, (C + 1) / 2];
+            var CO = (C + 1) / 2;
+            var oRet = new int[R, CO];
             Parallel.For(0, R, r =>
             {
                 for (int c = 0, co = 0; c < C; c += 2, co++)
@@ -87,7 +88,7 @@ namespace ColourClashNet.Color.Transformation
                     {
                         var a = oTmpDataSource[r, c];
                         var b = oTmpDataSource[r, c + 1];
-                        oRet[r, co] = ColorIntExt.GetColorMean(a, b);
+                        oRet[r, co] = ColorIntExt.GetColorMean(a, a);
                     }
                 }
             });

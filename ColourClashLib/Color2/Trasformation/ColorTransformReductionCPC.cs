@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ColourClashLib.Color.Trasformation;
+using ColourClashNet.Color.Dithering;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -98,23 +100,46 @@ namespace ColourClashNet.Color.Transformation
             var oTmpDataProc = await TransformationMap.TransformAsync(oTmpData, oToken);
             return oTmpDataProc;
         }
+
         async Task<int[,]?> PostProcessAsync(int[,] oPreprocessData, int iMaxColors, bool bDoubleRes, CancellationToken? oToken)
         {
-            ColorTransformReductionFast oFast = new();
-            oFast
-                .SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors)
-                .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, this.ColorDistanceEvaluationMode)
-                .SetProperty(ColorTransformProperties.Dithering_Model, this.DitheringType)
-                .SetProperty(ColorTransformProperties.Fixed_Palette, this.FixedPalette);
-            await oFast.CreateAsync(oPreprocessData, oToken);
-            var ret = await oFast.ProcessColorsAsync(oToken);
-            var oOut = ret.DataOut.Clone() as int[,];
+            //ColorTransformReductionCluster oTrasf = new();
+            //oTrasf.SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors)
+            //     .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, this.ColorDistanceEvaluationMode)
+            //     .SetProperty(ColorTransformProperties.Dithering_Model, this.DitheringType)
+            //     .SetProperty(ColorTransformProperties.ClusterTrainingLoop, 5)
+            //     .SetProperty(ColorTransformProperties.UseColorMean, false);
+            ColorTransformReductionFast oTrasf= new ColorTransformReductionFast();
+            oTrasf.SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors);
+            oTrasf.SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode);
+            await oTrasf.CreateAsync(oPreprocessData, oToken);
+            var ret = await oTrasf.ProcessColorsAsync(oToken);
+            DataContainer oContainer = new();
+            await oContainer.SetDataAsync(ret.DataOut, oToken);
+            BypassDithering = true;
+
+            if (DitheringType != ColorDithering.None)
+            {
+                var oTmpData = SourceData;
+                if (bDoubleRes)
+                {
+                    oTmpData = ColorTransformBase.HalveHorizontalRes(SourceData);
+                }
+                var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrenght);
+                var oDitheringOut = await oDithering.DitherAsync(oTmpData, oContainer.Data, oContainer.ColorPalette, ColorDistanceEvaluationMode, oToken);
+                if (bDoubleRes)
+                {
+                    return DoubleHorizontalRes(oDitheringOut);
+                }
+                return oDitheringOut;
+            }
             if (bDoubleRes)
             {
-                oOut = DoubleHorizontalRes(oOut);
+                return DoubleHorizontalRes(oContainer.Data);
             }
-            return oOut;
+            return oContainer.Data;
         }
+        
 
 
 
@@ -141,7 +166,6 @@ namespace ColourClashNet.Color.Transformation
             var oTmp2 = await PostProcessAsync(oTmp1, 2, false, oToken);
             return oTmp2;
         }
-
 
         async Task<int[,]?> ToMode3Async( CancellationToken? oToken)
         {

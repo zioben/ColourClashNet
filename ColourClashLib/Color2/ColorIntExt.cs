@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Color;
 using ColourClashNet.Defaults;
 using System;
 using System.Collections.Generic;
@@ -50,7 +51,7 @@ namespace ColourClashNet.Color
         {
             int val = (rgb >> 24) & 0x00_00_00_FF;
             // Reserved old value for invalid color
-            if (rgb == 0x_00_ff)
+            if (val == 0x_00_ff)
             {
                 return ColorIntType.Invalid;
             }
@@ -243,7 +244,7 @@ namespace ColourClashNet.Color
         {
             if (r < 0 || g < 0 || b < 0)
                 return ((int)ColorIntType.Invalid << 24);
-            return ((int)eType << 24) | (Math.Min(255, r) << 16) | (Math.Min(255, g) << 8) | (Math.Min(255, b) << 0);
+            return ((int)eType << 24) | (Math.Min(255, r) << 16) | (Math.Min(255, g) << 8) | (Math.Min(255, b));
         }
 
 
@@ -448,13 +449,9 @@ namespace ColourClashNet.Color
         /// <returns></returns>
         public static int GetColorMean(int rgbA, int rgbB)
         {
-            if (rgbA < 0)
+            if (rgbA < 0 || rgbB < 0)
             {
-                return rgbB;
-            }
-            if (rgbB < 0)
-            {
-                return rgbA;
+                return ColorDefaults.DefaultInvalidColorInt;
             }
             int R = (rgbA.ToR() + rgbB.ToR()) / 2;
             int G = (rgbA.ToG() + rgbB.ToG()) / 2;
