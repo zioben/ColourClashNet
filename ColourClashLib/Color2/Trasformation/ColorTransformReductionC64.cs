@@ -22,10 +22,42 @@ namespace ColourClashNet.Color.Transformation
 
         public C64VideoMode VideoMode { get; set; }= C64VideoMode.Multicolor;
 
+     
+
+        public ColorTransformReductionC64()
+        {
+            Type = ColorTransformType.ColorReductionCBM64;
+            Description = "Reduce color to C64 palette";
+            CreatePalette();
+        }
+
+        void CreatePalette()
+        {
+            SetProperty(
+                ColorTransformProperties.Fixed_Palette,
+                new List<int>
+                {
+                    0x00_00_00_00,
+                    0x00_FF_FF_FF,
+                    0x00_89_40_36,
+                    0x00_7A_BF_C7,
+                    0x00_8A_46_AE,
+                    0x00_68_A9_41,
+                    0x00_3E_31_A2,
+                    0x00_D0_DC_71,
+                    0x00_90_5F_25,
+                    0x00_5C_47_00,
+                    0x00_BB_77_6D,
+                    0x00_55_55_55,
+                    0x00_80_80_80,
+                    0x00_AC_EA_88,
+                    0x00_AB_AB_AB,
+                });
+        }
+
         public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
         {
-            if (base.SetProperty(eProperty, oValue) != null)
-                return this;
+            base.SetProperty(eProperty, oValue);
             switch (eProperty)
             {
                 case ColorTransformProperties.C64_VideoMode:
@@ -41,38 +73,8 @@ namespace ColourClashNet.Color.Transformation
             return null;
         }
 
-        public ColorTransformReductionC64()
-        {
-            Type = ColorTransformType.ColorReductionCBM64;
-            Description = "Reduce color to C64 palette";
-            CreatePalette();
-        }
-
-        void CreatePalette()
-        {
-            SetProperty(
-                ColorTransformProperties.Fixed_Palette,
-                new List<int>
-                {
-                    0x00000000,
-                    0x00FFFFFF,
-                    0x00894036,
-                    0x007ABFC7,
-                    0x008A46AE,
-                    0x0068A941,
-                    0x003E31A2,
-                    0x00D0DC71,
-                    0x00905F25,
-                    0x005C4700,
-                    0x00BB776D,
-                    0x00555555,
-                    0x00808080,
-                    0x00ACEA88,
-                    0x00ABABAB,
-                });
-        }
-
-
+        // Not Needed
+        // protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
         async Task<int[,]?> PreProcessAsync(int[,]? oDataSource, bool bHalveRes, CancellationToken? oToken)
         {
             if (oDataSource == null)
@@ -86,7 +88,8 @@ namespace ColourClashNet.Color.Transformation
             if (DitheringType !=  ColorDithering.None )
             {
                 var oDither = Dithering.DitherBase.CreateDitherInterface(DitheringType);             
-                oTmpData = await oDither.DitherAsync(oSource, oTmpData, FixedPalette, ColorDistanceEvaluationMode, oToken);
+                var oDitherResult = await oDither.DitherAsync(oSource, oTmpData, FixedPalette, ColorDistanceEvaluationMode, oToken);
+
             }
             BypassDithering = true;
             return oTmpData;

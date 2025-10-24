@@ -18,33 +18,21 @@ namespace ColourClashNet.Color.Transformation
             Description = "Color palette trasformation";
         }
 
-        protected async override Task<bool> CreateTrasformationMapAsync(CancellationToken? oToken)
+        protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
         {
             return await Task.Run(() =>
-            {                
+            {
                 TransformationMap.Reset();
                 Parallel.ForEach(sourceDataContainer.ColorPalette.rgbPalette, rgb =>
                 {
                     TransformationMap.Add(rgb, ColorIntExt.GetNearestColor(rgb, FixedPalette, this.ColorDistanceEvaluationMode));
                 });
-                return true;
+                //Ferificed OK
+                //var t = TransformationMap.rgbTransformationMap.Values.Distinct().ToList();
+                return ColorTransformResults.CreateValidResult();
+
             });
-        }
-
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
-        {
-            string sM = nameof(ExecuteTransformAsync);
-
-            var oProcessed = await TransformationMap.TransformAsync(SourceData, oToken);
-
-            if (oProcessed != null)
-            {
-                return ColorTransformResults.CreateValidResult(SourceData, oProcessed);
-            }
-            else
-            {
-                return new();
-            }
         }
     }
 }
+

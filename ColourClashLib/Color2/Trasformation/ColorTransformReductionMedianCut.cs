@@ -21,8 +21,8 @@ namespace ColourClashNet.Color.Transformation
 
         public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
         {
-            if (base.SetProperty(eProperty, oValue) != null)
-                return this;
+            base.SetProperty(eProperty, oValue);
+
             switch (eProperty)
             {
                 case ColorTransformProperties.MaxColorsWanted:
@@ -146,7 +146,7 @@ namespace ColourClashNet.Color.Transformation
 
         Palette OutputPalette = new Palette();
 
-        protected override async Task<bool> CreateTrasformationMapAsync(CancellationToken? oToken)
+        protected override async Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
         {
             return await Task.Run(() =>
             {
@@ -165,7 +165,7 @@ namespace ColourClashNet.Color.Transformation
                     Partition(SourceHistogram.ToColorPalette(), iColorsMax / 2);
                     OutputPalette = TransformationMap.ToColorPalette();
                 }
-                return true;
+                return ColorTransformResults.CreateValidResult();
             });
         }
 

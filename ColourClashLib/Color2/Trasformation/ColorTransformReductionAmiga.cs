@@ -42,6 +42,7 @@ namespace ColourClashNet.Color.Transformation
 
         public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
         {
+            base.SetProperty(eProperty, oValue);
             switch (eProperty)
             {
                 case ColorTransformProperties.Amiga_VideoMode:
@@ -62,7 +63,8 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-
+        // Not Needed
+        // protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
 
 
         async Task<int[,]?> ToHamAsync(int[,]? oDataSource, int[,]? oDataPreProcessed, ColorQuantizationMode eQuantization, CancellationToken? oToken)

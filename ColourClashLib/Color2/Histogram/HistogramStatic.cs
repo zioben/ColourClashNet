@@ -26,6 +26,7 @@ namespace ColourClashNet.Color
             lock (oLocker)
             {
                 Array.Clear(oColorArray, 0, oColorArray.Length);
+                oHist.Reset();
                 int R = oDataSource.GetLength(0);
                 int C = oDataSource.GetLength(1);
                 for (int r = 0; r < R; r++)
@@ -42,7 +43,7 @@ namespace ColourClashNet.Color
                 oToken?.ThrowIfCancellationRequested();
                 for (int rgb = 0; rgb < oColorArray.Length; rgb++)
                 {
-                    if (oColorArray[rgb] > 0)
+                    if (oColorArray[rgb] >= 0)
                     {
                         oHist.AddToHistogram(rgb, oColorArray[rgb]);
                     }
@@ -58,6 +59,7 @@ namespace ColourClashNet.Color
         { 
             if(oDataSource == null || oHist == null )
                 return false;
+            oHist.Reset();
             int R = oDataSource.GetLength(0);
             int C = oDataSource.GetLength(1);
             for (int r = 0; r < R; r++)

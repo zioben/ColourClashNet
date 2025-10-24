@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformLumSat : ColorTransformReductionPalette
+    public class ColorTransformLumSat : ColorTransformBase
     {
         static readonly string sC = nameof(ColorTransformLumSat);
 
@@ -52,6 +52,8 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
+        // Not Needed
+        //protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
 
         protected async override Task<ColorTransformResults> ExecuteTransformAsync( CancellationToken? oToken)
         {
@@ -73,7 +75,7 @@ namespace ColourClashNet.Color.Transformation
                         {
                             hsv.H = hsv.H + (float)HueShift;
                             hsv.S = (float)Math.Min(100, hsv.S * SaturationMultFactor);
-                            hsv.V = (float)Math.Min(100, hsv.V * SaturationMultFactor);
+                            hsv.V = (float)Math.Min(100, hsv.V * BrightnessMultFactor);
                             oProcessed[r, c] = hsv.ToIntRGB();
                         }
                     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,7 @@ namespace ColourClashNet.Color
     public partial class ColorTransformationMap
     {
         static string sC = nameof(ColorTransformationMap);
-        public Dictionary<int, int> rgbTransformationMap { get; private init; } = new Dictionary<int, int>();
+        public ConcurrentDictionary<int, int> rgbTransformationMap { get; private init; } = new();
 
         public void Reset()
         {
@@ -68,7 +69,7 @@ namespace ColourClashNet.Color
         {
             if (rgbTransformationMap.ContainsKey(iSorceRGB))
             {
-                rgbTransformationMap.Remove(iSorceRGB);
+                rgbTransformationMap.TryRemove(iSorceRGB, out int Removed);
             }
         }
 

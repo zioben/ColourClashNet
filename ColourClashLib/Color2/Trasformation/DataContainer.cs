@@ -39,19 +39,20 @@ namespace ColourClashLib.Color.Trasformation
             return true;
         }
 
-        public async Task<bool> SetColorHistogramAsync(int[,]? oData, CancellationToken? oToken)
+        public async Task<bool> SetColorHistogramAsyncX(int[,]? oData, CancellationToken? oToken)
         {
             Reset();
             if (oData == null)
             {
                 return false;
             }
-            ColorHistogram = await Histogram.CreateColorHistogramAsync(oData, oToken);
+            Data = oData.Clone() as int[,];
+            ColorHistogram = await Histogram.CreateColorHistogramAsync(Data, oToken);
             ColorPalette = ColorHistogram.ToColorPalette();
             return true;
         }
 
-        public async Task<bool> SetColorHistogramAsync(Histogram? oHistogram, CancellationToken? oToken)
+        public async Task<bool> SetColorHistogramAsyncX(Histogram? oHistogram, CancellationToken? oToken)
         {
             Reset();
             if (oHistogram == null)
@@ -74,7 +75,7 @@ namespace ColourClashLib.Color.Trasformation
         //    return SetColorHistogramAsync(oData, cts.Token).GetAwaiter().GetResult();
         //}
 
-        public async Task<bool> SetColorPaletteAsync(Palette? oColorPalette)
+        public async Task<bool> SetColorPaletteAsyncX(Palette? oColorPalette)
         {
             Reset();
             if (oColorPalette == null)

@@ -158,7 +158,7 @@ namespace ColourClashNet.Controls
             InvalidatePreProcess = false;
         }
 
-        public void Create(System.Drawing.Bitmap oImage) => Create(ImageTools.ToMatrix(oImage));    
+        public void Create(System.Drawing.Image oImage) => Create(ImageTools.ToMatrix(oImage));    
 
 
         async Task<int[,]> RemoveBkgAndQuantizeAsync(bool bRaiseEvent )

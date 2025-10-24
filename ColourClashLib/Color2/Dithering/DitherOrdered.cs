@@ -1,11 +1,12 @@
-﻿using System;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color.Transformation;
+using ColourClashNet.Log;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashNet.Color;
-using ColourClashNet.Log;
 
 namespace ColourClashNet.Color.Dithering
 {
@@ -101,7 +102,7 @@ namespace ColourClashNet.Color.Dithering
             return true;
         }
 
-        public override async Task<int[,]?> DitherAsync(int[,]? oDataOriginal, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eMode, CancellationToken? oToken)
+        public override async Task<int[,]?> DitherAsync(int[,]? oDataOriginal, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken)
         {
             return await Task.Run(() =>
             {
@@ -121,26 +122,27 @@ namespace ColourClashNet.Color.Dithering
                     LogMan.Trace(sC, sM, $"{Type} : Dithering");
                     int S = oThMat.GetLength(0);
 
-                    double spread = 127.0;
+                    double dSpread = 127.0;
                     int R = oDataOriginal.GetLength(0);
                     int C = oDataOriginal.GetLength(1);
-                    var oRet = new int[R, C];
+                    var oDataOut = new int[R, C];
+                    var dStrenght = DitheringStrenght / 100.0;
                     Parallel.For(0, R, r =>
                     {
                         for (int c = 0; c < C; c++)
                         {
                             int col = oDataOriginal[r, c];
-                            var dV = spread * DitheringStrenght * oThMat[r % S, c % S];
+                            var dV = dSpread * dStrenght * oThMat[r % S, c % S];
                             var cr = Math.Max(0, col.ToR() + dV);
                             var cg = Math.Max(0, col.ToG() + dV);
                             var cb = Math.Max(0, col.ToB() + dV);
                             var iCol = ColorIntExt.FromRGB(cr, cg, cb);
-                            oRet[r, c] = ColorIntExt.GetNearestColor(iCol, oDataProcessedPalette, eMode);
+                            oDataOut[r, c] = ColorIntExt.GetNearestColor(iCol, oDataProcessedPalette, eDistanceMode);
                         }
                         oToken?.ThrowIfCancellationRequested();
                     });
                     LogMan.Trace(sC, sM, $"{Type} : Dithering completed");
-                    return oRet;
+                    return oDataOut;
                 }
                 catch (Exception ex)
                 {

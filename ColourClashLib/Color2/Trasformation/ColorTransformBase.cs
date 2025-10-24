@@ -101,16 +101,19 @@ namespace ColourClashNet.Color.Transformation
 
         //-------------------------------------------------------------------------------------------------------------------------------
         public bool BypassDithering { get; set; }
+        public bool BypassImagingOnPreview { get; set; }
 
         public ColorDithering DitheringType { get; set; }
+
+        public double DitheringStrenght { get; set; } = 100.0;
 
         #endregion
 
         #region abstract Methods
 
-        protected async virtual Task<bool> CreateTrasformationMapAsync( CancellationToken? oToken)
+        protected async virtual Task<ColorTransformResults> CreateTrasformationMapAsync( CancellationToken? oToken)
         {
-            return await Task.FromResult(true);
+            return await Task.FromResult(ColorTransformResults.CreateValidResult());
         }
 
 
@@ -140,13 +143,16 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
+        protected bool ProcessPartialEventRegistered => ProcessPartial != null;
+        protected void RaiseProcessPartialEvent( ColorTransformEventArgs oArgs ) => ProcessPartial?.Invoke(this, oArgs);
+
         public async Task<ColorTransformInterface> CreateAsync(int[,]? oDataSource, CancellationToken? oToken)
         {
             string sM = nameof(CreateAsync);
             try
             {
                 CreateStart();
-                await sourceDataContainer.SetColorHistogramAsync(oDataSource, oToken);
+                await sourceDataContainer.SetDataAsync(oDataSource, oToken);
                 return CreateEnd();
             }
             catch (Exception ex)
@@ -162,7 +168,7 @@ namespace ColourClashNet.Color.Transformation
             try
             {
                 CreateStart();
-                await sourceDataContainer.SetColorHistogramAsync(oColorHistogramSource, oToken);
+                await sourceDataContainer.SetColorHistogramAsyncX(oColorHistogramSource, oToken);
                 return CreateEnd();
             }
             catch (Exception ex)
@@ -178,7 +184,7 @@ namespace ColourClashNet.Color.Transformation
             try
             {
                 CreateStart();
-                await sourceDataContainer.SetColorPaletteAsync(oColorPaletteSource);
+                await sourceDataContainer.SetColorPaletteAsyncX(oColorPaletteSource);
                 return CreateEnd();
             }
             catch (Exception ex)
@@ -250,7 +256,7 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        internal ColorTransformEventArgs CreateTransformEventArgs(CancellationTokenSource oTokenSource, ColorTransformResults oResult)
+        internal ColorTransformEventArgs CreateTransformEventArgs(CancellationTokenSource oTokenSource, ColorTransformResults? oResult)
             => new ColorTransformEventArgs()
             {
                 ColorTransformInterface = this,
@@ -259,97 +265,133 @@ namespace ColourClashNet.Color.Transformation
                 TransformationMap = this.TransformationMap  
             };
 
+        internal ColorTransformEventArgs CreateTransformEventArgs(CancellationTokenSource oTokenSource)
+            => CreateTransformEventArgs(oTokenSource, null);
 
-        protected abstract Task<ColorTransformResults> ExecuteTransformAsync( CancellationToken? oToken);
 
-        //protected async Task<ColorTransformResults> ExecuteTransformAsync(int[,]? oDataSource, CancellationToken oToken)
-        //{
-        //    return await Task.Run(()=>new ColorTransformResults());
-        //}
+        protected async virtual Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
+        {
+            string sM = nameof(ExecuteTransformAsync);
+            try
+            {
+                LogMan.Message(sC, sM, "Executing Default Transformation ");
+                var oProcessed = await TransformationMap.TransformAsync(SourceData, oToken);
+
+                if (oProcessed != null)
+                {
+                    return ColorTransformResults.CreateValidResult(SourceData, oProcessed);
+                }
+                else
+                {
+                    return new();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, Name, ex);
+                return new();
+            }
+        }
+
+       
 
         #region Processing
 
         public async Task<ColorTransformResults> ProcessColorsAsync( CancellationToken? oTokenA)
         {
             string sM = nameof(CreateAsync);
-            var oRet = new ColorTransformResults();
             try
             {
                 if (SourceData == null)
                 {
                     LogMan.Error(sC, sM, $"{Type} : sourceData Null");
-                    return oRet;
+                    return new();
                 }
 
                 //await CreateAsync(oDataSource,oTokenA);
 
                 var cts = oTokenA != null ? CancellationTokenSource.CreateLinkedTokenSource(oTokenA.Value) : new CancellationTokenSource();
                 var oToken= cts.Token;
-
                 TransformationMap.Reset();
-                if (!await CreateTrasformationMapAsync( oToken))
+
+                Processing?.Invoke(this, CreateTransformEventArgs(cts, null));
+
+                var oMapRes = await CreateTrasformationMapAsync(oToken);
+                if( !oMapRes.Valid )
                 {
                     LogMan.Error(sC, sM, $"{Type} : CreateTrasformationMapAsync Error");
-                    return oRet;
+                    return oMapRes;
                 }
-                Processing?.Invoke(this, CreateTransformEventArgs(cts, oRet));
 
                 // Execute color reduction
-                oRet = await ExecuteTransformAsync( oToken);
-                if (!oRet.Valid)
+                var oTransfRes = await ExecuteTransformAsync( oToken);
+                if (!oTransfRes.Valid)
                 {
                     LogMan.Error(sC, sM, $"{Type} :  Transformation error");
-                    return oRet;
+                    return oTransfRes;
                 }
+
+                await processedDataContainer.SetDataAsync(oTransfRes.DataOut,oToken);
+                var oHash = new HashSet<int>();
+                foreach (var rgb in ProcessedData)
                 {
-                    var oHash = new HashSet<int>();
-                    foreach (var rgb in oRet.DataOut)
+                    if (rgb >= 0)
                     {
-                        if (rgb > 0)
-                        {
-                            oHash.Add(rgb);
-                        }
+                        oHash.Add(rgb);
                     }
-                    await processedDataContainer.SetColorHistogramAsync(oRet.DataOut, oToken);
-                    if (BypassDithering || oHash.Count > 256 || DitheringType == ColorDithering.None)
+                }
+                var oRetRes = new ColorTransformResults();
+                if (BypassDithering || oHash.Count > 256 || DitheringType == ColorDithering.None)
+                {
+                    if(BypassDithering)
+                        LogMan.Message(sC, sM, $"{Name} : Processing Completed - {DitheringType} : Bypass dithering");
+                    else if (DitheringType == ColorDithering.None)
+                        LogMan.Message(sC, sM, $"{Name} : Processing Completed - {DitheringType} : No dithering");
+                    else
+                        LogMan.Message(sC, sM, $"{Name} : Processing Completed - {DitheringType} : Too many input colors : {oHash.Count}");
+
+                    await outputDataContainer.SetDataAsync(ProcessedData, oToken);
+                    oRetRes = ColorTransformResults.CreateValidResult(SourceData, OutputData);
+                }
+                else
+                {
+                    var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrenght );     
+                    var oDitheringOut = await oDithering.DitherAsync(SourceData, ProcessedData, processedDataContainer.ColorPalette, ColorDistanceEvaluationMode, oToken);
+                    if (oDitheringOut == null)
                     {
-                        LogMan.Message(sC, sM, $"{Type} : Processing Completed - No dithering");
-                        oRet.DataOut = oRet.DataProcessed.Clone() as int[,];
-                        oRet.Valid = true;
+                        LogMan.Error(sC, sM, $"{Type} :  Dithering error");
+                        oRetRes = new ColorTransformResults()
+                        {
+                            Message = "Dithering Error"
+                        };
                     }
                     else
                     {
-                        var Dithering = DitherBase.CreateDitherInterface(DitheringType);                       
-                        oRet.DataOut = await Dithering.DitherAsync( SourceData, processedDataContainer.Data, processedDataContainer.ColorPalette, ColorDistanceEvaluationMode, oToken);
-                        if (oRet.DataOut == null)
-                        {
-                            LogMan.Error(sC, sM, $"{Type} :  Dithering error");
-                        }
-                        else
-                        {
-                            LogMan.Message(sC, sM, $"{Type} : Processing Completed with dithering");
-                        }
+                        await outputDataContainer.SetDataAsync(oDitheringOut, oToken);
+                        LogMan.Message(sC, sM, $"{Type} : Processing Completed with dithering");
+                        oRetRes = ColorTransformResults.CreateValidResult(ProcessedData, OutputData);
                     }
-                    await outputDataContainer.SetColorHistogramAsync(oRet.DataOut, oToken);
-                    oRet.Valid = oRet.DataOut != null;  
-                    Processed?.Invoke(this, CreateTransformEventArgs(cts, oRet));
-                    return oRet;
                 }
+                Processed?.Invoke(this, CreateTransformEventArgs(cts, oRetRes));
+                return oRetRes;
             }
             catch (ThreadInterruptedException exTh)
             {
                 LogMan.Error(sC, sM, $"{Type} : Processing Interrupted");
-                oRet.Valid = false;
-                oRet.Message = exTh.Message;
-                oRet.Exception = exTh;
-                return oRet;
+                return new ColorTransformResults()
+                {
+                    Message = "Processing Interrupted",
+                    Exception = exTh,
+                };
             }
             catch (Exception ex)
             {
                 LogMan.Exception(sC, sM, ex);
-                oRet.Valid = false;
-                oRet.Exception = ex;
-                return oRet;
+                return new ColorTransformResults()
+                {
+                    Message = ex.Message,
+                    Exception = ex,
+                };
             }
         }
 

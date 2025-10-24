@@ -209,40 +209,44 @@ namespace ColourClashNet.Imaging
 
         #region conversion BMP -> Matrix
 
-        public unsafe static int[,] ToMatrix(Bitmap oBmp)
+        public unsafe static int[,] ToMatrix(System.Drawing.Image oImage)
         {
             string sMethod = nameof(ToMatrix);
-            if (oBmp == null)
+            if (oImage is Bitmap oBmp)
+            {
+                var m = new int[oBmp.Height, oBmp.Width];
+                var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+                {
+                    try
+                    {
+                        byte* ptr = (byte*)oLock.Scan0.ToPointer();
+                        for (int y = 0; y < oBmp.Height; y++)
+                        {
+                            int yoff = oLock.Stride * y;
+                            int* ptrRow = (int*)(oLock.Scan0 + yoff);
+                            for (int x = 0; x < oBmp.Width; x++)
+                            {
+                                int rgb = ptrRow[x];
+                                m[y, x] = (int)(ptrRow[x] & 0x00FFFFFF);                         
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMan.Exception(sClass, sMethod, ex);
+                    }
+                    finally
+                    {
+                        oBmp.UnlockBits(oLock);
+                    }
+                }
+                return m;
+            }
+            else
             {
                 LogMan.Error(sClass, sMethod, "Bitmap is null");
                 return null;
             }
-            var m = new int[oBmp.Height, oBmp.Width];
-            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
-            {
-                try
-                {
-                    byte* ptr = (byte*)oLock.Scan0.ToPointer();
-                    for (int y = 0; y < oBmp.Height; y++)
-                    {
-                        int yoff = oLock.Stride * y;
-                        int* ptrRow = (int*)(oLock.Scan0 + yoff);
-                        for (int x = 0; x < oBmp.Width; x++)
-                        {
-                            m[y, x] = ptrRow[x] & 0x00FFFFFF;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogMan.Exception(sClass, sMethod, ex);
-                }
-                finally
-                {
-                    oBmp.UnlockBits(oLock);
-                }
-            }
-            return m;
         }
 
         #endregion

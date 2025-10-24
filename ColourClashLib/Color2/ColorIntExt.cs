@@ -242,8 +242,8 @@ namespace ColourClashNet.Color
         public static int FromRGB(int r, int g, int b, ColorIntType eType)
         {
             if (r < 0 || g < 0 || b < 0)
-                return ((int)ColorIntType.Invalid);
-            return (Math.Min(255, r) << 16) | (Math.Min(255, g) << 8) | (Math.Min(255, b) << 0) | (int)eType;
+                return ((int)ColorIntType.Invalid << 24);
+            return ((int)eType << 24) | (Math.Min(255, r) << 16) | (Math.Min(255, g) << 8) | (Math.Min(255, b) << 0);
         }
 
 
@@ -357,7 +357,8 @@ namespace ColourClashNet.Color
             double dmin = oPalette.rgbPalette.Min(X => X.Distance(iColor, eMode));
             if (dmin == 0)
                 return iColor;
-            return oPalette.rgbPalette.LastOrDefault(X => X.Distance(iColor, eMode) == dmin);
+            var bestCol = oPalette.rgbPalette.FirstOrDefault(X => X.Distance(iColor, eMode) == dmin);
+            return bestCol;
         }
 
         /// <summary>

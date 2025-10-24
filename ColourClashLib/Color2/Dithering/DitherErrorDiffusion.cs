@@ -1,4 +1,7 @@
-﻿using System;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color.Transformation;
+using ColourClashNet.Log;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
@@ -6,9 +9,6 @@ using System.Linq;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashNet.Color;
-
-using ColourClashNet.Log;
 
 namespace ColourClashNet.Color.Dithering
 {
@@ -106,7 +106,9 @@ namespace ColourClashNet.Color.Dithering
                         oToken?.ThrowIfCancellationRequested();
                     });
 
-                    var oDataRet = new int[R, C];
+                    var oDataOut = new int[R, C];
+
+                    var dStrenght = DitheringStrenght / 100.0;
 
                     for (int r = 0; r < R; r++)
                     {
@@ -119,7 +121,7 @@ namespace ColourClashNet.Color.Dithering
 
                             var OldPixel = ColorIntExt.FromRGB(OldPixelR, OldPixelG, OldPixelB);
                             var NewPixel = ColorIntExt.GetNearestColor(OldPixel, oDataProcessedPalette, eDistanceMode);
-                            oDataRet[r, c] = NewPixel;
+                            oDataOut[r, c] = NewPixel;
 
                             var NewPixelR = NewPixel.ToR();
                             var NewPixelG = NewPixel.ToG();
@@ -142,9 +144,9 @@ namespace ColourClashNet.Color.Dithering
                                         continue;
                                     if (cOffset >= C)
                                         break;
-                                    oRO[rOffset, cOffset] += ErrorR * matErrorDiffusion[rr, cc] * DitheringStrenght;
-                                    oGO[rOffset, cOffset] += ErrorG * matErrorDiffusion[rr, cc] * DitheringStrenght;
-                                    oBO[rOffset, cOffset] += ErrorB * matErrorDiffusion[rr, cc] * DitheringStrenght;
+                                    oRO[rOffset, cOffset] += ErrorR * matErrorDiffusion[rr, cc] * dStrenght;
+                                    oGO[rOffset, cOffset] += ErrorG * matErrorDiffusion[rr, cc] * dStrenght;
+                                    oBO[rOffset, cOffset] += ErrorB * matErrorDiffusion[rr, cc] * dStrenght;
                                 }
                             }
                         }
@@ -157,13 +159,13 @@ namespace ColourClashNet.Color.Dithering
                         {
                             if (oDataProcessed[r, c] < 0)
                             {
-                                oDataRet[r, c] = oDataProcessed[r, c];
+                                oDataOut[r, c] = oDataProcessed[r, c];
                             }
                         }
                     }
 
                     LogMan.Trace(sC, sM, $"{Type} : Dithering completed");
-                    return oDataRet;
+                    return oDataOut;
 
                 }
                 catch (Exception ex)

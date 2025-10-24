@@ -118,7 +118,7 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        protected override async Task<bool> CreateTrasformationMapAsync(CancellationToken? oToken)
+        protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
         {
             return await Task.Run(() =>
             {
@@ -131,22 +131,12 @@ namespace ColourClashNet.Color.Transformation
                     int rgbQ = QuantizeColor(rgb);
                     TransformationMap.Add(rgb, rgbQ);
                 }
-                return true;
+                return ColorTransformResults.CreateValidResult();
             });
         }
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
-        {
-            string sM = nameof (ExecuteTransformAsync); 
-            var R = SourceData.GetLength(0);
-            var C = SourceData.GetLength(1);
-            var oProcessed = new int[R, C];
-            var oCols = new int[1, C];
-
-            oProcessed = await TransformationMap.TransformAsync(SourceData, oToken);
-
-            return ColorTransformResults.CreateValidResult(SourceData, oProcessed);
-        }
+        // Not needed
+        //protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
 
        
     }

@@ -18,7 +18,8 @@ namespace ColourClashNet.Color.Transformation
             Description = "1:1 Color transformation";
         }
 
-        
+        // Not Needed
+        // protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
 
         protected override async Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
         {
