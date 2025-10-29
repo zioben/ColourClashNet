@@ -1,8 +1,4 @@
-﻿using ColourClashNet.Color;
-using ColourClashNet.Color.Trasformation;
-using ColourClashNet.Color;
-using ColourClashNet.Color.Dithering;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,24 +10,43 @@ namespace ColourClashNet.Color.Transformation
     {
 
         //------------------------------------------------------------
-        Histogram OutputHistogram { get; }
-        Palette OutputPalette { get; }
-        Int32 OutputColors { get; }
-        ColorTransformationMap ColorTransformationMapper { get; }
+
+        Palette FixedPalette { get; }
+        Int32 FixedColors { get; }
+
+        Palette SourcePalette { get; }
+        Histogram SourceHistogram { get; }
+        Int32 SourceColors { get; }
+
+        Histogram OutputHistogramX { get; }
+        Palette OutputPaletteX { get; }
+        Int32 OutputColorsX { get; }
+        ColorTransformationMap TransformationMap { get; }
+
+        public bool BypassDithering { get; set; }    
 
         //------------------------------------------------------------
         ColorTransformType Type { get; }
         String Name { get; }
         String Description { get; }
-        DitherInterface? Dithering { get; set; }
-        ColorTransformInterface? Create(int[,]? oDataSource, Palette? oFixedPaletteSource );
-        ColorTransformInterface? Create(Histogram? oColorHistogramSource, Palette? oFixedPaletteSource);
-        ColorTransformInterface? Create(Palette? oColorPaletteSource, Palette? oFixedPaletteSource);
-        Task<ColorTransformResults> ProcessColorsAsync(int[,]? oSource);
-        ColorTransformResults ProcessColors(int[,]? oSource );
-        Boolean ProcessAbort();
-        ColorTransformInterface? SetProperty(ColorTransformProperties eProperty, object oValue);
-        ColorTransformInterface? SetDithering(DitherInterface oDithering);
-        //ColorTransformInterface? CreateDither(ColorDithering eDithering);
+        ColorDithering DitheringType { get; set; }
+
+        event EventHandler Creating;
+        event EventHandler Created;
+        event EventHandler<ColorTransformEventArgs> Processing;
+        event EventHandler<ColorTransformEventArgs> ProcessAdvance;
+        event EventHandler<ColorTransformEventArgs> ProcessPartial;
+        event EventHandler<ColorTransformEventArgs> Processed;
+        ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue);
+        Task<ColorTransformInterface> CreateAsync(int[,]? oDataSource, CancellationToken? oToken );
+        Task<ColorTransformInterface> CreateAsync(Histogram? oColorHistogramSource, CancellationToken? oToken);
+        Task<ColorTransformInterface> CreateAsync(Palette? oColorPaletteSource, CancellationToken? oToken);
+       // ColorTransformInterface Create(int[,]? oDataSource);
+       // ColorTransformInterface Create(Histogram? oColorHistogramSource);
+       // ColorTransformInterface Create(Palette? oColorPaletteSource);
+        Task<ColorTransformResults> ProcessColorsAsync( CancellationToken? oTokenSource);
+       // ColorTransformResults ProcessColors(int[,]? oSource );
+        Task AbortProcessingAsync(CancellationTokenSource oToken);
+        void AbortProcessing(CancellationTokenSource oToken);
     }
 }

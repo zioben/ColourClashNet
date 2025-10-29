@@ -30,13 +30,13 @@ namespace ColourClashNet.Color.Tile
             TrainingLoop = 3,
         };
 
-        internal int[,]? Process(DitherInterface oDither)
+        internal async Task<ColorTransformResults> ProcessColorAsync(ColorDithering eDitherModel, CancellationToken? oToken)
         {
-            oReduction.Create(Tile,null);
-            oReduction.Dithering = oDither;
-            var oRet = oReduction.ProcessColors(Tile);
-            Error = ColorTransformBase.EvaluateError(oRet.DataOut, Tile, oReduction.ColorDistanceEvaluationMode);
-            return oRet.DataOut;
+            await oReduction.CreateAsync(Tile, oToken);
+            oReduction.SetProperty(ColorTransformProperties.Dithering_Model, eDitherModel);
+            var oRet = await oReduction.ProcessColorsAsync( oToken);
+            Error = await ColorIntExt.EvaluateErrorAsync(oRet.DataOut, Tile, oReduction.ColorDistanceEvaluationMode,oToken);
+            return oRet;
         }
 
     }

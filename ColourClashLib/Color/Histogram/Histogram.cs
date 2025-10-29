@@ -3,6 +3,7 @@ using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,16 @@ namespace ColourClashNet.Color
         public Dictionary<int, int> rgbHistogram { get; private init; } = new Dictionary<int, int>();
 
         /// <summary>
+        /// Gets the number of elements in the RGB histogram.
+        /// </summary>
+        public int Count => rgbHistogram.Count;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool Valid => Count > 0;    
+
+        /// <summary>
         /// Reset the histogram
         /// </summary>
         public void Reset()
@@ -35,82 +46,42 @@ namespace ColourClashNet.Color
         /// </summary>
         /// <param name="oDataSource">Image Data</param>
         /// <returns>this object</returns>
-        public Histogram? Create(int[,] oDataSource)
+        public async Task<Histogram> CreateAsync(int[,] oDataSource, CancellationToken? oToken)
         {
             Reset();
-            return Histogram.CreateColorHist(oDataSource, this);
-        }
-
-
-        /// <summary>
-        /// Create Histogram from a Color Palette.<BR/>
-        /// Each color will be added with 0 occurrences.
-        /// </summary>
-        /// <param name="oPalette"></param>
-        /// <returns>this object or null on error</returns>
-        public Histogram? Create(Palette oPalette)
-        {
-            string sMethod = nameof(Create);    
-            Reset();
-            if (oPalette == null)
-            {
-                LogMan.Error(sClass, sMethod, "null ColorPalette");
-                return null;
-            }
-            foreach( var rgb in oPalette.rgbPalette) 
-            {
-                AddToHistogram(rgb, 0);
-            }
-            return this;
+            return await Histogram.CreateColorHistogramAsync(oDataSource, this, oToken);
         }
 
         /// <summary>
-        /// Create Histogram from a list of Color Palettes.<BR/>
-        /// Each color will be added with 0 occurrences.
+        /// Create Histogram from a 2D int array of RGB values
         /// </summary>
-        /// <param name="lPalette"></param>
-        /// <returns>this object or null on error</returns>
-        public Histogram? Create(List<Palette> lPalette)
+        /// <param name="oDataSource">Image Data</param>
+        /// <returns>this object</returns>
+        public async Task<Histogram> CreateAsync(Histogram? oHist, CancellationToken? oToken)
         {
-            string sMethod = nameof(Create);
             Reset();
-            if (lPalette == null || lPalette.Count <= 0)
-            {
-                LogMan.Error(sClass, sMethod, "null List");
-                return null;
-            }
-            lPalette.ForEach(pal =>
-            {
-                foreach (var rgb in pal.rgbPalette)
-                {
-                    AddToHistogram(rgb, 0);
-                }
-            });
-            return this;
+            return await Histogram.CreateColorHistogramAsync(oHist, this, oToken);
         }
-
-        /// <summary>
-        /// Gets the number of elements in the RGB histogram.
-        /// </summary>
-        public int Count => rgbHistogram.Count;
 
         /// <summary>
         /// Add occurrences to a RGB color in the histogram.<BR/>
         /// only 'ColorIntInfo.IsColor' will be accepted.
         /// </summary>
         /// <param name="rgb">color data</param>
-        /// <param name="histAdder">number of occourrences ot color data</param>
-        public void AddToHistogram(int rgb, int histAdder)
+        /// <param name="count">number of occourrences ot color data</param>
+        public void AddToHistogram(int rgb, int value)
         {
+            if (rgb < 0)
+                return;
             if (rgb.GetColorInfo() == ColorIntType.IsColor)
             {
-                if (rgbHistogram.ContainsKey(rgb))
+                if( rgbHistogram.ContainsKey(rgb))
                 {
-                    rgbHistogram[rgb] += histAdder;
+                    rgbHistogram[rgb] += value;
                 }
                 else
                 {
-                    rgbHistogram.Add(rgb, histAdder);
+                    rgbHistogram[rgb] = value;
                 }
             }
         }
@@ -122,33 +93,52 @@ namespace ColourClashNet.Color
         public Palette ToColorPalette()
         {
             var oCP = new Palette();
-            foreach (var kvp in rgbHistogram)
+            foreach (var rgb in rgbHistogram.Keys)
             {
-                if (kvp.Key < 0)
-                    continue;
-                oCP.Add(kvp.Key);
+                if (rgb >= 0)
+                {
+                    oCP.Add(rgb);
+                }
             }
             return oCP; 
+        }
+        
+        /// <summary>
+        /// Extract colors in the histogram as a Color Palette
+        /// </summary>
+        /// <returns></returns>
+        public Palette ToColorPalette(int iMaxColors)
+        {
+            var oCP = new Palette();
+            foreach (var rgb in rgbHistogram.Keys)
+            {
+                if (rgb >= 0)
+                {
+                    oCP.Add(rgb);
+                }
+                if (oCP.Count >= iMaxColors)
+                {
+                    return oCP;
+                }
+            }
+            return oCP;
         }
 
         /// <summary>
         /// Sort colors in the histogram by occurrences in descending order 
         /// </summary>
         /// <returns>new Histogram</returns>
-        public Histogram? SortColorsDescending()
+        public Histogram SortColorsDescending()
         {
-            List<Tuple<int, int>> oListHist = new List<Tuple<int, int>>(rgbHistogram.Count);
-            foreach (var kvp in rgbHistogram)
+            var lSorted = rgbHistogram
+                .OrderByDescending(kvp => kvp.Value)
+                .ToList();
+            var oRet = new Histogram();
+            foreach (var kvp in lSorted)
             {
-                oListHist.Add(Tuple.Create(kvp.Value, kvp.Key));
+                oRet.AddToHistogram(kvp.Key, kvp.Value);
             }
-            oListHist = oListHist.OrderByDescending(X => X.Item1).ToList();
-            rgbHistogram.Clear();
-            foreach (var kvp in oListHist)
-            {
-                rgbHistogram.Add(kvp.Item2, kvp.Item1);
-            }
-            return this;
+            return oRet;
         }
 
         /// <summary>
@@ -157,18 +147,15 @@ namespace ColourClashNet.Color
         /// <returns>this object</returns>
         public Histogram? SortColorsAscending()
         {
-            List<Tuple<int, int>> oListHist = new List<Tuple<int, int>>(rgbHistogram.Count);
-            foreach (var kvp in rgbHistogram)
+            var lSorted = rgbHistogram
+                .OrderBy(kvp => kvp.Value)
+                .ToList();
+            var oRet = new Histogram();
+            foreach (var kvp in lSorted)
             {
-                oListHist.Add(Tuple.Create(kvp.Value, kvp.Key));
+                oRet.AddToHistogram(kvp.Key, kvp.Value);
             }
-            oListHist = oListHist.OrderBy(X => X.Item1).ToList();
-            rgbHistogram.Clear();
-            foreach (var kvp in oListHist)
-            {
-                rgbHistogram.Add(kvp.Item2, kvp.Item1);
-            }
-            return this;
+            return oRet;
         }
     }
 

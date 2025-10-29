@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ColourClashLib\ColourClashLib.csproj" />
+    <ProjectReference Include="..\ColourClashSupport\ColourClashSupport.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Components\BitmapRender.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Components\ColorManager.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="Controls\ColorAnalyzer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Forms\ProcessingForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+
+</Project>

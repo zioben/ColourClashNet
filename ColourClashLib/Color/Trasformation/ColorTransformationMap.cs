@@ -1,20 +1,19 @@
-﻿using ColourClashNet.Color;
-using System;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Color.Trasformation
+namespace ColourClashNet.Color
 {
     /// <summary>
     /// Class to transform palette colors.
     /// </summary>
     public partial class ColorTransformationMap
     {
-        static string sClass = nameof(ColorTransformationMap);
-        public Dictionary<int, int> rgbTransformationMap { get; private init; } = new Dictionary<int, int>();
-        //public int this[int index] => rgbTransformationMap[index];
+        static string sC = nameof(ColorTransformationMap);
+        public ConcurrentDictionary<int, int> rgbTransformationMap { get; private init; } = new();
 
         public void Reset()
         {
@@ -32,9 +31,10 @@ namespace ColourClashNet.Color.Trasformation
             }
             foreach (var rgb in oPalette.rgbPalette)
             {
-                if (rgb < 0)
-                    continue;
-                rgbTransformationMap[rgb] = rgb;    
+                if ( rgb>=0 )
+                {
+                    rgbTransformationMap[rgb] = rgb;
+                }
             }
             return true;
         }
@@ -49,7 +49,10 @@ namespace ColourClashNet.Color.Trasformation
             Palette oPalette = new Palette();
             foreach (var rgb in oDataSource) 
             {
-                oPalette.Add(rgb);
+                if (rgb >= 0)
+                {
+                    oPalette.Add(rgb);
+                }
             }
             return Create(oPalette);
         }
@@ -60,21 +63,41 @@ namespace ColourClashNet.Color.Trasformation
             {
                 return;
             }
-            if (rgbTransformationMap.ContainsKey(iSorceRGB))
-            {
-                rgbTransformationMap[iSorceRGB] = iDestRGB;
-            }
-            else
-            {
-                rgbTransformationMap.Add(iSorceRGB, iDestRGB);
-            }
+            rgbTransformationMap[iSorceRGB] = iDestRGB;
         }
         public void Remove(int iSorceRGB)
         {
             if (rgbTransformationMap.ContainsKey(iSorceRGB))
             {
-                rgbTransformationMap.Remove(iSorceRGB);
+                rgbTransformationMap.TryRemove(iSorceRGB, out int Removed);
             }
+        }
+
+        public async Task<int[,]?> TransformAsync(int[,]? oData, CancellationToken? oToken )
+        {
+            return await Task.Run(() =>
+            {
+                string sM = nameof(TransformAsync);
+                if (oData == null)
+                {
+                    return null;
+                }
+                int R = oData.GetLength(0);
+                int C = oData.GetLength(1);
+                var oRet = new int[R, C];
+                Parallel.For(0, R, r =>
+                {
+                    oToken?.ThrowIfCancellationRequested();
+                    for (int c = 0; c < C; c++)
+                    {
+                        if (!rgbTransformationMap.TryGetValue(oData[r, c], out oRet[r, c]))
+                        {
+                            oRet[r, c] = Defaults.ColorDefaults.DefaultInvalidColorInt;
+                        }
+                    }
+                });
+                return oRet;
+            });
         }
 
 
@@ -88,8 +111,6 @@ namespace ColourClashNet.Color.Trasformation
                 oCP.Add(kvp.Value);
             }
             return oCP; 
-        }
-
-       
+        }       
     }
 }

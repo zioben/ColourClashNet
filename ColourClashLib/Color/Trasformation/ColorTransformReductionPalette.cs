@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashNet.Color;
-using ColourClashNet.Color.Tile;
-using ColourClashNet.Color;
 
 namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformReductionPalette : ColorTransformBase
     {
-
         //-------------------------------------------------------------
-        // Generic FIxed Palette injecct 
+        // Generic Fixed Palette Management 
         //-------------------------------------------------------------
         public ColorTransformReductionPalette()
         {
@@ -21,44 +18,21 @@ namespace ColourClashNet.Color.Transformation
             Description = "Color palette trasformation";
         }
 
-         
-
-       
-        protected override int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken )
+        protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
         {
-            if (OutputPalette == null ) 
+            return await Task.Run(() =>
             {
-                return null;    
-            }          
-            if (oDataSource == null)
-            {
-                return null;
-            }
-            var oHashSet = new HashSet<int>();
-            foreach (var rgb in oDataSource)
-            {
-                oHashSet.Add(rgb);
-            }
-            oToken.ThrowIfCancellationRequested();
-            oHashSet.RemoveWhere(X => X < 0);
-            foreach (var rgb in oHashSet)
-            {
-                ColorTransformationMapper.Add(rgb, rgb);
-            }
-            oToken.ThrowIfCancellationRequested();
-            Parallel.ForEach(oHashSet, rgb =>
-            {
-                ColorTransformationMapper.rgbTransformationMap[rgb] = ColorIntExt.GetNearestColor(rgb, OutputPalette, ColorDistanceEvaluationMode);
-                lock (OutputPalette)
+                TransformationMap.Reset();
+                Parallel.ForEach(sourceDataContainer.ColorPalette.rgbPalette, rgb =>
                 {
-                    oToken.ThrowIfCancellationRequested();  
-                }
+                    TransformationMap.Add(rgb, ColorIntExt.GetNearestColor(rgb, FixedPalette, this.ColorDistanceEvaluationMode));
+                });
+                //Ferificed OK
+                //var t = TransformationMap.rgbTransformationMap.Values.Distinct().ToList();
+                return ColorTransformResults.CreateValidResult();
+
             });
-
-            return base.ExecuteTransform(oDataSource, oToken);
         }
-
-
-       
     }
 }
+

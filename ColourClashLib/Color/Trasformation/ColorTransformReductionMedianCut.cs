@@ -1,6 +1,4 @@
-﻿using ColourClashNet.Color;
-using ColourClashNet.Color;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -23,8 +21,8 @@ namespace ColourClashNet.Color.Transformation
 
         public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
         {
-            if (base.SetProperty(eProperty, oValue) != null)
-                return this;
+            base.SetProperty(eProperty, oValue);
+
             switch (eProperty)
             {
                 case ColorTransformProperties.MaxColorsWanted:
@@ -45,7 +43,7 @@ namespace ColourClashNet.Color.Transformation
                 default:
                     break;
             }
-            return null;
+            return this;
         }
 
 
@@ -138,29 +136,47 @@ namespace ColourClashNet.Color.Transformation
                 var iRGB = ColorIntExt.GetColorMean(oPalette, ColorMeanMode.UseColorPalette);
                 foreach (var rgb in oPalette.rgbPalette)
                 {
-                    if (!ColorTransformationMapper.rgbTransformationMap.ContainsKey(rgb))
+                    if (!TransformationMap.rgbTransformationMap.ContainsKey(rgb))
                     {
-                        ColorTransformationMapper.Add(rgb, iRGB);
+                        TransformationMap.Add(rgb, iRGB);
                     }
                 }
             }
         }
 
-        protected override void CreateTrasformationMap()
+        Palette OutputPalette = new Palette();
+
+        protected override async Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
         {
-            if (OutputHistogram.ToColorPalette().Count < ColorsMaxWanted)
+            return await Task.Run(() =>
             {
-                foreach (var kvp in OutputHistogram.rgbHistogram)
+                OutputPalette = new Palette();
+                if (SourceHistogram.ToColorPalette().Count < ColorsMaxWanted)
                 {
-                    ColorTransformationMapper.rgbTransformationMap[kvp.Key] = kvp.Key;
+                    foreach (var kvp in SourceHistogram.rgbHistogram)
+                    {
+                        TransformationMap.rgbTransformationMap[kvp.Key] = kvp.Key;
+                    }
+                    OutputPalette = TransformationMap.ToColorPalette();
                 }
-                return;
-            }
-            int iColorsMax = Math.Min(256, Math.Max(2, ColorsMaxWanted));
-            Partition(OutputHistogram.ToColorPalette(), iColorsMax/2);
-            OutputPalette = ColorTransformationMapper.ToColorPalette();
+                else
+                {
+                    int iColorsMax = Math.Min(256, Math.Max(2, ColorsMaxWanted));
+                    Partition(SourceHistogram.ToColorPalette(), iColorsMax / 2);
+                    OutputPalette = TransformationMap.ToColorPalette();
+                }
+                return ColorTransformResults.CreateValidResult();
+            });
         }
 
-
+        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
+        {
+            var ret = await TransformationMap.TransformAsync(SourceData, oToken);
+            if (ret != null)
+            {
+                return ColorTransformResults.CreateValidResult(SourceData, ret);
+            }
+            return new();
+        }
     }
 }

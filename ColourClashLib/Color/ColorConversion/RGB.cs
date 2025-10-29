@@ -1,4 +1,4 @@
-﻿using ColourClashNet.Color2;
+﻿using ColourClashNet.Color;
 using ColourClashNet.Defaults;
 using System;
 using System.Collections.Generic;

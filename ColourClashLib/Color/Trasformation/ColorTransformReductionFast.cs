@@ -1,11 +1,8 @@
-﻿using ColourClashNet.Color;
-using ColourClashNet.Color;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionAmiga;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -22,51 +19,64 @@ namespace ColourClashNet.Color.Transformation
 
         public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
         {
-            if (base.SetProperty(eProperty, oValue) != null)
-                return this;
+            base.SetProperty(eProperty, oValue);
+
             switch (eProperty)
             {
                 case ColorTransformProperties.MaxColorsWanted:
                     if (int.TryParse(oValue?.ToString(), out var c))
                     {
                         ColorsMaxWanted = c;
-                        return this;
                     }
                     break;
                 default:
                     break;
             }
-            return null;
+            return this;
         }
 
+//        Palette OutputPalette = new Palette();
 
-        protected override void CreateTrasformationMap()
+        protected override async Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
         {
-            OutputPalette.Reset();
-            OutputHistogram.SortColorsDescending();
-            var oTempPalette = Palette.MergeColorPalette(InputFixedColorPalette, OutputHistogram.ToColorPalette());
-            if (oTempPalette.Count < ColorsMaxWanted)
+            return await Task.Run(() =>
             {
-                foreach (var kvp in OutputHistogram.rgbHistogram )
+                //OutputPalette = new Palette();
+                TransformationMap.Reset();
+                var oTempHist = SourceHistogram.SortColorsDescending();
+                var oTempPalette = Palette.MergeColorPalette(FixedPalette, oTempHist.ToColorPalette());
+                if (oTempPalette.Count < ColorsMaxWanted)
                 {
-                    OutputPalette.Add(kvp.Key);
-                    ColorTransformationMapper.rgbTransformationMap[kvp.Key] = kvp.Key;
+                    foreach (var kvp in SourceHistogram.rgbHistogram)
+                    {
+                        //OutputPalette.Add(kvp.Key);
+                        TransformationMap.Add(kvp.Key, kvp.Key);
+                    }
                 }
-                return;
-            }
-            //var listAll = colorHistogram.ToColorPalette().ToList();
-            //var listMax = oTempPalette.Take(ColorsMax).ToList();
-            var listAll = oTempPalette.ToList();
-            var listMax = listAll.Take(ColorsMaxWanted).ToList();
-            listAll.ForEach(X =>
-            {
-                var dMin = listMax.Min(Y => Y.Distance(X, ColorDistanceEvaluationMode));
-                var oItem = listMax.FirstOrDefault(Y => Y.Distance(X, ColorDistanceEvaluationMode) == dMin);
-                OutputPalette.Add(oItem);
-                ColorTransformationMapper.rgbTransformationMap[X] = oItem;
+                else
+                {
+                    var listAll = oTempPalette.ToList();
+                    var listMax = listAll.Take(ColorsMaxWanted).ToList();
+                    var oPalette = Palette.CreateColorPalette(listMax);
+                    listAll.ForEach(rgbItem =>
+                    {
+                        oToken?.ThrowIfCancellationRequested();
+                        // From list of ColorsMaxWanted element get the best color approssimation
+                        var rgbBest = ColorIntExt.GetNearestColor(rgbItem, oPalette, ColorDistanceEvaluationMode);
+                        //var dErrorMin = listMax.Min(rgbMax => rgbMax.Distance(rgbItem, ColorDistanceEvaluationMode));
+                        //var rgbBest = listMax.FirstOrDefault(rgbMax => rgbMax.Distance(rgbItem, ColorDistanceEvaluationMode) == dErrorMin);
+                        //OutputPalette.Add(rgbBest);
+                        TransformationMap.rgbTransformationMap[rgbItem] = rgbBest;
+                    });
+                }
+                return ColorTransformResults.CreateValidResult();
             });
         }
 
-
+        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
+        {
+            var oRetData = await TransformationMap.TransformAsync(SourceData, oToken);
+            return ColorTransformResults.CreateValidResult(SourceData, oRetData);
+        }
     }
 }

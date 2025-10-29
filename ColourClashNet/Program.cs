@@ -23,7 +23,7 @@ namespace ColourClashNet
             LogMan.Message( sClass, sMethod , "Hello");
             LogMan.MinLogLevel = LogLevel.Message;
 
-            ColourClashNet.Controls.CoordinateManager oMan = new Controls.CoordinateManager();
+            ColourClashNet.Drawing.CoordinateManager oMan = new();
 
             //var oPoint1 = new PointF(1,2);
             //oMan.TransfZoom = new PointF(0.1f,100f);

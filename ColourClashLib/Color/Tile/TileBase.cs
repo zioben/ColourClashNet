@@ -1,6 +1,6 @@
 ﻿using ColourClashNet.Color;
-using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
+using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,7 +12,7 @@ namespace ColourClashNet.Color.Tile
 {
     public class TileBase
     {
-
+        static readonly string sC =nameof(TileBase);
         public enum EnumColorReductionMode
         {
             Fast,
@@ -76,14 +76,19 @@ namespace ColourClashNet.Color.Tile
         public double ExternalImageError { get; private set; } = Double.MaxValue;
 
         /// <summary>
+        /// Source colors
+        /// </summary>
+        public Palette ColorPalette { get; set; } = new Palette();
+
+        /// <summary>
         /// Prioritary colors
         /// </summary>
-        public Palette FixedPalette { get; set; } = new Palette();
+        public Palette ForcedColorPalette { get; set; } = new Palette();
 
         public EnumColorReductionMode ColorReductionMode { get; internal set; } =  EnumColorReductionMode.Fast;
 
 
-        static int[,]? GetDataTile(int[,]? oDataSource, int iSourceR, int iSourceC, int iTileW, int iTileH )
+        int[,]? GetDataTile(int[,]? oDataSource, int iSourceR, int iSourceC, int iTileW, int iTileH )
         {
             if (oDataSource == null)
             {
@@ -110,6 +115,45 @@ namespace ColourClashNet.Color.Tile
             return oDataTile;
         }
 
+        ColorTransformResults CreateColorTransformResultsRerror(string sMessage, Exception ex)
+        { 
+            return new ColorTransformResults()
+            {
+                 Message = sMessage,
+                 Exception = ex
+            };
+        }
+
+        public async Task<ColorTransformResults> CreateAsync(int[,]? oDataSource, int iSourceR, int iSourceC, CancellationToken? oToken)
+        {
+            return await Task.Run(() =>
+            {
+                string sM = nameof(CreateAsync);
+                try
+                {
+                    DataSourceOriginC = iSourceC;
+                    DataSourceOriginR = iSourceR;
+                    if (oDataSource == null)
+                    {
+                        LogMan.Error(sC, sM, "Datasource null");
+                        return new ColorTransformResults();
+                    }
+                    if (TileW <= 0 || TileH <= 0 || TileMaxColors <= 0)
+                    {
+                        LogMan.Error(sC, sM, "Invalid Tile Data");
+                        return new ColorTransformResults();
+                    }
+                    DataSource = GetDataTile(oDataSource, iSourceR, iSourceC, TileW, TileH);
+                    return ColorTransformResults.CreateValidResult();
+                }
+                catch (Exception ex)
+                {
+                    LogMan.Exception(sC, sM, ex);
+                    return ColorTransformResults.CreateErrorResult(ex);
+                }
+            });
+        }
+
         /// <summary>
         /// Create a int[TileW,TileH] Tile and process it 
         /// </summary>
@@ -117,19 +161,10 @@ namespace ColourClashNet.Color.Tile
         /// <param name="iSourceR">Start row in input source data</param>
         /// <param name="iSourceC">Start column in input source data</param>
         /// <returns>int[,] processed data or null on error</returns>
-        public int[,]? ExecuteTrasform(int[,]? oDataSource, int iSourceR, int iSourceC )
+        public async Task<ColorTransformResults> ProcessAsync(CancellationToken? oToken )
         {
-            DataSourceOriginC = iSourceC; 
-            DataSourceOriginR = iSourceR;
-            if (oDataSource == null)
-            {
-                return null;                
-            }
-            if( TileW <= 0 || TileH <= 0 || TileMaxColors <= 0 )
-            {
-                return null;
-            }
-            DataSource = GetDataTile(oDataSource,iSourceR, iSourceC, TileW,TileH);
+            string sM = nameof(ProcessAsync);
+
             // Process colors
             ColorTransformInterface oColorReduction;
 
@@ -138,31 +173,33 @@ namespace ColourClashNet.Color.Tile
                 default:
                 case EnumColorReductionMode.Fast:
                     {
-                        oColorReduction = new ColorTransformReductionFast()
-                            {
-                                ColorDistanceEvaluationMode = ColorDistanceMode,
-                                ColorsMaxWanted = TileMaxColors,
-                            };
+                        oColorReduction = new ColorTransformReductionFast();
                     }
                     break;
                 case EnumColorReductionMode.Detailed:
                     {
-                        oColorReduction = new ColorTransformReductionCluster
-                        {
-                            TrainingLoop = 6,
-                            UseClusterColorMean = false,
-                            ColorDistanceEvaluationMode = ColorDistanceMode,
-                            ColorsMaxWanted = TileMaxColors,
-                        };
+                        oColorReduction = new ColorTransformReductionCluster();
                     }
                     break;
             }
-            oColorReduction.Create(DataSource,FixedPalette);
-            DataProcessed = oColorReduction.ProcessColors(DataSource).DataOut;
+
+            oColorReduction
+                .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceMode)
+                .SetProperty(ColorTransformProperties.Fixed_Palette, ColorPalette)
+                .SetProperty(ColorTransformProperties.MaxColorsWanted, TileMaxColors)
+                .SetProperty(ColorTransformProperties.UseColorMean, false)
+                .SetProperty(ColorTransformProperties.ClusterTrainingLoop, 5);
+
+            await oColorReduction.CreateAsync(DataSource, oToken);
+            var res = await oColorReduction.ProcessColorsAsync( oToken);
+            if (res.Valid)
+            {
+                DataProcessed = res.DataOut;
+            }
 
             // Evaluate error
-            TrasformationError = ColorTransformBase.EvaluateError(DataSource, DataProcessed, ColorDistanceMode);
-            return DataProcessed;
+            res.DataError = await ColorIntExt.EvaluateErrorAsync(DataSource, DataProcessed, ColorDistanceMode,oToken);
+            return res;
         }
 
         /// <summary>
@@ -170,30 +207,34 @@ namespace ColourClashNet.Color.Tile
         /// <para>No data will be copied on error</para>
         /// </summary>
         /// <param name="oDestinationData">Data to be overweritten</param>
-        public bool MergeData(int[,]? oDestinationData)
+        public async Task<bool> MergeDataAsync(int[,]? oDestinationData, CancellationToken? oToken)
         {
-            if (oDestinationData == null)
+            return await Task.Run(() =>
             {
-                return false;
-            }
-            if (DataProcessed == null)
-            {
-                return false;
-            }
-            int R = oDestinationData.GetLength(0);
-            int C = oDestinationData.GetLength(1);
-            int RR = Math.Max(0, Math.Min(R, DataSourceOriginR + TileH));
-            int CC = Math.Max(0, Math.Min(C, DataSourceOriginC + TileW));
-
-            // Merge Data
-            for (int dr = DataSourceOriginR, r = 0; dr < RR; dr++, r++)
-            {
-                for (int dc = DataSourceOriginC, c = 0; dc < CC; dc++, c++)
+                if (oDestinationData == null)
                 {
-                    oDestinationData[dr, dc] = DataProcessed[r, c];
+                    return false;
                 }
-            }
-            return true;
+                if (DataProcessed == null)
+                {
+                    return false;
+                }
+                int R = oDestinationData.GetLength(0);
+                int C = oDestinationData.GetLength(1);
+                int RR = Math.Max(0, Math.Min(R, DataSourceOriginR + TileH));
+                int CC = Math.Max(0, Math.Min(C, DataSourceOriginC + TileW));
+
+                // Merge Data
+                Parallel.For(DataSourceOriginR, RR, dr =>//  int dr = DataSourceOriginR, r = 0; dr < RR; dr++, r++)
+                {
+                    int r = dr - DataSourceOriginR;
+                    for (int dc = DataSourceOriginC, c = 0; dc < CC; dc++, c++)
+                    {
+                        oDestinationData[dr, dc] = DataProcessed[r, c];
+                    }
+                });
+                return true;
+            });
         }
 
         /// <summary>
@@ -203,7 +244,7 @@ namespace ColourClashNet.Color.Tile
         /// <param name="oTileA"></param>
         /// <param name="oTileB"></param>
         /// <returns>true if data</returns>
-        public static bool MergeData(int[,]? oDestinationData, TileBase oTileA, TileBase oTileB, EnumErrorSourceMode eErrorMode )
+        public static async Task<bool> MergeDataAsync(int[,]? oDestinationData, TileBase oTileA, TileBase oTileB, EnumErrorSourceMode eErrorMode, CancellationToken? oToken )
         {
             if (oDestinationData == null)
             {
@@ -215,11 +256,11 @@ namespace ColourClashNet.Color.Tile
             }
             if (oTileA != null && oTileB == null)
             {
-                return oTileA.MergeData(oDestinationData);
+                return await oTileA.MergeDataAsync(oDestinationData,oToken);
             }
             if (oTileA == null && oTileB != null)
             {
-                return oTileB.MergeData(oDestinationData);
+                return await oTileB.MergeDataAsync(oDestinationData, oToken);
             }
             double dErrorA=0, dErrorB=0;
             switch (eErrorMode)
@@ -242,12 +283,12 @@ namespace ColourClashNet.Color.Tile
             if (dErrorA <= dErrorB)
             {
                 //Trace.TraceInformation("A");
-                return oTileA.MergeData(oDestinationData);
+                return await oTileA.MergeDataAsync(oDestinationData, oToken);
             }
             else
             {
                 //Trace.TraceInformation("B");
-                return oTileB.MergeData(oDestinationData);
+                return await oTileB.MergeDataAsync(oDestinationData, oToken);
             }
         }
 
@@ -257,7 +298,7 @@ namespace ColourClashNet.Color.Tile
         /// <param name="oDestinationData"></param>
         /// <param name="lTiles">List to tiles to compare</param>
         /// <returns></returns>
-        public static bool MergeData(int[,]? oDestinationData, List<TileBase> lTiles, EnumErrorSourceMode eErrorMode)
+        public static async Task<bool> MergeDataAsync(int[,]? oDestinationData, List<TileBase> lTiles, EnumErrorSourceMode eErrorMode, CancellationToken? oToken)
         {
             if (oDestinationData == null)
             {
@@ -276,7 +317,7 @@ namespace ColourClashNet.Color.Tile
                         {
                             return false;
                         }
-                        return oTile.MergeData(oDestinationData);
+                        return await oTile.MergeDataAsync(oDestinationData, oToken);
                     }
                     break;
                 case EnumErrorSourceMode.ExternalImageError:
@@ -286,7 +327,7 @@ namespace ColourClashNet.Color.Tile
                         {
                             return false;
                         }
-                        return oTile.MergeData(oDestinationData);
+                        return await oTile.MergeDataAsync(oDestinationData, oToken);
                     }
                     break;
                 default:
@@ -296,14 +337,14 @@ namespace ColourClashNet.Color.Tile
             }
         }
 
-        public  bool CalcExternalImageError(int[,]? oDestinationData)
+        public async Task<bool> CalcExternalImageErrorAsync(int[,]? oDestinationData, CancellationToken? oToken)
         {
             var oDataTile = GetDataTile(oDestinationData, DataSourceOriginR, DataSourceOriginC, TileW, TileH);
             if (oDataTile == null)
             {
                 ExternalImageError = double.MaxValue;
             }
-            ExternalImageError = ColorTransformBase.EvaluateError(oDataTile, DataProcessed, ColorDistanceMode);
+            ExternalImageError = await ColorIntExt.EvaluateErrorAsync(oDataTile, DataProcessed, ColorDistanceMode, oToken  );
             return true;
         }
 

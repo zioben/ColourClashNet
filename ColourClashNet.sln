@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ColourClashSupport", "Colou
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModuleTester", "ModuleTester\ModuleTester.csproj", "{0AB50823-BDB4-480B-837A-5A43348667E8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ColourClashDrawings", "ColourClashDrawings\ColourClashDrawings.csproj", "{A6FBB293-F879-459A-8720-D688C59572C0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{0AB50823-BDB4-480B-837A-5A43348667E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0AB50823-BDB4-480B-837A-5A43348667E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0AB50823-BDB4-480B-837A-5A43348667E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6FBB293-F879-459A-8720-D688C59572C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6FBB293-F879-459A-8720-D688C59572C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6FBB293-F879-459A-8720-D688C59572C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6FBB293-F879-459A-8720-D688C59572C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

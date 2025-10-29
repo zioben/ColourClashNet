@@ -25,27 +25,30 @@ namespace ColourClashNet.Color.Dithering
             return true;
         }
 
-        public override int[,]? Dither(int[,]? oDataOriginal, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken oToken)
+        public override async Task<int[,]?> DitherAsync(int[,]? oDataOriginal, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken)
         {
-            string sMethod = nameof(Dither);
-            try
+            return await Task.Run(() =>
             {
-                if (oDataOriginal == null || oDataProcessedPalette == null || oDataProcessedPalette.Count == 0 )
+                string sMethod = nameof(DitherAsync);
+                try
                 {
-                    LogMan.Error(sClass,sMethod, "Invalid input data");
+                    if (oDataOriginal == null)
+                    {
+                        LogMan.Error(sClass, sMethod, "Invalid input data");
+                        return null;
+                    }
+                    LogMan.Trace(sClass, sMethod, $"{Type} : Dithering");
+                    var oRet = oDataProcessed.Clone() as int[,];
+                    LogMan.Trace(sClass, sMethod, $"{Type} : Dithering completed");
+                    return oRet;
+
+                }
+                catch (Exception ex)
+                {
+                    LogMan.Exception(sClass, sMethod, ex);
                     return null;
                 }
-                LogMan.Trace(sClass, sMethod, $"{Type} : Dithering");
-                var oRet = oDataProcessed.Clone() as int[,];
-                LogMan.Trace(sClass, sMethod, $"{Type} : Dithering completed");
-                return oRet;
-
-            }
-            catch (Exception ex)
-            {
-                LogMan.Exception(sClass, sMethod, ex);
-                return null;
-            }
+            });
         }
     }
 }

@@ -1,30 +1,33 @@
-﻿using System;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Log;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashNet.Color;
 
 namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformBkgRemover : ColorTransformBase
     {
-        static string sClass = nameof(ColorTransformBkgRemover);
+        static string sC = nameof(ColorTransformBkgRemover);
         public ColorTransformBkgRemover()
         {
             Type = ColorTransformType.ColorRemover;
-            Description = "Substitute a colorlist with a single color";
+            Description = "Basic Background Color Replacement";
         }
 
         public Palette BackgroundPalette { get; set; } = new Palette();
         public int ColorBackgroundReplacement { get; set; } = 0;
 
+      
+
         public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
         {
-            if (base.SetProperty(eProperty, oValue) != null)
-                return this;
+            base.SetProperty(eProperty, oValue);
             switch (eProperty)
             {
                 case ColorTransformProperties.ColorBackgroundList:
@@ -42,7 +45,6 @@ namespace ColourClashNet.Color.Transformation
                         {
                             BackgroundPalette = oPalette;
                         }
-                        return this;
                     }
                     break;
                 case ColorTransformProperties.ColorBackgroundReplacement:
@@ -55,36 +57,34 @@ namespace ColourClashNet.Color.Transformation
                 default:
                     break;
             }
-            return null;
+            return this;
         }
 
-
-       
-        protected override int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken)
+        protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
         {
-            if (oDataSource == null)
-                return null;
-            var R = oDataSource.GetLength(0);
-            var C = oDataSource.GetLength(1);
-            var oRet = new int[R, C];   
-            var oList = BackgroundPalette.ToList();
-            var oBkgCol = ColorBackgroundReplacement;
-            //oBkgCol = oBkgCol.SetColorInfo(ColorIntType.IsBkg);
-            Parallel.For(0, R, r =>
+            return await Task.Run(() =>
             {
-                for (int c = 0; c < C; c++)
+                string sM = nameof(CreateTrasformationMapAsync);
+                LogMan.Trace(sC, sM, $"{Type} : Creating trasformation map");
+
+                TransformationMap.Reset();
+                var oBkgList = BackgroundPalette.ToList();
+                var oPalList = SourcePalette.ToList();
+                foreach (var rgb in SourcePalette.rgbPalette)
                 {
-                    oRet[r, c] = oDataSource[r, c];
-                    if (oRet[r, c].GetColorInfo() == ColorIntType.IsColor)
-                    {
-                        if (oList.Any(X => X == oRet[r, c]))
-                        {
-                            oRet[r, c] = oBkgCol;
-                        }
-                    }
+                    TransformationMap.Add(rgb, rgb);
                 }
+                foreach (var rgb in oBkgList)
+                {
+                    TransformationMap.Remove(rgb);
+                    TransformationMap.Add(rgb, ColorBackgroundReplacement);
+                }
+               // var lRepl = TransformationMap.rgbTransformationMap.Where(X => X.Value == ColorBackgroundReplacement).ToList();
+                return ColorTransformResults.CreateValidResult();
             });
-            return oRet;
         }
+
+        // Not needed
+        //protected override async Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
     }
 }

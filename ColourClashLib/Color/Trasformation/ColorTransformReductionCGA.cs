@@ -1,5 +1,4 @@
-﻿using ColourClashNet.Color;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,12 +22,6 @@ namespace ColourClashNet.Color.Transformation
             Composite_2,
         }
 
-        public ColorTransformReductionCGA()
-        {
-            Type = ColorTransformType.ColorReductionEga;
-            Description = "Reduce color to CGA palette";
-        }
-
         List<int> paletteFull;
         List<int> paletteMode4_0L;
         List<int> paletteMode4_0H;
@@ -40,11 +33,21 @@ namespace ColourClashNet.Color.Transformation
         List<int> paletteComposite_1;
         List<int> paletteComposite_2;
 
-
-        protected override void CreateTrasformationMap()
+        public ColorTransformReductionCGA()
         {
-            paletteFull = new List<int>()
-            {
+            Type = ColorTransformType.ColorReductionEga;
+            Description = "Reduce color to CGA palette";
+            CreatePalette();
+        }
+
+
+
+        void CreatePalette()
+        {
+            SetProperty(
+               ColorTransformProperties.Fixed_Palette,
+               new List<int>
+               {
                     0x00000000,
                     0x000000AA,
                     0x0000AA00,
@@ -59,8 +62,10 @@ namespace ColourClashNet.Color.Transformation
                     0x00FF5555,
                     0x00FF55FF,
                     0x00FFFF55,
-                    0x00FFFFFF
-            };
+                    0x00FFFFFF,
+               });
+
+            paletteFull = FixedPalette.ToList();
 
             paletteMode4_0L = new List<int>()
             {
@@ -110,6 +115,5 @@ namespace ColourClashNet.Color.Transformation
                 paletteFull[15],
             };
         }
-
     }
 }

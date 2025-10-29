@@ -1,4 +1,4 @@
-﻿using ColourClashNet.Color2;
+﻿using ColourClashNet.Color;
 using System;
 using System.Linq.Expressions;
 

@@ -1,5 +1,4 @@
-﻿using ColourClashNet.Color;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,31 +12,30 @@ namespace ColourClashNet.Color.Transformation
         {
             Type = ColorTransformType.ColorReductionEga;
             Description = "Reduce color to EGA palette";
+            CreatePalette();
         }
-        protected override void CreateTrasformationMap()
+        void CreatePalette()
         {
             SetProperty(
-               ColorTransformProperties.Output_Palette,
-               new List<int>
-               {
-                    0x00000000,
-                    0x000000AA,
-                    0x0000AA00,
-                    0x0000AAAA,
-                    0x00AA0000,
-                    0x00AA00AA,
-                    0x00AA5500,
-                    0x00AAAAAA,
-                    0x00555555,
-                    0x005555FF,
-                    0x0055FF55,
-                    0x00FF5555,
-                    0x00FF55FF,
-                    0x00FFFF55,
-                    0x00FFFFFF,
-               }
-           );
+                ColorTransformProperties.Fixed_Palette,
+                new List<int>
+                {
+                    0x00_00_00_00,
+                    0x00_00_00_AA,
+                    0x00_00_AA_00,
+                    0x00_00_AA_AA,
+                    0x00_AA_00_00,
+                    0x00_AA_00_AA,
+                    0x00_AA_55_00,
+                    0x00_AA_AA_AA,
+                    0x00_55_55_55,
+                    0x00_55_55_FF,
+                    0x00_55_FF_55,
+                    0x00_FF_55_55,
+                    0x00_FF_55_FF,
+                    0x00_FF_FF_55,
+                    0x00_FF_FF_FF,
+                });
         }
-
     }
 }

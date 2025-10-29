@@ -1,13 +1,10 @@
-﻿using ColourClashNet.Color;
-using ColourClashNet.Color.Tile;
-using ColourClashNet.Imaging;
+﻿using ColourClashLib.Color.Trasformation;
+using ColourClashNet.Color.Dithering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionAmiga;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionCPC;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -23,36 +20,16 @@ namespace ColourClashNet.Color.Transformation
         }
 
         public CPCVideoMode VideoMode { get; set; } =  CPCVideoMode.Mode0;
-
-        public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
-        {
-            if (base.SetProperty(eProperty, oValue) != null)
-                return this;
-            switch (eProperty)
-            {
-                case ColorTransformProperties.CPC_VideoMode:
-                    if (Enum.TryParse<CPCVideoMode>(oValue?.ToString(), out var evm))
-                    {
-                        VideoMode = evm;
-                        return this;
-                    }
-                    break;
-                default:
-                    break;
-            }
-            return null;
-        }
-
-
         public ColorTransformReductionCPC()
         {
             Type = ColorTransformType.ColorReductionCBM64;
             Description = "Reduce color to Amstrad CPC palette";
+            CreatePalette();
         }
-        protected override void CreateTrasformationMap()
+        void CreatePalette()
         {
             SetProperty(
-                ColorTransformProperties.Output_Palette,
+                ColorTransformProperties.Fixed_Palette,
                 new List<int>
                 {
                    0x00_00_00_00,
@@ -94,121 +71,143 @@ namespace ColourClashNet.Color.Transformation
             );
         }
 
-        int[,]? PreProcess(int[,]? oDataSource, bool bHalveRes, CancellationToken oToken)
+        public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
         {
-            if (oDataSource == null)
-                return null;
-            var oTmp = oDataSource;
+            base.SetProperty(eProperty, oValue);
+            switch (eProperty)
+            {
+                case ColorTransformProperties.CPC_VideoMode:
+                    if (Enum.TryParse<CPCVideoMode>(oValue?.ToString(), out var evm))
+                    {
+                        VideoMode = evm;
+                        return this;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return this;
+        }
+
+
+        async Task<int[,]?> PreProcessAsync(bool bHalveRes, CancellationToken? oToken)
+        {
+            var oTmpData = SourceData;
             if (bHalveRes)
             {
-                oTmp = ColorTransformBase.HalveHorizontalRes(oDataSource);
+                oTmpData = ColorTransformBase.HalveHorizontalRes(SourceData);
             }
-            var oTmpData = base.ExecuteTransform(oTmp,oToken);
-            if (Dithering != null)
-            {
-                oTmpData = Dithering.Dither(oTmp, oTmpData, OutputPalette, ColorDistanceEvaluationMode, oToken);
-            }
+            var oTmpDataProc = await TransformationMap.TransformAsync(oTmpData, oToken);
+            return oTmpDataProc;
+        }
+
+        async Task<int[,]?> PostProcessAsync(int[,] oPreprocessData, int iMaxColors, bool bDoubleRes, CancellationToken? oToken)
+        {
+            //ColorTransformReductionCluster oTrasf = new();
+            //oTrasf.SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors)
+            //     .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, this.ColorDistanceEvaluationMode)
+            //     .SetProperty(ColorTransformProperties.Dithering_Model, this.DitheringType)
+            //     .SetProperty(ColorTransformProperties.ClusterTrainingLoop, 5)
+            //     .SetProperty(ColorTransformProperties.UseColorMean, false);
+            ColorTransformReductionFast oTrasf= new ColorTransformReductionFast();
+            oTrasf.SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors);
+            oTrasf.SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode);
+            await oTrasf.CreateAsync(oPreprocessData, oToken);
+            var ret = await oTrasf.ProcessColorsAsync(oToken);
+            DataContainer oContainer = new();
+            await oContainer.SetDataAsync(ret.DataOut, oToken);
             BypassDithering = true;
-            OutputHistogram.Create(oTmpData);
-            OutputHistogram.SortColorsDescending();
-            return oTmpData;
-        }
 
-
-        int[,]? ToMode0(int[,]? oDataSource, CancellationToken oToken)
-        {
-            var oTmpH = ColorTransformBase.HalveHorizontalRes(oDataSource);
-            var oTmp = PreProcess(oDataSource, true, oToken);
-            var oPalette = OutputHistogram.ToColorPalette().rgbPalette.Take(16).ToList();
-            base.OutputPalette = Palette.CreateColorPalette(oPalette);
-            var oTmp2 = base.ExecuteTransform(oTmp, oToken);
-            if (Dithering != null)
+            if (DitheringType != ColorDithering.None)
             {
-                oTmp2 = Dithering.Dither(oTmpH, oTmp2, base.OutputPalette, ColorDistanceEvaluationMode, oToken);
+                var oTmpData = SourceData;
+                if (bDoubleRes)
+                {
+                    oTmpData = ColorTransformBase.HalveHorizontalRes(SourceData);
+                }
+                var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrenght);
+                var oDitheringOut = await oDithering.DitherAsync(oTmpData, oContainer.Data, oContainer.ColorPalette, ColorDistanceEvaluationMode, oToken);
+                if (bDoubleRes)
+                {
+                    return DoubleHorizontalRes(oDitheringOut);
+                }
+                return oDitheringOut;
             }
-            var oRet = ColorTransformBase.DoubleHorizontalRes(oTmp2);
-            return oRet;
-        }
-        int[,]? ToMode1(int[,]? oDataSource, CancellationToken oToken)
-        {
-            var oTmp = PreProcess(oDataSource, false, oToken);
-            var oPalette = OutputHistogram.ToColorPalette().rgbPalette.Take(4).ToList();
-            base.OutputPalette = Palette.CreateColorPalette(oPalette);
-            var oRet = base.ExecuteTransform(oTmp, oToken);
-            if (Dithering != null)
+            if (bDoubleRes)
             {
-                oRet = Dithering.Dither(oDataSource, oRet, base.OutputPalette, ColorDistanceEvaluationMode, oToken);
+                return DoubleHorizontalRes(oContainer.Data);
             }
-            return oRet;
+            return oContainer.Data;
+        }
+        
+
+
+
+
+        async Task<int[,]?> ToMode0Async( CancellationToken? oToken)
+        {
+            BypassDithering = true;
+            var oTmp1 = await PreProcessAsync( true, oToken);
+            var oTmp2 = await PostProcessAsync(oTmp1, 16, true, oToken);
+            return oTmp2;
+        }
+        async Task<int[,]?> ToMode1Async( CancellationToken? oToken)
+        {
+            BypassDithering = true;
+            var oTmp1 = await PreProcessAsync(false, oToken);
+            var oTmp2 = await PostProcessAsync(oTmp1, 4, false, oToken);
+            return oTmp2;
         }
 
-        int[,]? ToMode2(int[,]? oDataSource, CancellationToken oToken)
+        async Task<int[,]?> ToMode2Async( CancellationToken? oToken)
         {
-            var oTmp = PreProcess(oDataSource, false, oToken);
-            //ColorTransformReductionCluster oTrasf = new ColorTransformReductionCluster()
-            //{
-            //    ColorDistanceEvaluationMode = ColorDistanceEvaluationMode,
-            //    ColorsMax = 16,
-            //    dithering = dithering,
-            //    TrainingLoop = 5,
-            //    UseClusterColorMean = false
-            //};
-            //oTrasf.Create(oTmp, null);
-            //var oRet = oTrasf.TransformAndDither(oTmp);
-            var oPalette = OutputHistogram.ToColorPalette().rgbPalette.Take(2).ToList();
-            base.OutputPalette = Palette.CreateColorPalette(oPalette);
-            var oRet = base.ExecuteTransform(oTmp, oToken);
-            if (Dithering != null)
-            {
-                oRet = Dithering.Dither(oDataSource, oRet, base.OutputPalette, ColorDistanceEvaluationMode,oToken);
-            }
-            return oRet;
+            BypassDithering = true;
+            var oTmp1 = await PreProcessAsync(false, oToken);
+            var oTmp2 = await PostProcessAsync(oTmp1, 2, false, oToken);
+            return oTmp2;
         }
 
-
-        int[,]? ToMode3(int[,]? oDataSource, CancellationToken oToken)
+        async Task<int[,]?> ToMode3Async( CancellationToken? oToken)
         {
-            var oTmpH = ColorTransformBase.HalveHorizontalRes(oDataSource);
-            var oTmp = PreProcess(oDataSource, true, oToken);
-            var oPalette = OutputHistogram.ToColorPalette().rgbPalette.Take(4).ToList();
-            base.OutputPalette = Palette.CreateColorPalette(oPalette);
-            var oTmp2 = base.ExecuteTransform(oTmp,oToken);
-            if (Dithering != null)
-            {
-                oTmp2 = Dithering.Dither(oTmpH, oTmp2, base.OutputPalette, ColorDistanceEvaluationMode, oToken);
-            }
-            var oRet = ColorTransformBase.DoubleHorizontalRes(oTmp2);
-            return oRet;
+            BypassDithering = true;
+            var oTmp1 = await PreProcessAsync(true, oToken);
+            var oTmp2 = await PostProcessAsync(oTmp1, 4, true, oToken);
+            return oTmp2;
         }
 
-
-
-        protected override int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken)
+        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
         {
-            if (oDataSource == null)
-                return null;
-
+            int[,]? ret = null;
             switch (VideoMode)
             {
                 case CPCVideoMode.Mode0:
                     {                       
-                        return ToMode0(oDataSource, oToken );
+                        ret= await ToMode0Async(oToken );
                     }
+                    break;
                 case CPCVideoMode.Mode1:
                     {
-                        return ToMode1(oDataSource, oToken);
+                        ret = await ToMode1Async(oToken);
                     }
+                    break;
                 case CPCVideoMode.Mode2:
                     {
-                        return ToMode2(oDataSource, oToken);
+                        ret = await ToMode2Async(oToken);
                     }
+                    break;
                 case CPCVideoMode.Mode3:
                     {
-                        return ToMode3(oDataSource, oToken);
+                        ret = await ToMode3Async(oToken);
                     }
-                default: return null;
+                    break;
+                default:
+                    break;
             }
-
+            if (ret != null)
+            { 
+                return ColorTransformResults.CreateValidResult(SourceData, ret);
+            }
+            return new ColorTransformResults();
         }
     }
 }

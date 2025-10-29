@@ -13,29 +13,48 @@ namespace ColourClashNet.Color.Transformation
     {
         static string sClass = nameof(ColorTransformResults);
 
-        public int[,]? DataSource { get; set; }
-        public int[,]? DataTemp { get; set; }
-        public int[,]? DataOut { get; set; }
-    
-        public bool Valid { get; set; }
-        public string Message { get; private set; } = string.Empty;
+        public int[,]? DataIn { get; internal set; }
+        //public int[,]? DataProcessed { get; internal set; }
+        public int[,]? DataOut { get; internal set; }
+        public double DataError { get; internal set; } = double.NaN;
 
-        public Exception? Exception { get; set; }
+        public bool Valid { get; internal set; }
+        public string Message { get; internal set; } = string.Empty;
 
-        public ColorTransformInterface ColorTransformInterface { get; }
+        public Exception? Exception { get; internal set; }
 
-        public void AddMessage( string sMessage)
+        static public ColorTransformResults CreateValidResult(int[,]? inputData, int[,]? outputData) => new ColorTransformResults()
         {
-            string sMethod = nameof(AddMessage);
-            if (string.IsNullOrEmpty(sMessage))
-            {
-                Message = sMessage;
-            }
-            else
-            {
-                Message += $"{Environment.NewLine}{sMessage}";
-            }
-            LogMan.Trace(sClass, sMethod, sMessage);
-        }
+            DataIn = inputData,
+            DataOut = outputData,
+            Valid = true,
+            Message = "Ok",
+        };
+        //   static public ColorTransformResults CreateValidResult(int[,]? sourceData, int[,]? outputData) => CreateValidResult(sourceData, null, outputData);
+
+        static public ColorTransformResults CreateValidResult() => CreateValidResult(null, null);
+
+        static public ColorTransformResults CreateErrorResult(string sMessage, Exception ex) => new ColorTransformResults()
+        {
+             Message = sMessage,    
+             Exception = ex
+        };
+        static public ColorTransformResults CreateErrorResult(Exception ex) => CreateErrorResult(ex?.Message, ex);
+        static public ColorTransformResults CreateErrorResult(String sMessage) => CreateErrorResult(sMessage, null);
+
+    }
+
+    public class ColorTransformEventArgs : EventArgs
+    {
+        public ColorTransformResults ProcessingResults { get; init; }
+        public string? Message { get; internal set; }
+        public int[,]? TempImage { get; internal set; }
+        public ColorTransformInterface? ColorTransformInterface { get; init; }
+        public CancellationTokenSource? CancellationTokenSource { get; set; }
+        public ColorTransformationMap? TransformationMap { get; set; }
+
+        public double CompletedPercent { get; set; } =  double.NaN;
+
+
     }
 }

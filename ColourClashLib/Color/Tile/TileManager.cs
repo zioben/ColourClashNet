@@ -22,7 +22,10 @@ namespace ColourClashNet.Color.Tile
         public int TileR { get; private set; } = 0;
         public int TileC { get; private set; } = 0;
 
-        public Palette FixedColorPalette { get; set; } = new Palette();
+        public Palette ColorPalette { get; set; } = new Palette();
+        public Palette ForcedColorPalette { get; set; } = new Palette();
+
+        int[,] SourceData;
 
         ColorDistanceEvaluationMode ColorDistanceMode { get; set; } = ColorDistanceEvaluationMode.RGB;
 
@@ -38,9 +41,10 @@ namespace ColourClashNet.Color.Tile
             return null;
         }
 
-        void Free()
+        void Destroy()
         {
             TileData = null;
+            SourceData = null;
             TileW = 0;
             TileH = 0;
             TileR = 0;
@@ -49,9 +53,9 @@ namespace ColourClashNet.Color.Tile
         }
 
 
-        public bool Init(int[,]? oDataSource, int iTileW, int iTileH, int iMaxTileColors, Palette oFixedColorPalette, ColorDistanceEvaluationMode eColorDistanceMode, TileBase.EnumColorReductionMode eColorReductionMode)
+        public async Task<bool> CreateAsync(int[,]? oDataSource, int iTileW, int iTileH, int iMaxTileColors, Palette oColorPalette, Palette oForceColorPalette, ColorDistanceEvaluationMode eColorDistanceMode, TileBase.EnumColorReductionMode eColorReductionMode, CancellationToken? oToken)
         {
-            Free();
+            Destroy();
             if (oDataSource == null)
             {
                 return false;
@@ -60,36 +64,50 @@ namespace ColourClashNet.Color.Tile
             {
                 return false;
             }
+            SourceData = oDataSource.Clone() as int[,];
             TileW = iTileW;
             TileH = iTileH;
             ColorDistanceMode = eColorDistanceMode;
             ColorReductionMode = eColorReductionMode;
-            FixedColorPalette = oFixedColorPalette ?? new Palette();
+            ColorPalette = oColorPalette ?? new Palette();
+            ForcedColorPalette = oForceColorPalette ?? new Palette();   
             MaxColors = iMaxTileColors;
-            TileR = (oDataSource.GetLength(0) + TileH - 1) / TileH;
-            TileC = (oDataSource.GetLength(1) + TileW - 1) / TileW;
+            TileR = (SourceData.GetLength(0) + TileH - 1) / TileH;
+            TileC = (SourceData.GetLength(1) + TileW - 1) / TileW;
             TileData = new TileBase[TileR, TileC];
+
+            var tasks = new List<Task>();
+
             for (int r = 0; r < TileR; r++)
             {
                 for (int c = 0; c < TileC; c++)
                 {
-                    TileData[r, c] = new TileBase()
+                    int rr = r;
+                    int cc = c;
+                    tasks.Add(Task.Run(async () =>
                     {
-                        TileW = TileW,
-                        TileH = TileH,
-                        TileMaxColors = MaxColors,
-                        ColorDistanceMode = eColorDistanceMode,
-                        ColorReductionMode = ColorReductionMode,
-                        FixedPalette = FixedColorPalette,
-                    };
+                        TileData[rr, cc] = new TileBase()
+                        {
+                            TileW = TileW,
+                            TileH = TileH,
+                            TileMaxColors = MaxColors,
+                            ColorDistanceMode = eColorDistanceMode,
+                            ColorReductionMode = ColorReductionMode,
+                            ColorPalette = ColorPalette,
+                            ForcedColorPalette = ForcedColorPalette,
+                        };
+                        await TileData[rr, cc].CreateAsync(oDataSource, rr * TileH, cc * TileW, oToken);
+                    }));
                 }
             }
+
+            await Task.WhenAll(tasks);
             return true;
         }
 
-        public bool CreateTiles(int[,]? oDataSource)
+        public async Task<bool> ProcessAsync(CancellationToken? oToken)
         {
-            if (oDataSource == null)
+            if (SourceData == null)
             {
                 return false;
             }
@@ -103,31 +121,27 @@ namespace ColourClashNet.Color.Tile
             }
             int RT = TileData.GetLength(0);
             int CT = TileData.GetLength(1);
+
+            var tasks = new List<Task>();
+
+            for (int r = 0; r < RT; r++)
             {
-#if DEBUG
-                for( int r=0; r < RT; r++ )
+                for (int c = 0; c < CT; c++)
                 {
-                    for (int c = 0; c < CT; c++)
-                    {
-                        TileData[r, c].ExecuteTrasform(oDataSource, r * TileH, c * TileW);
-                    }
+                    int rr = r;
+                    int cc = c;
+
+                    tasks.Add(Task.Run(() =>
+                        TileData[rr, cc].ProcessAsync(oToken)));
                 }
-#else
-                Parallel.For(0, RT, r =>
-                {
-                    Parallel.For(0, CT, c =>
-                    {
-                        TileData[r, c].ExecuteTrasform(oDataSource, r * TileH, c * TileW);
-                    });
-                });
-#endif
             }
+            await Task.WhenAll(tasks);
             return true;
         }
 
-        public int[,] CreateImageFromTiles(int[,]? oDataSource)
+        public async Task<int[,]> CreateImageFromTilesAsync( CancellationToken? oToken)
         {
-            if (oDataSource == null)
+            if (SourceData == null)
             {
                 return null;
             }
@@ -139,41 +153,38 @@ namespace ColourClashNet.Color.Tile
             {
                 return null;
             }
-            var R = oDataSource.GetLength(0);
-            var C = oDataSource.GetLength(1);
+            var R = SourceData.GetLength(0);
+            var C = SourceData.GetLength(1);
             int RT = TileData.GetLength(0);
             int CT = TileData.GetLength(1);
             var oRet = new int[R, C];
-#if DEBUG
+
+            var tasks = new List<Task>();
+
             for (int r = 0; r < RT; r++)
             {
                 for (int c = 0; c < CT; c++)
                 {
-                    TileData[r, c].MergeData(oRet);
+                    int rr = r;
+                    int cc = c;
+                    tasks.Add(Task.Run(() => TileData[rr, cc].MergeDataAsync(oRet, oToken)));
                 }
             }
-#else
-            Parallel.For(0, RT, r =>
-            {
-                Parallel.For(0, CT, c =>
-                {
-                    TileData[r, c].MergeData(oRet);
-                });
-            });
-#endif
+            await Task.WhenAll(tasks);
+
             return oRet;
         }
 
-        public int[,]? TransformAndDither(int[,]? oDataSource)
-        { 
-            if( CreateTiles(oDataSource) ) 
-            {
-                return CreateImageFromTiles(oDataSource);
-            }
-            return null;
-        }
+        //public async Task <int[,]?> TransformAndDitherAsync( CancellationToken? oToken)
+        //{ 
+        //    if( await CreateTilesAsync(oDataSource,oToken) ) 
+        //    {
+        //        return await CreateImageFromTilesAsync(oDataSource,oToken);
+        //    }
+        //    return null;
+        //}
 
-        public double CalcExternalImageError(int[,]? oDataSource)
+        public async Task<double> CalcExternalImageErrorAsync(int[,]? oDataSource, CancellationToken? oToken)
         {
             if (oDataSource == null)
             {
@@ -189,23 +200,18 @@ namespace ColourClashNet.Color.Tile
             }
             int RT = TileData.GetLength(0);
             int CT = TileData.GetLength(1);
-#if DEBUG
-            for (int r = 0; r < RT; r++)
+            var tasks = new List<Task>();
+
+            for( int r =0; r < RT; r++)
             {
                 for (int c = 0; c < CT; c++)
                 {
-                    TileData[r, c].CalcExternalImageError(oDataSource);
+                    int rr = r;
+                    int cc = c;
+                    tasks.Add(Task.Run(()=>TileData[rr, cc].CalcExternalImageErrorAsync(oDataSource,oToken)));
                 }
             }
-#else
-            Parallel.For(0, RT, r =>
-            {
-                Parallel.For(0, CT, c =>
-                {
-                    TileData[r, c].CalcExternalImageError(oDataSource);
-                });
-            });
-#endif
+            await Task.WhenAll(tasks);
             double dError = 0;
             for (int r = 0; r < RT; r++)
             {
@@ -217,23 +223,25 @@ namespace ColourClashNet.Color.Tile
             return dError;
         }
 
+        public async Task<double> CalcImageErrorAsync( CancellationToken? oToken) => await CalcExternalImageErrorAsync(SourceData,oToken);
 
-        public static TileManager CreateTileManager(int[,]? oDataSource, int iTileW, int iTileH, int iMaxTileColors, Palette oFixedColorPalette, ColorDistanceEvaluationMode eColorDistanceMode, TileBase.EnumColorReductionMode eColorReductionMode)
-        {
-            string sMethod = nameof(CreateTileManager); 
-            var oRet = new TileManager();
-            if (oRet.Init(oDataSource, iTileW, iTileH, iMaxTileColors, oFixedColorPalette, eColorDistanceMode, eColorReductionMode))
-            {
-                return oRet;
-            }
-            else
-            { 
-                LogMan.Error(sClass, sMethod, "Cannot init TileManager");
-                return null;
-            }
-        }
+        //public static async Task<TileManager?> CreateTileManagerAsync(int[,]? oDataSource, int iTileW, int iTileH, int iMaxTileColors, Palette oFixedColorPalette, ColorDistanceEvaluationMode eColorDistanceMode, TileBase.EnumColorReductionMode eColorReductionMode, CancellationToken? oToken)
+        //{
+        //    string sMethod = nameof(CreateTileManagerAsync); 
+        //    var oRet = new TileManager();
+        //    var res = await oRet.InitAsync(oDataSource,iTileW, iTileH, iMaxTileColors, oFixedColorPalette, eColorDistanceMode, eColorReductionMode, oToken);
+        //    if (res)
+        //    {
+        //        return oRet;
+        //    }
+        //    else
+        //    { 
+        //        LogMan.Error(sClass, sMethod, "Cannot init TileManager");
+        //        return null;
+        //    }
+        //}
 
-        public static int[,]? MergeData(int[,]? oDataSource, List<TileManager> lTileMan, TileBase.EnumErrorSourceMode eErrorMode)
+        public static async Task<int[,]?> MergeDataAsync(int[,]? oDataSource, List<TileManager> lTileMan, TileBase.EnumErrorSourceMode eErrorMode, CancellationToken? oToken)
         {
             if (oDataSource == null)
                 return null;
@@ -254,9 +262,11 @@ namespace ColourClashNet.Color.Tile
             {
                 for (int c = 0; c < CT; c++)
                 {
+                    int rr = r;
+                    int cc = c;
                     lTiles.Clear();
-                    lTileManF.ForEach(X=>lTiles.Add(X.GetTileData(r, c)));   
-                    TileBase.MergeData(oRet, lTiles, eErrorMode);
+                    lTileManF.ForEach(X=>lTiles.Add(X.GetTileData(rr, cc)));   
+                    await TileBase.MergeDataAsync(oRet, lTiles, eErrorMode, oToken);
                 }
             }
 
@@ -264,14 +274,14 @@ namespace ColourClashNet.Color.Tile
         }
 
 
-        public static int[,]? MergeData(int[,]? oDataSource, TileManager oTileA, TileManager oTileB, TileBase.EnumErrorSourceMode eErrorMode)
+        public static async Task<int[,]?> MergeDataAsync(int[,]? oDataSource, TileManager oTileA, TileManager oTileB, TileBase.EnumErrorSourceMode eErrorMode, CancellationToken oToken)
         {
             if (oDataSource == null)
                 return null;
             if (oTileA == null && oTileB == null)
                 return null;
 
-            return MergeData(oDataSource, new List<TileManager> { oTileA, oTileB }, eErrorMode );
+            return await MergeDataAsync(oDataSource, new List<TileManager> { oTileA, oTileB }, eErrorMode, oToken );
         }
     }
 }

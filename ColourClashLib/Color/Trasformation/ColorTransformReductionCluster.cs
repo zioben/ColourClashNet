@@ -9,7 +9,6 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -20,10 +19,16 @@ namespace ColourClashNet.Color.Transformation
         public bool UseClusterColorMean { get; set; } = true;
         public int TrainingLoop { get; set; } = -1;
 
+      
+        public ColorTransformReductionCluster()
+        {
+            Type = ColorTransformType.ColorReductionClustering;
+            Description = "Reduces color bit spectrum";
+        }
+
         public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
         {
-            if (base.SetProperty(eProperty, oValue) != null)
-                return this;
+            base.SetProperty(eProperty, oValue);
             switch (eProperty)
             {
                 case ColorTransformProperties.MaxColorsWanted:
@@ -50,34 +55,47 @@ namespace ColourClashNet.Color.Transformation
                 default:
                     break;
             }
-            return null;
+            return this;
         }
 
 
-
-
-        public ColorTransformReductionCluster()
+        ColorTransformationMap CreateTransformationMap( Histogram oTempHistogram, List<Tuple<List<int>, Dictionary<int, int>>> lTupleColorCluster)
         {
-            Type = ColorTransformType.ColorReductionClustering;
-            Description = "Reduces color bit spectrum";
+            ColorTransformationMap map = new ColorTransformationMap();
+            foreach (var kvp in oTempHistogram.rgbHistogram)
+            {
+                var dMin = lTupleColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
+                var oItem = lTupleColorCluster.FirstOrDefault(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
+                var iCol = ColorDefaults.DefaultInvalidColorInt; ;
+                if (UseClusterColorMean)
+                {
+                    iCol = oItem?.Item1.Last() ?? ColorDefaults.DefaultInvalidColorInt; ;
+                }
+                else
+                {
+                    var Max = oItem?.Item2.Max(X => X.Value);
+                    iCol = oItem?.Item2.FirstOrDefault(X => X.Value == Max).Key ?? ColorDefaults.DefaultInvalidColorInt; ;
+                }
+                map.Add(kvp.Key, iCol);
+            }
+            return map;
         }
 
-        protected override void CreateTrasformationMap()
+        protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
         {
-            string sMethod = nameof(CreateTrasformationMap);
+            string sMethod = nameof(CreateTrasformationMapAsync);
             // Sort by most used colors
-            var oTempHistogram = OutputHistogram.SortColorsDescending();
+            var oTempHistogram = SourceHistogram.SortColorsDescending();
             // Creating a temporary palette with fixed colors and histogram colors
-            var oTempPalette = Palette.MergeColorPalette(InputFixedColorPalette, oTempHistogram.ToColorPalette());
+            var oTempPalette = Palette.MergeColorPalette(FixedPalette, oTempHistogram.ToColorPalette());
             // If we have less colors than wanted, just map them directly
             if (oTempPalette.Count < ColorsMaxWanted)
             {
-                foreach (var kvp in OutputHistogram.rgbHistogram)
+                foreach (var kvp in SourceHistogram.rgbHistogram)
                 {
-                    OutputPalette.Add(kvp.Key);
-                    ColorTransformationMapper.rgbTransformationMap[kvp.Key] = kvp.Key;
+                    TransformationMap.Add(kvp.Key, kvp.Value);
                 }
-                return;
+                return ColorTransformResults.CreateValidResult();
             }
 
             // Init Clustering Algorithm 
@@ -89,8 +107,8 @@ namespace ColourClashNet.Color.Transformation
             // initial population of the cluster, with base max color occurrences 
             // Starting with the fixed palette, then with the most used colors
             int i = 0;
-            int iRGB = 0;           
-            foreach (var rgb in oTempPalette.rgbPalette )
+            int iRGB = 0;
+            foreach (var rgb in oTempPalette.rgbPalette)
             {
                 lTupleColorCluster.Add(Tuple.Create(new List<int> { rgb }, new Dictionary<int, int>()));
                 if (++i == ColorsMaxWanted)
@@ -107,20 +125,21 @@ namespace ColourClashNet.Color.Transformation
                 // Clear previous cluster assignment
                 lTupleColorCluster.ForEach(X => X.Item2.Clear());
                 // Aggregate part : Assign every color to the cluster of appartenence 
-                foreach (var kvp in OutputHistogram.rgbHistogram )
+                foreach (var kvp in oTempHistogram.rgbHistogram)
                 {
                     // For each color int the 
                     var dMin = lTupleColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
                     var oTupleCluster = lTupleColorCluster.FirstOrDefault(X => X.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
                     oTupleCluster?.Item2.Add(kvp.Key, kvp.Value);
-                };
+                }
+                ;
                 // Update the Color Mean for each cluster
                 {
                     lTupleColorCluster.ForEach(oTuple =>
                     {
                         // If color is in FixedColorPalette, block evolution evolution
                         var iRgbMean = oTuple.Item1.Last();
-                        if (InputFixedColorPalette?.rgbPalette.Any(X => X == iRgbMean) ?? false)
+                        if (FixedPalette?.rgbPalette.Any(X => X == iRgbMean) ?? false)
                         {
                             LogMan.Trace(sClass, sMethod, $"{Type} : Color {iRgbMean} is fixed, skipping evolution");
                         }
@@ -131,28 +150,52 @@ namespace ColourClashNet.Color.Transformation
                         }
                         oTuple.Item1.Add(iRgbMean);
                     });
+
+                    if (ProcessPartialEventRegistered)
+                    {
+                        if (BypassImagingOnPreview)
+                        {
+                            RaiseProcessPartialEvent(new ColorTransformEventArgs()
+                            {
+                                ColorTransformInterface = this,
+                                Message = $"Loop {train}/{TrainingLoop}",
+                                ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, null),
+                                CompletedPercent = 100 * (train + 1) / TrainingLoop
+                            });
+                        }
+                        else
+                        {
+                            var map = CreateTransformationMap(oTempHistogram, lTupleColorCluster);
+                            var oTempData = await map.TransformAsync(SourceData, oToken);
+                            RaiseProcessPartialEvent(new ColorTransformEventArgs()
+                            {
+                                ColorTransformInterface = this,
+                                Message = $"Loop {train}/{TrainingLoop}",
+                                ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, oTempData),
+                                TempImage = oTempData,
+                                TransformationMap = map,
+                                CompletedPercent = 100.0 * (train + 1) / TrainingLoop
+                            });
+                        }
+                    }
                 }
             }
 
-            OutputPalette = new Palette();
-            foreach (var kvp in OutputHistogram.rgbHistogram )
-            {
-                var dMin = lTupleColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
-                var oItem = lTupleColorCluster.FirstOrDefault(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
-                var iCol = ColorDefaults.DefaultInvalidColorInt; ;
-                if (UseClusterColorMean)
-                {
-                    iCol = oItem?.Item1.Last() ?? ColorDefaults.DefaultInvalidColorInt; ;
-                }
-                else
-                {
-                    var Max = oItem?.Item2.Max(X => X.Value);
-                    iCol = oItem?.Item2.FirstOrDefault(X => X.Value == Max).Key ?? ColorDefaults.DefaultInvalidColorInt; ;
-                }
-                OutputPalette.Add(iCol);
-                ColorTransformationMapper.Add(kvp.Key,iCol); 
-            };
+            TransformationMap = CreateTransformationMap(oTempHistogram, lTupleColorCluster);
+            return ColorTransformResults.CreateValidResult();
+
+
         }
 
+
+        protected override async Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
+        {
+            var ret = await TransformationMap.TransformAsync(SourceData, oToken);
+            if (ret != null)
+            {
+                return ColorTransformResults.CreateValidResult(SourceData, ret);    
+            }
+            return new();
+        }
     }
 }

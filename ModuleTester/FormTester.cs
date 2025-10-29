@@ -2,13 +2,12 @@
 using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
+using System.Threading.Tasks;
 
 namespace ModuleTester
 {
     public partial class FormTester : Form
     {
-
-        FormAdvancer oFormAdv;
         Dictionary<string, Image> oDict = new();
 
         public FormTester()
@@ -16,8 +15,6 @@ namespace ModuleTester
             InitializeComponent();
             bitmapRender1.Control = pictureBox1;
             bitmapRender2.Control = pictureBox2;
-            bitmapRender1.Image = ColourClashLib.Properties.Resources.BMP_RGB_Palette;//.BMP_1MColors;
-            oFormAdv = new FormAdvancer();
             CreateCombo();
         }
 
@@ -28,61 +25,46 @@ namespace ModuleTester
             oDict.Add("RGB Palette", ColourClashLib.Properties.Resources.BMP_RGB_Palette);
             oDict.Add("FADE Base", ColourClashLib.Properties.Resources.BMP_FadeTest);
             oDict.Add("GRANGER Charts", ColourClashLib.Properties.Resources.BMP_Granger_Chart);
-            comboBox1.Items.Clear();
-            comboBox1.Items.AddRange(oDict.Select(X => X.Key).ToArray());
+            cbPreset.Items.Clear();
+            cbPreset.Items.AddRange(oDict.Select(X => X.Key).ToArray());
+
+            var items = Enum.GetNames<ColorDithering>().ToList();
+            cbDithering.Items.Clear();
+            foreach (var item in items)
+            {
+                cbDithering.Items.Add(item);
+            }
+
+            cbPreset.SelectedIndex = 1;
+            cbDithering.SelectedIndex = 0;
         }
 
 
         async Task ProcessAsync(ColorTransformInterface oTrasf)
         {
-            oFormAdv.Show();
-            oFormAdv.Reset();
-            RegisterEvents(oTrasf);
             bitmapRender2.Image = null;
+            var eDither = ColorDithering.None;
+            if (!Enum.TryParse<ColorDithering>(cbDithering.SelectedItem?.ToString(), out eDither))
+            {
+                eDither = ColorDithering.None;
+            }
+            oTrasf.SetProperty(ColorTransformProperties.Dithering_Model, eDither);
+            oTrasf.SetProperty(ColorTransformProperties.Dithering_Strength, 1);
             _ = Task.Run(async () =>
             {
                 var cts = new CancellationTokenSource();
                 var oData = ImageTools.ToMatrix(bitmapRender1.Image);
+                ProcessingForm.CreateProcessingForm(oTrasf);
                 await oTrasf.CreateAsync(oData, cts.Token);
                 var ret = await oTrasf.ProcessColorsAsync(cts.Token);
-                UnregisterEvents(oTrasf);
                 Invoke(() =>
                 {
-                    oFormAdv.Hide();
                     bitmapRender2.Image = ImageTools.ToBitmap(ret.DataOut);
                     propertyGrid1.SelectedObject = oTrasf;
                     pictureBox1.Refresh();
                     pictureBox2.Refresh();
                 });
             });
-        }
-
-        void RegisterEvents(ColorTransformInterface oTrasf)
-        {
-            oTrasf.Processing += OTrasf_Processing;
-            oTrasf.ProcessPartial += OTrasf_ProcessPartial;
-            oTrasf.Processed += OTrasf_Processed;
-        }
-        void UnregisterEvents(ColorTransformInterface oTrasf)
-        {
-            oTrasf.Processing -= OTrasf_Processing;
-            oTrasf.ProcessPartial -= OTrasf_ProcessPartial;
-            oTrasf.Processed -= OTrasf_Processed;
-        }
-
-        private void OTrasf_Processed(object? sender, ColorTransformEventArgs e)
-        {
-
-        }
-
-        private void OTrasf_ProcessPartial(object? sender, ColorTransformEventArgs e)
-        {
-            oFormAdv.AppendData(e);
-        }
-
-        private void OTrasf_Processing(object? sender, ColorTransformEventArgs e)
-        {
-            oFormAdv.AppendData(e);
         }
 
 
@@ -194,7 +176,7 @@ namespace ModuleTester
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var txt = comboBox1.Text.ToString();
+            var txt = cbPreset.Text.ToString();
             if (oDict.ContainsKey(txt))
             {
                 bitmapRender1.Image = oDict[txt];
@@ -216,14 +198,6 @@ namespace ModuleTester
         private async void butID(object sender, EventArgs e)
         {
             await TestTransformID();
-            //await TestTransformCluster();
-            //
-
-            //await TestTransformFast();
-            //await TestTransformMedianCut();
-            //await TestTransformPalette();
-
-
         }
 
         private async void btnQuantizer_Click(object sender, EventArgs e)
@@ -259,6 +233,36 @@ namespace ModuleTester
         private async void btnAmstrad_Click(object sender, EventArgs e)
         {
             await TestTransformCPC();
+        }
+
+        private void btnSpeccy_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnCGA_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private async void btnFast_Click(object sender, EventArgs e)
+        {
+            await TestTransformFast();
+        }
+
+        private async void btnMedian_Click(object sender, EventArgs e)
+        {
+            await TestTransformMedianCut();
+        }
+
+        private async void btnCluster_Click(object sender, EventArgs e)
+        {
+            await TestTransformCluster();
+        }
+
+        private async void btnPalette_Click(object sender, EventArgs e)
+        {
+            await TestTransformPalette();
         }
     }
 }

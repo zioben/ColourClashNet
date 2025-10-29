@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformLumSat : ColorTransformReductionPalette
+    public class ColorTransformLumSat : ColorTransformBase
     {
-
+        static readonly string sC = nameof(ColorTransformLumSat);
 
         public ColorTransformLumSat() 
         {
@@ -24,65 +25,64 @@ namespace ColourClashNet.Color.Transformation
 
         public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
         {
-            if (base.SetProperty(eProperty, oValue) != null)
-                return this;
+            base.SetProperty(eProperty, oValue);
             switch (eProperty)
             {
                 case ColorTransformProperties.HsvHueShift:
                     if (double.TryParse(oValue?.ToString(), out var h))
                     {
                         HueShift = h;
-                        return this;
                     }
                     break;
                 case ColorTransformProperties.HsvBrightnessMultFactor:
                     if (double.TryParse(oValue?.ToString(), out var b))
                     {
                         BrightnessMultFactor = b;
-                        return this;
                     }
                     break;
                 case ColorTransformProperties.HsvSaturationMultFactor:
                     if (double.TryParse(oValue?.ToString(), out var s))
                     {
                         SaturationMultFactor = s;
-                        return this;
                     }
                     break;
                 default:
                     break;
             }
-            return null;
+            return this;
         }
 
-      
+        // Not Needed
+        //protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
 
-        protected override int[,]? ExecuteTransform(int[,]? oSource, CancellationToken oToken )
+        protected async override Task<ColorTransformResults> ExecuteTransformAsync( CancellationToken? oToken)
         {
-            if (oSource == null)
-                return null;
-
-            var R = oSource.GetLength(0);
-            var C = oSource.GetLength(1);
-            var oRet = new int[R,C];
-            BypassDithering = true;
-
-            Parallel.For(0, R, r =>
+            return await Task.Run(() =>
             {
-                for (int c = 0; c < C; c++)
+                string sM = nameof(ExecuteTransformAsync);
+             
+                var R = SourceData.GetLength(0);
+                var C = SourceData.GetLength(1);
+                var oProcessed = new int[R, C];
+                BypassDithering = true;
+
+                Parallel.For(0, R, r =>
                 {
-                    int iRGB = oSource[r, c];
-                    var h = (float)(iRGB.ToH() + HueShift);
-                    if (h > 360)
-                        h -= 360;
-                    var s = (float)Math.Min(100, iRGB.ToS() * SaturationMultFactor);
-                    var v = (float)Math.Min(100, iRGB.ToV() * BrightnessMultFactor);
-                    int oRGB = ColorIntExt.FromHSV(h, s, v);
-                    oRet[r, c] = oRGB;
-                }
-                oToken.ThrowIfCancellationRequested();
+                    for (int c = 0; c < C; c++)
+                    {
+                        var hsv = SourceData[r, c].ToHSV();
+                        if (hsv.Valid)
+                        {
+                            hsv.H = hsv.H + (float)HueShift;
+                            hsv.S = (float)Math.Min(100, hsv.S * SaturationMultFactor);
+                            hsv.V = (float)Math.Min(100, hsv.V * BrightnessMultFactor);
+                            oProcessed[r, c] = hsv.ToIntRGB();
+                        }
+                    }
+                    oToken?.ThrowIfCancellationRequested();
+                });
+                return ColorTransformResults.CreateValidResult(SourceData, oProcessed);
             });
-            return oRet;
         }
 
     }

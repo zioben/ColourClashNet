@@ -8,12 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Color\**" />
-    <EmbeddedResource Remove="Color\**" />
-    <None Remove="Color\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="System.Drawing.Common" Version="9.0.10" />
     <PackageReference Include="System.Resources.Extensions" Version="9.0.10" />
   </ItemGroup>

@@ -1,67 +1,51 @@
 ﻿using ColourClashNet.Color;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ColourClashNet.Color;
 
 namespace ColourClashNet.Color
 {
     /// <summary>
-    /// Class that enumerates distinct colors
-    /// <para>
-    /// The class in intended to operate only with "real" colors as defined in the <see cref="ColorIntInfo"/> Enum
-    /// </para>
+    /// Represents a collection of distinct RGB colors.
+    /// Only valid colors (ColorIntType.IsColor) are stored.
     /// </summary>
     public partial class Palette
     {
-
         /// <summary>
-        /// Color Palette. Only 'ColorIntInfo.IsColor' should be set.
-        /// <para>
-        /// Use Add() and Remove() methods. Don't add int values directly to avoid unexpected behaviors on reduction algorithms
-        /// </para>
+        /// Internal storage for unique colors.
         /// </summary>
         public HashSet<int> rgbPalette { get; private init; } = new HashSet<int>();
 
         /// <summary>
-        /// Distinct colors in the Palette
+        /// Number of distinct colors in the palette.
         /// </summary>
         public int Count => rgbPalette.Count;
 
         /// <summary>
-        /// Add a RGB color in the palette. Only 'ColorIntInfo.IsColor' will be accepted
+        /// Adds a valid RGB color to the palette.
         /// </summary>
-        /// <param name="iRGB"></param>
-        public void Add(int iRGB )
+        public void Add(int iRGB)
         {
             if (iRGB.GetColorInfo() == ColorIntType.IsColor)
-            {
                 rgbPalette.Add(iRGB);
-            }
         }
 
         /// <summary>
-        /// Remove an RGB color to the Palette. If color is not present Palette not changes.
+        /// Removes a color from the palette if it exists.
         /// </summary>
-        /// <param name="iRGB"></param>
         public void Remove(int iRGB) => rgbPalette.Remove(iRGB);
 
         /// <summary>
-        /// Convert to List of integer colors
+        /// Clears all colors from the palette.
         /// </summary>
-        /// <returns></returns>
-        public List<int> ToList() => rgbPalette.ToList();
-        public void Reset()
-        {
-            rgbPalette.Clear(); 
-        }
+        public void Reset() => rgbPalette.Clear();
 
-        public override string ToString()
-        {
-            return $"Palette Colors : {Count}";
-        }
+        /// <summary>
+        /// Converts the palette to a List of integer colors.
+        /// </summary>
+        public List<int> ToList() => rgbPalette.ToList();
+
+        /// <summary>
+        /// Returns a string describing the palette.
+        /// </summary>
+        public override string ToString() => $"Palette Colors: {Count}";
     }
 }

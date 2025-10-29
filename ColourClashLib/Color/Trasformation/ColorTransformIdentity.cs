@@ -1,31 +1,42 @@
-﻿using System;
+﻿using ColourClashNet.Log;
+using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashNet.Color;
-using ColourClashNet.Log;
 
 namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformIdentity : ColorTransformBase
     {
-        static string sClass = nameof(ColorTransformIdentity);
+        static string sC = nameof(ColorTransformIdentity);
         public ColorTransformIdentity()
         {
             Type = ColorTransformType.ColorIdentity;
             Description = "1:1 Color transformation";
         }
 
-        protected override void CreateTrasformationMap()
-        {
-            string sMethod = nameof(CreateTrasformationMap);
-            LogMan.Trace(sClass, sMethod, $"{Type} : Clearing trasformation map");
+        // Not Needed
+        // protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
 
-            foreach (var kvp in OutputHistogram.rgbHistogram)
+        protected override async Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
+        {
+            string sM = nameof(ExecuteTransformAsync);
+            try
             {
-                ColorTransformationMapper.Add(kvp.Key, kvp.Key);
+                var res = ColorTransformResults.CreateValidResult(SourceData, SourceData.Clone() as int[,]);
+                return await Task.FromResult(res);
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, $"{Type}", ex);
+                return new ColorTransformResults()
+                {
+                    Exception = ex,
+                    Message = ex.Message
+                };
             }
         }
     }

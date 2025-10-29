@@ -1,3 +1,4 @@
+using ColourClashNet.Controls;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -10,6 +11,7 @@ namespace ColourClashNet
         {
             InitializeComponent();
             TabManager.TabPages.Clear();
+            CreateTab();
         }
 
         ColorAnalyzer CreateTab()
