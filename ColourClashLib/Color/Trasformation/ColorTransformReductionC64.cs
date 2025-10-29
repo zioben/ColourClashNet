@@ -16,11 +16,12 @@ namespace ColourClashNet.Color.Transformation
         static readonly string sC = nameof(ColorTransformReductionC64);
         public enum C64VideoMode
         {
-         //   Petscii,
+            //   Petscii,
+            Multicolor,
             HiRes,
          //   HiResEnhancedPalette,
-            Multicolor,
             MulticolorCaroline,
+            DebugBasePalette,
         }
 
         public C64VideoMode VideoMode { get; set; }= C64VideoMode.Multicolor;
@@ -73,7 +74,7 @@ namespace ColourClashNet.Color.Transformation
                 default:
                     break;
             }
-            return null;
+            return this;
         }
 
         // Not Needed
@@ -98,7 +99,7 @@ namespace ColourClashNet.Color.Transformation
             });
             if (DitheringType !=  ColorDithering.None )
             {
-                var oDither = Dithering.DitherBase.CreateDitherInterface(DitheringType);             
+                var oDither = Dithering.DitherBase.CreateDitherInterface(DitheringType,DitheringStrenght);             
                 var oDitherResult = await oDither.DitherAsync(oSource, oTmpData, FixedPalette, ColorDistanceEvaluationMode, oToken);
                 oTmpData = oDitherResult;
                 RaiseProcessPartialEvent(new ColorTransformEventArgs()
@@ -131,6 +132,11 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
+        async Task<int[,]?> ToBasePalette(int[,]? oTmpDataSource, CancellationToken? oToken)
+        {
+            var oTmpData = await PreProcessAsync(oTmpDataSource, false, oToken);
+            return oTmpData;
+        }
 
         async Task<int[,]?> ToMultiColorAsync(int[,]? oTmpDataSource, CancellationToken? oToken)
         {
@@ -190,6 +196,11 @@ namespace ColourClashNet.Color.Transformation
             int[,] oPreprocessedData = null;
             switch (VideoMode)
             {
+                case C64VideoMode.DebugBasePalette:
+                    {
+                        oPreprocessedData = await ToBasePalette(SourceData, oToken);
+                    }
+                    break;
                 case C64VideoMode.HiRes:
                     {                       
                         oPreprocessedData = await ToHiresAsync(SourceData, oToken);
