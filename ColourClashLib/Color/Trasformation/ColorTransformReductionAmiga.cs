@@ -134,7 +134,7 @@ namespace ColourClashNet.Color.Transformation
             ColorTransformInterface oColorReduction;
             var oQuantization = new ColorTransformQuantization()
                 .SetProperty(ColorTransformProperties.Fixed_Palette, FixedPalette)
-                .SetProperty(ColorTransformProperties.Dithering_Model, DitheringType);
+                .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType);
 
             int iMaxColors = 0;
 
@@ -169,7 +169,7 @@ namespace ColourClashNet.Color.Transformation
                             .SetProperty(ColorTransformProperties.UseColorMean, true)
                             .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
                             .SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors)
-                            .SetProperty(ColorTransformProperties.Dithering_Model, DitheringType);
+                            .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType);
                     }
                     break;
                 case EnumHamFirstColorReductionMode.Detailed:
@@ -178,7 +178,7 @@ namespace ColourClashNet.Color.Transformation
                             .SetProperty(ColorTransformProperties.UseColorMean, true)
                             .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
                             .SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors)
-                            .SetProperty(ColorTransformProperties.Dithering_Model, DitheringType)
+                            .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
                             .SetProperty(ColorTransformProperties.ClusterTrainingLoop, 10);
                     }
                     break;

@@ -98,6 +98,7 @@ namespace ColourClashNet.Color.Transformation
         //-------------------------------------------------------------------------------------------------------------------------------
         public ColorTransformationMap TransformationMap { get; protected set; } = new ColorTransformationMap();
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
+        public double TransformationError { get; set; } = double.MaxValue;
 
         //-------------------------------------------------------------------------------------------------------------------------------
         public bool BypassDithering { get; set; }
@@ -241,7 +242,7 @@ namespace ColourClashNet.Color.Transformation
                         }
                     }
                     break;
-                case ColorTransformProperties.Dithering_Model:
+                case ColorTransformProperties.Dithering_Type:
                     {
                         DitheringType = ColorDithering.None;
                         if (Enum.TryParse<ColorDithering>(oValue?.ToString(), true, out var eRes))
@@ -311,6 +312,8 @@ namespace ColourClashNet.Color.Transformation
             string sM = nameof(CreateAsync);
             try
             {
+                TransformationError = double.MaxValue;
+
                 if (SourceData == null)
                 {
                     LogMan.Error(sC, sM, $"{Type} : sourceData Null");
@@ -381,6 +384,9 @@ namespace ColourClashNet.Color.Transformation
                         oRetRes = ColorTransformResults.CreateValidResult(ProcessedData, OutputData);
                     }
                 }
+
+                TransformationError = await ColorIntExt.EvaluateErrorAsync(SourceData, OutputData, ColorDistanceEvaluationMode, oToken);
+
                 Processed?.Invoke(this, CreateTransformEventArgs(cts, oRetRes));
                 return oRetRes;
             }
@@ -404,14 +410,7 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
-       
-
-        //public ColorTransformResults ProcessColors(int[,]? oDataSource)
-        //{
-        //    var cts = new CancellationTokenSource();
-        //    return ProcessColorsAsync(oDataSource, cts).GetAwaiter().GetResult();
-        //}
-
+     
         public async Task AbortProcessingAsync(CancellationTokenSource oTokenSource)
         {
             if (oTokenSource != null)

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -89,11 +90,11 @@ namespace ColourClashNet.Color.Transformation
             // Creating a temporary palette with fixed colors and histogram colors
             var oTempPalette = Palette.MergeColorPalette(FixedPalette, oTempHistogram.ToColorPalette());
             // If we have less colors than wanted, just map them directly
-            if (oTempPalette.Count < ColorsMaxWanted)
-            {
-                foreach (var kvp in SourceHistogram.rgbHistogram)
+            if (oTempPalette.Count <= ColorsMaxWanted)
+            {                
+                foreach (var rgb in oTempPalette.rgbPalette)
                 {
-                    TransformationMap.Add(kvp.Key, kvp.Value);
+                    TransformationMap.Add(rgb, rgb);
                 }
                 return ColorTransformResults.CreateValidResult();
             }
@@ -127,59 +128,58 @@ namespace ColourClashNet.Color.Transformation
                 // Aggregate part : Assign every color to the cluster of appartenence 
                 foreach (var kvp in oTempHistogram.rgbHistogram)
                 {
-                    // For each color int the 
+                    // For each color int the cluster
                     var dMin = lTupleColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
                     var oTupleCluster = lTupleColorCluster.FirstOrDefault(X => X.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
                     oTupleCluster?.Item2.Add(kvp.Key, kvp.Value);
-                }
-                ;
+                };
                 // Update the Color Mean for each cluster
+                lTupleColorCluster.ForEach(oTuple =>
                 {
-                    lTupleColorCluster.ForEach(oTuple =>
+                    // If color is in FixedColorPalette, block evolution evolution
+                    var iRgbMean = oTuple.Item1.Last();
+                    if (FixedPalette?.rgbPalette.Any(X => X == iRgbMean) ?? false)
                     {
-                        // If color is in FixedColorPalette, block evolution evolution
-                        var iRgbMean = oTuple.Item1.Last();
-                        if (FixedPalette?.rgbPalette.Any(X => X == iRgbMean) ?? false)
-                        {
-                            LogMan.Trace(sClass, sMethod, $"{Type} : Color {iRgbMean} is fixed, skipping evolution");
-                        }
-                        // else evaluate color mean
-                        else
-                        {
-                            iRgbMean = ColorIntExt.GetColorMean(oTuple.Item2, ColorMeanMode.UseMean);
-                        }
-                        oTuple.Item1.Add(iRgbMean);
-                    });
+                        LogMan.Trace(sClass, sMethod, $"{Type} : Color {iRgbMean} is fixed, skipping evolution");
+                    }
+                    // else evaluate color mean
+                    else
+                    {
+                        iRgbMean = ColorIntExt.GetColorMean(oTuple.Item2, ColorMeanMode.UseMean);
+                    }
+                    oTuple.Item1.Add(iRgbMean);
+                });
 
-                    if (ProcessPartialEventRegistered)
+                // Show partials
+                if (ProcessPartialEventRegistered)
+                {
+                    if (BypassImagingOnPreview)
                     {
-                        if (BypassImagingOnPreview)
+                        RaiseProcessPartialEvent(new ColorTransformEventArgs()
                         {
-                            RaiseProcessPartialEvent(new ColorTransformEventArgs()
-                            {
-                                ColorTransformInterface = this,
-                                Message = $"Loop {train}/{TrainingLoop}",
-                                ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, null),
-                                CompletedPercent = 100 * (train + 1) / TrainingLoop
-                            });
-                        }
-                        else
+                            ColorTransformInterface = this,
+                            Message = $"Loop {train}/{TrainingLoop}",
+                            ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, null),
+                            CompletedPercent = 100 * (train + 1) / TrainingLoop
+                        });
+                    }
+                    else
+                    {
+                        var map = CreateTransformationMap(oTempHistogram, lTupleColorCluster);
+                        var oTempData = await map.TransformAsync(SourceData, oToken);
+                        RaiseProcessPartialEvent(new ColorTransformEventArgs()
                         {
-                            var map = CreateTransformationMap(oTempHistogram, lTupleColorCluster);
-                            var oTempData = await map.TransformAsync(SourceData, oToken);
-                            RaiseProcessPartialEvent(new ColorTransformEventArgs()
-                            {
-                                ColorTransformInterface = this,
-                                Message = $"Loop {train}/{TrainingLoop}",
-                                ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, oTempData),
-                                TempImage = oTempData,
-                                TransformationMap = map,
-                                CompletedPercent = 100.0 * (train + 1) / TrainingLoop
-                            });
-                        }
+                            ColorTransformInterface = this,
+                            Message = $"Loop {train}/{TrainingLoop}",
+                            ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, oTempData),
+                            TempImage = oTempData,
+                            TransformationMap = map,
+                            CompletedPercent = 100.0 * (train + 1) / TrainingLoop
+                        });
                     }
                 }
             }
+
 
             TransformationMap = CreateTransformationMap(oTempHistogram, lTupleColorCluster);
             return ColorTransformResults.CreateValidResult();

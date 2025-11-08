@@ -48,12 +48,12 @@ namespace ModuleTester
             {
                 eDither = ColorDithering.None;
             }
-            oTrasf.SetProperty(ColorTransformProperties.Dithering_Model, eDither);
+            oTrasf.SetProperty(ColorTransformProperties.Dithering_Type, eDither);
             oTrasf.SetProperty(ColorTransformProperties.Dithering_Strength, 1);
+            var oData = ImageTools.ToMatrix(bitmapRender1.Image);
             _ = Task.Run(async () =>
             {
                 var cts = new CancellationTokenSource();
-                var oData = ImageTools.ToMatrix(bitmapRender1.Image);
                 ProcessingForm.CreateProcessingForm(oTrasf);
                 await oTrasf.CreateAsync(oData, cts.Token);
                 var ret = await oTrasf.ProcessColorsAsync(cts.Token);
@@ -71,7 +71,7 @@ namespace ModuleTester
         async Task TestTransformID()
         {
             ColourClashNet.Color.Transformation.ColorTransformIdentity oTrasf = new();
-            oTrasf.SetProperty(ColourClashNet.Color.ColorTransformProperties.Dithering_Model, ColorDithering.None);
+            oTrasf.SetProperty(ColourClashNet.Color.ColorTransformProperties.Dithering_Type, ColorDithering.None);
             oTrasf.SetProperty(ColorTransformProperties.MaxColorsWanted, 16);
             await ProcessAsync(oTrasf);
         }
@@ -263,6 +263,22 @@ namespace ModuleTester
         private async void btnPalette_Click(object sender, EventArgs e)
         {
             await TestTransformPalette();
+        }
+
+        private void btnLoad_Click(object sender, EventArgs e)
+        {
+            if (openLoadImage.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+            try
+            {
+                var oBmp = Bitmap.FromFile(openLoadImage.FileName);
+                bitmapRender1.Image = oBmp;
+            }
+            catch (Exception ex)
+            {
+            }
         }
     }
 }

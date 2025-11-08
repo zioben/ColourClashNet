@@ -76,7 +76,7 @@ namespace ColourClashNet.Drawing
                 .SetProperty(ColorTransformProperties.ColorBackgroundReplacement, BackgroundColorReplacement)
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
                 .SetProperty(ColorTransformProperties.CPC_VideoMode, CPCScreenMode)
-                .SetProperty(ColorTransformProperties.Dithering_Model, DitheringAlgorithm)
+                .SetProperty(ColorTransformProperties.Dithering_Type, DitheringAlgorithm)
                 .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght)
 
                 //.SetProperty(ColorTransformProperties.Fixed_Palette, )

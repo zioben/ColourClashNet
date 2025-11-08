@@ -142,7 +142,8 @@ namespace ColourClashNet.Color
         Zx_DitherHighColor,
         Zx_Autotune,
         Fixed_Palette,
-        Dithering_Model,
+        Force_Palette,
+        Dithering_Type,
         Dithering_Strength
     }
 

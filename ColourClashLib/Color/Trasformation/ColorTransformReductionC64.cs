@@ -20,13 +20,13 @@ namespace ColourClashNet.Color.Transformation
             Multicolor,
             HiRes,
          //   HiResEnhancedPalette,
-            MulticolorCaroline,
+            FLI,
             DebugBasePalette,
         }
 
         public C64VideoMode VideoMode { get; set; }= C64VideoMode.Multicolor;
 
-     
+        public bool TileBorderShow { get; set; } = false;
 
         public ColorTransformReductionC64()
         {
@@ -90,36 +90,39 @@ namespace ColourClashNet.Color.Transformation
             }
             // Reduce all to the base 16 C64 colors without restrictions
             var oTmpData = await TransformationMap.TransformAsync(oSource, oToken);
-            RaiseProcessPartialEvent(new ColorTransformEventArgs()
-            {
-                ColorTransformInterface = this,
-                CompletedPercent = 10,
-                Message = "PreProcessing",
-                ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, oTmpData)
-            });
             if (DitheringType !=  ColorDithering.None )
             {
                 var oDither = Dithering.DitherBase.CreateDitherInterface(DitheringType,DitheringStrenght);             
                 var oDitherResult = await oDither.DitherAsync(oSource, oTmpData, FixedPalette, ColorDistanceEvaluationMode, oToken);
                 oTmpData = oDitherResult;
-                RaiseProcessPartialEvent(new ColorTransformEventArgs()
-                {
-                    ColorTransformInterface = this,
-                    CompletedPercent = 20,
-                    Message = "PreProcessing-Dithered",
-                    ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, oTmpData)
-                });
             }
-            BypassDithering = true;
+            // Raise pre processing event
+            RaiseProcessPartialEvent(new ColorTransformEventArgs()
+            {
+                ColorTransformInterface = this,
+                CompletedPercent = 0,
+                Message = "PreProcessing-Dithered",
+                ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, oTmpData)
+            });
             return oTmpData;
         }
 
+        // Only to debug purpose, this is the best image obtainable using C64 palette
+        async Task<int[,]?> ToBasePalette(int[,]? oTmpDataSource, CancellationToken? oToken) => await PreProcessAsync(oTmpDataSource, false, oToken);
+
+        // Cerate a Tile Map 8x8 2 indipendent colors
         async Task<int[,]?> ToHiresAsync(int[,]? oTmpDataSource, CancellationToken? oToken)
         {
             var oTmpData = await PreProcessAsync(oTmpDataSource, false, oToken);
-            // Tile calculus: 8x8 with 2 color for tile
-            TileManager oManager = new();
-            var res1 = await oManager.CreateAsync(oTmpData, 8, 8, 2, FixedPalette, null, ColorDistanceEvaluationMode, TileBase.EnumColorReductionMode.Detailed,oToken);
+            TileManager oManager = TileManager.Create(8, 8, 2)
+                .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
+                .SetProperty(ColorTransformProperties.Fixed_Palette, FixedPalette)
+                .SetProperty(ColorTransformProperties.Force_Palette, null);
+//                .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
+//                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
+
+            oManager.TileBorderShow = TileBorderShow;
+            var res1 = await oManager.CreateAsync(oTmpData, oToken);
             var res2 = await oManager.ProcessAsync(oToken);
             if (res2)
             {
@@ -132,24 +135,27 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
-        async Task<int[,]?> ToBasePalette(int[,]? oTmpDataSource, CancellationToken? oToken)
-        {
-            var oTmpData = await PreProcessAsync(oTmpDataSource, false, oToken);
-            return oTmpData;
-        }
 
+        // Create a Tile Map 8x4 3 fixed colors + 1 selectable color per tile
         async Task<int[,]?> ToMultiColorAsync(int[,]? oTmpDataSource, CancellationToken? oToken)
         {
-            // Tile calculus: 8x8 with 3 fixed folor for tile - plus 1 selectable per tile 
             var oTmpData = await PreProcessAsync(oTmpDataSource, true, oToken);
             DataContainer oTempContainer = new DataContainer();
             await oTempContainer.SetDataAsync(oTmpData,oToken);
 
             // Select the 3 most used 
-            var oForcedColor = oTempContainer.ColorHistogram.SortColorsDescending().ToColorPalette(3);
+            var oForcedPalette = oTempContainer.ColorHistogram.SortColorsDescending().ToColorPalette(1);
 
-            TileManager oManager = new TileManager();
-            var res1 = await oManager.CreateAsync(oTmpData, 4, 8, 4, FixedPalette, oForcedColor, ColorDistanceEvaluationMode, TileBase.EnumColorReductionMode.Detailed, oToken);
+            TileManager oManager = TileManager.Create(4, 8, 4)
+                .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
+                .SetProperty(ColorTransformProperties.Fixed_Palette, FixedPalette)
+                .SetProperty(ColorTransformProperties.Force_Palette, oForcedPalette);
+//                .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
+//                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
+
+            oManager.TileBorderShow = TileBorderShow;
+            // var res1 = await oManager.CreateAsync(oTmpData, oToken);
+            var res1 = await oManager.CreateAsync(oTmpData, oToken);
             var res2 = await oManager.ProcessAsync(oToken);
             if (res2)
             {
@@ -163,18 +169,22 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
-        async Task<int[,]?> ToMultiColorCarolineAsync(int[,]? oTmpDataSource, CancellationToken? oToken)
+        // Create a Tile Map 1x4 2 selectable color per tile
+        async Task<int[,]?> ToFliAsync(int[,]? oTmpDataSource, CancellationToken? oToken)
         {
-            // Tile calculus: 8x1 with 3 fixed folor for tile - plus 1 selectable per tile 
             var oTmpData = await PreProcessAsync(oTmpDataSource, true, oToken);
             DataContainer oTempContainer = new DataContainer();
             await oTempContainer.SetDataAsync(oTmpData, oToken);
 
-            // Select the 3 most used 
-            var oForcedColor = oTempContainer.ColorHistogram.SortColorsDescending().ToColorPalette(3);
+            TileManager oManager = TileManager.Create(4, 1, 2)
+                .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
+                .SetProperty(ColorTransformProperties.Fixed_Palette, FixedPalette)
+                .SetProperty(ColorTransformProperties.Force_Palette, null);
+         //       .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
+         //       .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
 
-            TileManager oManager = new TileManager();
-            var res1 = await oManager.CreateAsync(oTmpData, 4, 1, 4, FixedPalette, oForcedColor, ColorDistanceEvaluationMode, TileBase.EnumColorReductionMode.Detailed, oToken);
+            oManager.TileBorderShow = TileBorderShow;
+            var res1 = await oManager.CreateAsync(oTmpData, oToken);
             var res2 = await oManager.ProcessAsync(oToken);
             if (res2)
             {
@@ -194,6 +204,7 @@ namespace ColourClashNet.Color.Transformation
         protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
         {
             int[,] oPreprocessedData = null;
+            BypassDithering = true;
             switch (VideoMode)
             {
                 case C64VideoMode.DebugBasePalette:
@@ -206,14 +217,14 @@ namespace ColourClashNet.Color.Transformation
                         oPreprocessedData = await ToHiresAsync(SourceData, oToken);
                     }
                 break;
-                case C64VideoMode.MulticolorCaroline:
+                case C64VideoMode.FLI:
                     {
-                        oPreprocessedData = await ToMultiColorCarolineAsync(SourceData, oToken);
+                        oPreprocessedData = await ToFliAsync(SourceData, oToken);
                     }
                 break;
                 case C64VideoMode.Multicolor:
                     {
-                          oPreprocessedData = await ToMultiColorAsync(SourceData, oToken);
+                        oPreprocessedData = await ToMultiColorAsync(SourceData, oToken);
                     }
                 break;
                 default:

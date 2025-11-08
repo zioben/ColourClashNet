@@ -33,7 +33,7 @@ namespace ColourClashNet.Color.Tile
         internal async Task<ColorTransformResults> ProcessColorAsync(ColorDithering eDitherModel, CancellationToken? oToken)
         {
             await oReduction.CreateAsync(Tile, oToken);
-            oReduction.SetProperty(ColorTransformProperties.Dithering_Model, eDitherModel);
+            oReduction.SetProperty(ColorTransformProperties.Dithering_Type, eDitherModel);
             var oRet = await oReduction.ProcessColorsAsync( oToken);
             Error = await ColorIntExt.EvaluateErrorAsync(oRet.DataOut, Tile, oReduction.ColorDistanceEvaluationMode,oToken);
             return oRet;

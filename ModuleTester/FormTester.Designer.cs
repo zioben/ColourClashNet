@@ -36,14 +36,12 @@
             pictureBox2 = new PictureBox();
             propertyGrid1 = new PropertyGrid();
             tableLayoutPanel3 = new TableLayoutPanel();
+            btnPalette = new Button();
             cbDithering = new ComboBox();
             btnQuantizer = new Button();
             btnID = new Button();
             cbPreset = new ComboBox();
             btnBkgRem = new Button();
-            btnReprocess = new Button();
-            btnCGA = new Button();
-            btnEGA = new Button();
             btnSpeccy = new Button();
             btnAmiga = new Button();
             btnAmstrad = new Button();
@@ -52,10 +50,14 @@
             btnMedian = new Button();
             btnLumSat = new Button();
             btnFast = new Button();
+            btnReprocess = new Button();
+            btnCGA = new Button();
+            btnEGA = new Button();
             listBox1 = new ListBox();
             bitmapRender1 = new ColourClashNet.Components.BitmapRender(components);
             bitmapRender2 = new ColourClashNet.Components.BitmapRender(components);
-            btnPalette = new Button();
+            btnLoad = new Button();
+            openLoadImage = new OpenFileDialog();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -178,6 +180,7 @@
             tableLayoutPanel3.Controls.Add(btnReprocess, 11, 1);
             tableLayoutPanel3.Controls.Add(btnCGA, 9, 0);
             tableLayoutPanel3.Controls.Add(btnEGA, 9, 1);
+            tableLayoutPanel3.Controls.Add(btnLoad, 0, 1);
             tableLayoutPanel3.Dock = DockStyle.Fill;
             tableLayoutPanel3.Location = new Point(3, 3);
             tableLayoutPanel3.Name = "tableLayoutPanel3";
@@ -186,6 +189,16 @@
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             tableLayoutPanel3.Size = new Size(877, 58);
             tableLayoutPanel3.TabIndex = 11;
+            // 
+            // btnPalette
+            // 
+            btnPalette.Location = new Point(587, 3);
+            btnPalette.Name = "btnPalette";
+            btnPalette.Size = new Size(67, 23);
+            btnPalette.TabIndex = 17;
+            btnPalette.Text = "Fixed PAL";
+            btnPalette.UseVisualStyleBackColor = true;
+            btnPalette.Click += btnPalette_Click;
             // 
             // cbDithering
             // 
@@ -233,36 +246,6 @@
             btnBkgRem.Text = "BKG Rem.";
             btnBkgRem.UseVisualStyleBackColor = true;
             btnBkgRem.Click += btnBkgRem_Click;
-            // 
-            // btnReprocess
-            // 
-            btnReprocess.Location = new Point(806, 32);
-            btnReprocess.Name = "btnReprocess";
-            btnReprocess.Size = new Size(68, 23);
-            btnReprocess.TabIndex = 2;
-            btnReprocess.Text = "Reprocess";
-            btnReprocess.UseVisualStyleBackColor = true;
-            btnReprocess.Click += butReprocess;
-            // 
-            // btnCGA
-            // 
-            btnCGA.Location = new Point(660, 3);
-            btnCGA.Name = "btnCGA";
-            btnCGA.Size = new Size(67, 23);
-            btnCGA.TabIndex = 12;
-            btnCGA.Text = "CGA";
-            btnCGA.UseVisualStyleBackColor = true;
-            btnCGA.Click += btnCGA_Click;
-            // 
-            // btnEGA
-            // 
-            btnEGA.Location = new Point(660, 32);
-            btnEGA.Name = "btnEGA";
-            btnEGA.Size = new Size(67, 23);
-            btnEGA.TabIndex = 9;
-            btnEGA.Text = "EGA";
-            btnEGA.UseVisualStyleBackColor = true;
-            btnEGA.Click += btnEGA_Click;
             // 
             // btnSpeccy
             // 
@@ -344,6 +327,36 @@
             btnFast.UseVisualStyleBackColor = true;
             btnFast.Click += btnFast_Click;
             // 
+            // btnReprocess
+            // 
+            btnReprocess.Location = new Point(806, 32);
+            btnReprocess.Name = "btnReprocess";
+            btnReprocess.Size = new Size(68, 23);
+            btnReprocess.TabIndex = 2;
+            btnReprocess.Text = "Reprocess";
+            btnReprocess.UseVisualStyleBackColor = true;
+            btnReprocess.Click += butReprocess;
+            // 
+            // btnCGA
+            // 
+            btnCGA.Location = new Point(660, 3);
+            btnCGA.Name = "btnCGA";
+            btnCGA.Size = new Size(67, 23);
+            btnCGA.TabIndex = 12;
+            btnCGA.Text = "CGA";
+            btnCGA.UseVisualStyleBackColor = true;
+            btnCGA.Click += btnCGA_Click;
+            // 
+            // btnEGA
+            // 
+            btnEGA.Location = new Point(660, 32);
+            btnEGA.Name = "btnEGA";
+            btnEGA.Size = new Size(67, 23);
+            btnEGA.TabIndex = 9;
+            btnEGA.Text = "EGA";
+            btnEGA.UseVisualStyleBackColor = true;
+            btnEGA.Click += btnEGA_Click;
+            // 
             // listBox1
             // 
             listBox1.Dock = DockStyle.Fill;
@@ -378,15 +391,15 @@
             bitmapRender2.MouseMovingButton = MouseButtons.Left;
             bitmapRender2.MouseSelectButton = MouseButtons.Right;
             // 
-            // btnPalette
+            // btnLoad
             // 
-            btnPalette.Location = new Point(587, 3);
-            btnPalette.Name = "btnPalette";
-            btnPalette.Size = new Size(67, 23);
-            btnPalette.TabIndex = 17;
-            btnPalette.Text = "Fixed PAL";
-            btnPalette.UseVisualStyleBackColor = true;
-            btnPalette.Click += btnPalette_Click;
+            btnLoad.Location = new Point(3, 32);
+            btnLoad.Name = "btnLoad";
+            btnLoad.Size = new Size(67, 23);
+            btnLoad.TabIndex = 18;
+            btnLoad.Text = "LOAD";
+            btnLoad.UseVisualStyleBackColor = true;
+            btnLoad.Click += btnLoad_Click;
             // 
             // FormTester
             // 
@@ -437,5 +450,7 @@
         private Button btnMedian;
         private Button btnFast;
         private Button btnPalette;
+        private Button btnLoad;
+        private OpenFileDialog openLoadImage;
     }
 }

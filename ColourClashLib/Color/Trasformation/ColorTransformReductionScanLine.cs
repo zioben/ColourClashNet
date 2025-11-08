@@ -118,7 +118,7 @@ namespace ColourClashNet.Color.Transformation
                             .SetProperty(ColorTransformProperties.UseColorMean, UseColorMean)
                             .SetProperty(ColorTransformProperties.ClusterTrainingLoop, 30)
                             .SetProperty(ColorTransformProperties.Fixed_Palette, oLineFixedPalette)
-                            .SetProperty(ColorTransformProperties.Dithering_Model, DitheringType);
+                            .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType);
                             oLineTrasf = oTrasf2;
                         }
                         else
@@ -126,7 +126,7 @@ namespace ColourClashNet.Color.Transformation
                             var oTrasf2 = new ColorTransformReductionFast()
                             .SetProperty(ColorTransformProperties.MaxColorsWanted, ColorsMaxWanted)
                             .SetProperty(ColorTransformProperties.Fixed_Palette, oLineFixedPalette)
-                            .SetProperty(ColorTransformProperties.Dithering_Model, DitheringType);
+                            .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType);
                             oLineTrasf = oTrasf2;
                         }
 
@@ -171,7 +171,7 @@ namespace ColourClashNet.Color.Transformation
                         var oTras = new ColorTransformReductionPalette()
                         .SetProperty(ColorTransformProperties.Fixed_Palette, oNewPal)
                         .SetProperty(ColorTransformProperties.MaxColorsWanted, oNewPal.Count)
-                        .SetProperty(ColorTransformProperties.Dithering_Model, DitheringType);
+                        .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType);
                         await oTras.CreateAsync(oCols, oToken);
                         var oColRes = await oTras.ProcessColorsAsync(oToken);
                         for (int c = 0; c < C; c++)
