@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,9 +20,10 @@ namespace ColourClashNet.Color.Transformation
             //   Petscii,
             Multicolor,
             HiRes,
-         //   HiResEnhancedPalette,
             FLI,
+            MCI,
             DebugBasePalette,
+            DebugEnhancedPalette,
         }
 
         public C64VideoMode VideoMode { get; set; }= C64VideoMode.Multicolor;
@@ -35,11 +37,7 @@ namespace ColourClashNet.Color.Transformation
             CreatePalette();
         }
 
-        void CreatePalette()
-        {
-            SetProperty(
-                ColorTransformProperties.Fixed_Palette,
-                new List<int>
+        List<int> basePalette = new List<int>
                 {
                     0x00_00_00_00,
                     0x00_FF_FF_FF,
@@ -56,7 +54,31 @@ namespace ColourClashNet.Color.Transformation
                     0x00_80_80_80,
                     0x00_AC_EA_88,
                     0x00_AB_AB_AB,
-                });
+                };
+
+        List<int> enhancedPalette = new List<int>();
+
+        void CreatePalette()
+        {
+            var sM = nameof(CreatePalette);
+            enhancedPalette = new List<int>();
+            enhancedPalette.AddRange(basePalette);
+            for (int i = 0; i < basePalette.Count-1; i++)
+            {
+                for (int j = i+1; j < basePalette.Count; j++)
+                {
+                    int iRGBA = basePalette[i];
+                    int iRGBB = basePalette[j];   
+                    var HSVA = HSV.FromIntRGB(iRGBA);
+                    var HSVB = HSV.FromIntRGB(iRGBB);                   
+                    LogMan.Message(sC, sM, $"{i} : {j} -> {HSVA.V:f1} - {HSVB.V:f1}");
+                    if (Math.Abs(HSVA.V-HSVB.V)<15.0)
+                    {
+                        int iRGBM = ColorIntExt.GetColorMean(iRGBA, iRGBB);
+                        enhancedPalette.Add(iRGBM);
+                    }
+                }
+            }
         }
 
         public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
@@ -75,6 +97,22 @@ namespace ColourClashNet.Color.Transformation
                     break;
             }
             return this;
+        }
+
+        protected override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
+        {
+            switch (VideoMode)
+            {
+                case C64VideoMode.MCI:
+                case C64VideoMode.DebugEnhancedPalette:
+                    SetProperty(ColorTransformProperties.Fixed_Palette, enhancedPalette);
+                    break;
+                default:
+                    SetProperty(ColorTransformProperties.Fixed_Palette, basePalette);
+                    break;
+            }
+
+            return base.CreateTrasformationMapAsync(oToken);
         }
 
         // Not Needed
@@ -207,6 +245,8 @@ namespace ColourClashNet.Color.Transformation
             BypassDithering = true;
             switch (VideoMode)
             {
+
+                case C64VideoMode.DebugEnhancedPalette:
                 case C64VideoMode.DebugBasePalette:
                     {
                         oPreprocessedData = await ToBasePalette(SourceData, oToken);
@@ -227,6 +267,11 @@ namespace ColourClashNet.Color.Transformation
                         oPreprocessedData = await ToMultiColorAsync(SourceData, oToken);
                     }
                 break;
+                case C64VideoMode.MCI:
+                    {
+                        oPreprocessedData = await ToMultiColorAsync(SourceData, oToken);
+                    }
+                    break;
                 default:
                 break;
             }
