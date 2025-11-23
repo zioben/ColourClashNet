@@ -34,9 +34,17 @@ namespace ModuleTester
             {
                 cbDithering.Items.Add(item);
             }
+            cbDithering.SelectedIndex = 0;
+
+            items = Enum.GetNames<ColorDistanceEvaluationMode>().ToList();
+            foreach (var item in items)
+            {
+                cbColorMode.Items.Add(item);
+            }
+            cbDithering.SelectedIndex = 0;
+
 
             cbPreset.SelectedIndex = 1;
-            cbDithering.SelectedIndex = 0;
         }
 
 
@@ -48,6 +56,12 @@ namespace ModuleTester
             {
                 eDither = ColorDithering.None;
             }
+            var eColor = ColorDistanceEvaluationMode.RGB;
+            if (!Enum.TryParse<ColorDistanceEvaluationMode>(cbColorMode.SelectedItem?.ToString(), out eColor))
+            {
+                eColor = ColorDistanceEvaluationMode.RGB;
+            }
+            oTrasf.SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, eColor);
             oTrasf.SetProperty(ColorTransformProperties.Dithering_Type, eDither);
             oTrasf.SetProperty(ColorTransformProperties.Dithering_Strength, 1);
             var oData = ImageTools.ToMatrix(bitmapRender1.Image);
@@ -162,6 +176,27 @@ namespace ModuleTester
             await ProcessAsync(oTrasf);
         }
 
+        async Task TestTransformSpectrum()
+        {
+            bool bAtuotune = false;
+            ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum oTrasf = new();
+            if (bAtuotune)
+            {
+                oTrasf.SetProperty(ColorTransformProperties.Zx_ColL_Seed, 0x0000);
+                oTrasf.SetProperty(ColorTransformProperties.Zx_ColH_Seed, 0x00FF);
+            }
+            else
+            {
+                oTrasf.SetProperty(ColorTransformProperties.Zx_ColL_Seed, 0x00C0);
+                oTrasf.SetProperty(ColorTransformProperties.Zx_ColH_Seed, 0x00FF);
+            }
+            oTrasf.SetProperty(ColorTransformProperties.Zx_Autotune, bAtuotune);
+            oTrasf.SetProperty(ColorTransformProperties.Zx_DitherHighColor, true);
+            oTrasf.SetProperty(ColorTransformProperties.Zx_IncludeBlackInHighColor, true);
+            oTrasf.SetProperty(ColorTransformProperties.Zx_PaletteMode, ColorTransformReductionZxSpectrum.ZxPaletteMode.PaletteLo);
+            await ProcessAsync(oTrasf);
+        }
+
         async Task TestTransformPalette()
         {
             ColourClashNet.Color.Transformation.ColorTransformReductionPalette oTrasf = new();
@@ -235,9 +270,9 @@ namespace ModuleTester
             await TestTransformCPC();
         }
 
-        private void btnSpeccy_Click(object sender, EventArgs e)
+        private async void btnSpeccy_Click(object sender, EventArgs e)
         {
-
+            await TestTransformSpectrum();
         }
 
         private void btnCGA_Click(object sender, EventArgs e)

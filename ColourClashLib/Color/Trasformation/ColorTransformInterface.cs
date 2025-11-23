@@ -18,9 +18,9 @@ namespace ColourClashNet.Color.Transformation
         Histogram SourceHistogram { get; }
         Int32 SourceColors { get; }
 
-        Histogram OutputHistogramX { get; }
-        Palette OutputPaletteX { get; }
-        Int32 OutputColorsX { get; }
+        Histogram OutputHistogram { get; }
+        Palette OutputPalette { get; }
+        Int32 OutputColors { get; }
         ColorTransformationMap TransformationMap { get; }
 
         public bool BypassDithering { get; set; }    

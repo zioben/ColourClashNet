@@ -135,14 +135,14 @@ namespace ColourClashNet.Color
         UseFixedPalette,
         UseSharedPalette,
         UseClustering,
-        Zx_ColL,
-        Zx_ColH,
+        Zx_ColL_Seed,
+        Zx_ColH_Seed,
         Zx_PaletteMode,
         Zx_IncludeBlackInHighColor,
         Zx_DitherHighColor,
         Zx_Autotune,
         Fixed_Palette,
-        Force_Palette,
+        Forced_Palette,
         Dithering_Type,
         Dithering_Strength
     }

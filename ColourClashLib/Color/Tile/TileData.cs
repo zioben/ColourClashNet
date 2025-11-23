@@ -25,7 +25,7 @@ namespace ColourClashNet.Color.Tile
         internal ColorTransformReductionCluster oReduction = new ColorTransformReductionCluster()
         {
             ColorDistanceEvaluationMode = ColorDistanceEvaluationMode.RGB,
-            ColorsMaxWanted = 2,
+            MaxColorsWanted = 2,
             UseClusterColorMean = false,
             TrainingLoop = 3,
         };

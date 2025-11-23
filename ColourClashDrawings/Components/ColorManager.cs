@@ -64,10 +64,10 @@ namespace ColourClashNet.Components
         public Image ImageQuantized { get; protected set; }
         public Image ImageProcessed { get; protected set; }
 
-        public int ImageSourceColors => oTrasformSource?.OutputColorsX ?? 0;
-        public int ImageBkgRemovedColors => oTrasformBkgRemover?.OutputColorsX ?? 0;
-        public int ImageQuantizedColors => oTrasformQuantizer?.OutputColorsX ?? 0;
-        public int ImageProcessedColors => oTrasformProcessing?.OutputColorsX ?? 0;
+        public int ImageSourceColors => oTrasformSource?.OutputColors ?? 0;
+        public int ImageBkgRemovedColors => oTrasformBkgRemover?.OutputColors ?? 0;
+        public int ImageQuantizedColors => oTrasformQuantizer?.OutputColors ?? 0;
+        public int ImageProcessedColors => oTrasformProcessing?.OutputColors ?? 0;
 
         [Browsable(false)]
         public bool InvalidatePreProcess { get; set; } = true;

@@ -53,10 +53,11 @@
             btnReprocess = new Button();
             btnCGA = new Button();
             btnEGA = new Button();
+            btnLoad = new Button();
+            cbColorMode = new ComboBox();
             listBox1 = new ListBox();
             bitmapRender1 = new ColourClashNet.Components.BitmapRender(components);
             bitmapRender2 = new ColourClashNet.Components.BitmapRender(components);
-            btnLoad = new Button();
             openLoadImage = new OpenFileDialog();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -181,6 +182,7 @@
             tableLayoutPanel3.Controls.Add(btnCGA, 9, 0);
             tableLayoutPanel3.Controls.Add(btnEGA, 9, 1);
             tableLayoutPanel3.Controls.Add(btnLoad, 0, 1);
+            tableLayoutPanel3.Controls.Add(cbColorMode, 1, 1);
             tableLayoutPanel3.Dock = DockStyle.Fill;
             tableLayoutPanel3.Location = new Point(3, 3);
             tableLayoutPanel3.Name = "tableLayoutPanel3";
@@ -357,6 +359,24 @@
             btnEGA.UseVisualStyleBackColor = true;
             btnEGA.Click += btnEGA_Click;
             // 
+            // btnLoad
+            // 
+            btnLoad.Location = new Point(3, 32);
+            btnLoad.Name = "btnLoad";
+            btnLoad.Size = new Size(67, 23);
+            btnLoad.TabIndex = 18;
+            btnLoad.Text = "LOAD";
+            btnLoad.UseVisualStyleBackColor = true;
+            btnLoad.Click += btnLoad_Click;
+            // 
+            // cbColorMode
+            // 
+            cbColorMode.FormattingEnabled = true;
+            cbColorMode.Location = new Point(76, 32);
+            cbColorMode.Name = "cbColorMode";
+            cbColorMode.Size = new Size(67, 23);
+            cbColorMode.TabIndex = 19;
+            // 
             // listBox1
             // 
             listBox1.Dock = DockStyle.Fill;
@@ -390,16 +410,6 @@
             bitmapRender2.MouseImageFollowing = true;
             bitmapRender2.MouseMovingButton = MouseButtons.Left;
             bitmapRender2.MouseSelectButton = MouseButtons.Right;
-            // 
-            // btnLoad
-            // 
-            btnLoad.Location = new Point(3, 32);
-            btnLoad.Name = "btnLoad";
-            btnLoad.Size = new Size(67, 23);
-            btnLoad.TabIndex = 18;
-            btnLoad.Text = "LOAD";
-            btnLoad.UseVisualStyleBackColor = true;
-            btnLoad.Click += btnLoad_Click;
             // 
             // FormTester
             // 
@@ -452,5 +462,6 @@
         private Button btnPalette;
         private Button btnLoad;
         private OpenFileDialog openLoadImage;
+        private ComboBox cbColorMode;
     }
 }

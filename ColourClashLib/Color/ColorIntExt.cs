@@ -190,7 +190,7 @@ namespace ColourClashNet.Color
         public static double Distance(this int i, int j, ColorDistanceEvaluationMode eMode)
         {
             if (i < 0 || j < 0)
-                return double.PositiveInfinity;
+                return double.NaN;
             switch (eMode)
             {
                 case ColorDistanceEvaluationMode.RGB:
@@ -227,7 +227,7 @@ namespace ColourClashNet.Color
                     }
 
                 default:
-                    return double.PositiveInfinity;
+                    return double.NaN;
             }
         }
 
@@ -355,6 +355,10 @@ namespace ColourClashNet.Color
         /// <returns></returns>
         public static int GetNearestColor(int iColor, Palette oPalette, ColorDistanceEvaluationMode eMode)
         {
+            if (oPalette == null || oPalette.Count == 0)
+            {
+                return ColorDefaults.DefaultInvalidColorInt;
+            }
             double dmin = oPalette.rgbPalette.Min(X => X.Distance(iColor, eMode));
             if (dmin == 0)
                 return iColor;

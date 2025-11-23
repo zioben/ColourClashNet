@@ -13,18 +13,7 @@ namespace ColourClashNet.Color.Tile
     public class TileBase : ColorTransformReductionCluster
     {
         static readonly string sC =nameof(TileBase);
-        public enum EnumColorReductionMode
-        {
-            Fast,
-            Detailed,
-        }
-
-        //public enum EnumErrorSourceMode
-        //{
-        //    TrasformationError,
-        //    ExternalImageError,
-        //}
-
+       
         /// <summary>
         /// Tile Width
         /// </summary>
@@ -46,36 +35,35 @@ namespace ColourClashNet.Color.Tile
         public int DataSourceOriginR { get; private set; } = 0;
 
 
-        ///// <summary>
-        ///// Color error evaluation between source and destination tile
-        ///// </summary>
-        //public double ExternalImageError { get; private set; } = Double.MaxValue;
-
         /// <summary>
-        /// Prioritary colors
+        /// Extract a tile data respect source data
         /// </summary>
-        public Palette ForcedColorPalette { get; set; } = new Palette();
-
-        int[,]? CreateTileData(int[,]? oDataSource, int iSourceR, int iSourceC, int iTileW, int iTileH )
+        /// <param name="oDataSource"></param>
+        /// <param name="iRowSource"></param>
+        /// <param name="iColumnSource"></param>
+        /// <param name="iTileWidth"></param>
+        /// <param name="iTileHeight"></param>
+        /// <returns></returns>
+        public static int[,]? CreateTileData(int[,]? oDataSource, int iRowSource, int iColumnSource, int iTileWidth, int iTileHeight )
         {
             if (oDataSource == null)
             {
                 return null;
             }
-            if (iTileW <= 0 || iTileH <= 0 )
+            if (iTileWidth <= 0 || iTileHeight <= 0 )
             {
                 return null;
             }
 
-            var oDataTile = new int[iTileH, iTileW];
+            var oDataTile = new int[iTileHeight, iTileWidth];
             int R = oDataSource.GetLength(0);
             int C = oDataSource.GetLength(1);
-            int CC = Math.Max(0, Math.Min(C, iSourceC + iTileW));
-            int RR = Math.Max(0, Math.Min(R, iSourceR + iTileH));
+            int CC = Math.Max(0, Math.Min(C, iColumnSource + iTileWidth));
+            int RR = Math.Max(0, Math.Min(R, iRowSource + iTileHeight));
             // Get tile data
-            for (int sr = iSourceR, r = 0; sr < RR; sr++, r++)
+            for (int sr = iRowSource, r = 0; sr < RR; sr++, r++)
             {
-                for (int sc = iSourceC, c = 0; sc < CC; sc++, c++)
+                for (int sc = iColumnSource, c = 0; sc < CC; sc++, c++)
                 {
                     oDataTile[r, c] = oDataSource[sr, sc];
                 }
@@ -90,24 +78,24 @@ namespace ColourClashNet.Color.Tile
         }
 
 
-        public async Task<ColorTransformResults> CreateAsync(int[,]? oDataSource, int iSourceR, int iSourceC, CancellationToken? oToken)
+        public async Task<ColorTransformResults> CreateAsync(int[,]? oDataSource, int iSourceIndexR, int iSourceIndexC, CancellationToken? oToken)
         {
             string sM = nameof(CreateAsync);
             try
             {
-                DataSourceOriginC = iSourceC;
-                DataSourceOriginR = iSourceR;
+                DataSourceOriginC = iSourceIndexC;
+                DataSourceOriginR = iSourceIndexR;
                 if (oDataSource == null)
                 {
                     LogMan.Error(sC, sM, "Datasource null");
                     return new ColorTransformResults();
                 }
-                if (TileW <= 0 || TileH <= 0 || ColorsMaxWanted <= 0)
+                if (TileW <= 0 || TileH <= 0 || MaxColorsWanted <= 0)
                 {
                     LogMan.Error(sC, sM, "Invalid Tile Data");
                     return new ColorTransformResults();
                 }
-                var oTileData = CreateTileData(oDataSource, iSourceR, iSourceC, TileW, TileH);
+                var oTileData = CreateTileData(oDataSource, iSourceIndexR, iSourceIndexC, TileW, TileH);
                 await base.CreateAsync( oTileData, oToken);
                 return ColorTransformResults.CreateValidResult();
             }
@@ -219,6 +207,6 @@ namespace ColourClashNet.Color.Tile
         public override string ToString()
         {
             return $"R={DataSourceOriginR}:C={DataSourceOriginC}:H={TileH}:W={TileW} : TE={TransformationError}";
-        }
+        }  
     }
 }

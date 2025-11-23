@@ -109,8 +109,8 @@ namespace ColourClashNet.Controls
         {
             if (sender is ColorTransformReductionZxSpectrum oZX)
             {
-                nudZxColorLO.Value = oZX.ColL;
-                nudZxColorHI.Value = oZX.ColH;
+                nudZxColorLO.Value = oZX.ColLSeed;
+                nudZxColorHI.Value = oZX.ColHSeed;
             }
         }
 

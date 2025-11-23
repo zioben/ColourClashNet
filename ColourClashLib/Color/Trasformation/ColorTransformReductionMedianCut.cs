@@ -157,13 +157,13 @@ namespace ColourClashNet.Color.Transformation
                     {
                         TransformationMap.rgbTransformationMap[kvp.Key] = kvp.Key;
                     }
-                    OutputPalette = TransformationMap.ToColorPalette();
+                    OutputPalette = TransformationMap.GetOutputPalette();
                 }
                 else
                 {
                     int iColorsMax = Math.Min(256, Math.Max(2, ColorsMaxWanted));
                     Partition(SourceHistogram.ToColorPalette(), iColorsMax / 2);
-                    OutputPalette = TransformationMap.ToColorPalette();
+                    OutputPalette = TransformationMap.GetOutputPalette();
                 }
                 return ColorTransformResults.CreateValidResult();
             });

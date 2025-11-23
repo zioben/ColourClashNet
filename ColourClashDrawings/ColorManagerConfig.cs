@@ -89,8 +89,8 @@ namespace ColourClashNet.Drawing
                 .SetProperty(ColorTransformProperties.UseClustering, ScanlineClustering)
                 //.SetProperty(ColorTransformProperties.UseColorMean, )
                 //.SetProperty(ColorTransformProperties.UseFixedPalette, )
-                .SetProperty(ColorTransformProperties.Zx_ColH, ZxEqColorHI)
-                .SetProperty(ColorTransformProperties.Zx_ColL, ZxEqColorLO)
+                .SetProperty(ColorTransformProperties.Zx_ColH_Seed, ZxEqColorHI)
+                .SetProperty(ColorTransformProperties.Zx_ColL_Seed, ZxEqColorLO)
                 .SetProperty(ColorTransformProperties.Zx_DitherHighColor, ZxEqDitherHI)
                 .SetProperty(ColorTransformProperties.Zx_IncludeBlackInHighColor, ZxEqBlackHI)
                 .SetProperty(ColorTransformProperties.Zx_Autotune, ZxEqAutotune);

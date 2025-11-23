@@ -45,60 +45,43 @@ namespace ColourClashNet.Color.Transformation
 
         //-------------------------------------------------------------------------------------------------------------------------------
 
-        protected DataContainer fixedDataContainer = new DataContainer();
         protected DataContainer sourceDataContainer = new DataContainer();
-        protected DataContainer processedDataContainer = new DataContainer();
         protected DataContainer outputDataContainer = new DataContainer();
 
         public int[,]? SourceData => sourceDataContainer.Data;
-        public int[,]? ProcessedData => processedDataContainer.Data;
         public int[,]? OutputData => outputDataContainer.Data;
 
-
-        public Palette FixedPalette
-        {
-            get => fixedDataContainer.ColorPalette;
-            set => fixedDataContainer.ColorPalette = value;
-        }
-
-        public int FixedColors => FixedPalette.Count;
+        public Palette FixedPalette { get; protected set; } = new Palette();
+        public int FixedColors => FixedPalette?.Count??0;
 
         public Palette SourcePalette
         {
             get => sourceDataContainer.ColorPalette;
-//            set => inputData.ColorPalette = value;
         }
 
         public Histogram SourceHistogram
         {
             get => sourceDataContainer.ColorHistogram;
-            //set
-            //{
-            //    inputData.ColorHistogram = value;
-            //    inputData.ColorPalette = value.ToColorPalette();
-            //}
         }
 
         public int SourceColors => SourcePalette.Count;
 
-        public Histogram OutputHistogramX
+        public Histogram OutputHistogram
         {
             get => outputDataContainer.ColorHistogram;
-//            set => outputData.SetColorHistogramAsync(value,null).GetAwaiter().GetResult();
         }
 
-        public Palette OutputPaletteX
+        public Palette OutputPalette
         {
-            get => processedDataContainer.ColorPalette;
-//            set => processedData.ColorPalette = value;
+            get => outputDataContainer.ColorPalette;
         }
 
-        public int OutputColorsX => OutputPaletteX.Count;
+        public int OutputColors => OutputPalette.Count;
 
         //-------------------------------------------------------------------------------------------------------------------------------
         public ColorTransformationMap TransformationMap { get; protected set; } = new ColorTransformationMap();
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
-        public double TransformationError { get; set; } = double.MaxValue;
+        public double TransformationError { get; set; } = double.NaN;
 
         //-------------------------------------------------------------------------------------------------------------------------------
         public bool BypassDithering { get; set; }
@@ -127,7 +110,7 @@ namespace ColourClashNet.Color.Transformation
         void Reset()
         {
             sourceDataContainer.Reset();           
-            processedDataContainer.Reset();   
+          //  processedDataContainer.Reset();   
             outputDataContainer.Reset();
             //only Set() can handle this. do not uncomment!
             //fixedDataContainer.Reset();
@@ -307,13 +290,14 @@ namespace ColourClashNet.Color.Transformation
 
         #region Processing
 
+        object locker = new object();
+
         public async Task<ColorTransformResults> ProcessColorsAsync( CancellationToken? oTokenA)
         {
             string sM = nameof(CreateAsync);
             try
             {
-                TransformationError = double.MaxValue;
-
+                TransformationError = double.NaN;
                 if (SourceData == null)
                 {
                     LogMan.Error(sC, sM, $"{Type} : sourceData Null");
@@ -343,9 +327,10 @@ namespace ColourClashNet.Color.Transformation
                     return oTransfRes;
                 }
 
+                var processedDataContainer = new DataContainer();
                 await processedDataContainer.SetDataAsync(oTransfRes.DataOut,oToken);
                 var oHash = new HashSet<int>();
-                foreach (var rgb in ProcessedData)
+                foreach (var rgb in processedDataContainer.ColorPalette.rgbPalette)
                 {
                     if (rgb >= 0)
                     {
@@ -362,13 +347,13 @@ namespace ColourClashNet.Color.Transformation
                     else
                         LogMan.Message(sC, sM, $"{Name} : Processing Completed - {DitheringType} : Too many input colors : {oHash.Count}");
 
-                    await outputDataContainer.SetDataAsync(ProcessedData, oToken);
+                    outputDataContainer = processedDataContainer;
                     oRetRes = ColorTransformResults.CreateValidResult(SourceData, OutputData);
                 }
                 else
                 {
                     var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrenght );     
-                    var oDitheringOut = await oDithering.DitherAsync(SourceData, ProcessedData, processedDataContainer.ColorPalette, ColorDistanceEvaluationMode, oToken);
+                    var oDitheringOut = await oDithering.DitherAsync(SourceData, processedDataContainer.Data, processedDataContainer.ColorPalette, ColorDistanceEvaluationMode, oToken);
                     if (oDitheringOut == null)
                     {
                         LogMan.Error(sC, sM, $"{Type} :  Dithering error");
@@ -381,7 +366,7 @@ namespace ColourClashNet.Color.Transformation
                     {
                         await outputDataContainer.SetDataAsync(oDitheringOut, oToken);
                         LogMan.Message(sC, sM, $"{Type} : Processing Completed with dithering");
-                        oRetRes = ColorTransformResults.CreateValidResult(ProcessedData, OutputData);
+                        oRetRes = ColorTransformResults.CreateValidResult(SourceData, OutputData);
                     }
                 }
 
@@ -410,7 +395,6 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
-     
         public async Task AbortProcessingAsync(CancellationTokenSource oTokenSource)
         {
             if (oTokenSource != null)
@@ -423,274 +407,18 @@ namespace ColourClashNet.Color.Transformation
             oTokenSource?.Cancel();
         }
 
+
+        public async Task RecalcTransformationErrorAsync(int[,] oSourceImage, CancellationToken? oToken)
+        {
+            TransformationError =double.NaN;
+            if (OutputData != null)
+            {
+                TransformationError = await ColorIntExt.EvaluateErrorAsync(oSourceImage, OutputData, ColorDistanceEvaluationMode, oToken);
+            }
+        }
+
+
         #endregion
 
     }
 }
-
-//    public abstract partial class ColorTransformBaseOLD : ColorTransformInterface
-//    {
-
-//        //---------------- Base description ---------------------------------
-//        public ColorTransformType Type { get; protected init; }
-//        public String Name { get; set; } = "";
-//        public string Description { get; protected set; } = "";
-
-//        //---------------- Source properties --------------------------------------
-//        //public Histogram InputHistogram { get; protected set; } = new Histogram();
-//        public Palette InputFixedColorPalette { get; protected set; } = new Palette();
-//        protected int InputFixedColors => InputFixedColorPalette?.Count ?? 0;
-
-//        //---------------- Transformation properties------------------------------
-//        public Histogram OutputHistogram { get; protected set; } = new Histogram();
-//        public Palette OutputPalette { get; set; } = new Palette();
-//        public int OutputColors => OutputPalette?.Count ?? 0;
-//        public ColorTransformationMap ColorTransformationMapper { get; protected set; } = new ColorTransformationMap();
-
-//        //---------------- Useful objects ------------------------------
-//        public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
-//        public DitherInterface? Dithering { get; set; } = null;
-//        protected bool BypassDithering { get; set; }
-//        protected virtual void CreateTrasformationMap() { }
-
-//        private object locker = new object();
-
-//        private CancellationTokenSource? cancToken = null;
-
-//        public bool ProcessAbort()
-//        {
-//            lock (locker)
-//            {
-//                if (cancToken == null)
-//                {
-//                    return false;
-//                }
-//                cancToken.Cancel();
-//                return true;
-//            }
-//        }
-
-//        protected virtual int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken)
-//        {
-//            return ExecuteStdTransform(oDataSource, this, oToken);
-//        }
-
-//        void Reset()
-//        {
-//            OutputPalette.Reset();
-//            OutputHistogram.Reset();
-//            ColorTransformationMapper.Reset();
-//        }
-
-
-//        public ColorTransformInterface? Create(int[,]? oDataSource, Palette? oFixedColorPalette)
-//        {
-//            Reset();
-//            if (oDataSource == null)
-//            {
-//                return null;
-//            }
-//            InputFixedColorPalette = oFixedColorPalette ?? new Palette();
-//            OutputHistogram.Create(oDataSource);
-//            OutputPalette = OutputHistogram.ToColorPalette();
-//            CreateTrasformationMap();
-//            return this;
-//        }
-
-//        public ColorTransformInterface? Create(Histogram oSourceColorHistogram, Palette? oFixedColorPalette)
-//        {
-//            Reset();
-//            if (oSourceColorHistogram == null)
-//            {
-//                return null;
-//            }
-//            InputFixedColorPalette = oFixedColorPalette ?? new Palette();
-//            foreach (var kvp in oSourceColorHistogram.rgbHistogram)
-//            {
-//                OutputHistogram.rgbHistogram.Add(kvp.Key, kvp.Value);
-//            }
-//            OutputPalette = OutputHistogram.ToColorPalette();
-//            CreateTrasformationMap();
-//            return this;
-//        }
-
-//        public ColorTransformInterface? Create(Palette oSourceColorPalette, Palette? oFixedColorPalette)
-//        {
-//            Reset();
-//            if (oSourceColorPalette == null)
-//            {
-//                return null;
-//            }
-//            InputFixedColorPalette = oFixedColorPalette ?? new Palette();
-//            foreach (var rgb in oSourceColorPalette.rgbPalette)
-//            {
-//                OutputHistogram.rgbHistogram.Add(rgb, 0);
-//            }
-//            OutputPalette = OutputHistogram.ToColorPalette();
-//            CreateTrasformationMap();
-
-          
-//            return this;
-//        }
-
-
-//        public ColorTransformResults ProcessColors(int[,]? oDataSource)
-//        {
-//            string sMethod = nameof(ProcessColors);
-//            var oRet = new ColorTransformResults()
-//            {
-//                DataSource = oDataSource,
-//            };
-//            lock (locker)
-//            {
-//                if (cancToken != null)
-//                {
-//                    string sMSG = $"{Type} : Processing already running";   
-//                    LogMan.Error(sClass, sMethod, sMSG);
-//                    oRet.AddMessage(sMSG);
-//                    oRet.Valid = false;
-//                    return oRet;
-//                }
-//                else
-//                {
-//                    LogMan.Debug(sClass, sMethod, $"{Type} : Generating internal CancellationTokenSource");
-//                    cancToken = new CancellationTokenSource();
-//                }
-//            }
-//            try
-//            {
-//                if (oDataSource == null)
-//                {
-//                    oRet.AddMessage($"{Type} : DataSource Null");
-//                    return oRet;
-//                }
-
-//                // Execute color reduction
-//                oRet.DataTemp = ExecuteTransform(oDataSource, cancToken.Token);
-//                if (oRet.DataTemp == null)
-//                {
-//                    oRet.AddMessage($"{Type} : Transformation error");
-//                    return oRet;
-//                }
-//                var oHash = new HashSet<int>();
-//                foreach (var rgb in oRet.DataTemp)
-//                {
-//                    if (rgb < 0)
-//                    {
-//                        continue;
-//                    }
-//                    oHash.Add(rgb);
-//                }
-//                if (Dithering == null || BypassDithering || oHash.Count > 256)
-//                {
-//                    oRet.AddMessage($"{Type} : Processing Completed - No dithering");
-//                    oRet.DataOut = oRet.DataTemp.Clone() as int[,];
-//                    oRet.Valid = true;
-//                    return oRet;
-//                }
-//                oRet.DataOut = Dithering.Dither(oDataSource, oRet.DataTemp, OutputPalette, ColorDistanceEvaluationMode, cancToken.Token);
-//                if (oRet.DataOut == null)
-//                {
-//                    oRet.AddMessage($"{Type} : Dithering error");
-//                    return oRet;
-//                }
-//                oRet.Valid = true;
-//                oRet.AddMessage($"{Type} : Processing Completed");
-//                return oRet;
-//            }
-//            catch (ThreadInterruptedException exTh)
-//            {
-//                oRet.AddMessage($"{Type} : Processing Interupted");
-//                return oRet;
-//            }
-//            catch (Exception ex)
-//            {
-//                oRet.AddMessage($"{Type} : Exception Raised : {ex.Message}");
-//                oRet.Exception = ex;
-//                return oRet;
-//            }
-//            finally
-//            {
-//                cancToken = null;
-//            }
-//        }
-
-//        public async Task<ColorTransformResults> ProcessColorsAsync(int[,]? oDataSource)
-//        {
-//            return await Task.Run(() => ProcessColors(oDataSource));
-//        }
-
-//        static public double EvaluateError(int[,]? oDataA, int[,]? oDataB, ColorDistanceEvaluationMode eMode)
-//        {
-//            if (oDataA == null || oDataB == null)
-//            {
-//                return double.NaN;
-//            }
-//            int r1 = oDataA.GetLength(0);
-//            int c1 = oDataA.GetLength(1);
-//            int r2 = oDataB.GetLength(0);
-//            int c2 = oDataB.GetLength(1);
-//            if (r1 != r2 || c1 != c2 || r1 == 0 || r2 == 0 )
-//            {
-//                return double.NaN;
-//            }
-//            double err = 0;
-//            for (int r = 0; r < r1; r++)
-//            {
-//                for (int c = 0; c < c1; c++)
-//                {
-//                    var rgb1 = oDataA[r, c];
-//                    var rgb2 = oDataB[r, c];
-//                    if (rgb1 >= 0 && rgb2 >= 0)
-//                    {
-//                        err += ColorIntExt.Distance(rgb1, rgb2, eMode);
-//                    }
-//                }
-//            }
-//            err /= (3 * r1 * c1);
-//           // err *= 100;
-//            return err;
-//        }
-
-
-//        public virtual ColorTransformInterface? SetProperty(ColorTransformProperties eProperty, object oValue)
-//        {
-//            switch (eProperty)
-//            {
-//                case ColorTransformProperties.ColorDistanceEvaluationMode:
-//                    if (Enum.TryParse<ColorDistanceEvaluationMode>(oValue?.ToString(), out var eMode))
-//                    {
-//                        ColorDistanceEvaluationMode = eMode;
-//                        return this;
-//                    }
-//                    break;
-//                case ColorTransformProperties.Output_Palette:
-//                    {
-//                        if (oValue is List<int> oPalette)
-//                        {
-//                            OutputPalette = Palette.CreateColorPalette(oPalette);
-//                        }
-//                        else if (oValue is Palette oPal)
-//                        {
-//                            OutputPalette = oPal;
-//                        }
-//                        else
-//                        {
-//                            OutputPalette = new Palette();
-//                        }
-//                        return this;
-//                    }
-//                    break;
-//                default:
-//                    break;
-//            }
-//            return null;
-//        }
-
-//        public virtual ColorTransformInterface? SetDithering(DitherInterface oDithering)
-//        {
-//            Dithering = oDithering;
-//            return this;
-//        }
-//    }
-//}

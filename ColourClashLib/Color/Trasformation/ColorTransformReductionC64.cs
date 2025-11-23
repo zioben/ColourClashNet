@@ -155,13 +155,13 @@ namespace ColourClashNet.Color.Transformation
             TileManager oManager = TileManager.Create(8, 8, 2)
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
                 .SetProperty(ColorTransformProperties.Fixed_Palette, FixedPalette)
-                .SetProperty(ColorTransformProperties.Force_Palette, null);
+                .SetProperty(ColorTransformProperties.Forced_Palette, null);
 //                .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
 //                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
 
             oManager.TileBorderShow = TileBorderShow;
             var res1 = await oManager.CreateAsync(oTmpData, oToken);
-            var res2 = await oManager.ProcessAsync(oToken);
+            var res2 = await oManager.ProcessColorsAsync(oToken);
             if (res2)
             {
                 var oRet = await oManager.CreateImageFromTilesAsync(oToken);
@@ -187,14 +187,14 @@ namespace ColourClashNet.Color.Transformation
             TileManager oManager = TileManager.Create(4, 8, 4)
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
                 .SetProperty(ColorTransformProperties.Fixed_Palette, FixedPalette)
-                .SetProperty(ColorTransformProperties.Force_Palette, oForcedPalette);
+                .SetProperty(ColorTransformProperties.Forced_Palette, oForcedPalette);
 //                .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
 //                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
 
             oManager.TileBorderShow = TileBorderShow;
             // var res1 = await oManager.CreateAsync(oTmpData, oToken);
             var res1 = await oManager.CreateAsync(oTmpData, oToken);
-            var res2 = await oManager.ProcessAsync(oToken);
+            var res2 = await oManager.ProcessColorsAsync(oToken);
             if (res2)
             {
                 var oTmpHalfProc = await oManager.CreateImageFromTilesAsync(oToken);
@@ -217,13 +217,13 @@ namespace ColourClashNet.Color.Transformation
             TileManager oManager = TileManager.Create(4, 1, 2)
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
                 .SetProperty(ColorTransformProperties.Fixed_Palette, FixedPalette)
-                .SetProperty(ColorTransformProperties.Force_Palette, null);
+                .SetProperty(ColorTransformProperties.Forced_Palette, null);
          //       .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
          //       .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
 
             oManager.TileBorderShow = TileBorderShow;
             var res1 = await oManager.CreateAsync(oTmpData, oToken);
-            var res2 = await oManager.ProcessAsync(oToken);
+            var res2 = await oManager.ProcessColorsAsync(oToken);
             if (res2)
             {
                 var oTmpHalfProc = await oManager.CreateImageFromTilesAsync(oToken);

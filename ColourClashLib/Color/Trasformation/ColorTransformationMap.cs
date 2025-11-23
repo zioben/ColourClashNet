@@ -101,7 +101,7 @@ namespace ColourClashNet.Color
         }
 
 
-        public Palette ToColorPalette()
+        public Palette GetOutputPalette()
         {
             var oCP = new Palette();
             foreach (var kvp in rgbTransformationMap)
@@ -111,6 +111,18 @@ namespace ColourClashNet.Color
                 oCP.Add(kvp.Value);
             }
             return oCP; 
-        }       
+        }
+
+        public Palette GetInputPalette()
+        {
+            var oCP = new Palette();
+            foreach (var kvp in rgbTransformationMap)
+            {
+                if (kvp.Key < 0)
+                    continue;
+                oCP.Add(kvp.Key);
+            }
+            return oCP;
+        }
     }
 }

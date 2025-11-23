@@ -16,7 +16,7 @@ namespace ColourClashNet.Color.Transformation
     public class ColorTransformReductionCluster : ColorTransformBase
     {
         static string sClass = nameof(ColorTransformReductionCluster);
-        public int ColorsMaxWanted { get; set; } = -1;
+        public int MaxColorsWanted { get; set; } = -1;
         public bool UseClusterColorMean { get; set; } = true;
         public int TrainingLoop { get; set; } = -1;
 
@@ -35,7 +35,7 @@ namespace ColourClashNet.Color.Transformation
                 case ColorTransformProperties.MaxColorsWanted:
                     if (int.TryParse(oValue.ToString(), out var l))
                     {
-                        ColorsMaxWanted = l;
+                        MaxColorsWanted = l;
                         return this;
                     }
                     break;
@@ -90,7 +90,7 @@ namespace ColourClashNet.Color.Transformation
             // Creating a temporary palette with fixed colors and histogram colors
             var oTempPalette = Palette.MergeColorPalette(FixedPalette, oTempHistogram.ToColorPalette());
             // If we have less colors than wanted, just map them directly
-            if (oTempPalette.Count <= ColorsMaxWanted)
+            if (oTempPalette.Count <= MaxColorsWanted)
             {                
                 foreach (var rgb in oTempPalette.rgbPalette)
                 {
@@ -112,7 +112,7 @@ namespace ColourClashNet.Color.Transformation
             foreach (var rgb in oTempPalette.rgbPalette)
             {
                 lTupleColorCluster.Add(Tuple.Create(new List<int> { rgb }, new Dictionary<int, int>()));
-                if (++i == ColorsMaxWanted)
+                if (++i == MaxColorsWanted)
                 {
                     break;
                 }

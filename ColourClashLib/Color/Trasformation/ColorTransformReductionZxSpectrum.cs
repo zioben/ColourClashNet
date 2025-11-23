@@ -3,11 +3,15 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Design.Serialization;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using ColourClashLib.Color.Trasformation;
+using ColourClashNet.Color.Dithering;
+using ColourClashNet.Color.Tile;
 using ColourClashNet.Log;
 
 namespace ColourClashNet.Color.Transformation
@@ -23,20 +27,17 @@ namespace ColourClashNet.Color.Transformation
             Both = 2,
         }
 
-
         public ColorTransformReductionZxSpectrum()
         {
             Type = ColorTransformType.ColorReductionZxSpectrum;
             Description = "Reduce color to ZX Spectrum color map and apply Colourclash reduction";
         }
 
-        HashSet<int> hPalette = new HashSet<int>();
 
-        public int ColL { get; set; } = 0x0080;
-        public int ColH { get; set; } = 0x00FF;
+        public int ColLSeed { get; set; } = 0x0080;
+        public int ColHSeed { get; set; } = 0x00FF;
         public ZxPaletteMode PaletteMode { get; set; } = ZxPaletteMode.Both;
         public bool IncludeBlackInHighColor { get; set; } = true;
-
         public bool AutoTune { get; set; } = true;  
         public bool DitherHighColor { get; set; } = true;
 
@@ -49,32 +50,28 @@ namespace ColourClashNet.Color.Transformation
 
             switch ( eProperty) 
             {
-                case ColorTransformProperties.Zx_ColL:
+                case ColorTransformProperties.Zx_ColL_Seed:
                     if (int.TryParse(oValue.ToString(), out var l))
                     {
-                        ColL= l;
-                        return this;
+                        ColLSeed= l;
                     }
                     break;
-                case ColorTransformProperties.Zx_ColH:
+                case ColorTransformProperties.Zx_ColH_Seed:
                     if (int.TryParse(oValue.ToString(), out var h))
                     {
-                        ColH = h;
-                        return this;
+                        ColHSeed = h;
                     }
                     break;
                 case ColorTransformProperties.Zx_DitherHighColor:
                     if (bool.TryParse(oValue?.ToString(), out var d))
                     {
                         DitherHighColor = d;    
-                        return this;    
                     }
                     break;
                 case ColorTransformProperties.Zx_IncludeBlackInHighColor:
                     if (bool.TryParse(oValue?.ToString(), out var b))
                     {
-                        DitherHighColor = b;
-                        return this;
+                        IncludeBlackInHighColor = b;
                     }
                     break;
                 case ColorTransformProperties.Zx_PaletteMode:
@@ -82,201 +79,250 @@ namespace ColourClashNet.Color.Transformation
                         if (Enum.TryParse<ZxPaletteMode>(oValue?.ToString(), out var eMode))
                         {
                             PaletteMode = eMode;
-                            return this;
+                        }
+                    }
+                    break;
+                case ColorTransformProperties.Zx_Autotune:
+                    {
+                        if (bool.TryParse(oValue?.ToString(), out var bAutotune))
+                        {
+                            AutoTune = bAutotune;
                         }
                     }
                     break;
                 default:
                     break;
             }
-            return null;
+            return this;
         }
 
-        ColorTransformationMap  CreateZxMap(int iCol, int iColOut, bool bUseBlack )
+
+        ColorTransformationMap CreateZxMap(int iColIn, int iColOut, bool bUseBlack)
         {
-            int iOffset = 0;
-            int iColR = iCol + 0 * iOffset;
-            int iColG = iCol + 1 * iOffset;
-            int iColB = iCol + 2 * iOffset;
-            if (iCol > 128)
-            {
-                iColR = iCol - 0 * iOffset;
-                iColG = iCol - 1 * iOffset;
-                iColB = iCol - 2 * iOffset;
-            }
             ColorTransformationMap oMap = new ColorTransformationMap();
             if (bUseBlack)
             {
                 oMap.Add(ColorIntExt.FromRGB(0, 0, 0), ColorIntExt.FromRGB(0, 0, 0));
             }
-            oMap.Add(ColorIntExt.FromRGB(0, 0, iColB), ColorIntExt.FromRGB(0, 0, iColOut));
-            oMap.Add(ColorIntExt.FromRGB(iColR, 0, 0), ColorIntExt.FromRGB(iColOut, 0, 0));
-            oMap.Add(ColorIntExt.FromRGB(iColR, 0, iColB), ColorIntExt.FromRGB(iColOut, 0, iColOut));
-            oMap.Add(ColorIntExt.FromRGB(0, iColG, 0), ColorIntExt.FromRGB(0, iColOut, 0));
-            oMap.Add(ColorIntExt.FromRGB(0, iColG, iColB), ColorIntExt.FromRGB(0, iColOut, iColOut));
-            oMap.Add(ColorIntExt.FromRGB(iColR, iColG, 0), ColorIntExt.FromRGB(iColOut, iColOut, 0));
-            oMap.Add(ColorIntExt.FromRGB(iColR, iColG, iColB), ColorIntExt.FromRGB(iColOut, iColOut, iColOut));
+            oMap.Add(ColorIntExt.FromRGB(0, 0, iColIn), ColorIntExt.FromRGB(0, 0, iColOut));
+            oMap.Add(ColorIntExt.FromRGB(iColIn, 0, 0), ColorIntExt.FromRGB(iColOut, 0, 0));
+            oMap.Add(ColorIntExt.FromRGB(iColIn, 0, iColIn), ColorIntExt.FromRGB(iColOut, 0, iColOut));
+            oMap.Add(ColorIntExt.FromRGB(0, iColIn, 0), ColorIntExt.FromRGB(0, iColOut, 0));
+            oMap.Add(ColorIntExt.FromRGB(0, iColIn, iColIn), ColorIntExt.FromRGB(0, iColOut, iColOut));
+            oMap.Add(ColorIntExt.FromRGB(iColIn, iColIn, 0), ColorIntExt.FromRGB(iColOut, iColOut, 0));
+            oMap.Add(ColorIntExt.FromRGB(iColIn, iColIn, iColIn), ColorIntExt.FromRGB(iColOut, iColOut, iColOut));
             return oMap;
         }
 
-       
-        //int[,]? CreateImage(int[,]? oDataSource, int iCol, int iColOut, bool bUseBlack, bool bDither, ColorDistanceEvaluationMode eColorMode, CancellationToken oToken )
-        //{
-        //    var oMap = CreateZxMap(iCol,iColOut, bUseBlack);
-        //    OutputPalette = new Palette();
-        //    foreach (var rgb in oMap.rgbTransformationMap)
-        //    {
-        //        OutputPalette.Add(rgb.Key);
-        //    }
-        //    var oOld = ColorDistanceEvaluationMode;
-        //    ColorDistanceEvaluationMode = eColorMode;
-        //    var oTmpData = base.ExecuteTransform(oDataSource, oToken );
-        //    ColorDistanceEvaluationMode = oOld;
-        //    if (bDither && Dithering != null)
-        //    {
-        //        oTmpData = Dithering.Dither(oDataSource, oTmpData, OutputPalette, eColorMode, oToken );
-        //    }
-        //    return oTmpData;
-        //}
+        async Task<TileManager> CreateAndProcessTilesAsync(Palette oPalette, bool bUseDithering, CancellationToken? oToken)
+        {
+            var oPreProcessing = new ColorTransformReductionPalette()
+                .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
+                .SetProperty(ColorTransformProperties.Fixed_Palette, oPalette)
+                .SetProperty(ColorTransformProperties.Dithering_Type, bUseDithering ? DitheringType : ColorDithering.None)
+                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
+            await oPreProcessing.CreateAsync(SourceData, oToken);
+            var oPreRes = await oPreProcessing.ProcessColorsAsync(oToken);
+            var oPreData = oPreRes.DataOut;
+            TileManager oTileManager = TileManager.Create(8, 8, 2)
+                .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
+                .SetProperty(ColorTransformProperties.Fixed_Palette, oPalette)
+                .SetProperty(ColorTransformProperties.Forced_Palette, oPalette)
+                .SetProperty(ColorTransformProperties.Dithering_Type, bUseDithering ? DitheringType : ColorDithering.None)
+                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
+            var retC = await oTileManager.CreateAsync(oPreData, oToken);
+            var retP = await oTileManager.ProcessColorsAsync(oToken);
+            this.TransformationError = await oTileManager.EvaluateImageErrorAsync(SourceData,oToken);
+            return oTileManager;
+        }
 
-        //TileManager CreateTiles(int[,]? oDataSource, int iCol, int iColOut, bool bUseBlack, bool bDither, ColorDistanceEvaluationMode eColorMode, CancellationToken oToken)
-        //{ 
-        //    TileManager oTileManager = new TileManager();
-        //    var oTmpData = CreateImage(oDataSource, iCol, iColOut, bUseBlack, bDither, eColorMode, oToken);
-        //    oTileManager.Init(oTmpData, 8, 8, 2, null, eColorMode, TileBase.EnumColorReductionMode.Detailed);
-        //    oTileManager.CreateTiles(oTmpData);
-        //    oTileManager.CalcExternalImageError(oDataSource);
-        //    return oTileManager;
-        //}
+        int[,] MergeTempImage(int[,] tempImage1, int[,] tempImage2)
+        {
+            if (tempImage1 == null || tempImage2 == null)
+                return null;
+            int R1 = tempImage1.GetLength(0);
+            int C1 = tempImage1.GetLength(1);
+            int R2 = tempImage2.GetLength(0);
+            int C2 = tempImage2.GetLength(1);
+            int R = Math.Max(R1, R2);
+            int C = C1 + C2;
+            var ret = new int[R, C];
+            for (int r = 0; r < R; r++)
+            {
+                if (r < R1)
+                {
+                    for (int c = 0; c < C1; c++)
+                    {
+                        ret[r,c] = tempImage1[r,c];
+                    }
+                }
+                if (r < R2)
+                {
+                    for (int c = 0; c < C2; c++)
+                    {
+                        ret[r, C1+c] = tempImage2[r, c];
+                    }
+                }
+            }
+            return ret;
+        }
 
-        //protected Tuple<int[,]?,double, ColorTransformationMap, ColorTransformationMap> ExecuteTransformZX(int[,]? oDataSource, int iColL, int iColH, CancellationToken oToken)
-        //{
-        //    if (oDataSource == null)
-        //        return null;
+        protected async Task<Tuple<int[,]?, double, TileManager, TileManager>>? ExecuteTransformZxAsync(int iColLSeed, int iColHSeed, CancellationToken? oToken)
+        {
+            var iil = iColLSeed;
+            var iih = iColHSeed;
+            int iol = iColOutL;
+            int ioh = iColOutH;
 
-        //    var icl = iColL;
-        //    var ich = iColH;
-        //    int iol = iColOutL;
-        //    int ioh = iColOutH;
-        //    switch (PaletteMode)
-        //    {
-        //        case ZxPaletteMode.PaletteHi:
-        //            icl = iColH;
-        //            iol = iColOutH;
-        //            break;
-        //        case ZxPaletteMode.PaletteLo:
-        //            ich = iColL;
-        //            ioh = iColOutL;
-        //            break;
-        //        default: 
-        //            break;
+            var zxMapLo = CreateZxMap(iil, iColLSeed, true);
+            var zxMapHi = CreateZxMap(iih, iColHSeed, IncludeBlackInHighColor);
+            var zxMap = new ColorTransformationMap();
+            List<Task<TileManager>> lTaskList = new();
 
-        //    }
+            switch (PaletteMode)
+            {
+                case ZxPaletteMode.PaletteHi:
+                    {
+                        zxMapHi = CreateZxMap(iih, iColHSeed, true);
+                        zxMap = zxMapHi;
+                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapHi.GetInputPalette(), true, oToken));
+                    }
+                    break;
+                case ZxPaletteMode.PaletteLo:
+                    {
+                        zxMap = zxMapLo;
+                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapLo.GetInputPalette(), DitherHighColor, oToken));
+                    }
+                    break;
+                case ZxPaletteMode.Both:
+                    {
+                        foreach (var rgbLO in zxMapLo.rgbTransformationMap)
+                        {
+                            zxMap.Add(rgbLO.Key, rgbLO.Value);
+                        }
+                        foreach (var rgbHI in zxMapHi.rgbTransformationMap)
+                        {
+                            zxMap.Add(rgbHI.Key, rgbHI.Value);
+                        }
+                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapLo.GetInputPalette(), true, oToken));
+                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapHi.GetInputPalette(), DitherHighColor, oToken));
+                    }
+                    break;
+                default:
+                    return null;
+            }
 
-        //    var oZxMapLO = CreateZxMap(icl, iol, true);
-        //    var oZxMapHI = CreateZxMap(ich, ioh, true);
+            await Task.WhenAll(lTaskList);
+            var lTM = lTaskList.Select(X => X.Result).ToList();
+            var oResultData = await TileManager.MergeDataAsync(SourceData, lTM, oToken);
+            var oRestltDataMapped = await zxMap.TransformAsync(oResultData, oToken);
+            var dError = await ColorIntExt.EvaluateErrorAsync( SourceData, oResultData, ColorDistanceEvaluationMode, oToken);
+            if (lTM.Count == 1)
+            {
+                return new Tuple<int[,]?, double, TileManager, TileManager>(oResultData, dError, lTaskList[0].Result, null);
+            }
+            else
+            {
+                return new Tuple<int[,]?, double, TileManager, TileManager>(oResultData, dError, lTaskList[0].Result, lTaskList[1].Result);
+            }
+        }
 
-        //    BypassDithering = true;
+        object locker = new object();
 
-        //    List<TileManager> lTM = new List<TileManager>();
-        //    TileManager oTileManagerL1 = CreateTiles(oDataSource, icl, iol, true, true, ColorDistanceEvaluationMode, oToken);
-        //    TileManager oTileManagerH1 = CreateTiles(oDataSource, ich, ioh, IncludeBlackInHighColor, DitherHighColor, ColorDistanceEvaluationMode, oToken );
-        //    lTM.Add(oTileManagerL1);    
-        //    lTM.Add(oTileManagerH1);
+        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
+        {
+            string sMethod = nameof(ExecuteTransformAsync);
 
-        //    var oTileRet = TileManager.MergeData(oDataSource, lTM, TileBase.EnumErrorSourceMode.ExternalImageError);
-          
-        //    ColorTransformationMapper.Reset();
-        //    foreach (var rgb in oZxMapLO.rgbTransformationMap)
-        //    {
-        //        ColorTransformationMapper.Add(rgb.Key, rgb.Value);
-        //    }
-        //    foreach (var rgb in oZxMapHI.rgbTransformationMap)
-        //    {
-        //        ColorTransformationMapper.Add(rgb.Key, rgb.Value);
-        //    }
+            BypassDithering = true;
 
-        //    var oRet = ExecuteStdTransform(oTileRet, this, oToken);
-        //    var dError = ColorTransformBase.EvaluateError(oDataSource, oTileRet, ColorDistanceEvaluationMode);
-        //    return new Tuple<int[,]?, double, ColorTransformationMap, ColorTransformationMap>(oTileRet, dError, oZxMapLO, oZxMapHI);
-        //}
+            if (!AutoTune)
+            {
+                var oTuple = await ExecuteTransformZxAsync(ColLSeed, ColHSeed, oToken);
+                return ColorTransformResults.CreateValidResult(SourceData, oTuple.Item1);
+            }
 
-        //object locker = new object();
+            // Processing Color Range - [LBest, HBest]
+            int LBest = ColLSeed;
+            int HBest = ColHSeed;
+            var oBest = await ExecuteTransformZxAsync(LBest, HBest, oToken);
+            var dMinError = oBest.Item2;
+            var dError = double.PositiveInfinity;
+            int iL = 0;
+            int iH = 5000;
+            int iStep = 0;
+            bool bExit = false;
+            int[,] tempImage = MergeTempImage(oBest.Item1, oBest.Item1);
+            RaiseProcessPartialEvent(new ColorTransformEventArgs()
+            {
+                ColorTransformInterface = this,
+                CompletedPercent = 0,
+                TempImage = tempImage,
+                Message = "First Tuning",
+            });
+            while (!bExit)// (iL + 1) <= iH && dError <= dMinError)
+            {
+                iL = LBest + 8;
+                iH = HBest - 8;
+                List<Task<Tuple<int[,]?, double, TileManager, TileManager>>> tasklist = new();
+                tasklist.Add(Task.Run(async () => await ExecuteTransformZxAsync(iL, HBest, oToken)));
+                tasklist.Add(Task.Run(async () => await ExecuteTransformZxAsync(LBest, iH, oToken)));
+                await Task.WhenAll(tasklist);
+                var oBaseL = tasklist[0].Result;// await ExecuteTransformZxAsync(iL, HBest, oToken);
+                var oBaseH = tasklist[1].Result;// await ExecuteTransformZxAsync(LBest, iH, oToken);
 
-        //protected override int[,]? ExecuteTransform(int[,]? oDataSource, CancellationToken oToken)
-        //{
-        //    string sMethod = nameof(ExecuteTransform);
+                tempImage = MergeTempImage(oBaseL.Item1, oBaseH.Item1);
+                RaiseProcessPartialEvent(new ColorTransformEventArgs()
+                {
+                    ColorTransformInterface = this,
+                    CompletedPercent = 100.0 * (++iStep) * 8.0 / 256.0,
+                    Message = $"Step {iStep} : Autotuning between [{iL},{HBest}] - [{LBest},{iH}]",
+                    TempImage = tempImage,
+                    //ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, tasklist[0].Result.Item1)
+                });
+                var dErrL = oBaseL.Item2;
+                var dErrH = oBaseH.Item2;
+                if (dErrL < dErrH)
+                {
+                    LBest = iL;
+                    if (dErrL < dMinError)
+                    {
+                        ColLSeed = iL;
+                        oBest = oBaseL;
+                    }
+                }
+                else
+                {
+                    HBest = iH;
+                    if (dErrH < dMinError)
+                    {
+                        ColHSeed = iH;
+                        oBest = oBaseH;
+                    }
+                }
+                dError = Math.Min(dErrL, dErrH);
+                LogMan.Message(sClass, sMethod, $"Working with : LO = {iL:D3} and HI = {iH:D3} : Error = {dError:f2} --- Best Error = {oBest.Item2:f2}");
+                if (iH < iL)
+                    bExit = true;
+                if (dError > dMinError)
+                    bExit = true;
+                else
+                {
+                    dMinError = dError;
+                }
+            }
 
-        //    if (oDataSource == null)
-        //        return null;
-
-        //    BypassDithering = true;
-
-        //    if (!AutoTune)
-        //    {
-        //        return ExecuteTransformZX(oDataSource, ColL,ColH, oToken).Item1;
-        //    }
-
-
-        //    int LBest = ColL;
-        //    int HBest = ColH;
-        //    var oBest = ExecuteTransformZX(oDataSource, LBest, HBest, oToken);
-        //    var dMinError = oBest.Item2;
-        //    var dError = double.PositiveInfinity;
-        //    int iL = 0;
-        //    int iH = 5000;
-        //    bool bExit = false;
-        //    while (!bExit)// (iL + 1) <= iH && dError <= dMinError)
-        //    {
-        //        iL = LBest + 8;
-        //        iH = HBest - 8;
-        //        var oBaseL = ExecuteTransformZX(oDataSource, iL, HBest, oToken);
-        //        var oBaseH = ExecuteTransformZX(oDataSource, LBest, iH, oToken);
-        //        var dErrL = oBaseL.Item2;
-        //        var dErrH = oBaseH.Item2;
-        //        if (dErrL < dErrH)
-        //        {
-        //            LBest = iL;
-        //            if (dErrL < dMinError)
-        //            {
-        //                ColL = iL;
-        //                oBest = oBaseL;
-        //            }
-        //        }
-        //        else
-        //        {
-        //            HBest = iH;
-        //            if (dErrH < dMinError)
-        //            {
-        //                ColH = iH;
-        //                oBest = oBaseH;
-        //            }
-        //        }
-        //        dError = Math.Min(dErrL, dErrH);
-        //        LogMan.Message(sClass, sMethod, $"Working with : LO = {iL:D3} and HI = {iH:D3} : Error = {dError:f2} --- Best Error = {oBest.Item2:f2}");
-        //        if (iH < iL)
-        //            bExit = true;
-        //        if (dError > dMinError )
-        //            bExit = true;
-        //        if (dMinError > dError)
-        //        {
-        //            dMinError = dError;
-        //        }
-        //    }
-
-        //    ColorTransformationMapper.Reset();
-        //    foreach (var rgb in oBest.Item3.rgbTransformationMap)
-        //    {
-        //        ColorTransformationMapper.Add(rgb.Key, rgb.Value);
-        //    }
-        //    foreach (var rgb in oBest.Item4.rgbTransformationMap)
-        //    {
-        //        ColorTransformationMapper.Add(rgb.Key, rgb.Value);
-        //    }
-
-        //    var oRet = ExecuteStdTransform(oBest.Item1, this, oToken);
-        //    return oRet;
-        //}
+            TransformationMap.Reset();
+            BypassDithering = true;
+            var oFinalData = oBest.Item1;
+            if (oFinalData != null)
+            {
+                return ColorTransformResults.CreateValidResult(SourceData, oFinalData);
+            }
+            else
+            {
+                return ColorTransformResults.CreateErrorResult("Error creating final data");
+            }
+        }
 
 
 
