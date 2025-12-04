@@ -91,8 +91,8 @@ namespace ColourClashNet.Drawing
                 //.SetProperty(ColorTransformProperties.UseFixedPalette, )
                 .SetProperty(ColorTransformProperties.Zx_ColH_Seed, ZxEqColorHI)
                 .SetProperty(ColorTransformProperties.Zx_ColL_Seed, ZxEqColorLO)
-                .SetProperty(ColorTransformProperties.Zx_DitherHighColor, ZxEqDitherHI)
-                .SetProperty(ColorTransformProperties.Zx_IncludeBlackInHighColor, ZxEqBlackHI)
+                .SetProperty(ColorTransformProperties.Zx_DitherHighColorImage, ZxEqDitherHI)
+                .SetProperty(ColorTransformProperties.Zx_IncludeBlackInHighColorImage, ZxEqBlackHI)
                 .SetProperty(ColorTransformProperties.Zx_Autotune, ZxEqAutotune);
 
                 //.SetProperty(ColorTransformProperties.Zx_PaletteMode, ZxEqBlackHI)

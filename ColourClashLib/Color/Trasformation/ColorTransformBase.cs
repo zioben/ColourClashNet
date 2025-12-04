@@ -340,12 +340,12 @@ namespace ColourClashNet.Color.Transformation
                 var oRetRes = new ColorTransformResults();
                 if (BypassDithering || oHash.Count > 512 || DitheringType == ColorDithering.None)
                 {
-                    if(BypassDithering)
-                        LogMan.Message(sC, sM, $"{Name} : Processing Completed - {DitheringType} : Bypass dithering");
-                    else if (DitheringType == ColorDithering.None)
-                        LogMan.Message(sC, sM, $"{Name} : Processing Completed - {DitheringType} : No dithering");
-                    else
-                        LogMan.Message(sC, sM, $"{Name} : Processing Completed - {DitheringType} : Too many input colors : {oHash.Count}");
+                    //if(BypassDithering)
+                    //    LogMan.Message(sC, sM, $"{Name} : Processing Completed - {DitheringType} : Bypass dithering");
+                    //else (DitheringType == ColorDithering.None)
+                    //    LogMan.Message(sC, sM, $"{Name} : Processing Completed - {DitheringType} : No dithering");
+                    if(oHash.Count > 512)
+                        LogMan.Warning(sC, sM, $"{Name} : Processing Completed - {DitheringType} : Too many input colors : {oHash.Count}");
 
                     outputDataContainer = processedDataContainer;
                     oRetRes = ColorTransformResults.CreateValidResult(SourceData, OutputData);

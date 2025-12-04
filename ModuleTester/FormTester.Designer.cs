@@ -59,6 +59,7 @@
             bitmapRender1 = new ColourClashNet.Components.BitmapRender(components);
             bitmapRender2 = new ColourClashNet.Components.BitmapRender(components);
             openLoadImage = new OpenFileDialog();
+            oTimerLog = new System.Windows.Forms.Timer(components);
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -411,6 +412,12 @@
             bitmapRender2.MouseMovingButton = MouseButtons.Left;
             bitmapRender2.MouseSelectButton = MouseButtons.Right;
             // 
+            // oTimerLog
+            // 
+            oTimerLog.Enabled = true;
+            oTimerLog.Interval = 500;
+            oTimerLog.Tick += oTimerLog_Tick;
+            // 
             // FormTester
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -463,5 +470,6 @@
         private Button btnLoad;
         private OpenFileDialog openLoadImage;
         private ComboBox cbColorMode;
+        private System.Windows.Forms.Timer oTimerLog;
     }
 }

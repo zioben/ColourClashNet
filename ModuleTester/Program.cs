@@ -15,7 +15,7 @@ namespace ModuleTester
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
             LogMan.Create();
-            LogMan.MinLogLevel = ColourClashNet.Log.LogLevel.Warning;
+            LogMan.MinLogLevel = ColourClashNet.Log.LogLevel.Message;
             Application.Run(new FormTester());
         }
     }

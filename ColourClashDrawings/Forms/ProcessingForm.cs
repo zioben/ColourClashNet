@@ -44,7 +44,14 @@ namespace ModuleTester
                 }
                 if (oArgs?.ProcessingResults?.DataOut != null)
                 {
-                    picImageTemp.Image = ImageTools.ToBitmap(oArgs.ProcessingResults.DataOut);
+                    if (oArgs.TempImage != null)
+                    {
+                        picImageTemp.Image = ImageTools.ToBitmap(oArgs.TempImage);
+                    }
+                    else
+                    {
+                        picImageTemp.Image = ImageTools.ToBitmap(oArgs.ProcessingResults.DataOut);
+                    }
                 }
                 if (!double.IsNaN(oArgs.CompletedPercent))
                 {

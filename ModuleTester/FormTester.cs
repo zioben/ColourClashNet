@@ -2,6 +2,8 @@
 using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
+using ColourClashNet.Log;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
 namespace ModuleTester
@@ -16,6 +18,14 @@ namespace ModuleTester
             bitmapRender1.Control = pictureBox1;
             bitmapRender2.Control = pictureBox2;
             CreateCombo();
+            LogMan.OnLogMessage += LogMan_OnLogMessage;
+        }
+
+        ConcurrentQueue<string> oLogBag = new ConcurrentQueue<string>();
+
+        private void LogMan_OnLogMessage(object? sender, LogEventArgs e)
+        {
+            oLogBag.Enqueue(e.Message);
         }
 
         void CreateCombo()
@@ -178,8 +188,8 @@ namespace ModuleTester
 
         async Task TestTransformSpectrum()
         {
-            bool bAtuotune = false;
-            ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum oTrasf = new();
+            bool bAtuotune = true;
+            ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrumV2 oTrasf = new();
             if (bAtuotune)
             {
                 oTrasf.SetProperty(ColorTransformProperties.Zx_ColL_Seed, 0x0000);
@@ -191,9 +201,9 @@ namespace ModuleTester
                 oTrasf.SetProperty(ColorTransformProperties.Zx_ColH_Seed, 0x00FF);
             }
             oTrasf.SetProperty(ColorTransformProperties.Zx_Autotune, bAtuotune);
-            oTrasf.SetProperty(ColorTransformProperties.Zx_DitherHighColor, true);
-            oTrasf.SetProperty(ColorTransformProperties.Zx_IncludeBlackInHighColor, true);
-            oTrasf.SetProperty(ColorTransformProperties.Zx_PaletteMode, ColorTransformReductionZxSpectrum.ZxPaletteMode.PaletteLo);
+            oTrasf.SetProperty(ColorTransformProperties.Zx_DitherHighColorImage, true);
+            oTrasf.SetProperty(ColorTransformProperties.Zx_IncludeBlackInHighColorImage, true);
+            oTrasf.SetProperty(ColorTransformProperties.Zx_PaletteMode, ColorTransformReductionZxSpectrum.ZxPaletteMode.Both);
             await ProcessAsync(oTrasf);
         }
 
@@ -313,6 +323,19 @@ namespace ModuleTester
             }
             catch (Exception ex)
             {
+            }
+        }
+
+       
+        private void oTimerLog_Tick(object sender, EventArgs e)
+        {
+            while (oLogBag.TryDequeue( out var s ) )
+            {
+                listBox1.Items.Insert(0, s);
+            }
+            if (listBox1.Items.Count > 100)
+            {
+                listBox1.Items.RemoveAt(99);
             }
         }
     }

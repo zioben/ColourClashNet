@@ -16,9 +16,9 @@ using ColourClashNet.Log;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformReductionZxSpectrum : ColorTransformReductionPalette
+    public class ColorTransformReductionZxSpectrumV2 : ColorTransformReductionPalette
     {
-        static string sClass = nameof(ColorTransformReductionZxSpectrum);
+        static string sClass = nameof(ColorTransformReductionZxSpectrumV2);
 
         public enum ZxPaletteMode
         { 
@@ -27,22 +27,22 @@ namespace ColourClashNet.Color.Transformation
             Both = 2,
         }
 
-        public ColorTransformReductionZxSpectrum()
+        public ColorTransformReductionZxSpectrumV2()
         {
             Type = ColorTransformType.ColorReductionZxSpectrum;
             Description = "Reduce color to ZX Spectrum color map and apply Colourclash reduction";
         }
 
 
-        public int ColLSeed { get; set; } = 0x0080;
-        public int ColHSeed { get; set; } = 0x00FF;
+        public int ZxLowColorInSeed { get; set; } = 0x0080;
+        public int ZxHighColorInSeed { get; set; } = 0x00FF;
         public ZxPaletteMode PaletteMode { get; set; } = ZxPaletteMode.Both;
         public bool IncludeBlackInHighColor { get; set; } = true;
-        public bool AutoTune { get; set; } = true;  
-        public bool DitherHighColor { get; set; } = true;
-
-        public int ZxColorOutSeedL { get; init; } = 0x00D8;
-        public int ZxColorOutSeedH { get; init; } = 0x00FF;
+        public bool AutoTune { get; set; } = true;
+        public bool DitherLowColorImage { get; set; } = true;
+        public bool DitherHighColorImage { get; set; } = true;
+        public int ZxLowColorOutSeed { get; init; } = 0x00D8;
+        public int ZxHighColorOutSeed { get; init; } = 0x00FF;
 
         public override ColorTransformInterface SetProperty( ColorTransformProperties eProperty, object oValue )
         {
@@ -53,19 +53,25 @@ namespace ColourClashNet.Color.Transformation
                 case ColorTransformProperties.Zx_ColL_Seed:
                     if (int.TryParse(oValue.ToString(), out var l))
                     {
-                        ColLSeed= l;
+                        ZxLowColorInSeed = l;
                     }
                     break;
                 case ColorTransformProperties.Zx_ColH_Seed:
                     if (int.TryParse(oValue.ToString(), out var h))
                     {
-                        ColHSeed = h;
+                        ZxHighColorInSeed = h;
+                    }
+                    break;
+                case ColorTransformProperties.Zx_DitherLowColorImage:
+                    if (bool.TryParse(oValue?.ToString(), out var bLow))
+                    {
+                        DitherHighColorImage = bLow;
                     }
                     break;
                 case ColorTransformProperties.Zx_DitherHighColorImage:
-                    if (bool.TryParse(oValue?.ToString(), out var d))
+                    if (bool.TryParse(oValue?.ToString(), out var bHigh))
                     {
-                        DitherHighColor = d;    
+                        DitherHighColorImage = bHigh;    
                     }
                     break;
                 case ColorTransformProperties.Zx_IncludeBlackInHighColorImage:
@@ -132,7 +138,7 @@ namespace ColourClashNet.Color.Transformation
                 .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
             var retC = await oTileManager.CreateAsync(oPreData, oToken);
             var retP = await oTileManager.ProcessColorsAsync(oToken);
-            this.TransformationError = await oTileManager.EvaluateImageErrorAsync(SourceData,oToken);
+            await oTileManager.EvaluateImageErrorAsync(SourceData,oToken);
             return oTileManager;
         }
 
@@ -169,8 +175,8 @@ namespace ColourClashNet.Color.Transformation
 
         protected async Task<Tuple<int[,]?, double, TileManager, TileManager>>? ExecuteTransformZxAsync(int iColLSeed, int iColHSeed, CancellationToken? oToken)
         {
-            var zxMapLo = CreateZxMap(iColLSeed, ZxColorOutSeedL, true);
-            var zxMapHi = CreateZxMap(iColHSeed, ZxColorOutSeedH, IncludeBlackInHighColor);
+            var zxMapLo = CreateZxMap(iColLSeed, ZxLowColorOutSeed, true);
+            var zxMapHi = CreateZxMap(iColHSeed, ZxHighColorOutSeed, IncludeBlackInHighColor);
             var zxMap = new ColorTransformationMap();
             List<Task<TileManager>> lTaskList = new();
 
@@ -181,13 +187,13 @@ namespace ColourClashNet.Color.Transformation
                     {
                         //zxMapHi = CreateZxMap(iColHSeed, iColHSeed, true);
                         zxMap = zxMapHi;
-                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapHi.GetInputPalette(), true, oToken));
+                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapHi.GetInputPalette(), DitherLowColorImage, oToken));
                     }
                     break;
                 case ZxPaletteMode.PaletteLo:
                     {
                         zxMap = zxMapLo;
-                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapLo.GetInputPalette(), DitherHighColor, oToken));
+                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapLo.GetInputPalette(), DitherHighColorImage, oToken));
                     }
                     break;
                 case ZxPaletteMode.Both:
@@ -200,8 +206,8 @@ namespace ColourClashNet.Color.Transformation
                         {
                             zxMap.Add(rgbHI.Key, rgbHI.Value);
                         }
-                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapLo.GetInputPalette(), true, oToken));
-                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapHi.GetInputPalette(), DitherHighColor, oToken));
+                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapLo.GetInputPalette(), DitherLowColorImage, oToken));
+                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapHi.GetInputPalette(), DitherHighColorImage, oToken));
                     }
                     break;
                 default:
@@ -238,13 +244,14 @@ namespace ColourClashNet.Color.Transformation
 
             if (!AutoTune)
             {
-                var oTuple = await ExecuteTransformZxAsync(ColLSeed, ColHSeed, oToken);
+                var oTuple = await ExecuteTransformZxAsync(ZxLowColorInSeed, ZxHighColorInSeed, oToken);
+                TransformationError = oTuple.Item2;
                 return ColorTransformResults.CreateValidResult(SourceData, oTuple.Item1);
             }
 
             // Processing Color Range - [LBest, HBest]
-            int LBest = ColLSeed;
-            int HBest = ColHSeed;
+            int LBest = ZxLowColorInSeed;
+            int HBest = ZxHighColorInSeed;
             var oBest = await ExecuteTransformZxAsync(LBest, HBest, oToken);
             var dMinError = oBest.Item2;
             var dError = double.PositiveInfinity;
@@ -283,26 +290,29 @@ namespace ColourClashNet.Color.Transformation
                 });
                 var dErrL = oResultL.Item2;
                 var dErrH = oResultH.Item2;
+                LogMan.Warning(sClass, sMethod, $"------------------------------------");
+                LogMan.Warning(sClass, sMethod, $"Ref   error = {dMinError:f1} [{LBest} - {HBest}]");
+                LogMan.Warning(sClass, sMethod, $"L-Err error = {dErrL:f1} [{iL} - {HBest}]");
+                LogMan.Warning(sClass, sMethod, $"H-Err error = {dErrH:f1} [{LBest} - {iH}]");
                 if (dErrL < dErrH)
                 {
-                    LBest = iL;
+                    HBest = iH;
                     if (dErrL < dMinError)
                     {
-                        ColLSeed = iL;
-                        oBest = oResultL;
+                        ZxHighColorInSeed = iH;
+                        oBest = oResultH;
                     }
                 }
                 else
                 {
-                    HBest = iH;
+                    LBest = iL;
                     if (dErrH < dMinError)
                     {
-                        ColHSeed = iH;
-                        oBest = oResultH;
+                        ZxLowColorInSeed = iL;
+                        oBest = oResultL;
                     }
                 }
                 dError = Math.Min(dErrL, dErrH);
-                LogMan.Message(sClass, sMethod, $"Working with : LO = {iL:D3} and HI = {iH:D3} : Error = {dError:f2} --- Best Error = {oBest.Item2:f2}");
                 if (iH < iL)
                     bExit = true;
                 if (dError > dMinError)
