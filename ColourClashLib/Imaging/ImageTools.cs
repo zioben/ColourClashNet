@@ -20,10 +20,25 @@ namespace ColourClashNet.Imaging
     {
         static string sClass = nameof(ImageTools);
 
-       
+        #region Width Alignment
 
-        static int GetImageWidthAligned(int iW, ImageWidthAlignMode ePixelWidthAlign)
+        /// <summary>
+        /// Calculates the adjusted image width based on the specified pixel alignment mode.
+        /// </summary>
+        /// <remarks>Use this method to ensure that image widths conform to hardware or format
+        /// requirements that mandate alignment to specific pixel multiples, such as 16, 32, or 64 pixels. If an
+        /// unrecognized alignment mode is specified, the original width is returned without adjustment.</remarks>
+        /// <param name="iW">The original width of the image, in pixels. Must be greater than 0.</param>
+        /// <param name="ePixelWidthAlign">The alignment mode that determines how the width should be adjusted. Specifies the pixel boundary to which
+        /// the width will be aligned.</param>
+        /// <returns>The image width aligned to the specified pixel boundary. Returns 0 if the original width is less than or
+        /// equal to 0.</returns>
+        static public int GetImageNewWidthAlign(int iW, ImageWidthAlignMode ePixelWidthAlign)
         {
+            if (iW <= 0)
+            {
+                return 0;
+            }
             switch (ePixelWidthAlign)
             {
                 case ImageWidthAlignMode.MultiplePixel16:
@@ -32,325 +47,146 @@ namespace ColourClashNet.Imaging
                     return (iW + 31) & (~0x0000001F);
                 case ImageWidthAlignMode.MultiplePixel64:
                     return (iW + 63) & (~0x0000003F);
-                    break;
                 default:
                     break;
             }
             return iW;
         }
 
-        static int GetImageWidthAlign(Bitmap oImage, ImageWidthAlignMode ePixelWidthAlign)
+        /// <summary>
+        /// Calculates the width of the specified image adjusted to the given pixel alignment mode.
+        /// </summary>
+        /// <param name="oImage">The image whose width is to be aligned. If null, a width of 0 is used.</param>
+        /// <param name="ePixelWidthAlign">The alignment mode that determines how the image width should be adjusted.</param>
+        /// <returns>The width of the image, adjusted according to the specified alignment mode.</returns>
+        static public int GetImageNewWidthAlign(Bitmap oImage, ImageWidthAlignMode ePixelWidthAlign)
         {
-            return GetImageWidthAligned(oImage?.Width ?? 0, ePixelWidthAlign);
+            return GetImageNewWidthAlign(oImage?.Width ?? 0, ePixelWidthAlign);
         }
 
-
-        static public byte[,] CreateIndexedData(int[,] mDataSrc, List<List<int>> llPaletteSrc, ImageWidthAlignMode ePixelWidthAlign)
+        /// <summary>
+        /// Calculates the new width of an image, adjusted according to the specified pixel width alignment mode.
+        /// </summary>
+        /// <param name="oImage">The image data for which to calculate the aligned width. If null, a width of 0 is used.</param>
+        /// <param name="ePixelWidthAlign">The alignment mode that determines how the image width should be adjusted.</param>
+        /// <returns>The width of the image, aligned according to the specified alignment mode.</returns>
+        static public int GetImageNewWidthAlign(ImageData oImage, ImageWidthAlignMode ePixelWidthAlign)
         {
-            if (mDataSrc == null)
-                return null;
-
-            int R = mDataSrc.GetLength(0);
-            int C = mDataSrc.GetLength(1);
-            int CO = GetImageWidthAligned(C, ePixelWidthAlign);
-
-            if (llPaletteSrc == null || llPaletteSrc.Count != R)
-                return null;
-
-            var oRet = new byte[R, CO];
-            for (int y = 0; y < R; y++)
-            {
-                for (int x = 0; x < C; x++)
-                {
-                    var col = mDataSrc[y, x];
-                    var idx = llPaletteSrc[y].IndexOf(col);
-                    oRet[y, x] = (byte)(idx >= 0 && idx < 256 ? idx : ColorDefaults.DefaultInvalidColorInt);
-                }
-            }
-            return oRet;
+            return GetImageNewWidthAlign(oImage?.Width ?? 0, ePixelWidthAlign);
         }
 
+        /// <summary>
+        /// Returns the standard image width alignment mode used by the system.
+        /// </summary>
+        /// <returns>The default <see cref="ImageWidthAlignMode"/> value that specifies the standard alignment for image widths.</returns>
+        static public ImageWidthAlignMode GetImageStdWidthAlign() => ImageWidthAlignMode.MultiplePixel16;
 
-        static public ImageWidthAlignMode GetImageWidthStdAlignMode()
+        #endregion
+
+        #region Indexed Data Creation
+
+        /// <summary>
+        /// Creates a two-dimensional byte array representing indexed image data, mapping each color value in the source
+        /// matrix to its corresponding palette index.
+        /// </summary>
+        /// <remarks>If a color value in the source matrix does not exist in the palette or the palette
+        /// contains fewer than 256 colors, the corresponding output value is set to 255; otherwise, it is set to 0. The
+        /// width of each row in the output array may be increased to satisfy the specified alignment mode.</remarks>
+        /// <param name="mData">A two-dimensional array containing the source color values to be indexed. Each element represents a color
+        /// value to be mapped to the palette.</param>
+        /// <param name="lPalette">A list of integer color values representing the palette. Each unique color in the palette is assigned an
+        /// index used in the output array.</param>
+        /// <param name="ePixelWidthAlign">Specifies the alignment mode to use for the width of the output image data. Determines how the width of each
+        /// row in the output array is aligned.</param>
+        /// <returns>A two-dimensional byte array where each element contains the palette index corresponding to the color value
+        /// in the source matrix. Returns null if the input data or palette is null, or if an error occurs.</returns>
+        static public byte[,]? CreateIndexedData(int[,] mData, List<int> lPalette, ImageWidthAlignMode ePixelWidthAlign)
         {
-            return ImageWidthAlignMode.MultiplePixel16;
-        }
-
-        static public byte[,] CreateIndexedData(int[,] mDataSrc, List<int> lPaletteSrc, ImageWidthAlignMode ePixelWidthAlign)
-        {
-            if (mDataSrc == null)
-                return null;
-
-            int R = mDataSrc.GetLength(0);
-
-            List<List<int>> llPaletteSrc = new List<List<int>>(R);
-            for (int r = 0; r < R; r++)
-                llPaletteSrc.Add(lPaletteSrc);
-
-            return CreateIndexedData(mDataSrc, llPaletteSrc, ePixelWidthAlign);
-        }
-
-
-        //unsafe static public Bitmap ToBitmapIndexed(int[,] mDataSrc, List<int> lPaletteSrc, ImageWidthAlignMode ePixelWidthAlign)
-        //{
-        //    if (mDataSrc == null)
-        //        return null;
-        //    if (lPaletteSrc == null || lPaletteSrc.Count == 0)
-        //        return null;
-        //    int HD = mDataSrc.GetLength(0);
-        //    int WD = mDataSrc.GetLength(1);
-
-        //    int WI = GetImageWidthAlign(WD, ePixelWidthAlign);
-        //    var oImageDst = new Bitmap(WI, HD, PixelFormat.Format8bppIndexed);
-
-        //    ColorPalette oPalette = oImageDst.Palette;
-        //    for (int i = 0; i < oImageDst.Palette.Entries.Length; i++)
-        //    {
-        //        oPalette.Entries.SetValue(System.Drawing.Color.Black, i);
-        //    }
-        //    for (int i = 0; i < Math.Min(lPaletteSrc.Count, oImageDst.Palette.Entries.Length); i++)
-        //    {
-        //        oPalette.Entries.SetValue(ColorIntExt.ToDrawingColor(lPaletteSrc[i]), i);
-        //    }
-        //    oImageDst.Palette = oPalette;
-
-        //    var oLockDst = oImageDst.LockBits(new Rectangle(0, 0, oImageDst.Width, oImageDst.Height), ImageLockMode.WriteOnly, oImageDst.PixelFormat);
-        //    for (int y = 0; y < HD; y++)
-        //    {
-        //        byte* pucData = (byte*)(oLockDst.Scan0 + oLockDst.Stride * y);
-        //        for (int x = 0; x < WD; x++)
-        //        {
-        //            var col = mDataSrc[y, x];
-        //            var idx = lPaletteSrc.IndexOf(col);
-        //            pucData[x] = (byte)(idx >= 0 && idx < 256 ? idx : 0);
-        //        }
-        //    }
-        //    oImageDst.UnlockBits(oLockDst);
-        //    return oImageDst;
-        //}
-
-
-        #region Image Export
-
-        static string GetfileExt(ImageExportFormat eFormat)
-        {
-            switch (eFormat)
-            {
-                case ImageExportFormat.Bmp24:
-                    return ".bmp";
-                case ImageExportFormat.BmpIndex:
-                    return ".bmp";
-                case ImageExportFormat.Png24:
-                    return ".png";
-                case ImageExportFormat.PngIndex:
-                    return ".png";
-                case ImageExportFormat.CbmAmigaRawBitplane:
-                case ImageExportFormat.CbmAmigaRawBitplaneCopperlist:
-                case ImageExportFormat.CbmAmigaRawBitplaneInterleaved:
-                case ImageExportFormat.CbmAmigaRawBitplaneInterleavedCopperlist:
-                    return ".bpl";
-                default:
-                    return ".bin";
-            }
-        }
-
-        public static bool Export(Bitmap oImage, string sFileName, ImageExportFormat eFormat)
-        {
-            if (oImage == null)
-                return false;
+            string sMethod = nameof(CreateIndexedData);
             try
             {
-                switch (eFormat)
+                if (mData == null)
                 {
-                    case ImageExportFormat.Bmp24:
-                        {
-                            using (var oImage2 = new Bitmap(oImage.Width, oImage.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb))
-                            using (Graphics g = Graphics.FromImage(oImage2))
-                            {
-                                g.DrawImage(oImage, 0, 0, oImage.Width, oImage.Height);
-                                var oBmpEncoder = ImageCodecInfo.GetImageEncoders();
-                                oImage2.Save(sFileName + ".bmp", ImageFormat.Bmp);
-                                return true;
-                            }
-                        }
-                    case ImageExportFormat.Png24:
-                        {
-                            using (var oImage2 = new Bitmap(oImage.Width, oImage.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb))
-                            using (Graphics g = Graphics.FromImage(oImage2))
-                            {
-                                g.DrawImage(oImage, 0, 0, oImage.Width, oImage.Height);
-                                var oBmpEncoder = ImageCodecInfo.GetImageEncoders();
-                                oImage2.Save(sFileName + ".png", ImageFormat.Png);
-                                return true;
-                            }
-                        }
-                    case ImageExportFormat.BmpIndex:
-                        {
-                            oImage.Save(sFileName + ".bmp", ImageFormat.Bmp);
-                            return true;
-                        }
-                    case ImageExportFormat.PngIndex:
-                        {
-                            oImage.Save(sFileName + ".png", ImageFormat.Png);
-                            return true;
-                        }
-                    default:
-                        return false;
+                    LogMan.Error(sClass, sMethod, "Source data matrix is null");
+                    return null;
                 }
+                if (lPalette == null)
+                {
+                    LogMan.Error(sClass, sMethod, "Source palette list is null");
+                    return null;
+                }
+                int invalidColorIndex = lPalette.Count < 255 ? 255 : 0;
+
+                int R = mData.GetLength(0);
+                int C = mData.GetLength(1);
+                int CO = GetImageNewWidthAlign(C, ePixelWidthAlign);            
+
+                var oRet = new byte[R, CO];
+                for (int y = 0; y < R; y++)
+                {
+                    for (int x = 0; x < C; x++)
+                    {
+                        var col = mData[y, x];
+                        var idx = lPalette.IndexOf(col);
+                        oRet[y, x] = (byte)(idx >= 0 && idx < 256 ? idx : invalidColorIndex);
+                    }
+                    // for (int x = C; x < CO; x++)
+                    // {
+                    //     oRet[y, x] = (Byte)invalidColorIndex;
+                    // }
+                }
+                return oRet;
             }
             catch (Exception ex)
             {
-                return false;
+                LogMan.Exception(sClass, sMethod, ex);
+                return null;
             }
-
         }
+
+        /// <summary>
+        /// Creates a two-dimensional byte array representing indexed image data from the specified source matrix and
+        /// palette, using the given pixel width alignment mode.
+        /// </summary>
+        /// <param name="mData">A two-dimensional array of integers representing the source pixel data to be converted to indexed format.</param>
+        /// <param name="oPalette">The palette to use for mapping source pixel values to palette indices. Cannot be null.</param>
+        /// <param name="ePixelWidthAlign">Specifies how the width of each image row is aligned in the resulting indexed data.</param>
+        /// <returns>A two-dimensional byte array containing the indexed image data, where each value corresponds to a palette
+        /// index.</returns>
+        static public byte[,] CreateIndexedData(int[,] mData, Palette oPalette, ImageWidthAlignMode ePixelWidthAlign)
+            => CreateIndexedData(mData, oPalette?.ToList(), ePixelWidthAlign);
+
+        /// <summary>
+        /// Converts a two-dimensional array of color values to an indexed byte array using the specified palette.
+        /// </summary>
+        /// <param name="mData">A two-dimensional array of integers representing color values to be indexed.</param>
+        /// <param name="oPalette">The palette used to map color values to palette indices. Cannot be null.</param>
+        /// <returns>A two-dimensional byte array where each element is the index of the corresponding color in the palette.</returns>
+        static public byte[,] CreateIndexedData(int[,] mData, Palette oPalette)
+            => CreateIndexedData(mData, oPalette?.ToList(), GetImageStdWidthAlign());
+
+        /// <summary>
+        /// Creates a two-dimensional byte array representing the indexed pixel data of the specified image, using the
+        /// given pixel width alignment mode.
+        /// </summary>
+        /// <param name="oImage">The image data to convert to indexed format. Must not be null.</param>
+        /// <param name="ePixelWidthAlign">The pixel width alignment mode to apply when generating the indexed data.</param>
+        /// <returns>A two-dimensional byte array containing the indexed pixel data of the image, aligned according to the
+        /// specified mode.</returns>
+        static public byte[,] CreateIndexedData(ImageData oImage, ImageWidthAlignMode ePixelWidthAlign)
+            => CreateIndexedData(oImage?.Data, oImage?.Palette, ePixelWidthAlign);
+
+        /// <summary>
+        /// Creates a two-dimensional byte array representing the indexed pixel data of the specified image.
+        /// </summary>
+        /// <param name="oImage">The image data containing the pixel buffer and palette to convert to indexed format. Cannot be null.</param>
+        /// <returns>A two-dimensional byte array containing the indexed pixel data of the image.</returns>
+        static public byte[,] CreateIndexedData(ImageData oImage)
+            => CreateIndexedData(oImage?.Data, oImage?.Palette, GetImageStdWidthAlign());
 
         #endregion
 
-        #region conversion BMP -> Matrix
-
-        public unsafe static int[,] ToMatrix(System.Drawing.Image oImage)
-        {
-            string sMethod = nameof(ToMatrix);
-            if (oImage is Bitmap oBmp)
-            {
-                var m = new int[oBmp.Height, oBmp.Width];
-                var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
-                {
-                    try
-                    {
-                        byte* ptr = (byte*)oLock.Scan0.ToPointer();
-                        for (int y = 0; y < oBmp.Height; y++)
-                        {
-                            int yoff = oLock.Stride * y;
-                            int* ptrRow = (int*)(oLock.Scan0 + yoff);
-                            for (int x = 0; x < oBmp.Width; x++)
-                            {
-                                int rgb = ptrRow[x];
-                                m[y, x] = (int)(ptrRow[x] & 0x00FFFFFF);                         
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        LogMan.Exception(sClass, sMethod, ex);
-                    }
-                    finally
-                    {
-                        oBmp.UnlockBits(oLock);
-                    }
-                }
-                return m;
-            }
-            else
-            {
-                LogMan.Error(sClass, sMethod, "Bitmap is null");
-                return null;
-            }
-        }
-
-        #endregion
-
-        #region Matrix -> Bitmap    
-
-        public unsafe static Bitmap ToBitmap(int[,] m)
-        {
-            string sMethod = nameof(ToBitmap);
-            if (m == null)
-            {
-                LogMan.Error(sClass, sMethod, "Matrix is null");
-                return null;
-            }
-            var R = m.GetLength(0);
-            var C = m.GetLength(1);
-            var oBmp = new Bitmap(C, R, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
-            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
-            {
-                try
-                {
-                    byte* ptr = (byte*)oLock.Scan0.ToPointer();
-                    for (int y = 0; y < oBmp.Height; y++)
-                    {
-                        int yoff = oLock.Stride * y;
-                        int* ptrRow = (int*)(oLock.Scan0 + yoff);
-                        for (int x = 0; x < oBmp.Width; x++)
-                        {
-                            ptrRow[x] = m[y, x] >= 0 ? m[y, x] : ColorDefaults.DefaultBkgColorInt;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogMan.Exception(sClass, sMethod, ex);
-                }
-                finally
-                {
-                    oBmp.UnlockBits(oLock);
-                }
-            }
-            return oBmp;
-        }
-
-        public static Bitmap ToBitmap(Bitmap oImage)
-        {
-            string sMethod = nameof(ToBitmap);
-            if (oImage == null)
-            {
-                LogMan.Error(sClass, sMethod, "Bitmap is null");
-                return null;
-            }
-            var oImageDest = new Bitmap(oImage.Width, oImage.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
-            {
-                using (Graphics g = Graphics.FromImage(oImage))
-                {
-                    g.DrawImage(oImage, 0, 0, oImageDest.Width, oImageDest.Height);
-                }
-            }
-            return oImageDest;
-        }
-
-        unsafe static Bitmap ToBitmapIndexed(byte[,] mDataIndex)
-        {
-            if (mDataIndex == null)
-                return null;
-
-            int HD = mDataIndex.GetLength(0);
-            int WD = mDataIndex.GetLength(1);
-
-            var oBmp = new Bitmap(WD, HD, PixelFormat.Format8bppIndexed);
-
-            var oLockDst = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), ImageLockMode.WriteOnly, oBmp.PixelFormat);
-            for (int y = 0; y < HD; y++)
-            {
-                byte* pucData = (byte*)(oLockDst.Scan0 + oLockDst.Stride * y);
-                for (int x = 0; x < WD; x++)
-                {
-                    pucData[x] = mDataIndex[y, x];
-                }
-            }
-            oBmp.UnlockBits(oLockDst);
-            return oBmp;
-        }
-
-        static public Bitmap ToBitmapIndexed(int[,] mDataSrc, List<List<int>> llPaletteSrc, ImageWidthAlignMode ePixelWidthAlign)
-        {
-            var mDataIndex = CreateIndexedData(mDataSrc, llPaletteSrc, ePixelWidthAlign);
-            var oBmp = ToBitmapIndexed(mDataIndex);
-            SetBitmapPalette(oBmp, llPaletteSrc);
-            return oBmp;
-        }
-
-        static public Bitmap ToBitmapIndexed(int[,] mDataSrc, List<int> lPaletteSrc, ImageWidthAlignMode ePixelWidthAlign)
-        {
-            var mDataIndex = CreateIndexedData(mDataSrc, lPaletteSrc, ePixelWidthAlign);
-            var oBmp = ToBitmapIndexed(mDataIndex);
-            SetBitmapPalette(oBmp, lPaletteSrc);
-            return oBmp;
-        }
-
-        #endregion
-
-        #region Plaette -> ColorPalette
+        #region Palette -> ColorPalette
 
         public static System.Drawing.Imaging.ColorPalette ToColorPalette(List<int> lPalette)
         {
@@ -397,38 +233,10 @@ namespace ColourClashNet.Imaging
             return ToColorPalette(lCol);
         }
 
-        #endregion
-
-        
-
-        static void SetBitmapPalette(Bitmap oBmp, List<List<int>> llPaletteSrc)
-        {
-            if (oBmp == null)
-                return;
-            ColorPalette oPalette = oBmp.Palette;
-            for (int i = 0; i < oBmp.Palette.Entries.Length; i++)
-            {
-                oPalette.Entries[i] = System.Drawing.Color.FromArgb(255, (i % 16) * 16 + 15, (i % 16) * 16 + 15, (i % 16) * 16 + 15);
-            }
-            oBmp.Palette = oPalette;
-        }
-
-        static void SetBitmapPalette(Bitmap oBmp, List<int> lPaletteSrc)
-        {
-            if (oBmp == null)
-                return;
-            ColorPalette oPalette = oBmp.Palette;
-            for (int i = 0; i < oBmp.Palette.Entries.Length; i++)
-            {
-                oPalette.Entries[i] = System.Drawing.Color.Black;
-            }
-            for (int i = 0; i < Math.Min(oBmp.Palette.Entries.Length, lPaletteSrc.Count); i++)
-            {
-                oPalette.Entries[i] = ColorIntExt.ToDrawingColor(lPaletteSrc[i]);
-            }
-            oBmp.Palette = oPalette;
-        }
 
       
+
+        #endregion
+
     }
 }

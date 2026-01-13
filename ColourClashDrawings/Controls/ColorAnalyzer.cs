@@ -407,7 +407,7 @@ namespace ColourClashNet.Controls
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {
-                ImageTools.Export(oColorManager.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageExportFormat.Png24);
+                ImageTools.BitmapToFile(oColorManager.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageExportFormat.Png);
             }
         }
 
@@ -422,7 +422,7 @@ namespace ColourClashNet.Controls
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {
-                ImageTools.Export(oColorManager.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageExportFormat.Bmp24);
+                ImageTools.BitmapToFile(oColorManager.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageExportFormat.Bmp);
             }
         }
 
@@ -430,7 +430,7 @@ namespace ColourClashNet.Controls
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {
-                ImageTools.Export(oColorManager.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageExportFormat.Png24);
+                ImageTools.BitmapToFile(oColorManager.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageExportFormat.Png);
             }
         }
 

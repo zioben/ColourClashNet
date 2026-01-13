@@ -63,13 +63,13 @@ namespace ColourClashNet.Imaging
             oBmp.Palette = oPalette;
         }
 
-        unsafe static public Bitmap CreateIndexedBitmap(int[,] mDataSrc, List<List<int>> llPaletteSrc, ImageWidthAlignMode ePixelWidthAlign)
-        {
-            var mDataIndex = CreateIndexedData(mDataSrc, llPaletteSrc, ePixelWidthAlign);
-            var oBmp = CreateIndexedBitmap(mDataIndex);
-            BitmapSetPalette(oBmp, llPaletteSrc);
-            return oBmp;
-        }
+        //unsafe static public Bitmap CreateIndexedBitmap(int[,] mDataSrc, List<List<int>> llPaletteSrc, ImageWidthAlignMode ePixelWidthAlign)
+        //{
+        //    var mDataIndex = CreateIndexedData(mDataSrc, llPaletteSrc, ePixelWidthAlign);
+        //    var oBmp = CreateIndexedBitmap(mDataIndex);
+        //    BitmapSetPalette(oBmp, llPaletteSrc);
+        //    return oBmp;
+        //}
 
         unsafe static public Bitmap CreateIndexedBitmap(int[,] mDataSrc, List<int> lPaletteSrc, ImageWidthAlignMode ePixelWidthAlign)
         {

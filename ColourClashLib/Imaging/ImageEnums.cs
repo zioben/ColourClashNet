@@ -10,10 +10,11 @@ namespace ColourClashNet.Imaging
     {
         Unknown = 0,
         //
-        Bmp24,
-        BmpIndex,
-        Png24,
-        PngIndex,
+        Bmp,
+        BmpIndexed,
+        Png,
+        PngIndexed,
+        Jpg,
         //
         CbmAmigaRawBitplane,
         CbmAmigaRawBitplaneInterleaved,

@@ -40,7 +40,7 @@ namespace ColourClashNet.Controls
                 }
                 if (oArgs?.ProcessingResults?.DataOut != null)
                 {
-                    picImageTemp.Image = ImageTools.ToBitmap(oArgs.ProcessingResults.DataOut);
+                    picImageTemp.Image = ImageTools.MatrixToBitmap(oArgs.ProcessingResults.DataOut);
                 }
                 if (!double.IsNaN(oArgs.CompletedPercent))
                 {

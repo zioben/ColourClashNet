@@ -90,12 +90,12 @@ namespace ColourClashNet.Imaging
             return oRet;
         }
 
-        static public byte[,] BitplaneCreateData(int[,] mDataSrc, List<List<int>> llPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
-        {
-            var mDataIndex = CreateIndexedData(mDataSrc, llPaletteSrc, ePixelWidthAlign);
-            return BitplaneCreateData(mDataIndex, bInterleavedData, llPaletteSrc.Max(X => X.Count));
+        //static public byte[,] BitplaneCreateData(int[,] mDataSrc, List<List<int>> llPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
+        //{
+        //    var mDataIndex = CreateIndexedData(mDataSrc, llPaletteSrc, ePixelWidthAlign);
+        //    return BitplaneCreateData(mDataIndex, bInterleavedData, llPaletteSrc.Max(X => X.Count));
           
-        }
+        //}
 
         static public byte[,] BitplaneCreateData(int[,] mDataSrc, List<int> lPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
         {
@@ -103,13 +103,13 @@ namespace ColourClashNet.Imaging
             return BitplaneCreateData(mDataIndex, bInterleavedData, lPaletteSrc.Count);
         }
 
-        static public Bitmap BitplaneCreateIndexedBitmap(int[,] mDataSrc, List<List<int>> llPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
-        {
-            var mDtaBpl = BitplaneCreateData(mDataSrc, llPaletteSrc, ePixelWidthAlign, bInterleavedData);
-            var oBmp = CreateIndexedBitmap(mDtaBpl);
-            BitmapSetPalette(oBmp, llPaletteSrc);
-            return oBmp;
-        }
+        //static public Bitmap BitplaneCreateIndexedBitmap(int[,] mDataSrc, List<List<int>> llPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
+        //{
+        //    var mDtaBpl = BitplaneCreateData(mDataSrc, llPaletteSrc, ePixelWidthAlign, bInterleavedData);
+        //    var oBmp = CreateIndexedBitmap(mDtaBpl);
+        //    BitmapSetPalette(oBmp, llPaletteSrc);
+        //    return oBmp;
+        //}
 
         static public Bitmap BitplaneCreateIndexedBitmap(int[,] mDataSrc, List<int> lPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
         {
@@ -176,12 +176,12 @@ namespace ColourClashNet.Imaging
             }
         }
 
-        public static void BitplaneWriteFile(string sFile, int[,] mDataSrc, List<List<int>> llPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
-        {
-            var mDataIndex = BitplaneCreateData( mDataSrc,llPaletteSrc,ePixelWidthAlign,bInterleavedData);
-            BitplaneWriteFileBpl(sFile, mDataIndex, llPaletteSrc.Max(X => X.Count),bInterleavedData);
-            BitplaneWriteFilePalette(sFile, llPaletteSrc);
-        }
+        //public static void BitplaneWriteFile(string sFile, int[,] mDataSrc, List<List<int>> llPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
+        //{
+        //    var mDataIndex = BitplaneCreateData( mDataSrc,llPaletteSrc,ePixelWidthAlign,bInterleavedData);
+        //    BitplaneWriteFileBpl(sFile, mDataIndex, llPaletteSrc.Max(X => X.Count),bInterleavedData);
+        //    BitplaneWriteFilePalette(sFile, llPaletteSrc);
+        //}
         public static void BitplaneWriteFile(string sFile, int[,] mDataSrc, List<int> lPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
         {
             var mDataIndex = BitplaneCreateData(mDataSrc, lPaletteSrc, ePixelWidthAlign, bInterleavedData);
