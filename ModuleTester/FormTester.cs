@@ -74,7 +74,7 @@ namespace ModuleTester
             oTrasf.SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, eColor);
             oTrasf.SetProperty(ColorTransformProperties.Dithering_Type, eDither);
             oTrasf.SetProperty(ColorTransformProperties.Dithering_Strength, 1);
-            var oData = ImageTools.BitmapToMatrix(bitmapRender1.Image as Bitmap);
+            var oData = ImageTools.GdiImageToMatrix(bitmapRender1.Image as Bitmap);
             _ = Task.Run(async () =>
             {
                 var cts = new CancellationTokenSource();

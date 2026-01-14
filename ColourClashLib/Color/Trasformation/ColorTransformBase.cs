@@ -1,5 +1,6 @@
 ﻿using ColourClashLib.Color.Trasformation;
 using ColourClashNet.Color.Dithering;
+using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
@@ -41,42 +42,17 @@ namespace ColourClashNet.Color.Transformation
 
         public string Name { get; set; } = string.Empty;
 
-        public string Description { get; protected init; }
+        public string Description { get; protected init; } = "";
 
         //-------------------------------------------------------------------------------------------------------------------------------
 
-        protected DataContainer sourceDataContainer = new DataContainer();
-        protected DataContainer outputDataContainer = new DataContainer();
-
-        public int[,]? SourceData => sourceDataContainer.Data;
-        public int[,]? OutputData => outputDataContainer.Data;
+        public ImageData InputData { get; protected set; } = new ImageData();
+        protected ImageData MiddleData { get; set; } = new ImageData();
+        public ImageData OutputData { get; protected set; } = new ImageData();
 
         public Palette FixedPalette { get; protected set; } = new Palette();
         public int FixedColors => FixedPalette?.Count??0;
-
-        public Palette SourcePalette
-        {
-            get => sourceDataContainer.ColorPalette;
-        }
-
-        public Histogram SourceHistogram
-        {
-            get => sourceDataContainer.ColorHistogram;
-        }
-
-        public int SourceColors => SourcePalette.Count;
-
-        public Histogram OutputHistogram
-        {
-            get => outputDataContainer.ColorHistogram;
-        }
-
-        public Palette OutputPalette
-        {
-            get => outputDataContainer.ColorPalette;
-        }
-
-        public int OutputColors => OutputPalette.Count;
+        public bool FastPreview { get; set; }
 
         //-------------------------------------------------------------------------------------------------------------------------------
         public ColorTransformationMap TransformationMap { get; protected set; } = new ColorTransformationMap();
@@ -85,7 +61,6 @@ namespace ColourClashNet.Color.Transformation
 
         //-------------------------------------------------------------------------------------------------------------------------------
         public bool BypassDithering { get; set; }
-        public bool BypassImagingOnPreview { get; set; }
 
         public ColorDithering DitheringType { get; set; }
 
@@ -109,11 +84,9 @@ namespace ColourClashNet.Color.Transformation
 
         void Reset()
         {
-            sourceDataContainer.Reset();           
-          //  processedDataContainer.Reset();   
-            outputDataContainer.Reset();
-            //only Set() can handle this. do not uncomment!
-            //fixedDataContainer.Reset();
+            InputData.Destroy();
+            MiddleData.Destroy();
+            OutputData.Destroy();
         }
 
         void CreateStart()
@@ -130,13 +103,45 @@ namespace ColourClashNet.Color.Transformation
         protected bool ProcessPartialEventRegistered => ProcessPartial != null;
         protected void RaiseProcessPartialEvent( ColorTransformEventArgs oArgs ) => ProcessPartial?.Invoke(this, oArgs);
 
-        public async Task<ColorTransformInterface> CreateAsync(int[,]? oDataSource, CancellationToken? oToken)
+        //public async Task<ColorTransformInterface> CreateAsync(int[,]? oDataSource, CancellationToken oToken=default)
+        //{
+        //    string sM = nameof(CreateAsync);
+        //    try
+        //    {
+        //        CreateStart();
+        //        await  InputData.CreateAsync(oDataSource, oToken);
+        //        return CreateEnd();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LogMan.Exception(sC, sM, ex);
+        //        return this;
+        //    }
+        //}
+
+        //public async Task<ColorTransformInterface> CreateAsync(Histogram oColorHistogramSource, CancellationToken oToken = default)
+        //{
+        //    string sM = nameof(CreateAsync);
+        //    try
+        //    {
+        //        CreateStart();
+        //        await InputData.CreateAsyncHistogramOnly(oColorHistogramSource, oToken);
+        //        return CreateEnd();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LogMan.Exception(sC, sM, ex);
+        //        return this;
+        //    }
+        //}
+
+        public async Task<ColorTransformInterface> CreateAsync(ImageData? oImageData, CancellationToken oToken = default)
         {
             string sM = nameof(CreateAsync);
             try
             {
                 CreateStart();
-                await sourceDataContainer.SetDataAsync(oDataSource, oToken);
+                await InputData.CreateAsync(oImageData?.Data, oToken);
                 return CreateEnd();
             }
             catch (Exception ex)
@@ -146,37 +151,22 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
-        public async Task<ColorTransformInterface> CreateAsync(Histogram oColorHistogramSource, CancellationToken? oToken)
-        {
-            string sM = nameof(CreateAsync);
-            try
-            {
-                CreateStart();
-                await sourceDataContainer.SetColorHistogramAsyncX(oColorHistogramSource, oToken);
-                return CreateEnd();
-            }
-            catch (Exception ex)
-            {
-                LogMan.Exception(sC, sM, ex);
-                return this;
-            }
-        }
 
-        public async Task<ColorTransformInterface> CreateAsync(Palette? oColorPaletteSource, CancellationToken? oToken)
-        {
-            string sM = nameof(CreateAsync);
-            try
-            {
-                CreateStart();
-                await sourceDataContainer.SetColorPaletteAsyncX(oColorPaletteSource);
-                return CreateEnd();
-            }
-            catch (Exception ex)
-            {
-                LogMan.Exception(sC, sM, ex);
-                return this;
-            }
-        }
+        //public async Task<ColorTransformInterface> CreateAsync(Palette? oColorPaletteSource, CancellationToken oToken = default)
+        //{
+        //    string sM = nameof(CreateAsync);
+        //    try
+        //    {
+        //        CreateStart();
+        //        await sourceDataContainer.SetColorPaletteAsyncX(oColorPaletteSource);
+        //        return CreateEnd();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LogMan.Exception(sC, sM, ex);
+        //        return this;
+        //    }
+        //}
 
         //public ColorTransformInterface Create(int[,]? oDataSource)
         //{
@@ -268,11 +258,11 @@ namespace ColourClashNet.Color.Transformation
             try
             {
                 LogMan.Message(sC, sM, "Executing Default Transformation ");
-                var oProcessed = await TransformationMap.TransformAsync(SourceData, oToken);
+                var oProcessed = await TransformationMap.TransformAsync(InputData, oToken);
 
                 if (oProcessed != null)
                 {
-                    return ColorTransformResults.CreateValidResult(SourceData, oProcessed);
+                    return ColorTransformResults.CreateValidResult(InputData, oProcessed);
                 }
                 else
                 {
@@ -313,7 +303,7 @@ namespace ColourClashNet.Color.Transformation
                 Processing?.Invoke(this, CreateTransformEventArgs(cts, null));
 
                 var oMapRes = await CreateTrasformationMapAsync(oToken);
-                if( !oMapRes.Valid )
+                if( !oMapRes.ProcessingValid )
                 {
                     LogMan.Error(sC, sM, $"{Type} : CreateTrasformationMapAsync Error");
                     return oMapRes;
@@ -321,7 +311,7 @@ namespace ColourClashNet.Color.Transformation
 
                 // Execute color reduction
                 var oTransfRes = await ExecuteTransformAsync( oToken);
-                if (!oTransfRes.Valid)
+                if (!oTransfRes.ProcessingValid)
                 {
                     LogMan.Error(sC, sM, $"{Type} :  Transformation error");
                     return oTransfRes;

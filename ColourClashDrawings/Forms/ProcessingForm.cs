@@ -46,7 +46,7 @@ namespace ModuleTester
                 {
                     if (oArgs.TempImage != null)
                     {
-                        picImageTemp.Image = ImageTools.MatrixToBitmap(oArgs.TempImage);
+                        picImageTemp.Image = ImageTools.MatrixToGdiImage(oArgs.TempImage);
                     }
                     else
                     {

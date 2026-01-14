@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ColourClashNet.Imaging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,28 +9,37 @@ namespace ColourClashNet.Color.Transformation
 {
     public interface ColorTransformInterface
     {
-
-        //------------------------------------------------------------
-
-        Palette FixedPalette { get; }
-        Int32 FixedColors { get; }
-
-        Palette SourcePalette { get; }
-        Histogram SourceHistogram { get; }
-        Int32 SourceColors { get; }
-
-        Histogram OutputHistogram { get; }
-        Palette OutputPalette { get; }
-        Int32 OutputColors { get; }
-        ColorTransformationMap TransformationMap { get; }
-
-        public bool BypassDithering { get; set; }    
-
         //------------------------------------------------------------
         ColorTransformType Type { get; }
         String Name { get; }
         String Description { get; }
+
+        //------------------------------------------------------------
+        ImageData InputData { get; }
+        ImageData OutputData { get; }
+
+        //------------------------------------------------------------
+        Palette FixedPalette { get; }       
+        Int32 FixedColors { get; }
+        ColorTransformationMap TransformationMap { get; }
+
+        //------------------------------------------------------------
         ColorDithering DitheringType { get; set; }
+        public bool BypassDithering { get; set; }
+
+        //------------------------------------------------------------
+        ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue);
+        Task<ColorTransformInterface> CreateAsync(ImageData? oDataSource, CancellationToken? oToken);
+        Task<ColorTransformInterface> CreateAsync(int[,]? oDataSource, CancellationToken? oToken);
+        
+        Task<ColorTransformInterface> CreateAsync(Histogram? oColorHistogramSource, CancellationToken? oToken);
+        
+        //Task<ColorTransformInterface> CreateAsync(Palette? oColorPaletteSource, CancellationToken? oToken);
+        Task<ColorTransformResults> ProcessColorsAsync(CancellationToken? oTokenSource);
+        Task AbortProcessingAsync(CancellationTokenSource oToken);
+        void AbortProcessing(CancellationTokenSource oToken);
+
+        //------------------------------------------------------------
 
         event EventHandler Creating;
         event EventHandler Created;
@@ -37,16 +47,6 @@ namespace ColourClashNet.Color.Transformation
         event EventHandler<ColorTransformEventArgs> ProcessAdvance;
         event EventHandler<ColorTransformEventArgs> ProcessPartial;
         event EventHandler<ColorTransformEventArgs> Processed;
-        ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue);
-        Task<ColorTransformInterface> CreateAsync(int[,]? oDataSource, CancellationToken? oToken );
-        Task<ColorTransformInterface> CreateAsync(Histogram? oColorHistogramSource, CancellationToken? oToken);
-        Task<ColorTransformInterface> CreateAsync(Palette? oColorPaletteSource, CancellationToken? oToken);
-       // ColorTransformInterface Create(int[,]? oDataSource);
-       // ColorTransformInterface Create(Histogram? oColorHistogramSource);
-       // ColorTransformInterface Create(Palette? oColorPaletteSource);
-        Task<ColorTransformResults> ProcessColorsAsync( CancellationToken? oTokenSource);
-       // ColorTransformResults ProcessColors(int[,]? oSource );
-        Task AbortProcessingAsync(CancellationTokenSource oToken);
-        void AbortProcessing(CancellationTokenSource oToken);
+
     }
 }

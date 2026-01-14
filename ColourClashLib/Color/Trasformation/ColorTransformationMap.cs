@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ColourClashNet.Imaging;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,48 +57,55 @@ namespace ColourClashNet.Color
             }
             return Create(oPalette);
         }
+        public bool Create(ImageData oImageData)
+        {           
+            Reset();
+            if (oImageData == null || oImageData.Colors <= 0 )
+            {
+                return false;
+            }
+            return Create(oImageData.ColorPalette);
+        }
 
-        public void Add(int iSorceRGB, int iDestRGB)
+        public void Add(int iSourceRGB, int iDestRGB)
         {
-            if (iSorceRGB < 0 || iDestRGB < 0)
+            if (iSourceRGB < 0 || iDestRGB < 0)
             {
                 return;
             }
-            rgbTransformationMap[iSorceRGB] = iDestRGB;
+            rgbTransformationMap[iSourceRGB] = iDestRGB;
         }
-        public void Remove(int iSorceRGB)
+
+        public void Remove(int iSourceRGB)
         {
-            if (rgbTransformationMap.ContainsKey(iSorceRGB))
+            if (rgbTransformationMap.ContainsKey(iSourceRGB))
             {
-                rgbTransformationMap.TryRemove(iSorceRGB, out int Removed);
+                rgbTransformationMap.TryRemove(iSourceRGB, out int Removed);
             }
         }
 
-        public async Task<int[,]?> TransformAsync(int[,]? oData, CancellationToken? oToken )
+        public async Task<ImageData> TransformAsync(ImageData oImageData, CancellationToken? oToken )
         {
-            return await Task.Run(() =>
+            string sM = nameof(TransformAsync);
+            if (oImageData == null || !oImageData.DataValid)
             {
-                string sM = nameof(TransformAsync);
-                if (oData == null)
+                return null;
+            }
+            var oDataOut = new int[oImageData.Height,oImageData.Width];
+            Parallel.For(0, oImageData.Height, r =>
+            {
+                oToken?.ThrowIfCancellationRequested();
+                for (int c = 0; c < oImageData.Width; c++)
                 {
-                    return null;
-                }
-                int R = oData.GetLength(0);
-                int C = oData.GetLength(1);
-                var oRet = new int[R, C];
-                Parallel.For(0, R, r =>
-                {
-                    oToken?.ThrowIfCancellationRequested();
-                    for (int c = 0; c < C; c++)
+                    if (!rgbTransformationMap.TryGetValue(oImageData.Data[r, c], out oDataOut[r, c]))
                     {
-                        if (!rgbTransformationMap.TryGetValue(oData[r, c], out oRet[r, c]))
-                        {
-                            oRet[r, c] = Defaults.ColorDefaults.DefaultInvalidColorInt;
-                        }
+                        oDataOut[r, c] = Defaults.ColorDefaults.DefaultInvalidColorInt;
                     }
-                });
-                return oRet;
+                }
             });
+            ImageData oRet = new ImageData();
+            await oRet.CreateAsync(oDataOut);
+            return oRet;
         }
 
 

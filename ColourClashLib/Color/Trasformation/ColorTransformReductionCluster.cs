@@ -153,7 +153,7 @@ namespace ColourClashNet.Color.Transformation
                 // Show partials
                 if (ProcessPartialEventRegistered)
                 {
-                    if (BypassImagingOnPreview)
+                    if (FastPreview)
                     {
                         RaiseProcessPartialEvent(new ColorTransformEventArgs()
                         {

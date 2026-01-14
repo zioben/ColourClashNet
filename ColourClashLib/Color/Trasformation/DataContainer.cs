@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ColourClashLib.Color.Trasformation
 {
-    public class DataContainer
+    public class DataContainerXXX
     {
         public int[,]? Data { get; internal set; }
 

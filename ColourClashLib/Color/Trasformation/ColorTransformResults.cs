@@ -1,4 +1,5 @@
 ﻿using ColourClashNet.Color;
+using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
@@ -13,21 +14,31 @@ namespace ColourClashNet.Color.Transformation
     {
         static string sClass = nameof(ColorTransformResults);
 
-        public int[,]? DataIn { get; internal set; }
+        public ImageData? DataIn { get; internal set; }
         //public int[,]? DataProcessed { get; internal set; }
-        public int[,]? DataOut { get; internal set; }
-        public double DataError { get; internal set; } = double.NaN;
+        public ImageData? DataOut { get; internal set; }
+        public double ProcessingError { get; internal set; } = double.NaN;
 
-        public bool Valid { get; internal set; }
+        public bool ProcessingValid { get; internal set; }
         public string Message { get; internal set; } = string.Empty;
 
         public Exception? Exception { get; internal set; }
 
-        static public ColorTransformResults CreateValidResult(int[,]? inputData, int[,]? outputData) => new ColorTransformResults()
+
+        static public ColorTransformResults CreateValidResult(ImageData? inputData, ImageData? outputData, double processingError) => new ColorTransformResults()
         {
             DataIn = inputData,
             DataOut = outputData,
-            Valid = true,
+            ProcessingError = processingError,
+            ProcessingValid = true,
+            Message = "Ok",
+        };
+
+        static public ColorTransformResults CreateValidResult(ImageData? inputData, ImageData? outputData) => new ColorTransformResults()
+        {
+            DataIn = inputData,
+            DataOut = outputData,
+            ProcessingValid = true,
             Message = "Ok",
         };
         //   static public ColorTransformResults CreateValidResult(int[,]? sourceData, int[,]? outputData) => CreateValidResult(sourceData, null, outputData);
