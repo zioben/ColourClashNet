@@ -43,8 +43,9 @@ namespace ColourClashNet.Color.Transformation
             {
                 //OutputPalette = new Palette();
                 TransformationMap.Reset();
+                var SourceHistogram = Histogram.CreateHistogram(SourceData);
                 var oTempHist = SourceHistogram.SortColorsDescending();
-                var oTempPalette = Palette.MergeColorPalette(FixedPalette, oTempHist.ToColorPalette());
+                var oTempPalette = Palette.MergePalette(FixedPalette, oTempHist.ToColorPalette());
                 if (oTempPalette.Count < ColorsMaxWanted)
                 {
                     foreach (var kvp in SourceHistogram.rgbHistogram)
@@ -57,7 +58,7 @@ namespace ColourClashNet.Color.Transformation
                 {
                     var listAll = oTempPalette.ToList();
                     var listMax = listAll.Take(ColorsMaxWanted).ToList();
-                    var oPalette = Palette.CreateColorPalette(listMax);
+                    var oPalette = Palette.CreatePalette(listMax);
                     listAll.ForEach(rgbItem =>
                     {
                         oToken?.ThrowIfCancellationRequested();
@@ -73,7 +74,7 @@ namespace ColourClashNet.Color.Transformation
             });
         }
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
+        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken oToken)
         {
             var oRetData = await TransformationMap.TransformAsync(SourceData, oToken);
             return ColorTransformResults.CreateValidResult(SourceData, oRetData);

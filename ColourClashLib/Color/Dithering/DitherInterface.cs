@@ -1,6 +1,6 @@
 ﻿using ColourClashNet.Color;
-using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
+using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,8 +18,9 @@ namespace ColourClashNet.Color.Dithering
         string Description { get; }
         double DitheringStrenght { get; set; }
         bool Create();
-        Task<int[,]?> DitherAsync(int[,]? oDataSource, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken);
-       // int[,]? Dither(int[,]? oDataSource, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken);
+        Task<ImageData?> DitherAsync(ImageData oImageReference, ImageData oImageReduced, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken);
+
+
 
     }
 }

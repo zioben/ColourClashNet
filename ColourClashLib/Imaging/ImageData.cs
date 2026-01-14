@@ -58,6 +58,16 @@ namespace ColourClashNet.Imaging
         }
 
         /// <summary>
+        /// Gets the number of columns in the data set.
+        /// </summary>
+        public int Columns => Width;
+
+        /// <summary>
+        /// gets the number of rows in the data set.
+        /// </summary>
+        public int Rows =>Height;
+
+        /// <summary>
         /// Gets the total number of pixels in the image.
         /// </summary>
         public int PixelCount
@@ -83,41 +93,69 @@ namespace ColourClashNet.Imaging
         /// Gets a value indicating whether the current object contains valid data.
         /// </summary>
         public bool DataValid => Data != null;
-        
 
+        /// <summary>
+        /// Asynchronously releases resources and resets the object to its initial state.
+        /// </summary>
+        /// <returns>A completed task that represents the asynchronous destroy operation.</returns>
+        public bool Reset()
+        {
+            string sM = nameof(Reset);
+            try
+            {
+                lock (locker)
+                {
+                    Data = null;
+                    ColorPalette = new Palette();
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, ex);
+                return false;
+            }
+        }
 
 
         /// <summary>
-        ///     
+        /// 
         /// </summary>
         /// <param name="oData"></param>
-        /// <param name="oToken"></param>
         /// <returns></returns>
-        public ImageData? Create(int[,]? oData, CancellationToken oToken = default)
+        public ImageData Create(int[,]? oData)
         {
             string sM = nameof(Create);
             try
             {
                 lock (locker)
                 {
-                    Destroy();
+                    Reset();
                     if (oData == null)
                     {
-                        return null;
+                        return this;
                     }
                     Data = oData.Clone() as int[,];                    
-                    ColorPalette = Palette.CreateColorPalette(Data);
+                    ColorPalette = Palette.CreatePalette(Data);
                 }
                 return this;
             }
             catch (Exception ex)
             {
                 LogMan.Exception(sC, sM, "Error creating from data.", ex);
-                return null;
+                return this;
             }
         }
 
-       
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="oImageData"></param>
+        /// <returns></returns>
+        public ImageData Create(ImageData oImageData) 
+            => Create(oImageData?.Data);
+
+
         /// <summary>
         /// Asynchronously creates a new entity from the specified image.
         /// </summary>
@@ -125,18 +163,18 @@ namespace ColourClashNet.Imaging
         /// <param name="oToken">An optional cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if the creation
         /// succeeds; otherwise, <see langword="false"/>.</returns>
-        public ImageData? Create(System.Drawing.Image oImage, CancellationToken oToken = default)
+        public ImageData Create(System.Drawing.Image oImage)
         {
             string sM = nameof(Create);
             try
             {
                 var oImageRaw = ImageTools.GdiImageToMatrix(oImage as System.Drawing.Bitmap);
-                return Create(oImageRaw, oToken);
+                return Create(oImageRaw);
             }
             catch (Exception ex)
             {
                 LogMan.Exception(sC, sM, "Error creating from GDI.", ex);
-                return null;
+                return this;
             }
         }
 
@@ -146,64 +184,40 @@ namespace ColourClashNet.Imaging
         /// <remarks>If the specified file does not exist, the method returns <see langword="false"/>
         /// without performing any operation.</remarks>
         /// <param name="sFileName">The path to the image file to use for creation. The file must exist.</param>
-        /// <param name="oToken">An optional cancellation token that can be used to cancel the asynchronous operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if the object
         /// was created successfully; otherwise, <see langword="false"/>.</returns>
-        public async ImageData? Create(string sFileName, CancellationToken oToken = default)
+        public ImageData Create(string sFileName)
         {
             string sM = nameof(Create);
             try
             {
                 using (var oBitmap = ImageTools.GdiImageFromFile(sFileName))
                 {
-                    return Create(oBitmap, oToken);
+                    return Create(oBitmap);
                 }
             }
             catch (Exception ex)
             {
                 LogMan.Exception(sC, sM, "Error creating from file.", ex);
-                return false;
+                return this;
             }
         }
 
-        /// <summary>
-        /// Asynchronously releases resources and resets the object to its initial state.
-        /// </summary>
-        /// <returns>A completed task that represents the asynchronous destroy operation.</returns>
-        public bool Destroy()
-        {
-            string sM = nameof(Destroy);
-            try
-            {
-                lock (locker)
-                {
-                    Data = null;
-                    ColorPalette = new Palette();
-                    ColorHistogram = new Histogram();
-                }
-                return true;
-            }
-            catch (Exception ex)
-            {
-                LogMan.Exception(sC,sM, ex);
-                return false;
-            }
-        }
-
+     
         /// <summary>
         /// Saves the current image data to a file in the specified format.
         /// </summary>
         /// <param name="sFileName">The path and file name where the image will be saved. Cannot be null or empty.</param>
         /// <param name="eFormat">The format in which to save the image file.</param>
         /// <returns>true if the image is saved successfully; otherwise, false.</returns>
-        public bool Save(string sFileName, ImageExportFormat eFormat)
+        public bool SaveToFile(string sFileName, ImageExportFormat eFormat)
         {
-            string sM = nameof(Save);
+            string sM = nameof(SaveToFile);
             try
             {
                 lock (locker)
                 {
-                    using (var oBmp = ImageTools.MatrixToGdiImage(Data))
+                    using (var oBmp = ImageTools.ImageDataToGdiImage(this))
                     {
                         return ImageTools.GdiImageToFile(oBmp, sFileName, eFormat);
                     }
@@ -224,12 +238,12 @@ namespace ColourClashNet.Imaging
         /// <returns>A Bitmap object representing the current image data.</returns>
         public System.Drawing.Image? ToImage()
         {
-            string sM = nameof(Save);
+            string sM = nameof(SaveToFile);
             try
             {
                 lock (locker)
                 {
-                    return ImageTools.MatrixToGdiImage(Data);
+                    return ImageTools.ImageDataToGdiImage(this);
                 }
             }
             catch (Exception ex)

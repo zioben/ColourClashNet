@@ -12,7 +12,7 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Internal storage for unique colors.
         /// </summary>
-        public HashSet<int> rgbPalette { get; private init; } = new HashSet<int>();
+        protected HashSet<int> rgbPalette { get; private init; } = new HashSet<int>();
 
         /// <summary>
         /// Number of distinct colors in the palette.
@@ -24,7 +24,7 @@ namespace ColourClashNet.Color
         /// </summary>
         public void Add(int iRGB)
         {
-            if (iRGB.GetColorInfo() == ColorIntType.IsColor)
+            if (iRGB.GetColorInfo() == ColorInfo.IsColor)
                 rgbPalette.Add(iRGB);
         }
 

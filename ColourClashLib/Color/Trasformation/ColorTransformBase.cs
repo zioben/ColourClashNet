@@ -1,5 +1,4 @@
-﻿using ColourClashLib.Color.Trasformation;
-using ColourClashNet.Color.Dithering;
+﻿using ColourClashNet.Color.Dithering;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
@@ -28,10 +27,10 @@ namespace ColourClashNet.Color.Transformation
 
         public event EventHandler Creating;
         public event EventHandler Created;
-        public event EventHandler<ColorTransformEventArgs> Processing;
-        public event EventHandler<ColorTransformEventArgs> ProcessAdvance;
-        public event EventHandler<ColorTransformEventArgs> ProcessPartial;
-        public event EventHandler<ColorTransformEventArgs> Processed;
+        public event EventHandler<ColorProcessingEventArgs> Processing;
+        public event EventHandler<ColorProcessingEventArgs> ProcessAdvance;
+        public event EventHandler<ColorProcessingEventArgs> ProcessPartial;
+        public event EventHandler<ColorProcessingEventArgs> Processed;
 
         #endregion
 
@@ -46,10 +45,11 @@ namespace ColourClashNet.Color.Transformation
 
         //-------------------------------------------------------------------------------------------------------------------------------
 
-        public ImageData InputData { get; protected set; } = new ImageData();
-        protected ImageData MiddleData { get; set; } = new ImageData();
+        public ImageData SourceData { get; protected set; } = new ImageData();
+       // protected ImageData MiddleData { get; set; } = new ImageData();
         public ImageData OutputData { get; protected set; } = new ImageData();
 
+        //-------------------------------------------------------------------------------------------------------------------------------
         public Palette FixedPalette { get; protected set; } = new Palette();
         public int FixedColors => FixedPalette?.Count??0;
         public bool FastPreview { get; set; }
@@ -72,6 +72,8 @@ namespace ColourClashNet.Color.Transformation
 
         protected async virtual Task<ColorTransformResults> CreateTrasformationMapAsync( CancellationToken? oToken)
         {
+            string sM = nameof(CreateTrasformationMapAsync);    
+            LogMan.Debug(sM, sM, $"{Type} : Default CreateTrasformationMapAsync called");
             return await Task.FromResult(ColorTransformResults.CreateValidResult());
         }
 
@@ -84,9 +86,9 @@ namespace ColourClashNet.Color.Transformation
 
         void Reset()
         {
-            InputData.Destroy();
-            MiddleData.Destroy();
-            OutputData.Destroy();
+            SourceData.Reset();
+        //    MiddleData.Reset();
+            OutputData.Reset();
         }
 
         void CreateStart()
@@ -101,47 +103,15 @@ namespace ColourClashNet.Color.Transformation
         }
 
         protected bool ProcessPartialEventRegistered => ProcessPartial != null;
-        protected void RaiseProcessPartialEvent( ColorTransformEventArgs oArgs ) => ProcessPartial?.Invoke(this, oArgs);
+        protected void RaiseProcessPartialEvent( ColorProcessingEventArgs oArgs ) => ProcessPartial?.Invoke(this, oArgs);
 
-        //public async Task<ColorTransformInterface> CreateAsync(int[,]? oDataSource, CancellationToken oToken=default)
-        //{
-        //    string sM = nameof(CreateAsync);
-        //    try
-        //    {
-        //        CreateStart();
-        //        await  InputData.CreateAsync(oDataSource, oToken);
-        //        return CreateEnd();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        LogMan.Exception(sC, sM, ex);
-        //        return this;
-        //    }
-        //}
-
-        //public async Task<ColorTransformInterface> CreateAsync(Histogram oColorHistogramSource, CancellationToken oToken = default)
-        //{
-        //    string sM = nameof(CreateAsync);
-        //    try
-        //    {
-        //        CreateStart();
-        //        await InputData.CreateAsyncHistogramOnly(oColorHistogramSource, oToken);
-        //        return CreateEnd();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        LogMan.Exception(sC, sM, ex);
-        //        return this;
-        //    }
-        //}
-
-        public async Task<ColorTransformInterface> CreateAsync(ImageData? oImageData, CancellationToken oToken = default)
+        public ColorTransformInterface Create(int[,]? oDataSource)
         {
-            string sM = nameof(CreateAsync);
+            string sM = nameof(Create);
             try
             {
                 CreateStart();
-                await InputData.CreateAsync(oImageData?.Data, oToken);
+                SourceData.Create(oDataSource);
                 return CreateEnd();
             }
             catch (Exception ex)
@@ -152,39 +122,21 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        //public async Task<ColorTransformInterface> CreateAsync(Palette? oColorPaletteSource, CancellationToken oToken = default)
-        //{
-        //    string sM = nameof(CreateAsync);
-        //    try
-        //    {
-        //        CreateStart();
-        //        await sourceDataContainer.SetColorPaletteAsyncX(oColorPaletteSource);
-        //        return CreateEnd();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        LogMan.Exception(sC, sM, ex);
-        //        return this;
-        //    }
-        //}
-
-        //public ColorTransformInterface Create(int[,]? oDataSource)
-        //{
-        //    var cts = new CancellationTokenSource();    
-        //    return CreateAsync(oDataSource,cts.Token).GetAwaiter().GetResult();
-        //}
-
-        //public ColorTransformInterface Create(Histogram? oColorHistogramSource)
-        //{
-        //    var cts = new CancellationTokenSource();
-        //    return CreateAsync(oColorHistogramSource, cts.Token).GetAwaiter().GetResult();
-        //}
-
-        //public ColorTransformInterface Create(Palette? oColorPaletteSource)
-        //{
-        //    var cts = new CancellationTokenSource();
-        //    return CreateAsync(oColorPaletteSource, cts.Token).GetAwaiter().GetResult();
-        //}
+        public ColorTransformInterface Create(ImageData oImageData)
+        {
+            string sM = nameof(Create);
+            try
+            {
+                CreateStart();
+                SourceData.Create(oImageData?.Data);
+                return CreateEnd();
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, ex);
+                return this;
+            }
+        }
 
         #endregion
 
@@ -203,7 +155,7 @@ namespace ColourClashNet.Color.Transformation
                     {
                         if (oValue is List<int> oPalette)
                         {
-                            FixedPalette = Palette.CreateColorPalette(oPalette);
+                            FixedPalette = Palette.CreatePalette(oPalette);
                         }
                         else if (oValue is Palette oPal)
                         {
@@ -239,8 +191,8 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        internal ColorTransformEventArgs CreateTransformEventArgs(CancellationTokenSource oTokenSource, ColorTransformResults? oResult)
-            => new ColorTransformEventArgs()
+        internal ColorProcessingEventArgs CreateTransformEventArgs(CancellationTokenSource oTokenSource, ColorTransformResults? oResult)
+            => new ColorProcessingEventArgs()
             {
                 ColorTransformInterface = this,
                 CancellationTokenSource = oTokenSource,
@@ -248,21 +200,21 @@ namespace ColourClashNet.Color.Transformation
                 TransformationMap = this.TransformationMap  
             };
 
-        internal ColorTransformEventArgs CreateTransformEventArgs(CancellationTokenSource oTokenSource)
+        internal ColorProcessingEventArgs CreateTransformEventArgs(CancellationTokenSource oTokenSource)
             => CreateTransformEventArgs(oTokenSource, null);
 
 
-        protected async virtual Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
+        protected async virtual Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken oToken=default)
         {
             string sM = nameof(ExecuteTransformAsync);
             try
             {
                 LogMan.Message(sC, sM, "Executing Default Transformation ");
-                var oProcessed = await TransformationMap.TransformAsync(InputData, oToken);
+                var oProcessed = await TransformationMap.TransformAsync(SourceData, oToken);
 
                 if (oProcessed != null)
                 {
-                    return ColorTransformResults.CreateValidResult(InputData, oProcessed);
+                    return ColorTransformResults.CreateValidResult(SourceData, oProcessed);
                 }
                 else
                 {
@@ -282,30 +234,31 @@ namespace ColourClashNet.Color.Transformation
 
         object locker = new object();
 
-        public async Task<ColorTransformResults> ProcessColorsAsync( CancellationToken? oTokenA)
+        public async Task<ColorTransformResults> ProcessColorsAsync( CancellationToken oToken = default)
         {
-            string sM = nameof(CreateAsync);
+            string sM = nameof(ProcessColorsAsync);
             try
             {
                 TransformationError = double.NaN;
-                if (SourceData == null)
+
+                if (SourceData == null || !SourceData.DataValid)
                 {
-                    LogMan.Error(sC, sM, $"{Type} : sourceData Null");
-                    return new();
+                    LogMan.Error(sC, sM, $"{Type} : InputData null or invalid");
+                    return ColorTransformResults.CreateErrorResult($"{Type} : Invalid input data");
                 }
 
-                //await CreateAsync(oDataSource,oTokenA);
-
-                var cts = oTokenA != null ? CancellationTokenSource.CreateLinkedTokenSource(oTokenA.Value) : new CancellationTokenSource();
-                var oToken= cts.Token;
+                // Reset transformation map
                 TransformationMap.Reset();
 
+                // Notify processing, allowing clinet to handle cancellation token
+                var cts = CancellationTokenSource.CreateLinkedTokenSource(oToken);
                 Processing?.Invoke(this, CreateTransformEventArgs(cts, null));
 
+                // Creating Transformation Map
                 var oMapRes = await CreateTrasformationMapAsync(oToken);
                 if( !oMapRes.ProcessingValid )
                 {
-                    LogMan.Error(sC, sM, $"{Type} : CreateTrasformationMapAsync Error");
+                    LogMan.Error(sC, sM, $"{Type} : {nameof(CreateTrasformationMapAsync)} Error");
                     return oMapRes;
                 }
 
@@ -313,16 +266,15 @@ namespace ColourClashNet.Color.Transformation
                 var oTransfRes = await ExecuteTransformAsync( oToken);
                 if (!oTransfRes.ProcessingValid)
                 {
-                    LogMan.Error(sC, sM, $"{Type} :  Transformation error");
+                    LogMan.Error(sC, sM, $"{Type} : {nameof(ExecuteTransformAsync)} error");
                     return oTransfRes;
                 }
 
-                var processedDataContainer = new DataContainer();
-                await processedDataContainer.SetDataAsync(oTransfRes.DataOut,oToken);
+                var oMiddleData = oTransfRes.DataOut;
                 var oHash = new HashSet<int>();
-                foreach (var rgb in processedDataContainer.ColorPalette.rgbPalette)
+                foreach (var rgb in oMiddleData.ColorPalette.ToList())
                 {
-                    if (rgb >= 0)
+                    if (rgb.GetColorInfo() == ColorInfo.IsColor )
                     {
                         oHash.Add(rgb);
                     }
@@ -330,37 +282,33 @@ namespace ColourClashNet.Color.Transformation
                 var oRetRes = new ColorTransformResults();
                 if (BypassDithering || oHash.Count > 512 || DitheringType == ColorDithering.None)
                 {
-                    //if(BypassDithering)
-                    //    LogMan.Message(sC, sM, $"{Name} : Processing Completed - {DitheringType} : Bypass dithering");
-                    //else (DitheringType == ColorDithering.None)
-                    //    LogMan.Message(sC, sM, $"{Name} : Processing Completed - {DitheringType} : No dithering");
-                    if(oHash.Count > 512)
+                    if(BypassDithering)
+                        LogMan.Trace(sC, sM, $"{Name} : Processing Completed - {DitheringType} : Bypass dithering");
+                    else if (DitheringType == ColorDithering.None)
+                        LogMan.Trace(sC, sM, $"{Name} : Processing Completed - {DitheringType} : No dithering");
+                    else if (oHash.Count > 512)
                         LogMan.Warning(sC, sM, $"{Name} : Processing Completed - {DitheringType} : Too many input colors : {oHash.Count}");
-
-                    outputDataContainer = processedDataContainer;
+                    OutputData.Create(oMiddleData);
                     oRetRes = ColorTransformResults.CreateValidResult(SourceData, OutputData);
                 }
                 else
                 {
                     var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrenght );     
-                    var oDitheringOut = await oDithering.DitherAsync(SourceData, processedDataContainer.Data, processedDataContainer.ColorPalette, ColorDistanceEvaluationMode, oToken);
-                    if (oDitheringOut == null)
+                    var oImageDataDither = await oDithering.DitherAsync(SourceData, oMiddleData, ColorDistanceEvaluationMode, oToken);
+                    if (oImageDataDither == null)
                     {
                         LogMan.Error(sC, sM, $"{Type} :  Dithering error");
-                        oRetRes = new ColorTransformResults()
-                        {
-                            Message = "Dithering Error"
-                        };
+                        oRetRes = ColorTransformResults.CreateErrorResult(SourceData, oMiddleData, $"{Type} : Dithering error");
                     }
                     else
                     {
-                        await outputDataContainer.SetDataAsync(oDitheringOut, oToken);
-                        LogMan.Message(sC, sM, $"{Type} : Processing Completed with dithering");
+                        OutputData.Create(oImageDataDither);
+                        LogMan.Debug(sC, sM, $"{Type} : Processing Completed with dithering");
                         oRetRes = ColorTransformResults.CreateValidResult(SourceData, OutputData);
                     }
                 }
 
-                TransformationError = await ColorIntExt.EvaluateErrorAsync(SourceData, OutputData, ColorDistanceEvaluationMode, oToken);
+                TransformationError = await ColorIntExt.EvaluateErrorAsync(SourceData.Data, OutputData.Data, ColorDistanceEvaluationMode, oToken);
 
                 Processed?.Invoke(this, CreateTransformEventArgs(cts, oRetRes));
                 return oRetRes;
@@ -397,15 +345,11 @@ namespace ColourClashNet.Color.Transformation
             oTokenSource?.Cancel();
         }
 
+        public async Task RecalcTransformationErrorAsync(int[,] oReferenceData, CancellationToken? oToken)
+            => TransformationError = await ColorIntExt.EvaluateErrorAsync(oReferenceData, OutputData?.Data, ColorDistanceEvaluationMode, oToken);
 
-        public async Task RecalcTransformationErrorAsync(int[,] oSourceImage, CancellationToken? oToken)
-        {
-            TransformationError =double.NaN;
-            if (OutputData != null)
-            {
-                TransformationError = await ColorIntExt.EvaluateErrorAsync(oSourceImage, OutputData, ColorDistanceEvaluationMode, oToken);
-            }
-        }
+        public async Task RecalcTransformationErrorAsync(ImageData oReferenceImage, CancellationToken? oToken)
+            => TransformationError = await ColorIntExt.EvaluateErrorAsync(oReferenceImage?.Data, OutputData?.Data, ColorDistanceEvaluationMode, oToken);
 
 
         #endregion

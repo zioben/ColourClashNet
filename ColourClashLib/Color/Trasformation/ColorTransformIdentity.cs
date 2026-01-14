@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Log;
+﻿using ColourClashNet.Imaging;
+using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -21,12 +22,12 @@ namespace ColourClashNet.Color.Transformation
         // Not Needed
         // protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
 
-        protected override async Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
+        protected override async Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken oToken=default)
         {
             string sM = nameof(ExecuteTransformAsync);
             try
             {
-                var res = ColorTransformResults.CreateValidResult(SourceData, SourceData.Clone() as int[,]);
+                var res = ColorTransformResults.CreateValidResult(SourceData, new ImageData().Create(SourceData));
                 return await Task.FromResult(res);
             }
             catch (Exception ex)

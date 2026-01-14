@@ -74,16 +74,16 @@ namespace ModuleTester
             oTrasf.SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, eColor);
             oTrasf.SetProperty(ColorTransformProperties.Dithering_Type, eDither);
             oTrasf.SetProperty(ColorTransformProperties.Dithering_Strength, 1);
-            var oData = ImageTools.GdiImageToMatrix(bitmapRender1.Image as Bitmap);
+            var oData = ImageTools.GdiImageToImageData(bitmapRender1.Image as Bitmap);
             _ = Task.Run(async () =>
             {
                 var cts = new CancellationTokenSource();
                 ProcessingForm.CreateProcessingForm(oTrasf);
-                await oTrasf.CreateAsync(oData, cts.Token);
+                oTrasf.Create(oData);
                 var ret = await oTrasf.ProcessColorsAsync(cts.Token);
                 Invoke(() =>
                 {
-                    bitmapRender2.Image = ImageTools.MatrixToBitmap(ret.DataOut);
+                    bitmapRender2.Image = ImageTools.ImageDataToGdiImage(ret.DataOut);
                     propertyGrid1.SelectedObject = oTrasf;
                     pictureBox1.Refresh();
                     pictureBox2.Refresh();

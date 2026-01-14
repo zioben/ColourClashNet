@@ -85,7 +85,7 @@ public static partial class ImageTools
     /// row in the output array is aligned.</param>
     /// <returns>A two-dimensional byte array where each element contains the palette index corresponding to the color value
     /// in the source matrix. Returns null if the input data or palette is null, or if an error occurs.</returns>
-    static public byte[,]? CreateIndexedData(int[,]? mData, List<int>? lPalette, ImageWidthAlignMode ePixelWidthAlign)
+    static public byte[,]? CreateIndexedData(int[,] mData, List<int> lPalette, ImageWidthAlignMode ePixelWidthAlign)
     {
         string sMethod = nameof(CreateIndexedData);
         try
@@ -138,7 +138,7 @@ public static partial class ImageTools
     /// <param name="ePixelWidthAlign">Specifies how the width of each image row is aligned in the resulting indexed data.</param>
     /// <returns>A two-dimensional byte array containing the indexed image data, where each value corresponds to a palette
     /// index.</returns>
-    static public byte[,]? CreateIndexedData(int[,]? mData, Palette? oPalette, ImageWidthAlignMode ePixelWidthAlign)
+    static public byte[,]? CreateIndexedData(int[,] mData, Palette oPalette, ImageWidthAlignMode ePixelWidthAlign)
         => CreateIndexedData(mData, oPalette?.ToList(), ePixelWidthAlign);
 
     /// <summary>
@@ -147,7 +147,7 @@ public static partial class ImageTools
     /// <param name="mData">A two-dimensional array of integers representing color values to be indexed.</param>
     /// <param name="oPalette">The palette used to map color values to palette indices. Cannot be null.</param>
     /// <returns>A two-dimensional byte array where each element is the index of the corresponding color in the palette.</returns>
-    static public byte[,]? CreateIndexedData(int[,]? mData, Palette? oPalette)
+    static public byte[,]? CreateIndexedData(int[,] mData, Palette oPalette)
         => CreateIndexedData(mData, oPalette?.ToList(), GetImageStdWidthAlign());
 
     /// <summary>
@@ -158,7 +158,7 @@ public static partial class ImageTools
     /// <param name="ePixelWidthAlign">The pixel width alignment mode to apply when generating the indexed data.</param>
     /// <returns>A two-dimensional byte array containing the indexed pixel data of the image, aligned according to the
     /// specified mode.</returns>
-    static public byte[,]? CreateIndexedData(ImageData? oImage, ImageWidthAlignMode ePixelWidthAlign)
+    static public byte[,]? CreateIndexedData(ImageData oImage, ImageWidthAlignMode ePixelWidthAlign)
         => CreateIndexedData(oImage?.Data, oImage?.ColorPalette, ePixelWidthAlign);
 
     /// <summary>

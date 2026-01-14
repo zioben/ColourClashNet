@@ -1,4 +1,5 @@
 ﻿using ColourClashNet.Color;
+using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace ColourClashNet.Color
     {
         static readonly int[] oColorArray = new int[256 * 256 * 256];
 
-        static readonly int SizeLimit = 1920 * 1080 * 4;
+        static readonly int SizeLimit = 1920 * 1080;
 
         static object oLocker = new object();
 
@@ -21,7 +22,7 @@ namespace ColourClashNet.Color
         /// Creates a histogram using a temporary local array for large images.
         /// This method is thread-safe and avoids using a static shared buffer.
         /// </summary>
-        static void CreateColorHistArray(int[,] oDataSource, Histogram oHist, CancellationToken? oToken)
+        static void CreateHistogramArray(int[,] oDataSource, Histogram oHist)
         {
             lock (oLocker)
             {
@@ -31,7 +32,6 @@ namespace ColourClashNet.Color
                 int C = oDataSource.GetLength(1);
                 for (int r = 0; r < R; r++)
                 {
-                    oToken?.ThrowIfCancellationRequested();
                     for (int c = 0; c < C; c++)
                     {
                         var i = oDataSource[r, c];
@@ -40,7 +40,6 @@ namespace ColourClashNet.Color
                         oColorArray[i]++;
                     }
                 }
-                oToken?.ThrowIfCancellationRequested();
                 for (int rgb = 0; rgb < oColorArray.Length; rgb++)
                 {
                     if (oColorArray[rgb] >= 0)
@@ -55,7 +54,7 @@ namespace ColourClashNet.Color
         /// Creates a histogram directly for small images.
         /// Adds 1 for each occurrence of a color.
         /// </summary>
-        static bool CreateColorHistDirect(int[,]? oDataSource, Histogram? oHist, CancellationToken? oToken)
+        static bool CreateHistogramDirect(int[,] oDataSource, Histogram oHist)
         { 
             if(oDataSource == null || oHist == null )
                 return false;
@@ -64,7 +63,6 @@ namespace ColourClashNet.Color
             int C = oDataSource.GetLength(1);
             for (int r = 0; r < R; r++)
             {
-                oToken?.ThrowIfCancellationRequested();
                 for (int c = 0; c < C; c++)
                 {
                     var rgb = oDataSource[r, c];
@@ -80,85 +78,72 @@ namespace ColourClashNet.Color
         /// Creates a histogram asynchronously, choosing the method based on image size.
         /// Uses a temporary local array for large images.
         /// </summary>
-        static async Task<Histogram> CreateColorHistogramAsync(int[,]? oDataSource, Histogram oHist, CancellationToken? oToken)
+        static Histogram CreateHistogramStatic(int[,] oDataSource, Histogram oHist)
         {
-            string sMethod = nameof(CreateColorHistogramAsync);
-            return await Task.Run(() =>
+            string sMethod = nameof(CreateHistogramStatic);
+            try
             {
-                try
+                if (oDataSource == null || oHist == null)
                 {
-                    if (oDataSource == null || oHist == null)
-                    {
-                        LogMan.Error(sClass, sMethod, "Invalid data source");
-                        return new Histogram();
-                    }
-                    oHist.Reset();
-                    int R = oDataSource.GetLength(0);
-                    int C = oDataSource.GetLength(1);
-                    if (R * C > SizeLimit)
-                    {
-                        LogMan.Trace(sClass, sMethod, "Using array method for large image");
-                        CreateColorHistArray(oDataSource, oHist,oToken);
-                    }
-                    else
-                    {
-                        LogMan.Trace(sClass, sMethod, "Using direct method for small image");
-                        CreateColorHistDirect(oDataSource, oHist, oToken);
-                    }
-                    return oHist;
-                }
-                catch (Exception ex)
-                {
-                    LogMan.Exception(sClass, sMethod, ex);
+                    LogMan.Error(sClass, sMethod, "Invalid data source");
                     return new Histogram();
                 }
-            });
+                oHist.Reset();
+                int R = oDataSource.GetLength(0);
+                int C = oDataSource.GetLength(1);
+                if (R * C > SizeLimit)
+                {
+                    LogMan.Trace(sClass, sMethod, "Using array method for large image");
+                    CreateHistogramArray(oDataSource, oHist);
+                }
+                else
+                {
+                    LogMan.Trace(sClass, sMethod, "Using direct method for small image");
+                    CreateHistogramDirect(oDataSource, oHist);
+                }
+                return oHist;
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sClass, sMethod, ex);
+                return new Histogram();
+            }
         }
 
-        /// <summary>
-        /// Simplified overload: creates a new histogram from a 2D int array asynchronously.
-        /// </summary>
-        public async static Task<Histogram> CreateColorHistogramAsync(int[,]? oDataSource, CancellationToken? oToken) => await CreateColorHistogramAsync(oDataSource, new Histogram(), oToken);
+      
+        public static Histogram CreateHistogram(int[,] oDataSource) => CreateHistogramStatic(oDataSource, new Histogram());
 
-        ///// <summary>
-        ///// Simplified overload: creates a new histogram from a 2D int array asynchronously.
-        ///// </summary>
-        //public static Histogram CreateColorHistogram(int[,]? oDataSource)
-        //{
-        //    var cts = new CancellationTokenSource();   
-        //    return CreateColorHistogramAsync(oDataSource, cts.Token).GetAwaiter().GetResult();    
-        //}
+        public static Histogram CreateHistogram(ImageData oImageData) => CreateHistogramStatic(oImageData?.Data, new Histogram());
+
+       
 
         /// <summary>
         /// Creates a histogram asynchronously, choosing  the method based on image size.
         /// Uses a temporary local array for large images.
         /// </summary>
-        static async Task<Histogram> CreateColorHistogramAsync(Histogram? oHistSrc, Histogram? oHistDest, CancellationToken? oToken)
+        public static Histogram CreateHistogram(Histogram oHistSrc)
         {
-            string sMethod = nameof(CreateColorHistogramAsync);
-            return await Task.Run(() =>
+            string sMethod = nameof(CreateHistogram);
+
+            try
             {
-                try
+                if (oHistSrc == null)
                 {
-                    var oHistDest = new Histogram();
-                    if (oHistSrc == null || oHistDest == null)
-                    {
-                        LogMan.Error(sClass, sMethod, "Invalid data source");
-                        return new Histogram();
-                    }
-                    oHistDest.Reset();
-                    foreach (var kvp in oHistSrc.rgbHistogram)
-                    {
-                        oHistDest.rgbHistogram.Add(kvp.Key, kvp.Value);
-                    }
-                    return oHistDest;
-                }
-                catch (Exception ex)
-                {
-                    LogMan.Exception(sClass, sMethod, ex);
+                    LogMan.Error(sClass, sMethod, "Invalid data source");
                     return new Histogram();
                 }
-            });
+                var oHistDest = new Histogram();
+                foreach (var kvp in oHistSrc.rgbHistogram)
+                {
+                    oHistDest.rgbHistogram.Add(kvp.Key, kvp.Value);
+                }
+                return oHistDest;
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sClass, sMethod, ex);
+                return new Histogram();
+            }
         }
     }
 }

@@ -1,12 +1,13 @@
-﻿using System;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Imaging;
+using ColourClashNet.Log;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashNet.Color;
-using ColourClashNet.Log;
 
 namespace ColourClashNet.Color.Dithering
 {
@@ -25,22 +26,20 @@ namespace ColourClashNet.Color.Dithering
             return true;
         }
 
-        public override async Task<int[,]?> DitherAsync(int[,]? oDataOriginal, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken)
+        public override async Task<ImageData?> DitherAsync(ImageData oImageReference, ImageData oImageReduced, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken)
         {
             return await Task.Run(() =>
             {
                 string sMethod = nameof(DitherAsync);
                 try
                 {
-                    if (oDataOriginal == null)
+                    if (oImageReduced == null)
                     {
                         LogMan.Error(sClass, sMethod, "Invalid input data");
                         return null;
                     }
-                    LogMan.Trace(sClass, sMethod, $"{Type} : Dithering");
-                    var oRet = oDataProcessed.Clone() as int[,];
-                    LogMan.Trace(sClass, sMethod, $"{Type} : Dithering completed");
-                    return oRet;
+                    LogMan.Trace(sClass, sMethod, $"{Type} : Dithering is a simple clone");
+                    return new ImageData().Create(oImageReduced);
 
                 }
                 catch (Exception ex)

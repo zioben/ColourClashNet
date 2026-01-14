@@ -40,7 +40,7 @@ namespace ColourClashNet.Defaults
         /// <summary>
         /// Default integer representation of an invalid color.
         /// </summary>
-        public static int DefaultInvalidColorInt { get; set; } = ColorIntExt.FromRGB(255, 255, 255, ColorIntType.Invalid);
+        public static int DefaultInvalidColorInt { get; set; } = ColorIntExt.FromRGB(255, 255, 255, ColorInfo.Invalid);
         public static System.Drawing.Color DefaultInvalidColor => System.Drawing.Color.FromArgb(DefaultInvalidColorInt);
 
     }

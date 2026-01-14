@@ -74,14 +74,15 @@ namespace ColourClashNet.Color.Transformation
         }
 
         void Partition(Palette oPalette, int iMaxColor)
-        {            
+        {
+            var rgbList = oPalette.ToList();
             if (iMaxColor > 0)
             {
 
                 var lR = new int[256].ToList();
                 var lG = new int[256].ToList();
                 var lB = new int[256].ToList();
-                foreach (var rgb in oPalette.rgbPalette)
+                foreach (var rgb in rgbList)
                 {
                     lR[rgb.ToR()]++;
                     lG[rgb.ToG()]++;
@@ -95,7 +96,7 @@ namespace ColourClashNet.Color.Transformation
                 if (ird > igd && ird > ibd)
                 {
                     var irm = GetMedian(lR);
-                    foreach (var rgb in oPalette.rgbPalette)
+                    foreach (var rgb in rgbList)
                     {
                         if (rgb.ToR() <= irm)
                             hInf.Add(rgb);
@@ -106,7 +107,7 @@ namespace ColourClashNet.Color.Transformation
                 else if (igd > ibd)
                 {
                     var igm = GetMedian(lG);
-                    foreach (var rgb in oPalette.rgbPalette)
+                    foreach (var rgb in rgbList)
                     {
                         if (rgb.ToG() <= igm)
                             hInf.Add(rgb);
@@ -117,7 +118,7 @@ namespace ColourClashNet.Color.Transformation
                 else
                 {
                     var ibm = GetMedian(lB);
-                    foreach (var rgb in oPalette.rgbPalette)
+                    foreach (var rgb in rgbList)
                     {
                         if (rgb.ToB() <= ibm)
                             hInf.Add(rgb);
@@ -134,7 +135,7 @@ namespace ColourClashNet.Color.Transformation
                 if (oPalette.Count == 0)
                     return;
                 var iRGB = ColorIntExt.GetColorMean(oPalette, ColorMeanMode.UseColorPalette);
-                foreach (var rgb in oPalette.rgbPalette)
+                foreach (var rgb in rgbList)
                 {
                     if (!TransformationMap.rgbTransformationMap.ContainsKey(rgb))
                     {
@@ -151,6 +152,7 @@ namespace ColourClashNet.Color.Transformation
             return await Task.Run(() =>
             {
                 OutputPalette = new Palette();
+                var SourceHistogram = Histogram.CreateHistogram(SourceData);
                 if (SourceHistogram.ToColorPalette().Count < ColorsMaxWanted)
                 {
                     foreach (var kvp in SourceHistogram.rgbHistogram)
@@ -169,7 +171,7 @@ namespace ColourClashNet.Color.Transformation
             });
         }
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
+        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken oToken)
         {
             var ret = await TransformationMap.TransformAsync(SourceData, oToken);
             if (ret != null)

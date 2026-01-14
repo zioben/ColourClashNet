@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Log;
+﻿using ColourClashNet.Imaging;
+using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,9 +21,9 @@ public partial class Palette
     /// empty palette is returned.</param>
     /// <returns>A new Palette instance containing all colors from the non-null palettes in the collection. If no palettes
     /// are provided or all are null, the returned palette will be empty.</returns>
-    public static Palette MergeColorPalette(IEnumerable<Palette?>? sourcePalettes)
+    public static Palette MergePalette(IEnumerable<Palette?> sourcePalettes)
     {
-        var sM = nameof(MergeColorPalette);
+        var sM = nameof(MergePalette);
         try
         {
             var result = new Palette();
@@ -57,9 +58,9 @@ public partial class Palette
    /// <param name="b">The second palette to merge. Can be null.</param>
    /// <returns>A new Palette instance containing the merged colors from both input palettes. If both parameters are null,
    /// returns an empty palette.</returns>
-    public static Palette MergeColorPalette(Palette? a, Palette? b)
+    public static Palette MergePalette(Palette a, Palette b)
     {
-        return MergeColorPalette(new[] { a, b });
+        return MergePalette(new[] { a, b });
     }
 
     /// <summary>
@@ -67,10 +68,10 @@ public partial class Palette
     /// </summary>
     /// <param name="sourcePalette">The palette to use as the basis for the new color palette. Can be null.</param>
     /// <returns>A new Palette instance containing the colors from the source palette.</returns>
-    public static Palette CreateColorPalette(Palette? sourcePalette)
+    public static Palette CreatePalette(Palette sourcePalette)
     {
-        var sM = nameof(CreateColorPalette);
-        return MergeColorPalette(new[] { sourcePalette });
+        var sM = nameof(CreatePalette);
+        return MergePalette(new[] { sourcePalette });
     }
 
    
@@ -81,9 +82,9 @@ public partial class Palette
     /// create an empty palette.</param>
     /// <returns>A Palette instance containing the colors specified in the source enumerable. Returns an empty palette if
     /// sourceEnumerable is null or contains no elements.</returns>
-    public static Palette CreateColorPalette(IEnumerable<int>? sourceEnumerable)
+    public static Palette CreatePalette(IEnumerable<int> sourceEnumerable)
     {
-        var sM = nameof(CreateColorPalette);
+        var sM = nameof(CreatePalette);
         try
         {
             var result = new Palette();
@@ -114,9 +115,9 @@ public partial class Palette
     /// represents a valid color.</param>
     /// <returns>A Palette containing all valid colors found in the input array. If no valid colors are found or if the input
     /// is null, the returned Palette will be empty.</returns>
-    public static Palette CreateColorPalette(int[,]? mData)
+    public static Palette CreatePalette(int[,] mData)
     {
-        var sM = nameof(CreateColorPalette);
+        var sM = nameof(CreatePalette);
         try
         {
             var result = new Palette();
@@ -127,12 +128,41 @@ public partial class Palette
             }
             foreach (var color in mData)
             {
-                if (color.GetColorInfo() == ColorIntType.IsColor)
+                if (color.GetColorInfo() == ColorInfo.IsColor)
                 {
                     result.Add(color);
                 }
             }
             return result;
+        }
+        catch (Exception ex)
+        {
+            LogMan.Exception(sC, sM, ex);
+            return new Palette();
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="oImageData"></param>
+    /// <returns></returns>
+    public static Palette CreatePalette(ImageData oImageData)
+    {
+        var sM = nameof(CreatePalette);
+        try
+        {
+            if (oImageData == null)
+            {
+                LogMan.Error(sC, sM, "ImageData null");
+                return new Palette();
+            }
+            if (!oImageData.DataValid)
+            {
+                LogMan.Error(sC, sM, "ImageData invalid");
+                return new Palette();
+            }
+            return CreatePalette(oImageData.ColorPalette);
         }
         catch (Exception ex)
         {

@@ -1,4 +1,7 @@
-﻿using System;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color.Transformation;
+using ColourClashNet.Imaging;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -82,7 +85,7 @@ namespace ColourClashNet.Color.Transformation
 
 
 
-        protected override async Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
+        protected override async Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken oToken)
         {
             return await Task.Run(async () =>
             {
@@ -90,19 +93,16 @@ namespace ColourClashNet.Color.Transformation
                 BypassDithering = true;
                 ColorListRow.Clear();
 
-                var R = SourceData.GetLength(0);
-                var C = SourceData.GetLength(1);
-                var oRet = new int[R, C];
+                var oRet = new int[SourceData.Rows, SourceData.Columns];
                 //var oCols = new int[1, C];
-                var oSourceNew = SourceData.Clone() as int[,];
+                var oSourceNew = new Imaging.ImageData().Create(SourceData);
 
                 var oLineFixedPalette = FixedPalette;
                 // Step 1 : Reducing to target palette colors -> 128 to 16 colors 
                 // MainPaletteUsed = false;
                 if (CreateSharedPalette)
                 {
-                    var oMainHist = new Histogram();
-                    await oMainHist.CreateAsync(SourceData, oToken);
+                    var oMainHist = Histogram.CreateHistogram(SourceData);
                     var oMainPalette = oMainHist.ToColorPalette();
                     if (oMainPalette.Count <= ColorsMaxWanted)
                     {
@@ -130,38 +130,38 @@ namespace ColourClashNet.Color.Transformation
                             oLineTrasf = oTrasf2;
                         }
 
-                        await oLineTrasf.CreateAsync(SourceData, oToken);
+                        oLineTrasf.Create(SourceData);
 
                         var oMainRet = await oLineTrasf.ProcessColorsAsync(oToken);
                         oSourceNew = oMainRet.DataOut;
-                        var oHistNew = new Histogram();
-                        await oHistNew.CreateAsync(SourceData, oToken);
+                        var oHistNew = Histogram.CreateHistogram(SourceData);
                         oLineFixedPalette = oHistNew.ToColorPalette();
                     }
                 }
-                oToken?.ThrowIfCancellationRequested();
+                oToken.ThrowIfCancellationRequested();
 
 
                 // Select the fixed-most used in histogram
 
                 var oRowColors = new List<int>();
-                await Parallel.ForAsync(0, R, oToken ?? CancellationToken.None, async (r, token) =>
+                //Parallel.For(0, SourceData.Rows, r  =>
+                await Parallel.ForAsync(0, SourceData.Rows, oToken, async (r, token) =>
                 {
-                    token.ThrowIfCancellationRequested();
-                    var oCols = new int[1, C];
-                    for (int c = 0; c < C; c++)
+                    oToken.ThrowIfCancellationRequested();
+                    var oCols = new int[1, SourceData.Columns];
+                    for (int c = 0; c < SourceData.Columns; c++)
                     {
-                        oCols[0, c] = oSourceNew[r, c];
+                        oCols[0, c] = oSourceNew.Data[r, c];
                     }
                     // Create row histogram and take the most used colors
-                    var oHist = await Histogram.CreateColorHistogramAsync(oCols, oToken);//.SortColorsDescending();
+                    var oHist = Histogram.CreateHistogram(oCols);//.SortColorsDescending();
                     var oNewPal = oHist.SortColorsDescending().ToColorPalette(LineReductionMaxColors);
                     // Create 
                     //--------------------------------------------------------------
                     //    Trace.WriteLine($"Row - {r}");
                     if (DitheringType == ColorDithering.None)
                     {
-                        for (int c = 0; c < C; c++)
+                        for (int c = 0; c < SourceData.Columns; c++)
                         {
                             oRet[r, c] = ColorIntExt.GetNearestColor(oCols[0, c], oNewPal, ColorDistanceEvaluationMode);
                         }
@@ -171,12 +171,12 @@ namespace ColourClashNet.Color.Transformation
                         var oTras = new ColorTransformReductionPalette()
                         .SetProperty(ColorTransformProperties.Fixed_Palette, oNewPal)
                         .SetProperty(ColorTransformProperties.MaxColorsWanted, oNewPal.Count)
-                        .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType);
-                        await oTras.CreateAsync(oCols, oToken);
-                        var oColRes = await oTras.ProcessColorsAsync(oToken);
-                        for (int c = 0; c < C; c++)
+                        .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
+                        .Create(oCols);
+                        var oColRes = await oTras.ProcessColorsAsync(token);
+                        for (int c = 0; c < SourceData.Columns; c++)
                         {
-                            oRet[r, c] = oColRes.DataOut[0, c];
+                            oRet[r, c] = oColRes.DataOut.Data[0, c];
                         }
                     }
                     //--------------------------------------------------------------
@@ -188,7 +188,7 @@ namespace ColourClashNet.Color.Transformation
                 });
                 if (oRet != null)
                 {
-                    return ColorTransformResults.CreateValidResult(SourceData, oRet);
+                    return ColorTransformResults.CreateValidResult(SourceData, new ImageData().Create(oRet));
                 }
                 return new();
             });

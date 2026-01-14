@@ -1,5 +1,6 @@
 ﻿using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
+using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
@@ -102,18 +103,33 @@ namespace ColourClashNet.Color.Dithering
             return true;
         }
 
-        public override async Task<int[,]?> DitherAsync(int[,]? oDataOriginal, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken)
+        //public override async Task<int[,]?> DitherAsync(int[,]? oDataOriginal, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken)
+        public override async Task<ImageData?> DitherAsync(ImageData oImageReference, ImageData oImageReduced, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken)
         {
             return await Task.Run(() =>
             {
                 string sM = nameof(DitherAsync);
                 try
                 {
-                    if (oDataProcessedPalette == null || oDataProcessedPalette.Count == 0)
+                    if (oImageReference == null || !oImageReference.DataValid)
                     {
-                        LogMan.Error(sC, sM, $"{Type} : Invalid input data");
+                        LogMan.Error(sC, sM, $"{Type} : Invalid reference data");
                         return null;
                     }
+                    if (oImageReduced == null || !oImageReduced.DataValid)
+                    {
+                        LogMan.Error(sC, sM, $"{Type} : Invalid reduced data");
+                        return null;
+                    }
+                    if (!Create())
+                    {
+                        LogMan.Error(sC, sM, $"{Type} : Creation Error");
+                        return null;
+                    }
+
+                    var oDataOriginal = oImageReference.Data;
+                    var oDataProcessed = oImageReduced.Data;
+                    var oDataProcessedPalette = oImageReduced.ColorPalette;
                     if (!Create())
                     {
                         LogMan.Error(sC, sM, $"{Type} : Creation error");
@@ -142,7 +158,7 @@ namespace ColourClashNet.Color.Dithering
                         oToken?.ThrowIfCancellationRequested();
                     });
                     LogMan.Trace(sC, sM, $"{Type} : Dithering completed");
-                    return oDataOut;
+                    return new ImageData().Create( oDataOut );
                 }
                 catch (Exception ex)
                 {

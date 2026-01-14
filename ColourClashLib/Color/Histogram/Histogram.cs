@@ -46,10 +46,10 @@ namespace ColourClashNet.Color
         /// </summary>
         /// <param name="oDataSource">Image Data</param>
         /// <returns>this object</returns>
-        public async Task<Histogram> CreateAsync(int[,] oDataSource, CancellationToken? oToken)
+        public Histogram Create(int[,] oDataSource)
         {
             Reset();
-            return await Histogram.CreateColorHistogramAsync(oDataSource, this, oToken);
+            return Histogram.CreateHistogramStatic(oDataSource, this);
         }
 
         /// <summary>
@@ -57,10 +57,14 @@ namespace ColourClashNet.Color
         /// </summary>
         /// <param name="oDataSource">Image Data</param>
         /// <returns>this object</returns>
-        public async Task<Histogram> CreateAsync(Histogram? oHist, CancellationToken? oToken)
+        public Histogram Create(Histogram oHist )
         {
             Reset();
-            return await Histogram.CreateColorHistogramAsync(oHist, this, oToken);
+            foreach( var kvp in oHist.rgbHistogram )
+            {
+                rgbHistogram[kvp.Key] = kvp.Value;
+            }
+            return this;
         }
 
         /// <summary>
@@ -73,7 +77,7 @@ namespace ColourClashNet.Color
         {
             if (rgb < 0)
                 return;
-            if (rgb.GetColorInfo() == ColorIntType.IsColor)
+            if (rgb.GetColorInfo() == ColorInfo.IsColor)
             {
                 if( rgbHistogram.ContainsKey(rgb))
                 {

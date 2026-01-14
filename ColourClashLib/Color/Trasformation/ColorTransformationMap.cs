@@ -30,7 +30,8 @@ namespace ColourClashNet.Color
             {
                 return false;
             }
-            foreach (var rgb in oPalette.rgbPalette)
+            var rgbList = oPalette.ToList();
+            foreach (var rgb in rgbList)
             {
                 if ( rgb>=0 )
                 {
@@ -103,9 +104,7 @@ namespace ColourClashNet.Color
                     }
                 }
             });
-            ImageData oRet = new ImageData();
-            await oRet.CreateAsync(oDataOut);
-            return oRet;
+            return new ImageData().Create(oDataOut);
         }
 
 

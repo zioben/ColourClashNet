@@ -22,7 +22,7 @@ namespace ColourClashNet.Controls
 
         CancellationTokenSource? cts = null;
 
-        void AppendData(ColorTransformEventArgs oArgs)
+        void AppendData(ColorProcessingEventArgs oArgs)
         {
             if (oArgs == null)
             {
@@ -34,13 +34,13 @@ namespace ColourClashNet.Controls
                 {
                     cts = oArgs.CancellationTokenSource;
                 }
-                if (oArgs.Message != null)
+                if (oArgs.ProcessingResults.Message != null)
                 {
-                    lbHistory.Items.Insert(0, oArgs.Message);
+                    lbHistory.Items.Insert(0, oArgs.ProcessingResults.Message);
                 }
                 if (oArgs?.ProcessingResults?.DataOut != null)
                 {
-                    picImageTemp.Image = ImageTools.MatrixToBitmap(oArgs.ProcessingResults.DataOut);
+                    picImageTemp.Image = ImageTools.ImageDataToGdiImage(oArgs.ProcessingResults.DataOut);
                 }
                 if (!double.IsNaN(oArgs.CompletedPercent))
                 {
@@ -82,18 +82,18 @@ namespace ColourClashNet.Controls
             oTrasf.Processed += OTrasf_Processed;
         }
 
-        private void OTrasf_Processed(object? sender, ColorTransformEventArgs e)
+        private void OTrasf_Processed(object? sender, ColorProcessingEventArgs e)
         {
             //AppendData(e);
             Hide();
         }
 
-        private void OTrasf_ProcessPartial(object? sender, ColorTransformEventArgs e)
+        private void OTrasf_ProcessPartial(object? sender, ColorProcessingEventArgs e)
         {
             AppendData(e);
         }
 
-        private void OTrasf_Processing(object? sender, ColorTransformEventArgs e)
+        private void OTrasf_Processing(object? sender, ColorProcessingEventArgs e)
         {
             Show();
             cts = e.CancellationTokenSource;

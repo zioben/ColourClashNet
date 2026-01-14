@@ -15,7 +15,7 @@ namespace ColourClashNet.Color.Tile
     /// <remarks>This class is designed to handle color data for a specific tile, including processing the
     /// tile's color data  using a specified dithering algorithm. It also supports error evaluation based on the
     /// processed output.</remarks>
-    public class TileData
+    public class TileMap
     {
         internal int r { get; set; }
         internal int c { get; set; }
@@ -30,11 +30,12 @@ namespace ColourClashNet.Color.Tile
             TrainingLoop = 3,
         };
 
-        internal async Task<ColorTransformResults> ProcessColorAsync(ColorDithering eDitherModel, CancellationToken? oToken)
+        internal async Task<ColorTransformResults> ProcessColorAsync(ColorDithering eDitherModel, CancellationToken oToken=default )
         {
-            await oReduction.CreateAsync(Tile, oToken);
-            oReduction.SetProperty(ColorTransformProperties.Dithering_Type, eDitherModel);
-            var oRet = await oReduction.ProcessColorsAsync( oToken);
+            oReduction
+                .Create(Tile)
+                .SetProperty(ColorTransformProperties.Dithering_Type, eDitherModel);
+            var oRet = await oReduction.ProcessColorsAsync(oToken);
             Error = await ColorIntExt.EvaluateErrorAsync(oRet.DataOut, Tile, oReduction.ColorDistanceEvaluationMode,oToken);
             return oRet;
         }

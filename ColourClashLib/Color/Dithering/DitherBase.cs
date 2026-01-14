@@ -1,5 +1,6 @@
 ﻿using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
+using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -24,8 +25,7 @@ namespace ColourClashNet.Color.Dithering
 
         public abstract bool Create();
 
-
-        public abstract Task<int[,]?> DitherAsync(int[,]? oDataSource, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken);
+        public abstract Task<ImageData?> DitherAsync(ImageData oImageReference, ImageData oImageReduced, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken);
 
         //public int[,]? Dither(int[,]? oDataSource, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken)
         //{

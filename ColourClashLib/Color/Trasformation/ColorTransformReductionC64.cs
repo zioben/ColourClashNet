@@ -1,5 +1,5 @@
-﻿using ColourClashLib.Color.Trasformation;
-using ColourClashNet.Color.Tile;
+﻿using ColourClashNet.Color.Tile;
+using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using NLog;
 using System;
@@ -117,55 +117,57 @@ namespace ColourClashNet.Color.Transformation
 
         // Not Needed
         // protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
-        async Task<int[,]?> PreProcessAsync(int[,]? oDataSource, bool bHalveRes, CancellationToken? oToken)
+        async Task<ImageData?> PreProcessAsync(ImageData oDataSource, bool bHalveRes, CancellationToken oToken)
         {
-            if (oDataSource == null)
+            string sM= nameof(PreProcessAsync);
+            if ( !oDataSource?.DataValid ?? true )
+            {
+                LogMan.Error(sC, sM, "No data source provided");
                 return null;
-            var oSource = oDataSource;
+            }
+            var oRealSource = oDataSource;
             if (bHalveRes)
             {
-                oSource = ColorTransformBase.HalveHorizontalRes(oDataSource);
+                oRealSource = new ImageData().Create(ColorTransformBase.HalveHorizontalRes(oDataSource.Data));
             }
             // Reduce all to the base 16 C64 colors without restrictions
-            var oTmpData = await TransformationMap.TransformAsync(oSource, oToken);
+            var oProcessed = await TransformationMap.TransformAsync(oRealSource, oToken);
+            var oDithered = oProcessed;
             if (DitheringType !=  ColorDithering.None )
             {
                 var oDither = Dithering.DitherBase.CreateDitherInterface(DitheringType,DitheringStrenght);             
-                var oDitherResult = await oDither.DitherAsync(oSource, oTmpData, FixedPalette, ColorDistanceEvaluationMode, oToken);
-                oTmpData = oDitherResult;
+                oDithered = await oDither.DitherAsync(oRealSource, oProcessed, ColorDistanceEvaluationMode, oToken);
             }
             // Raise pre processing event
-            RaiseProcessPartialEvent(new ColorTransformEventArgs()
+            RaiseProcessPartialEvent(new ColorProcessingEventArgs()
             {
                 ColorTransformInterface = this,
                 CompletedPercent = 0,
-                Message = "PreProcessing-Dithered",
-                ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, oTmpData)
+                ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, oDithered, "Dithered Base")
             });
-            return oTmpData;
+            return oDithered;
         }
 
         // Only to debug purpose, this is the best image obtainable using C64 palette
-        async Task<int[,]?> ToBasePalette(int[,]? oTmpDataSource, CancellationToken? oToken) => await PreProcessAsync(oTmpDataSource, false, oToken);
+        async Task<ImageData?> ToBasePaletteAsync(ImageData oTmpDataSource, CancellationToken oToken) 
+            => await PreProcessAsync(oTmpDataSource, false, oToken);
 
         // Cerate a Tile Map 8x8 2 indipendent colors
-        async Task<int[,]?> ToHiresAsync(int[,]? oTmpDataSource, CancellationToken? oToken)
+        async Task<ImageData> ToHiresAsync(ImageData oDataSource, CancellationToken oToken)
         {
-            var oTmpData = await PreProcessAsync(oTmpDataSource, false, oToken);
+            var oTmpData = await PreProcessAsync(oDataSource, false, oToken);
             TileManager oManager = TileManager.Create(8, 8, 2)
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
                 .SetProperty(ColorTransformProperties.Fixed_Palette, FixedPalette)
                 .SetProperty(ColorTransformProperties.Forced_Palette, null);
-//                .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
-//                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
 
             oManager.TileBorderShow = TileBorderShow;
-            var res1 = await oManager.CreateAsync(oTmpData, oToken);
+            var res1 = await oManager.CreateAsync(oTmpData,oToken);
             var res2 = await oManager.ProcessColorsAsync(oToken);
             if (res2)
             {
-                var oRet = await oManager.CreateImageFromTilesAsync(oToken);
-                return oRet;
+                var oImageData = oManager.CreateImageFromTiles();
+                return oImageData;
             }
             else
             {
@@ -174,32 +176,28 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        // Create a Tile Map 8x4 3 fixed colors + 1 selectable color per tile
-        async Task<int[,]?> ToMultiColorAsync(int[,]? oTmpDataSource, CancellationToken? oToken)
+        // Create a Tile Map 8x4 1 fixed color + 3 selectable colors per tile
+        async Task<ImageData?> ToMultiColorAsync(ImageData oDataSource, CancellationToken oToken)
         {
-            var oTmpData = await PreProcessAsync(oTmpDataSource, true, oToken);
-            DataContainer oTempContainer = new DataContainer();
-            await oTempContainer.SetDataAsync(oTmpData,oToken);
+            var oTmpData = await PreProcessAsync(oDataSource, true, oToken);
 
-            // Select the 3 most used 
-            var oForcedPalette = oTempContainer.ColorHistogram.SortColorsDescending().ToColorPalette(1);
+            // Select the most used 
+            var oTmpHistogram = Histogram.CreateHistogram(oTmpData);
+            var oForcedPalette = oTmpHistogram.SortColorsDescending().ToColorPalette(1);
 
             TileManager oManager = TileManager.Create(4, 8, 4)
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
                 .SetProperty(ColorTransformProperties.Fixed_Palette, FixedPalette)
                 .SetProperty(ColorTransformProperties.Forced_Palette, oForcedPalette);
-//                .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
-//                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
 
             oManager.TileBorderShow = TileBorderShow;
-            // var res1 = await oManager.CreateAsync(oTmpData, oToken);
             var res1 = await oManager.CreateAsync(oTmpData, oToken);
             var res2 = await oManager.ProcessColorsAsync(oToken);
             if (res2)
             {
-                var oTmpHalfProc = await oManager.CreateImageFromTilesAsync(oToken);
-                var oRet = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc);
-                return oRet;
+                var oTmpHalfProc = oManager.CreateImageFromTiles();
+                var oResultData = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc.Data);
+                return new ImageData().Create(oResultData);
             }
             else
             {
@@ -208,27 +206,23 @@ namespace ColourClashNet.Color.Transformation
         }
 
         // Create a Tile Map 1x4 2 selectable color per tile
-        async Task<int[,]?> ToFliAsync(int[,]? oTmpDataSource, CancellationToken? oToken)
+        async Task<ImageData?> ToFliAsync(ImageData oTmpDataSource, CancellationToken oToken)
         {
             var oTmpData = await PreProcessAsync(oTmpDataSource, true, oToken);
-            DataContainer oTempContainer = new DataContainer();
-            await oTempContainer.SetDataAsync(oTmpData, oToken);
 
             TileManager oManager = TileManager.Create(4, 1, 2)
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
                 .SetProperty(ColorTransformProperties.Fixed_Palette, FixedPalette)
                 .SetProperty(ColorTransformProperties.Forced_Palette, null);
-         //       .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
-         //       .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
 
             oManager.TileBorderShow = TileBorderShow;
             var res1 = await oManager.CreateAsync(oTmpData, oToken);
             var res2 = await oManager.ProcessColorsAsync(oToken);
             if (res2)
             {
-                var oTmpHalfProc = await oManager.CreateImageFromTilesAsync(oToken);
-                var oRet = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc);
-                return oRet;
+                var oTmpHalfProc = oManager.CreateImageFromTiles();
+                var oResultData = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc.Data);
+                return new ImageData().Create(oResultData);
             }
             else
             {
@@ -239,9 +233,9 @@ namespace ColourClashNet.Color.Transformation
 
 
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
+        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken oToken)
         {
-            int[,] oPreprocessedData = null;
+            ImageData? oPreprocessedData = null;
             BypassDithering = true;
             switch (VideoMode)
             {
@@ -249,7 +243,7 @@ namespace ColourClashNet.Color.Transformation
                 case C64VideoMode.DebugEnhancedPalette:
                 case C64VideoMode.DebugBasePalette:
                     {
-                        oPreprocessedData = await ToBasePalette(SourceData, oToken);
+                        oPreprocessedData = await ToBasePaletteAsync(SourceData, oToken);
                     }
                     break;
                 case C64VideoMode.HiRes:
@@ -281,7 +275,7 @@ namespace ColourClashNet.Color.Transformation
             }
             else
             {
-                return new();
+                return ColorTransformResults.CreateErrorResult("Error during C64 transformation", null);
             }
         }
     }

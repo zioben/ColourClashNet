@@ -111,13 +111,13 @@ namespace ColourClashNet.Imaging
         //    return oBmp;
         //}
 
-        static public Bitmap BitplaneCreateIndexedBitmap(int[,] mDataSrc, List<int> lPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
-        {
-            var mDtaBpl = BitplaneCreateData(mDataSrc, lPaletteSrc, ePixelWidthAlign, bInterleavedData);
-            var oBmp = CreateIndexedBitmap(mDtaBpl);
-            BitmapSetPalette(oBmp, lPaletteSrc);
-            return oBmp;
-        }
+        //static public Bitmap BitplaneCreateIndexedBitmap(int[,] mDataSrc, List<int> lPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
+        //{
+        //    var mDtaBpl = BitplaneCreateData(mDataSrc, lPaletteSrc, ePixelWidthAlign, bInterleavedData);
+        //    var oBmp = CreateIndexedBitmap(mDtaBpl);
+        //    BitmapSetPalette(oBmp, lPaletteSrc);
+        //    return oBmp;
+        //}
 
 
         public static void BitplaneWriteFileBpl(string sFile, byte[,] mDataIndex, int iMaxColors, bool bInterleavedData)

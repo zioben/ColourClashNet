@@ -26,7 +26,7 @@ public static partial class ImageTools
     /// <param name="oImage">The image whose width is to be aligned. If null, a width of 0 is used.</param>
     /// <param name="ePixelWidthAlign">The alignment mode that determines how the image width should be adjusted.</param>
     /// <returns>The width of the image, adjusted according to the specified alignment mode.</returns>
-    static public int GetImageNewWidthAlign(Bitmap oImage, ImageWidthAlignMode ePixelWidthAlign)
+    static public int GetImageNewWidthAlign(System.Drawing.Image oImage, ImageWidthAlignMode ePixelWidthAlign)
     {
         return GetImageNewWidthAlign(oImage?.Width ?? 0, ePixelWidthAlign);
     }
@@ -45,7 +45,7 @@ public static partial class ImageTools
     /// image data.</param>
     /// <returns>An Image object in Format32bppArgb pixel format if the image is successfully loaded; otherwise, null if the
     /// image cannot be created from the stream.</returns>
-    public static System.Drawing.Image? GdiImageFromStream(Stream? stream)
+    public static System.Drawing.Image? GdiImageFromStream(Stream stream)
     {
         string sMethod = nameof(GdiImageFromStream);
         try
@@ -76,7 +76,7 @@ public static partial class ImageTools
     /// <param name="sFileName">The path to the image file to open. The file must exist and be accessible for reading.</param>
     /// <returns>An Image object that represents the image contained in the specified file, or null if the file cannot be
     /// opened or the image cannot be loaded.</returns>
-    public static System.Drawing.Image? GdiImageFromFile(string? sFileName)
+    public static System.Drawing.Image? GdiImageFromFile(string sFileName)
     {
         string sMethod = nameof(GdiImageFromFile);
         try
@@ -134,7 +134,7 @@ public static partial class ImageTools
     }
 
     
-    public static Stream? GdiImageToStream(System.Drawing.Image? oImage, ImageExportFormat eFormat, int iQuality = 100)
+    public static Stream? GdiImageToStream(System.Drawing.Image oImage, ImageExportFormat eFormat, int iQuality = 100)
     {
         string sMethod = nameof(GdiImageToStream);
         try
@@ -192,7 +192,7 @@ public static partial class ImageTools
         }
     }
 
-    public static bool GdiImageToFile(System.Drawing.Image? oImage, string? sFileName, ImageExportFormat eFormat)
+    public static bool GdiImageToFile(System.Drawing.Image oImage, string sFileName, ImageExportFormat eFormat)
     {
         string sMethod = nameof(GdiImageToFile);  
         try
@@ -221,9 +221,9 @@ public static partial class ImageTools
 
     #region conversion Bitmap -> Matrix
 
-    public unsafe static int[,] GdiImageToMatrix(System.Drawing.Image oImage)
+    unsafe static int[,] GdiImageToMatrixUnsafe(System.Drawing.Image oImage)
     {
-        string sMethod = nameof(GdiImageToMatrix);
+        string sMethod = nameof(GdiImageToMatrixUnsafe);
         try
         {
             
@@ -234,7 +234,7 @@ public static partial class ImageTools
             }
 
             var m = new int[oBmp.Height, oBmp.Width];
-            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
             {
                 try
                 {
@@ -246,7 +246,7 @@ public static partial class ImageTools
                         for (int x = 0; x < oBmp.Width; x++)
                         {
                             int rgb = ptrRow[x];
-                            if (rgb.GetColorInfo() == ColorIntType.IsColor)
+                            if (rgb.GetColorInfo() == ColorInfo.IsColor)
                             {
                                 m[y, x] = (int)(ptrRow[x] & 0x00FFFFFF);
                             }
@@ -275,13 +275,37 @@ public static partial class ImageTools
         }
     }
 
+    public static int[,] GdiImageToMatrix(System.Drawing.Image oImage)
+        => GdiImageToMatrixUnsafe(oImage);
+
+    public static ImageData? GdiImageToImageData(System.Drawing.Image oImage)
+    {
+        string sMethod = nameof(GdiImageToImageData);
+        try
+        {
+            if (oImage == null)
+            {
+                LogMan.Error(sClass, sMethod, "oImage is null");
+                return null;
+            }
+            var data = GdiImageToMatrixUnsafe(oImage);
+            var oret = new ImageData();
+            return oret.Create(data);
+        }
+        catch (Exception ex)
+        {
+            LogMan.Exception(sClass, sMethod, ex);
+            return null;
+        }
+    }
+
     #endregion
 
-    #region Matrix -> Bitmap    
+        #region Matrix -> Bitmap    
 
-    public unsafe static System.Drawing.Image? MatrixToGdiImage(int[,]? m)
+    unsafe static System.Drawing.Image? MatrixToGdiImageUnsafe(int[,] m)
     {
-        string sMethod = nameof(MatrixToGdiImage);
+        string sMethod = nameof(MatrixToGdiImageUnsafe);
         if (m == null)
         {
             LogMan.Error(sClass, sMethod, "Matrix is null");
@@ -292,7 +316,7 @@ public static partial class ImageTools
             var R = m.GetLength(0);
             var C = m.GetLength(1);
             var oBmp = new Bitmap(C, R, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
-            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
             try
             {
                 byte* ptr = (byte*)oLock.Scan0.ToPointer();
@@ -323,8 +347,14 @@ public static partial class ImageTools
         }
     }
 
+    public static System.Drawing.Image? MatrixToGdiImage(int[,] m)
+     => MatrixToGdiImageUnsafe(m);
 
-    public static System.Drawing.Image? GdiImageToGdiImage32bpp(System.Drawing.Image? oImage)
+    public static System.Drawing.Image? ImageDataToGdiImage(ImageData oImage)
+     => MatrixToGdiImage(oImage?.Data);
+
+
+    public static System.Drawing.Image? GdiImageToGdiImage32bpp(System.Drawing.Image oImage)
     {
         string sMethod = nameof(GdiImageToGdiImage32bpp);
         try
@@ -350,7 +380,7 @@ public static partial class ImageTools
         }
     }
 
-    public unsafe static Bitmap? MatrixToGdiImageIndexed(int[,]? mData, List<int>? lPaletteSrc, ImageWidthAlignMode eAlignMode)
+    unsafe static Bitmap? MatrixToGdiImageIndexedUnsafe(int[,] mData, List<int> lPaletteSrc, ImageWidthAlignMode eAlignMode)
     {
         string sMethod = nameof(MatrixToGdiImageIndexed);
         try
@@ -401,10 +431,13 @@ public static partial class ImageTools
         }
     }
 
-    public static Bitmap? MatrixToGdiImageIndexed(int[,]? mData, Palette? oPaletteSrc, ImageWidthAlignMode eAlignMode)
+    public static Bitmap? MatrixToGdiImageIndexed(int[,] mData, List<int> lPaletteSrc, ImageWidthAlignMode eAlignMode)
+       => MatrixToGdiImageIndexedUnsafe(mData, lPaletteSrc, eAlignMode);
+
+    public static Bitmap? MatrixToGdiImageIndexed(int[,] mData, Palette oPaletteSrc, ImageWidthAlignMode eAlignMode)
         => MatrixToGdiImageIndexed(mData, oPaletteSrc?.ToList(), eAlignMode);
 
-    public static Bitmap? MatrixToGdiImageIndexed(ImageData? oImage, ImageWidthAlignMode eAlignMode)
+    public static Bitmap? ImageDataToGdiImageIndexed(ImageData oImage, ImageWidthAlignMode eAlignMode)
         => MatrixToGdiImageIndexed(oImage?.Data, oImage?.ColorPalette, eAlignMode);
 
 
@@ -414,7 +447,7 @@ public static partial class ImageTools
     #region GDI Palette Helpers
 
 
-    static bool SetGdiImageColorPalette(System.Drawing.Image? oImage, List<int>? lPaletteSrc)
+    static bool SetGdiImageColorPalette(System.Drawing.Image oImage, List<int> lPaletteSrc)
     {
         string sMethod = nameof(SetGdiImageColorPalette);
         if (!(oImage is Bitmap oBmp))

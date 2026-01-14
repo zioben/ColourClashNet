@@ -9,9 +9,9 @@ using System.Reflection.Emit;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashLib.Color.Trasformation;
 using ColourClashNet.Color.Dithering;
 using ColourClashNet.Color.Tile;
+using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 
 namespace ColourClashNet.Color.Transformation
@@ -120,14 +120,14 @@ namespace ColourClashNet.Color.Transformation
             return oMap;
         }
 
-        async Task<TileManager> CreateAndProcessTilesAsync(Palette oPalette, bool bUseDithering, CancellationToken? oToken)
+        async Task<TileManager> CreateAndProcessTilesAsync(Palette oPalette, bool bUseDithering, CancellationToken oToken)
         {
             var oPreProcessing = new ColorTransformReductionPalette()
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
                 .SetProperty(ColorTransformProperties.Fixed_Palette, oPalette)
                 .SetProperty(ColorTransformProperties.Dithering_Type, bUseDithering ? DitheringType : ColorDithering.None)
-                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
-            await oPreProcessing.CreateAsync(SourceData, oToken);
+                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght)
+                .Create(SourceData);
             var oPreRes = await oPreProcessing.ProcessColorsAsync(oToken);
             var oPreData = oPreRes.DataOut;
             TileManager oTileManager = TileManager.Create(8, 8, 2)
@@ -173,7 +173,7 @@ namespace ColourClashNet.Color.Transformation
             return ret;
         }
 
-        protected async Task<Tuple<int[,]?, double, TileManager, TileManager>>? ExecuteTransformZxAsync(int iColLSeed, int iColHSeed, CancellationToken? oToken)
+        protected async Task<Tuple<int[,]?, double, TileManager, TileManager>>? ExecuteTransformZxAsync(int iColLSeed, int iColHSeed, CancellationToken oToken)
         {
             var zxMapLo = CreateZxMap(iColLSeed, ZxLowColorOutSeed, true);
             var zxMapHi = CreateZxMap(iColHSeed, ZxHighColorOutSeed, IncludeBlackInHighColor);
@@ -219,24 +219,24 @@ namespace ColourClashNet.Color.Transformation
             var lTM = lTaskList.Select(X => X.Result).ToList();
 
             // Merge data with best tile approximation
-            var oResultData = await TileManager.MergeDataAsync(SourceData, lTM, oToken);
+            ImageData oResultData = null;// await TileManager.MergeDataAsync(SourceData, lTM, oToken);
             // Evaluate error on processed image
-            var dError = await ColorIntExt.EvaluateErrorAsync(SourceData, oResultData, ColorDistanceEvaluationMode, oToken);
+            var dError = await ColorIntExt.EvaluateErrorAsync(SourceData.Data, oResultData.Data, ColorDistanceEvaluationMode, oToken);
 
             var oRestltDataMapped = await zxMap.TransformAsync(oResultData, oToken);
             if (lTM.Count == 1)
             {
-                return new Tuple<int[,]?, double, TileManager, TileManager>(oRestltDataMapped, dError, lTaskList[0].Result, null);
+                return new Tuple<int[,]?, double, TileManager, TileManager>(oRestltDataMapped.Data, dError, lTaskList[0].Result, null);
             }
             else
             {
-                return new Tuple<int[,]?, double, TileManager, TileManager>(oRestltDataMapped, dError, lTaskList[0].Result, lTaskList[1].Result);
+                return new Tuple<int[,]?, double, TileManager, TileManager>(oRestltDataMapped.Data, dError, lTaskList[0].Result, lTaskList[1].Result);
             }
         }
 
         object locker = new object();
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
+        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken oToken)
         {
             string sMethod = nameof(ExecuteTransformAsync);
 
@@ -246,7 +246,7 @@ namespace ColourClashNet.Color.Transformation
             {
                 var oTuple = await ExecuteTransformZxAsync(ZxLowColorInSeed, ZxHighColorInSeed, oToken);
                 TransformationError = oTuple.Item2;
-                return ColorTransformResults.CreateValidResult(SourceData, oTuple.Item1);
+                return ColorTransformResults.CreateValidResult(SourceData, null);// oTuple.Item1);
             }
 
             // Processing Color Range - [LBest, HBest]
@@ -258,12 +258,12 @@ namespace ColourClashNet.Color.Transformation
             int iStep = 0;
             bool bExit = false;
             int[,] tempImage = MergeTempImage(oBest.Item1, oBest.Item1);
-            RaiseProcessPartialEvent(new ColorTransformEventArgs()
+            RaiseProcessPartialEvent(new ColorProcessingEventArgs()
             {
                 ColorTransformInterface = this,
                 CompletedPercent = 0,
-                TempImage = tempImage,
-                Message = "First Tuning",
+               // TempImage = tempImage,
+               // Message = "First Tuning",
             });
             while (!bExit)// (iL + 1) <= iH && dError <= dMinError)
             {
@@ -280,12 +280,12 @@ namespace ColourClashNet.Color.Transformation
 
                 // Create Temp image with both preprocess images
                 tempImage = MergeTempImage(oResultL.Item1, oResultH.Item1);
-                RaiseProcessPartialEvent(new ColorTransformEventArgs()
+                RaiseProcessPartialEvent(new ColorProcessingEventArgs()
                 {
                     ColorTransformInterface = this,
                     CompletedPercent = 100.0 * (++iStep) * 8.0 / 256.0,
-                    Message = $"Step {iStep} : Autotuning between [{iL},{HBest}] - [{LBest},{iH}]",
-                    TempImage = tempImage,
+                    //Message = $"Step {iStep} : Autotuning between [{iL},{HBest}] - [{LBest},{iH}]",
+                    //TempImage = tempImage,
                     //ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, tasklist[0].Result.Item1)
                 });
                 var dErrL = oResultL.Item2;
@@ -328,7 +328,7 @@ namespace ColourClashNet.Color.Transformation
             var oFinalData = oBest.Item1;
             if (oFinalData != null)
             {
-                return ColorTransformResults.CreateValidResult(SourceData, oFinalData);
+                return ColorTransformResults.CreateValidResult(SourceData, null);// oFinalData);
             }
             else
             {

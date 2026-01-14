@@ -31,7 +31,7 @@ namespace ColourClashNet.Color
        
         int GetGray(int rgb)
         {
-            if (ColorIntExt.GetColorInfo(rgb) == ColorIntType.Invalid)
+            if (ColorIntExt.GetColorInfo(rgb) == ColorInfo.Invalid)
             {
                 return -1;
             }

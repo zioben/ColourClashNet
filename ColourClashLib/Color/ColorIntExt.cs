@@ -30,12 +30,12 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Sets the color information type in the integer representation of a color.
         /// <para>
-        /// The method modifies the upper 8 bits of the integer to encode the specified <see cref="ColorIntType"/>.
+        /// The method modifies the upper 8 bits of the integer to encode the specified <see cref="ColorInfo"/>.
         /// </para>
         /// </summary>
         /// <param name="rgb">Color data</param>
         /// <param name="eInfo">Color type</param>
-        public static int SetColorInfo(this int rgb, ColorIntType eInfo)
+        public static int SetColorInfo(this int rgb, ColorInfo eInfo)
         {
             int newrgb = rgb & 0x00_FF_FF_FF;
             newrgb |= ((int)eInfo) << 24;
@@ -47,15 +47,15 @@ namespace ColourClashNet.Color
         /// </summary>
         /// <param name="rgb"></param>
         /// <returns></returns>
-        public static ColorIntType GetColorInfo(this int rgb)
+        public static ColorInfo GetColorInfo(this int rgb)
         {
             int val = (rgb >> 24) & 0x00_00_00_FF;
             // Reserved old value for invalid color
             if (val == 0x_00_ff)
             {
-                return ColorIntType.Invalid;
+                return ColorInfo.Invalid;
             }
-            return (ColorIntType)val;
+            return (ColorInfo)val;
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace ColourClashNet.Color
         {
             switch (GetColorInfo(rgb))
             {
-                case ColorIntType.IsColor:
+                case ColorInfo.IsColor:
                     {
                         unchecked
                         {
@@ -78,11 +78,11 @@ namespace ColourClashNet.Color
                 //    {
                 //        return DefaultBkgColor;
                 //    }
-                case ColorIntType.IsMask:
+                case ColorInfo.IsMask:
                     {
                         return ColorDefaults.DefaultMaskColor;
                     }
-                case ColorIntType.IsTile:
+                case ColorInfo.IsTile:
                     {
                         return ColorDefaults.DefaultTileColor;
                     }
@@ -240,10 +240,10 @@ namespace ColourClashNet.Color
         /// <param name="b"></param>
         /// <param name="eType"></param>
         /// <returns></returns>
-        public static int FromRGB(int r, int g, int b, ColorIntType eType)
+        public static int FromRGB(int r, int g, int b, ColorInfo eType)
         {
             if (r < 0 || g < 0 || b < 0)
-                return ((int)ColorIntType.Invalid << 24);
+                return ((int)ColorInfo.Invalid << 24);
             return ((int)eType << 24) | (Math.Min(255, r) << 16) | (Math.Min(255, g) << 8) | (Math.Min(255, b));
         }
 
@@ -255,7 +255,7 @@ namespace ColourClashNet.Color
         /// <param name="g"></param>
         /// <param name="b"></param>
         /// <returns></returns>
-        public static int FromRGB(int r, int g, int b) => FromRGB(r, g, b, ColorIntType.IsColor);
+        public static int FromRGB(int r, int g, int b) => FromRGB(r, g, b, ColorInfo.IsColor);
 
         /// <summary>
         /// Creates an integer representation of a color from its Red, Green, and Blue components.
@@ -359,10 +359,11 @@ namespace ColourClashNet.Color
             {
                 return ColorDefaults.DefaultInvalidColorInt;
             }
-            double dmin = oPalette.rgbPalette.Min(X => X.Distance(iColor, eMode));
+            var rgbList = oPalette.ToList();
+            double dmin = rgbList.Min(X => X.Distance(iColor, eMode));
             if (dmin == 0)
                 return iColor;
-            var bestCol = oPalette.rgbPalette.FirstOrDefault(X => X.Distance(iColor, eMode) == dmin);
+            var bestCol = rgbList.FirstOrDefault(X => X.Distance(iColor, eMode) == dmin);
             return bestCol;
         }
 
@@ -423,16 +424,17 @@ namespace ColourClashNet.Color
             double R = 0;
             double G = 0;
             double B = 0;
-            foreach (var kvp in oPalette.rgbPalette)
+            var rgbList = oPalette.ToList();
+            foreach (var rgb in rgbList)
             {
-                R += kvp.ToR();
-                G += kvp.ToG();
-                B += kvp.ToB();
+                R += rgb.ToR();
+                G += rgb.ToG();
+                B += rgb.ToB();
             }
             ;
-            R /= oPalette.Count;
-            G /= oPalette.Count;
-            B /= oPalette.Count;
+            R /= rgbList.Count;
+            G /= rgbList.Count;
+            B /= rgbList.Count;
             var iMean = ColorIntExt.FromRGB(R, G, B);
             switch (eMeanMode)
             {

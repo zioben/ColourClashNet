@@ -30,7 +30,7 @@ namespace ColourClashLib.Color
         /// </summary>
         public static RGB FromIntRGB(int rgb)
         {
-            if (ColorIntExt.GetColorInfo(rgb) == ColorIntType.Invalid)
+            if (ColorIntExt.GetColorInfo(rgb) == ColorInfo.Invalid)
             {
                 return new RGB(-1, -1, -1);
             }

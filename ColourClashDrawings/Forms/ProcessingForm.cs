@@ -26,7 +26,7 @@ namespace ModuleTester
             FormClosed += ((s,e) => UnregisterEvents());
         }
 
-        void AppendData(ColorTransformEventArgs oArgs)
+        void AppendData(ColorProcessingEventArgs oArgs)
         {
             if (oArgs == null)
             {
@@ -38,20 +38,13 @@ namespace ModuleTester
                 {
                     cts = oArgs.CancellationTokenSource;
                 }
-                if (oArgs.Message != null)
+                if (oArgs.ProcessingResults.Message != null)
                 {
-                    lbHistory.Items.Insert(0, oArgs.Message);
+                    lbHistory.Items.Insert(0, oArgs.ProcessingResults.Message);
                 }
                 if (oArgs?.ProcessingResults?.DataOut != null)
                 {
-                    if (oArgs.TempImage != null)
-                    {
-                        picImageTemp.Image = ImageTools.MatrixToGdiImage(oArgs.TempImage);
-                    }
-                    else
-                    {
-                        picImageTemp.Image = ImageTools.MatrixToBitmap(oArgs.ProcessingResults.DataOut);
-                    }
+                    picImageTemp.Image = ImageTools.ImageDataToGdiImage(oArgs.ProcessingResults.DataOut);
                 }
                 if (!double.IsNaN(oArgs.CompletedPercent))
                 {
@@ -98,18 +91,18 @@ namespace ModuleTester
             Transformation.Processed += OTrasf_Processed;
         }
 
-        private void OTrasf_Processed(object? sender, ColorTransformEventArgs e)
+        private void OTrasf_Processed(object? sender, ColorProcessingEventArgs e)
         {
             //AppendData(e);
             Invoke(()=> Close());
         }
 
-        private void OTrasf_ProcessPartial(object? sender, ColorTransformEventArgs e)
+        private void OTrasf_ProcessPartial(object? sender, ColorProcessingEventArgs e)
         {
             AppendData(e);
         }
 
-        private void OTrasf_Processing(object? sender, ColorTransformEventArgs e)
+        private void OTrasf_Processing(object? sender, ColorProcessingEventArgs e)
         {
             Invoke(()=>Show());
             cts = e.CancellationTokenSource;

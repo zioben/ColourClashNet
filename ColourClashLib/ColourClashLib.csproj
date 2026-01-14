@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Remove="Color\Tile\TileBaseOld.cs" />
+    <Compile Remove="Color\Tile\TileMap.cs" />
   </ItemGroup>
 
   <ItemGroup>

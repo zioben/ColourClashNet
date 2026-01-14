@@ -155,7 +155,7 @@ namespace ColourClashNet.Color
     /// Everything tha in nor "real" color is maked with 1 on MSB, so resulting in always a negative number. This Helps on filtering operations.
     /// </para>
     /// </summary>
-    public enum ColorIntType
+    public enum ColorInfo
     {
         /// <summary>
         /// Real color Flag

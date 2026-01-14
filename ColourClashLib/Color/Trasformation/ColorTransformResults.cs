@@ -14,55 +14,58 @@ namespace ColourClashNet.Color.Transformation
     {
         static string sClass = nameof(ColorTransformResults);
 
-        public ImageData? DataIn { get; internal set; }
-        //public int[,]? DataProcessed { get; internal set; }
-        public ImageData? DataOut { get; internal set; }
-        public double ProcessingError { get; internal set; } = double.NaN;
+        static string sValidMessage = "Ok";
 
+        public ImageData? DataIn { get; internal set; }
+        public ImageData? DataOut { get; internal set; }
+        public double ProcessingScore { get; internal set; } = double.NaN;
         public bool ProcessingValid { get; internal set; }
         public string Message { get; internal set; } = string.Empty;
-
         public Exception? Exception { get; internal set; }
 
 
-        static public ColorTransformResults CreateValidResult(ImageData? inputData, ImageData? outputData, double processingError) => new ColorTransformResults()
+        static public ColorTransformResults CreateValidResult(ImageData? inputData, ImageData? outputData, string sMessage, double processingScore) => new ColorTransformResults()
         {
             DataIn = inputData,
             DataOut = outputData,
-            ProcessingError = processingError,
+            ProcessingScore = processingScore,
             ProcessingValid = true,
-            Message = "Ok",
+            Message = sMessage
         };
 
-        static public ColorTransformResults CreateValidResult(ImageData? inputData, ImageData? outputData) => new ColorTransformResults()
+
+        static public ColorTransformResults CreateValidResult(ImageData? inputData, ImageData? outputData, string sMessage)
+            => CreateValidResult(inputData, outputData, sMessage, double.NaN);
+
+        static public ColorTransformResults CreateValidResult(ImageData? inputData, ImageData? outputData)
+            => CreateValidResult(inputData, outputData, sValidMessage, double.NaN);
+        static public ColorTransformResults CreateValidResult(ImageData? inputData, ImageData? outputData,double dProgressPercent)
+            => CreateValidResult(inputData, outputData, sValidMessage, dProgressPercent);
+        static public ColorTransformResults CreateValidResult() 
+            => CreateValidResult(null, null, sValidMessage);
+
+        static public ColorTransformResults CreateErrorResult(ImageData inputData, ImageData outputData, string sMessage, Exception ex) => new ColorTransformResults()
         {
             DataIn = inputData,
             DataOut = outputData,
-            ProcessingValid = true,
-            Message = "Ok",
+            Message = sMessage,    
+            Exception = ex
         };
-        //   static public ColorTransformResults CreateValidResult(int[,]? sourceData, int[,]? outputData) => CreateValidResult(sourceData, null, outputData);
-
-        static public ColorTransformResults CreateValidResult() => CreateValidResult(null, null);
-
-        static public ColorTransformResults CreateErrorResult(string sMessage, Exception ex) => new ColorTransformResults()
-        {
-             Message = sMessage,    
-             Exception = ex
-        };
-        static public ColorTransformResults CreateErrorResult(Exception ex) => CreateErrorResult(ex?.Message, ex);
+        static public ColorTransformResults CreateErrorResult(ImageData inputData, ImageData outputData, string sMessage) => CreateErrorResult(inputData,outputData, sMessage, null);
+        static public ColorTransformResults CreateErrorResult(ImageData inputData, ImageData outputData, Exception ex) => CreateErrorResult(inputData, outputData,$"Exception : {ex?.Message ?? "null"}" , ex);
+        static public ColorTransformResults CreateErrorResult(string sMessage, Exception ex) => CreateErrorResult(null,null, sMessage, ex);
+        static public ColorTransformResults CreateErrorResult(Exception ex) => CreateErrorResult($"Exception : {ex?.Message ?? "null"}", ex);
         static public ColorTransformResults CreateErrorResult(String sMessage) => CreateErrorResult(sMessage, null);
 
     }
 
-    public class ColorTransformEventArgs : EventArgs
+    public class ColorProcessingEventArgs : EventArgs
     {
         public ColorTransformResults ProcessingResults { get; init; }
-        public string? Message { get; internal set; }
-        public int[,]? TempImage { get; internal set; }
-        public ColorTransformInterface? ColorTransformInterface { get; init; }
-        public CancellationTokenSource? CancellationTokenSource { get; set; }
-        public ColorTransformationMap? TransformationMap { get; set; }
+        public ColorTransformInterface ColorTransformInterface { get; init; }
+        public CancellationTokenSource? CancellationTokenSource { get; init; }
+
+        public ColorTransformationMap? TransformationMap { get; init; }
 
         public double CompletedPercent { get; set; } =  double.NaN;
 

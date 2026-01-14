@@ -35,7 +35,7 @@ namespace ColourClashNet.Color.Transformation
                         BackgroundPalette = new Palette();
                         if (oValue is List<int> oList)
                         {
-                            BackgroundPalette = Palette.CreateColorPalette(oList);
+                            BackgroundPalette = Palette.CreatePalette(oList);
                             if (BackgroundPalette == null)
                             {
                                 BackgroundPalette = new Palette();
@@ -69,8 +69,8 @@ namespace ColourClashNet.Color.Transformation
 
                 TransformationMap.Reset();
                 var oBkgList = BackgroundPalette.ToList();
-                var oPalList = SourcePalette.ToList();
-                foreach (var rgb in SourcePalette.rgbPalette)
+                var oPalList = SourceData.ColorPalette.ToList();
+                foreach (var rgb in oPalList)
                 {
                     TransformationMap.Add(rgb, rgb);
                 }

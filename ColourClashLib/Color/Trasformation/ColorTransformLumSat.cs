@@ -1,4 +1,5 @@
 ﻿using ColourClashLib.Color;
+using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
@@ -55,22 +56,20 @@ namespace ColourClashNet.Color.Transformation
         // Not Needed
         //protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync( CancellationToken? oToken)
+        protected async override Task<ColorTransformResults> ExecuteTransformAsync( CancellationToken oToken=default)
         {
             return await Task.Run(() =>
             {
                 string sM = nameof(ExecuteTransformAsync);
              
-                var R = SourceData.GetLength(0);
-                var C = SourceData.GetLength(1);
-                var oProcessed = new int[R, C];
+                var oProcessed = new int[SourceData.Rows, SourceData.Columns];
                 BypassDithering = true;
 
-                Parallel.For(0, R, r =>
+                Parallel.For(0, SourceData.Rows, r =>
                 {
-                    for (int c = 0; c < C; c++)
+                    for (int c = 0; c < SourceData.Columns; c++)
                     {
-                        var hsv = SourceData[r, c].ToHSV();
+                        var hsv = SourceData.Data[r, c].ToHSV();
                         if (hsv.Valid)
                         {
                             hsv.H = hsv.H + (float)HueShift;
@@ -79,9 +78,10 @@ namespace ColourClashNet.Color.Transformation
                             oProcessed[r, c] = hsv.ToIntRGB();
                         }
                     }
-                    oToken?.ThrowIfCancellationRequested();
+                    oToken.ThrowIfCancellationRequested();
                 });
-                return ColorTransformResults.CreateValidResult(SourceData, oProcessed);
+
+                return ColorTransformResults.CreateValidResult(SourceData, new ImageData().Create(oProcessed));
             });
         }
 

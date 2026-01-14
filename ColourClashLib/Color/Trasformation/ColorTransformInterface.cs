@@ -15,7 +15,7 @@ namespace ColourClashNet.Color.Transformation
         String Description { get; }
 
         //------------------------------------------------------------
-        ImageData InputData { get; }
+        ImageData SourceData { get; }
         ImageData OutputData { get; }
 
         //------------------------------------------------------------
@@ -29,24 +29,20 @@ namespace ColourClashNet.Color.Transformation
 
         //------------------------------------------------------------
         ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue);
-        Task<ColorTransformInterface> CreateAsync(ImageData? oDataSource, CancellationToken? oToken);
-        Task<ColorTransformInterface> CreateAsync(int[,]? oDataSource, CancellationToken? oToken);
-        
-        Task<ColorTransformInterface> CreateAsync(Histogram? oColorHistogramSource, CancellationToken? oToken);
-        
-        //Task<ColorTransformInterface> CreateAsync(Palette? oColorPaletteSource, CancellationToken? oToken);
-        Task<ColorTransformResults> ProcessColorsAsync(CancellationToken? oTokenSource);
-        Task AbortProcessingAsync(CancellationTokenSource oToken);
-        void AbortProcessing(CancellationTokenSource oToken);
+        ColorTransformInterface Create(ImageData oDataSource);
+        ColorTransformInterface Create(int[,] oDataSource);
+        Task<ColorTransformResults> ProcessColorsAsync(CancellationToken oToken = default);
+        Task AbortProcessingAsync(CancellationTokenSource oTokenSource);
+        void AbortProcessing(CancellationTokenSource oTokenSource);
 
         //------------------------------------------------------------
 
         event EventHandler Creating;
         event EventHandler Created;
-        event EventHandler<ColorTransformEventArgs> Processing;
-        event EventHandler<ColorTransformEventArgs> ProcessAdvance;
-        event EventHandler<ColorTransformEventArgs> ProcessPartial;
-        event EventHandler<ColorTransformEventArgs> Processed;
+        event EventHandler<ColorProcessingEventArgs> Processing;
+        event EventHandler<ColorProcessingEventArgs> ProcessAdvance;
+        event EventHandler<ColorProcessingEventArgs> ProcessPartial;
+        event EventHandler<ColorProcessingEventArgs> Processed;
 
     }
 }

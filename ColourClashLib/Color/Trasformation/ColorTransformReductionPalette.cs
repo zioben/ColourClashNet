@@ -23,7 +23,8 @@ namespace ColourClashNet.Color.Transformation
             return await Task.Run(() =>
             {
                 TransformationMap.Reset();
-                Parallel.ForEach(sourceDataContainer.ColorPalette.rgbPalette, rgb =>
+                var rgbList = SourceData.ColorPalette.ToList();
+                Parallel.ForEach(rgbList, rgb =>
                 {
                     TransformationMap.Add(rgb, ColorIntExt.GetNearestColor(rgb, FixedPalette, this.ColorDistanceEvaluationMode));
                 });
