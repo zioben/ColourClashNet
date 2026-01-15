@@ -219,53 +219,183 @@ public static partial class ImageToolsGDI
     #endregion
 
     #region conversion Bitmap -> Matrix
-
-    unsafe static int[,] GdiImageToMatrixUnsafe(System.Drawing.Image oImage)
+    unsafe static int[,] ConvertFromBmp8BppIndex(System.Drawing.Image oImage)
     {
-        string sMethod = nameof(GdiImageToMatrixUnsafe);
+        string sM = nameof(ConvertFromBmp8BppIndex);
         try
         {
-            
-            if( !( oImage is Bitmap oBmp))
+            if (!(oImage is Bitmap oBmp))
             {
-                LogMan.Error(sClass, sMethod, "Bitmap is null");
+                LogMan.Error(sClass, sM, "Bitmap is null");
+                return null;
+            }
+
+            List<int> rgbList = new();
+            foreach( var rgb in oBmp.Palette.Entries)
+            {
+                rgbList.Add(ColorIntExt.FromDrawingColor(rgb));
+            }
+
+            var m = new int[oBmp.Height, oBmp.Width];
+
+            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, oBmp.PixelFormat);
+            try
+            {
+                byte* ptr = (byte*)oLock.Scan0.ToPointer();
+                for (int y = 0; y < oBmp.Height; y++)
+                {
+                    int yoff = oLock.Stride * y;
+                    for (int x = 0; x < oBmp.Width; x++)
+                    {
+                        byte data = ptr[x + yoff];
+                        var rgb = rgbList[data];
+                        m[y, x] = rgb;                        
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sClass, sM, ex);
+            }
+            finally
+            {
+                oBmp.UnlockBits(oLock);
+            }
+            return m;
+        }
+        catch (Exception ex)
+        {
+            LogMan.Exception(sClass, sM, ex);
+            return null;
+        }
+    }
+
+    unsafe static int[,] ConvertFromBmp24Bpp(System.Drawing.Image oImage)
+    {
+        string sM = nameof(ConvertFromBmp24Bpp);
+        try
+        {
+            if (!(oImage is Bitmap oBmp))
+            {
+                LogMan.Error(sClass, sM, "Bitmap is null");
                 return null;
             }
 
             var m = new int[oBmp.Height, oBmp.Width];
-            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+
+            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, oBmp.PixelFormat);
+            try
             {
-                try
+                byte* ptr = (byte*)oLock.Scan0.ToPointer();
+                for (int y = 0; y < oBmp.Height; y++)
                 {
-                    byte* ptr = (byte*)oLock.Scan0.ToPointer();
-                    for (int y = 0; y < oBmp.Height; y++)
+                    int yoff = oLock.Stride * y;
+                    for (int x = 0,xx=0; x < oBmp.Width; x++,xx+=3)
                     {
-                        int yoff = oLock.Stride * y;
-                        int* ptrRow = (int*)(oLock.Scan0 + yoff);
-                        for (int x = 0; x < oBmp.Width; x++)
-                        {
-                            int rgb = ptrRow[x];
-                            if (rgb.IsColor())
-                            {
-                                m[y, x] = (int)(ptrRow[x] & 0x00FFFFFF);
-                            }
-                            else
-                            {   
-                                m[y, x] = Defaults.ColorDefaults.DefaultInvalidColorInt;
-                            }
-                        }
+                        byte b = ptr[xx + yoff + 0];
+                        byte g = ptr[xx + yoff + 1];
+                        byte r = ptr[xx + yoff + 2];
+                        m[y, x] = ColorIntExt.FromRGB(r,g,b);
                     }
                 }
-                catch (Exception ex)
-                {
-                    LogMan.Exception(sClass, sMethod, ex);
-                }
-                finally
-                {
-                    oBmp.UnlockBits(oLock);
-                }
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sClass, sM, ex);
+            }
+            finally
+            {
+                oBmp.UnlockBits(oLock);
             }
             return m;
+        }
+        catch (Exception ex)
+        {
+            LogMan.Exception(sClass, sM, ex);
+            return null;
+        }
+    }
+    unsafe static int[,] ConvertFromBmp32Bpp(System.Drawing.Image oImage)
+    {
+        string sM = nameof(ConvertFromBmp24Bpp);
+        try
+        {
+            if (!(oImage is Bitmap oBmp))
+            {
+                LogMan.Error(sClass, sM, "Bitmap is null");
+                return null;
+            }
+
+            var m = new int[oBmp.Height, oBmp.Width];
+
+            var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, oBmp.PixelFormat);
+            try
+            {
+                byte* ptr = (byte*)oLock.Scan0.ToPointer();
+                for (int y = 0; y < oBmp.Height; y++)
+                {
+                    int yoff = oLock.Stride * y;
+                    for (int x = 0; x < oBmp.Width; x += 4)
+                    {
+                        byte r = ptr[x + yoff + 0];
+                        byte g = ptr[x + yoff + 1];
+                        byte b = ptr[x + yoff + 2];
+                        m[y, x] = ColorIntExt.FromRGB(r, g, b);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sClass, sM, ex);
+            }
+            finally
+            {
+                oBmp.UnlockBits(oLock);
+            }
+            return m;
+        }
+        catch (Exception ex)
+        {
+            LogMan.Exception(sClass, sM, ex);
+            return null;
+        }
+    }
+
+    static int[,] GdiImageToMatrixUnsafe(System.Drawing.Image oImage)
+    {
+        string sMethod = nameof(GdiImageToMatrixUnsafe);
+        try
+        {
+            if( oImage == null)
+            {
+                LogMan.Error(sClass, sMethod, "oImage is null");
+                return null;
+            }
+
+            bool bCanConvert =
+              oImage.PixelFormat == PixelFormat.Format8bppIndexed ||
+              oImage.PixelFormat == PixelFormat.Format24bppRgb ||
+              oImage.PixelFormat == PixelFormat.Format32bppArgb;
+
+            if (!bCanConvert)
+            {
+                LogMan.Error(sClass, sMethod, $"Pixel format {oImage.PixelFormat} not supported in {sMethod}");
+                return null;
+            }
+
+            var m = new int[oImage.Height, oImage.Width];
+
+            switch ( oImage.PixelFormat)
+            {
+                case PixelFormat.Format8bppIndexed:
+                    return ConvertFromBmp8BppIndex(oImage);
+                case PixelFormat.Format24bppRgb:
+                    return ConvertFromBmp24Bpp(oImage);
+                case PixelFormat.Format32bppArgb:
+                    return ConvertFromBmp32Bpp(oImage);
+                default:
+                    return null;
+            }
         }
         catch (Exception ex)
         {
@@ -282,14 +412,14 @@ public static partial class ImageToolsGDI
         string sMethod = nameof(GdiImageToImageData);
         try
         {
+            var oImg = new ImageData();
             if (oImage == null)
             {
                 LogMan.Error(sClass, sMethod, "oImage is null");
-                return null;
+                return oImg;
             }
             var data = GdiImageToMatrixUnsafe(oImage);
-            var oret = new ImageData();
-            return oret.Create(data);
+            return oImg.Create(data);
         }
         catch (Exception ex)
         {
@@ -318,14 +448,14 @@ public static partial class ImageToolsGDI
             var oLock = oBmp.LockBits(new Rectangle(0, 0, oBmp.Width, oBmp.Height), System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
             try
             {
-                byte* ptr = (byte*)oLock.Scan0.ToPointer();
+                //byte* ptr = (byte*)oLock.Scan0.ToPointer();
                 for (int y = 0; y < oBmp.Height; y++)
                 {
                     int yoff = oLock.Stride * y;
                     int* ptrRow = (int*)(oLock.Scan0 + yoff);
                     for (int x = 0; x < oBmp.Width; x++)
                     {
-                        ptrRow[x] = m[y, x] >= 0 ? m[y, x] : ColorDefaults.DefaultBkgColorInt;
+                        ptrRow[x] = m[y, x].IsColor() ? (int)(0xFF_00_00_00 | m[y, x]) : ColorDefaults.DefaultBkgColorInt;
                     }
                 }
                 oBmp.UnlockBits(oLock);
@@ -367,9 +497,11 @@ public static partial class ImageToolsGDI
             {
                 using (Graphics g = Graphics.FromImage(oImageDest))
                 {
-                    g.DrawImage(oImage, 0, 0, oImageDest.Width, oImageDest.Height);
+                    g.DrawImage(oImage, 0, 0);
                 }
             }
+            //Test OK
+            //oImageDest.Save("C:\\TestX\\Temp.bmp");
             return oImageDest;
         }
         catch (Exception ex)

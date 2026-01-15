@@ -155,12 +155,21 @@ namespace ColourClashNet.Imaging
         public ImageData Create(ImageData oImageData) 
             => Create(oImageData?.Data);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return $"ImageData: {Name}, {Width}x{Height}, Colors: {Colors}";
+        }
 
-       /// <summary>
-       /// 
-       /// </summary>
-       /// <param name="oImage"></param>
-       /// <returns></returns>
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="oImage"></param>
+        /// <returns></returns>
         //public ImageData Create(System.Drawing.Image oImage)
         //{
         //    string sM = nameof(Create);
@@ -176,11 +185,11 @@ namespace ColourClashNet.Imaging
         //    }
         //}
 
-       /// <summary>
-       /// 
-       /// </summary>
-       /// <param name="sFileName"></param>
-       /// <returns></returns>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sFileName"></param>
+        /// <returns></returns>
         //public ImageData Create(string sFileName)
         //{
         //    string sM = nameof(Create);
@@ -198,13 +207,13 @@ namespace ColourClashNet.Imaging
         //    }
         //}
 
-     
-       /// <summary>
-       /// 
-       /// </summary>
-       /// <param name="sFileName"></param>
-       /// <param name="eFormat"></param>
-       /// <returns></returns>
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sFileName"></param>
+        /// <param name="eFormat"></param>
+        /// <returns></returns>
         //public bool SaveToFile(string sFileName, ImageExportFormat eFormat)
         //{
         //    string sM = nameof(SaveToFile);
@@ -225,10 +234,10 @@ namespace ColourClashNet.Imaging
         //    }
         //}
 
-       /// <summary>
-       /// 
-       /// </summary>
-       /// <returns></returns>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         //public System.Drawing.Image? ToImage()
         //{
         //    string sM = nameof(SaveToFile);

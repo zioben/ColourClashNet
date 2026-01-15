@@ -38,7 +38,7 @@ namespace ModuleTester
                 {
                     cts = oArgs.CancellationTokenSource;
                 }
-                if (oArgs.ProcessingResults.Message != null)
+                if (oArgs?.ProcessingResults?.Message != null)
                 {
                     lbHistory.Items.Insert(0, oArgs.ProcessingResults.Message);
                 }
