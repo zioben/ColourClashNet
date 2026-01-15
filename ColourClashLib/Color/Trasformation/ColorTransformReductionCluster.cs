@@ -88,7 +88,7 @@ namespace ColourClashNet.Color.Transformation
             // Sort by most used colors
             var oTempHistogram = Histogram.CreateHistogram(SourceData).SortColorsDescending();
             // Creating a temporary palette with fixed colors and histogram colors
-            var oTempPalette = Palette.MergePalette(FixedPalette, oTempHistogram.ToColorPalette());
+            var oTempPalette = Palette.MergePalette(FixedPalette, oTempHistogram.ToPalette());
             // If we have less colors than wanted, just map them directly
             var rgbList = oTempPalette.ToList();
             if (oTempPalette.Count <= MaxColorsWanted)

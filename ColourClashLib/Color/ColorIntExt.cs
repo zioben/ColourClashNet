@@ -47,7 +47,7 @@ namespace ColourClashNet.Color
         /// </summary>
         /// <param name="rgb"></param>
         /// <returns></returns>
-        public static ColorInfo GetColorInfo(this int rgb)
+        static ColorInfo GetColorInfo(this int rgb)
         {
             int val = (rgb >> 24) & 0x00_00_00_FF;
             // Reserved old value for invalid color
@@ -57,6 +57,12 @@ namespace ColourClashNet.Color
             }
             return (ColorInfo)val;
         }
+
+
+        public static bool IsColor(this int rgb) => GetColorInfo(rgb) == ColorInfo.IsColor;
+      //  public static bool IsTagged(this int rgb) => GetColorInfo(rgb) == ;
+        public static bool IsInvalid(this int rgb) => GetColorInfo(rgb) == ColorInfo.Invalid;
+
 
         /// <summary>
         /// Converts an integer representation of a color to a <see cref="System.Drawing.Color"/>. 

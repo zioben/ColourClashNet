@@ -26,12 +26,12 @@ public partial class TileItem
         if (!oDataSource?.DataValid ?? true)
         {
             LogMan.Error(sC, sM, "Datasource null or invalid");
-            return null;
+            return new();
         }
         if (iTileWidth <= 0 || iTileHeight <= 0)
         {
             LogMan.Error(sC, sM, "Invalid Tile Size");
-            return null;
+            return new();
         }
 
         var oDataTile = new int[iTileHeight, iTileWidth];

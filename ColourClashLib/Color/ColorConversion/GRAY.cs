@@ -31,11 +31,11 @@ namespace ColourClashNet.Color
        
         int GetGray(int rgb)
         {
-            if (ColorIntExt.GetColorInfo(rgb) == ColorInfo.Invalid)
+            if (rgb.IsColor())
             {
-                return -1;
+                return (int)Math.Min(0, Math.Max(255, (rgb.ToR() * WeightR + rgb.ToG() * WeightG + rgb.ToB() * WeightB)));
             }
-            return (int)Math.Min(0, Math.Max(255, (rgb.ToR() * WeightR + rgb.ToG() * WeightG + rgb.ToB() * WeightB)));
+            return -1;
         }
 
         public GRAY(float wr, float wg, float wb, int rgb )

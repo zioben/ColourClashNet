@@ -103,7 +103,7 @@ namespace ColourClashNet.Color.Transformation
                 if (CreateSharedPalette)
                 {
                     var oMainHist = Histogram.CreateHistogram(SourceData);
-                    var oMainPalette = oMainHist.ToColorPalette();
+                    var oMainPalette = oMainHist.ToPalette();
                     if (oMainPalette.Count <= ColorsMaxWanted)
                     {
                         oLineFixedPalette = oMainPalette;
@@ -135,7 +135,7 @@ namespace ColourClashNet.Color.Transformation
                         var oMainRet = await oLineTrasf.ProcessColorsAsync(oToken);
                         oSourceNew = oMainRet.DataOut;
                         var oHistNew = Histogram.CreateHistogram(SourceData);
-                        oLineFixedPalette = oHistNew.ToColorPalette();
+                        oLineFixedPalette = oHistNew.ToPalette();
                     }
                 }
                 oToken.ThrowIfCancellationRequested();
@@ -155,7 +155,7 @@ namespace ColourClashNet.Color.Transformation
                     }
                     // Create row histogram and take the most used colors
                     var oHist = Histogram.CreateHistogram(oCols);//.SortColorsDescending();
-                    var oNewPal = oHist.SortColorsDescending().ToColorPalette(LineReductionMaxColors);
+                    var oNewPal = oHist.SortColorsDescending().ToPalette(LineReductionMaxColors);
                     // Create 
                     //--------------------------------------------------------------
                     //    Trace.WriteLine($"Row - {r}");

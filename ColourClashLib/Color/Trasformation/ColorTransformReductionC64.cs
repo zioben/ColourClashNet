@@ -183,7 +183,7 @@ namespace ColourClashNet.Color.Transformation
 
             // Select the most used 
             var oTmpHistogram = Histogram.CreateHistogram(oTmpData);
-            var oForcedPalette = oTmpHistogram.SortColorsDescending().ToColorPalette(1);
+            var oForcedPalette = oTmpHistogram.SortColorsDescending().ToPalette(1);
 
             TileManager oManager = TileManager.Create(4, 8, 4)
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)

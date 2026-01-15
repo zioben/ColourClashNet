@@ -64,13 +64,13 @@ public partial class TileManager
                 break;
             case ColorTransformProperties.Fixed_Palette:
                 {
-                    if (oValue is List<int> oPalette)
+                    if (oValue is IEnumerable<int> oPalette)
                     {
                         ColorPalette = Palette.CreatePalette(oPalette);
                     }
                     else if (oValue is Palette oPal)
                     {
-                        ColorPalette = oPal;
+                        ColorPalette = Palette.CreatePalette(oPal);
                     }
                     else
                     {
@@ -80,7 +80,7 @@ public partial class TileManager
                 break;
             case ColorTransformProperties.Forced_Palette:
                 {
-                    if (oValue is List<int> oPalette)
+                    if (oValue is IEnumerable<int> oPalette)
                     {
                         ForcedColorPalette = Palette.CreatePalette(oPalette);
                     }

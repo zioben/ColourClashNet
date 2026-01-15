@@ -24,8 +24,10 @@ namespace ColourClashNet.Color
         /// </summary>
         public void Add(int iRGB)
         {
-            if (iRGB.GetColorInfo() == ColorInfo.IsColor)
+            if (iRGB.IsColor())
+            {
                 rgbPalette.Add(iRGB);
+            }
         }
 
         /// <summary>

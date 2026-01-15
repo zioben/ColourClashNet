@@ -30,11 +30,11 @@ namespace ColourClashLib.Color
         /// </summary>
         public static RGB FromIntRGB(int rgb)
         {
-            if (ColorIntExt.GetColorInfo(rgb) == ColorInfo.Invalid)
+            if (rgb.IsColor())
             {
-                return new RGB(-1, -1, -1);
+                return new RGB(rgb.ToR(), rgb.ToG(), rgb.ToG());
             }
-            return new RGB(rgb.ToR(), rgb.ToG(), rgb.ToG());
+            return new RGB(-1, -1, -1);
         }
 
         /// <summary>

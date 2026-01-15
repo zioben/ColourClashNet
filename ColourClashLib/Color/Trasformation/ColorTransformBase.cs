@@ -274,7 +274,7 @@ namespace ColourClashNet.Color.Transformation
                 var oHash = new HashSet<int>();
                 foreach (var rgb in oMiddleData.ColorPalette.ToList())
                 {
-                    if (rgb.GetColorInfo() == ColorInfo.IsColor )
+                    if (rgb.IsColor() )
                     {
                         oHash.Add(rgb);
                     }

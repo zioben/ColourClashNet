@@ -1,4 +1,5 @@
 ﻿using ColourClashNet.Color;
+using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
@@ -46,17 +47,28 @@ namespace ColourClashNet.Color
         /// </summary>
         /// <param name="oDataSource">Image Data</param>
         /// <returns>this object</returns>
-        public Histogram Create(int[,] oDataSource)
+        Histogram Create(int[,] oDataSource)
         {
             Reset();
             return Histogram.CreateHistogramStatic(oDataSource, this);
         }
 
         /// <summary>
-        /// Create Histogram from a 2D int array of RGB values
+        /// Create Histogram from ImageData
         /// </summary>
         /// <param name="oDataSource">Image Data</param>
         /// <returns>this object</returns>
+        public Histogram Create(ImageData oDataSource)
+        {
+            Reset();
+            return Histogram.CreateHistogramStatic(oDataSource?.Data, this);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="oHist"></param>
+        /// <returns></returns>
         public Histogram Create(Histogram oHist )
         {
             Reset();
@@ -77,7 +89,7 @@ namespace ColourClashNet.Color
         {
             if (rgb < 0)
                 return;
-            if (rgb.GetColorInfo() == ColorInfo.IsColor)
+            if (rgb.IsColor())
             {
                 if( rgbHistogram.ContainsKey(rgb))
                 {
@@ -91,10 +103,18 @@ namespace ColourClashNet.Color
         }
 
         /// <summary>
+        /// Add one occurrence to a RGB color in the histogram.<BR/>
+        /// only 'ColorIntInfo.IsColor' will be accepted.
+        /// </summary>
+        /// <param name="rgb">color data</param>
+        public void AddToHistogram(int rgb)
+            => AddToHistogram(rgb, 1);
+
+        /// <summary>
         /// Extract colors in the histogram as a Color Palette
         /// </summary>
         /// <returns></returns>
-        public Palette ToColorPalette()
+        public Palette ToPalette()
         {
             var oCP = new Palette();
             foreach (var rgb in rgbHistogram.Keys)
@@ -111,7 +131,7 @@ namespace ColourClashNet.Color
         /// Extract colors in the histogram as a Color Palette
         /// </summary>
         /// <returns></returns>
-        public Palette ToColorPalette(int iMaxColors)
+        public Palette ToPalette(int iMaxColors)
         {
             var oCP = new Palette();
             foreach (var rgb in rgbHistogram.Keys)

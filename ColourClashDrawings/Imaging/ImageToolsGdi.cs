@@ -11,12 +11,13 @@ using System.Linq;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
+
 
 namespace ColourClashNet.Imaging;
 
-public static partial class ImageTools
+public static partial class ImageToolsGDI
 {
+    static readonly string sClass = nameof(ImageToolsGDI);
 
     #region Bitmap Creation
 
@@ -26,12 +27,10 @@ public static partial class ImageTools
     /// <param name="oImage">The image whose width is to be aligned. If null, a width of 0 is used.</param>
     /// <param name="ePixelWidthAlign">The alignment mode that determines how the image width should be adjusted.</param>
     /// <returns>The width of the image, adjusted according to the specified alignment mode.</returns>
-    static public int GetImageNewWidthAlign(System.Drawing.Image oImage, ImageWidthAlignMode ePixelWidthAlign)
+    static public int GetImageNewWidthAlign(Image oImage, ImageWidthAlignMode ePixelWidthAlign)
     {
-        return GetImageNewWidthAlign(oImage?.Width ?? 0, ePixelWidthAlign);
+        return ImageTools.GetImageNewWidthAlign(oImage?.Width ?? 0, ePixelWidthAlign);
     }
-
-
 
     /// <summary>
     /// Creates a new Bitmap from the specified data stream, ensuring the pixel format is 32 bits per pixel with
@@ -246,7 +245,7 @@ public static partial class ImageTools
                         for (int x = 0; x < oBmp.Width; x++)
                         {
                             int rgb = ptrRow[x];
-                            if (rgb.GetColorInfo() == ColorInfo.IsColor)
+                            if (rgb.IsColor())
                             {
                                 m[y, x] = (int)(ptrRow[x] & 0x00FFFFFF);
                             }
@@ -301,7 +300,7 @@ public static partial class ImageTools
 
     #endregion
 
-        #region Matrix -> Bitmap    
+    #region Matrix -> Bitmap    
 
     unsafe static System.Drawing.Image? MatrixToGdiImageUnsafe(int[,] m)
     {
@@ -396,7 +395,7 @@ public static partial class ImageTools
                 return null;
             }
 
-            var mDataIndex = CreateIndexedData(mData, lPaletteSrc, eAlignMode);
+            var mDataIndex = ImageTools.CreateIndexedData(mData, lPaletteSrc, eAlignMode);
             int HD = mDataIndex.GetLength(0);
             int WD = mDataIndex.GetLength(1);
 

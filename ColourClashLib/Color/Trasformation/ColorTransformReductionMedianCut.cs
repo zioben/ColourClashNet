@@ -153,7 +153,7 @@ namespace ColourClashNet.Color.Transformation
             {
                 OutputPalette = new Palette();
                 var SourceHistogram = Histogram.CreateHistogram(SourceData);
-                if (SourceHistogram.ToColorPalette().Count < ColorsMaxWanted)
+                if (SourceHistogram.ToPalette().Count < ColorsMaxWanted)
                 {
                     foreach (var kvp in SourceHistogram.rgbHistogram)
                     {
@@ -164,7 +164,7 @@ namespace ColourClashNet.Color.Transformation
                 else
                 {
                     int iColorsMax = Math.Min(256, Math.Max(2, ColorsMaxWanted));
-                    Partition(SourceHistogram.ToColorPalette(), iColorsMax / 2);
+                    Partition(SourceHistogram.ToPalette(), iColorsMax / 2);
                     OutputPalette = TransformationMap.GetOutputPalette();
                 }
                 return ColorTransformResults.CreateValidResult();

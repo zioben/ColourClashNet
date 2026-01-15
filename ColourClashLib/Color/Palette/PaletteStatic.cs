@@ -74,7 +74,8 @@ public partial class Palette
         return MergePalette(new[] { sourcePalette });
     }
 
-   
+
+
     /// <summary>
     /// Creates a color palette from the specified sequence of integer color values.
     /// </summary>
@@ -106,7 +107,7 @@ public partial class Palette
         }
     }
 
-   
+
 
     /// <summary>
     /// Creates a color palette by extracting valid color values from the specified two-dimensional array.
@@ -116,31 +117,32 @@ public partial class Palette
     /// <returns>A Palette containing all valid colors found in the input array. If no valid colors are found or if the input
     /// is null, the returned Palette will be empty.</returns>
     public static Palette CreatePalette(int[,] mData)
-    {
-        var sM = nameof(CreatePalette);
-        try
-        {
-            var result = new Palette();
-            if (mData == null)
-            {
-                LogMan.Error(sC, sM, "data matrix null");
-                return result;
-            }
-            foreach (var color in mData)
-            {
-                if (color.GetColorInfo() == ColorInfo.IsColor)
-                {
-                    result.Add(color);
-                }
-            }
-            return result;
-        }
-        catch (Exception ex)
-        {
-            LogMan.Exception(sC, sM, ex);
-            return new Palette();
-        }
-    }
+        =>CreatePalette(mData?.Cast<int>());
+    //{
+    //    var sM = nameof(CreatePalette);
+    //    try
+    //    {
+    //        var result = new Palette();
+    //        if (mData == null)
+    //        {
+    //            LogMan.Error(sC, sM, "data matrix null");
+    //            return result;
+    //        }
+    //        foreach (var color in mData)
+    //        {
+    //            if (color.IsColor())
+    //            {
+    //                result.Add(color);
+    //            }
+    //        }
+    //        return result;
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        LogMan.Exception(sC, sM, ex);
+    //        return new Palette();
+    //    }
+    //}
 
     /// <summary>
     /// 
@@ -152,12 +154,7 @@ public partial class Palette
         var sM = nameof(CreatePalette);
         try
         {
-            if (oImageData == null)
-            {
-                LogMan.Error(sC, sM, "ImageData null");
-                return new Palette();
-            }
-            if (!oImageData.DataValid)
+            if (!oImageData?.DataValid ?? true )
             {
                 LogMan.Error(sC, sM, "ImageData invalid");
                 return new Palette();

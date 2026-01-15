@@ -44,7 +44,7 @@ namespace ModuleTester
                 }
                 if (oArgs?.ProcessingResults?.DataOut != null)
                 {
-                    picImageTemp.Image = ImageTools.ImageDataToGdiImage(oArgs.ProcessingResults.DataOut);
+                    picImageTemp.Image = ImageToolsGDI.ImageDataToGdiImage(oArgs.ProcessingResults.DataOut);
                 }
                 if (!double.IsNaN(oArgs.CompletedPercent))
                 {
