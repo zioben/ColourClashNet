@@ -20,17 +20,8 @@ namespace ColourClashNet.Color.Dithering
         static string sClass = nameof(DitherBase);
         public string Description { get; protected init; }
         public ColorDithering Type { get; protected init; }
-
         public double DitheringStrenght { get; set; } = 1.0;
-
         public abstract bool Create();
-
         public abstract Task<ImageData?> DitherAsync(ImageData oImageReference, ImageData oImageReduced, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken);
-
-        //public int[,]? Dither(int[,]? oDataSource, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken)
-        //{
-        //    var cts = new CancellationTokenSource();
-        //    return DitherAsync(oDataSource,oDataProcessed,oDataProcessedPalette,eDistanceMode,cts.Token).GetAwaiter().GetResult();
-        //}
     }
 }

@@ -42,16 +42,6 @@ namespace ColourClashNet.Color
             rgbHistogram.Clear();
         }
 
-        /// <summary>
-        /// Create Histogram from a 2D int array of RGB values
-        /// </summary>
-        /// <param name="oDataSource">Image Data</param>
-        /// <returns>this object</returns>
-        Histogram Create(int[,] oDataSource)
-        {
-            Reset();
-            return Histogram.CreateHistogramStatic(oDataSource, this);
-        }
 
         /// <summary>
         /// Create Histogram from ImageData

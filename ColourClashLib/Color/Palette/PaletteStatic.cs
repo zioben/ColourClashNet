@@ -84,30 +84,7 @@ public partial class Palette
     /// <returns>A Palette instance containing the colors specified in the source enumerable. Returns an empty palette if
     /// sourceEnumerable is null or contains no elements.</returns>
     public static Palette CreatePalette(IEnumerable<int> sourceEnumerable)
-    {
-        var sM = nameof(CreatePalette);
-        try
-        {
-            var result = new Palette();
-            if (sourceEnumerable == null )
-            {
-                LogMan.Error(sC, sM, "color source set null");
-                return result;
-            }
-            foreach (var color in sourceEnumerable)
-            {
-                result.Add(color);
-            }
-            return result;
-        }
-        catch (Exception ex)
-        {
-            LogMan.Exception(sC, sM, ex);
-            return new Palette();
-        }
-    }
-
-
+       => new Palette().Create(sourceEnumerable);
 
     /// <summary>
     /// Creates a color palette by extracting valid color values from the specified two-dimensional array.
@@ -117,32 +94,7 @@ public partial class Palette
     /// <returns>A Palette containing all valid colors found in the input array. If no valid colors are found or if the input
     /// is null, the returned Palette will be empty.</returns>
     public static Palette CreatePalette(int[,] mData)
-        =>CreatePalette(mData?.Cast<int>());
-    //{
-    //    var sM = nameof(CreatePalette);
-    //    try
-    //    {
-    //        var result = new Palette();
-    //        if (mData == null)
-    //        {
-    //            LogMan.Error(sC, sM, "data matrix null");
-    //            return result;
-    //        }
-    //        foreach (var color in mData)
-    //        {
-    //            if (color.IsColor())
-    //            {
-    //                result.Add(color);
-    //            }
-    //        }
-    //        return result;
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        LogMan.Exception(sC, sM, ex);
-    //        return new Palette();
-    //    }
-    //}
+       => new Palette().Create(mData);
 
     /// <summary>
     /// 
@@ -150,21 +102,5 @@ public partial class Palette
     /// <param name="oImageData"></param>
     /// <returns></returns>
     public static Palette CreatePalette(ImageData oImageData)
-    {
-        var sM = nameof(CreatePalette);
-        try
-        {
-            if (!oImageData?.DataValid ?? true )
-            {
-                LogMan.Error(sC, sM, "ImageData invalid");
-                return new Palette();
-            }
-            return CreatePalette(oImageData.ColorPalette);
-        }
-        catch (Exception ex)
-        {
-            LogMan.Exception(sC, sM, ex);
-            return new Palette();
-        }
-    }
+       => new Palette().Create(oImageData);
 }

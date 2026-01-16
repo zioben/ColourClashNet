@@ -16,7 +16,6 @@ namespace ColourClashNet.Color.Dithering
             Description = "Atkinson quantization error diffusion";
         }
 
-
         public override bool Create()
         {
             matErrorDiffusion = new double[,] {

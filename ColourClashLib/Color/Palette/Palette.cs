@@ -1,5 +1,7 @@
 ﻿using ColourClashNet.Color;
 using ColourClashNet.Color;
+using ColourClashNet.Imaging;
+using ColourClashNet.Log;
 
 namespace ColourClashNet.Color
 {
@@ -41,6 +43,52 @@ namespace ColourClashNet.Color
         public void Reset() => rgbPalette.Clear();
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rgbData"></param>
+        /// <returns></returns>
+        public Palette Create( IEnumerable<int> rgbData ) 
+        {
+            var sM = nameof(Create);
+            try
+            {
+                Reset();
+                if (rgbData == null)
+                {
+                    LogMan.Error(sC, sM, "color source set null");
+                    return this;
+                }
+                foreach (var rgb in rgbData)
+                {
+                   Add(rgb);
+                }
+                return this;
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, ex);
+                return new Palette();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rgbData"></param>
+        /// <returns></returns>
+        Palette Create( int[,] oData)
+            => Create(oData?.Cast<int>());
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rgbData"></param>
+        /// <returns></returns>
+        Palette Create(ImageData oImageData)
+            => Create(oImageData?.Data);
+
+        /// <summary>
         /// Converts the palette to a List of integer colors.
         /// </summary>
         public List<int> ToList() => rgbPalette.ToList();
@@ -49,5 +97,7 @@ namespace ColourClashNet.Color
         /// Returns a string describing the palette.
         /// </summary>
         public override string ToString() => $"Palette Colors: {Count}";
+
+
     }
 }
