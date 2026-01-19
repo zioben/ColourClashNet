@@ -60,11 +60,11 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
+        protected async override Task<ColorTransformResults> CreateTransformationMapAsync(CancellationToken oToken)
         {
             return await Task.Run(() =>
             {
-                string sM = nameof(CreateTrasformationMapAsync);
+                string sM = nameof(CreateTransformationMapAsync);
                 LogMan.Trace(sC, sM, $"{Type} : Creating trasformation map");
 
                 TransformationMap.Reset();
@@ -79,12 +79,10 @@ namespace ColourClashNet.Color.Transformation
                     TransformationMap.Remove(rgb);
                     TransformationMap.Add(rgb, ColorBackgroundReplacement);
                 }
-               // var lRepl = TransformationMap.rgbTransformationMap.Where(X => X.Value == ColorBackgroundReplacement).ToList();
                 return ColorTransformResults.CreateValidResult();
             });
         }
 
-        // Not needed
-        //protected override async Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
+        
     }
 }

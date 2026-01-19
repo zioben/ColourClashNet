@@ -126,7 +126,7 @@ namespace ColourClashNet.Color.Transformation
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
                 .SetProperty(ColorTransformProperties.Fixed_Palette, oPalette)
                 .SetProperty(ColorTransformProperties.Dithering_Type, bUseDithering ? DitheringType : ColorDithering.None)
-                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght)
+                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrength)
                 .Create(SourceData);
             var oPreRes = await oPreProcessing.ProcessColorsAsync(oToken);
             var oPreData = oPreRes.DataOut;
@@ -135,7 +135,7 @@ namespace ColourClashNet.Color.Transformation
                 .SetProperty(ColorTransformProperties.Fixed_Palette, oPalette)
                 .SetProperty(ColorTransformProperties.Forced_Palette, oPalette)
                 .SetProperty(ColorTransformProperties.Dithering_Type, bUseDithering ? DitheringType : ColorDithering.None)
-                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
+                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrength);
             var retC = await oTileManager.CreateAsync(oPreData, oToken);
             var retP = await oTileManager.ProcessColorsAsync(oToken);
             await oTileManager.EvaluateImageErrorAsync(SourceData,oToken);

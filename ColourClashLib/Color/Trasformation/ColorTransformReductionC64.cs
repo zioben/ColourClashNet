@@ -135,7 +135,7 @@ namespace ColourClashNet.Color.Transformation
             var oDithered = oProcessed;
             if (DitheringType !=  ColorDithering.None )
             {
-                var oDither = Dithering.DitherBase.CreateDitherInterface(DitheringType,DitheringStrenght);             
+                var oDither = Dithering.DitherBase.CreateDitherInterface(DitheringType,DitheringStrength);             
                 oDithered = await oDither.DitherAsync(oRealSource, oProcessed, ColorDistanceEvaluationMode, oToken);
             }
             // Raise pre processing event

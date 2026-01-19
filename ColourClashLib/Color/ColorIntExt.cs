@@ -1,6 +1,7 @@
 ﻿using ColourClashLib.Color;
 using ColourClashNet.Color;
 using ColourClashNet.Defaults;
+using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
@@ -34,11 +35,11 @@ namespace ColourClashNet.Color
         /// </para>
         /// </summary>
         /// <param name="rgb">Color data</param>
-        /// <param name="eInfo">Color type</param>
-        public static int SetColorInfo(this int rgb, ColorInfo eInfo)
+        /// <param name="colorInfo">Color type</param>
+        public static int SetColorInfo(this int rgb, ColorInfo colorInfo)
         {
             int newrgb = rgb & 0x00_FF_FF_FF;
-            newrgb |= ((int)eInfo) << 24;
+            newrgb |= ((int)colorInfo) << 24;
             return newrgb;
         }
 
@@ -102,31 +103,31 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Extracts the Red component from an integer representation of a color.
         /// </summary>
-        /// <param name="i"></param>
+        /// <param name="rgb"></param>
         /// <returns></returns>
-        public static int ToR(this int i)
+        public static int ToR(this int rgb)
         {
-            return i >= 0 ? (i >> 16) & 0x00ff : -1;
+            return rgb >= 0 ? (rgb >> 16) & 0x00ff : -1;
         }
 
         /// <summary>
         /// Extracts the Green component from an integer representation of a color.
         /// </summary>
-        /// <param name="i"></param>
+        /// <param name="rgb"></param>
         /// <returns></returns>
-        public static int ToG(this int i)
+        public static int ToG(this int rgb)
         {
-            return i >= 0 ? (i >> 8) & 0x00ff : -1;
+            return rgb >= 0 ? (rgb >> 8) & 0x00ff : -1;
         }
 
         /// <summary>
         /// Extracts the Blue component from an integer representation of a color.
         /// </summary>
-        /// <param name="i"></param>
+        /// <param name="rgb"></param>
         /// <returns></returns>
-        public static int ToB(this int i)
+        public static int ToB(this int rgb)
         {
-            return i >= 0 ? (i >> 0) & 0x00ff : -1;
+            return rgb >= 0 ? (rgb >> 0) & 0x00ff : -1;
         }
 
         /// <summary>
@@ -189,46 +190,46 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Calculates the distance between two colors represented as integers, based on the specified color distance evaluation mode.
         /// </summary>
-        /// <param name="i"></param>
-        /// <param name="j"></param>
+        /// <param name="rgbA"></param>
+        /// <param name="rgbB"></param>
         /// <param name="eMode"></param>
         /// <returns></returns>
-        public static double Distance(this int i, int j, ColorDistanceEvaluationMode eMode)
+        public static double Distance(this int rgbA, int rgbB, ColorDistanceEvaluationMode eMode)
         {
-            if (i < 0 || j < 0)
+            if (rgbA.IsInvalid() || rgbB.IsInvalid())
                 return double.NaN;
             switch (eMode)
             {
                 case ColorDistanceEvaluationMode.RGB:
                     {
-                        int R = i.ToR() - j.ToR();
-                        int G = i.ToG() - j.ToG();
-                        int B = i.ToB() - j.ToB();
+                        int R = rgbA.ToR() - rgbB.ToR();
+                        int G = rgbA.ToG() - rgbB.ToG();
+                        int B = rgbA.ToB() - rgbB.ToB();
                         return R * R + G * G + B * B; // + (R-G)*(R-G) + (R-B)*(R-B) + (G-B)*(G-B);
                     }
                 case ColorDistanceEvaluationMode.RGBalt:
                     {
-                        int R = i.ToR() - j.ToR();
-                        int G = i.ToG() - j.ToG();
-                        int B = i.ToB() - j.ToB();
+                        int R = rgbA.ToR() - rgbB.ToR();
+                        int G = rgbA.ToG() - rgbB.ToG();
+                        int B = rgbA.ToB() - rgbB.ToB();
                         return (R * R + G * G + B * B + (R - G) * (R - G) + (R - B) * (R - B) + (G - B) * (G - B));
                     }
                 case ColorDistanceEvaluationMode.HSV:
                     {
-                        HSV hsvi = HSV.FromIntRGB(i);
-                        HSV hsvj = HSV.FromIntRGB(j);
+                        HSV hsvi = HSV.FromIntRGB(rgbA);
+                        HSV hsvj = HSV.FromIntRGB(rgbB);
                         return HSV.Distance(hsvi, hsvj);
                     }
                 case ColorDistanceEvaluationMode.LAB:
                     {
-                        LAB labi = LAB.FromIntRGB(i);
-                        LAB labj = LAB.FromIntRGB(j);
+                        LAB labi = LAB.FromIntRGB(rgbA);
+                        LAB labj = LAB.FromIntRGB(rgbB);
                         return LAB.Distance(labi, labj);
                     }
                 case ColorDistanceEvaluationMode.GRAY:
                     {
-                        GRAY yi = GRAY.FromIntRGB(i);
-                        GRAY yj = GRAY.FromIntRGB(j);
+                        GRAY yi = GRAY.FromIntRGB(rgbA);
+                        GRAY yj = GRAY.FromIntRGB(rgbB);
                         return GRAY.Distance(yi, yj);
                     }
 
@@ -263,6 +264,7 @@ namespace ColourClashNet.Color
         /// <returns></returns>
         public static int FromRGB(int r, int g, int b) => FromRGB(r, g, b, ColorInfo.IsColor);
 
+
         /// <summary>
         /// Creates an integer representation of a color from its Red, Green, and Blue components.
         /// </summary>
@@ -272,72 +274,6 @@ namespace ColourClashNet.Color
         /// <returns></returns>
         public static int FromRGB(double dr, double dg, double db) => FromRGB((int) dr, (int) dg, (int) db);
 
-
-        /// <summary>
-        /// Creates an integer representation of a color from its HSV (Hue, Saturation, Value) components.
-        /// </summary>
-        /// <param name="fValh"></param>
-        /// <param name="fVals"></param>
-        /// <param name="fValv"></param>
-        /// <returns></returns>
-        public static int FromHSV(float fValh, float fVals, float fValv)
-        {
-            var fv = fValv / 100f;
-            var fs = fVals / 100f;
-            var fh = fValh;
-            var fc = fv * fs;
-            var fx = fc * (1 - Math.Abs(((fh / 60f) % 2f) - 1));
-            var fm = fv - fc;
-            var r = 0f;
-            var g = 0f;
-            var b = 0f;
-            if (fh < 60)
-            {
-                r = fc;
-                g = fx;
-            }
-            else if (fh >= 60 && fh < 120)
-            {
-                r = fx;
-                g = fc;
-            }
-            else if (fh >= 120 && fh < 180)
-            {
-                g = fc;
-                b = fx;
-            }
-            else if (fh >= 180 && fh < 240)
-            {
-                g = fx;
-                b = fc;
-            }
-            else if (fh >= 240 && fh < 300)
-            {
-                r = fx;
-                b = fc;
-            }
-            else if (fh >= 300)
-            {
-                r = fc;
-                b = fx;
-            }
-            int R = Math.Min(255, (int)((r + fm) * 255));
-            int G = Math.Min(255, (int)((g + fm) * 255));
-            int B = Math.Min(255, (int)((b + fm) * 255));
-            return FromRGB(R, G, B);
-        }
-
-        /// <summary>
-        /// Creates an integer representation of a color from its HSV (Hue, Saturation, Value) components.
-        /// </summary>
-        /// <param name="dh"></param>
-        /// <param name="ds"></param>
-        /// <param name="dv"></param>
-        /// <returns></returns>
-        public static int FromHSV(double dh, double ds, double dv)
-        {
-            return FromRGB((float)dh, (float)ds, (float)dv);
-        }
 
         /// <summary>
         /// Converts a <see cref="System.Drawing.Color"/> to its integer representation.
@@ -473,37 +409,38 @@ namespace ColourClashNet.Color
 
         static public double EvaluateError(int rgbA, int rgbB, ColorDistanceEvaluationMode eMode) => Distance(rgbA, rgbB, eMode);
 
-        static public async Task<double> EvaluateErrorAsync(int[,]? oDataA, int[,]? oDataB, ColorDistanceEvaluationMode eMode, CancellationToken? oToken)
+        static public async Task<double> EvaluateErrorAsync(ImageData imageA, ImageData imageB, ColorDistanceEvaluationMode evalMode, CancellationToken token=default)
         {
             return await Task.Run(() =>
             {
-                if (oDataA == null || oDataB == null)
+                if (imageA == null || imageB == null || !imageA.DataValid || !imageA.DataValid)
                 {
                     return double.NaN;
                 }
-                int r1 = oDataA.GetLength(0);
-                int c1 = oDataA.GetLength(1);
-                int r2 = oDataB.GetLength(0);
-                int c2 = oDataB.GetLength(1);
-                if (r1 != r2 || c1 != c2 || r1 == 0 || r2 == 0)
+                if ( imageA.Rows != imageB.Rows || imageA.Columns!=imageB.Columns || imageA.Rows == 0 || imageA.Columns == 0)
                 {
                     return double.NaN;
                 }
                 double err = 0;
-                Parallel.For(0, r1, r => //(int r = 0; r < r1; r++)
+                int count = 0;
+                Parallel.For(0, imageA.Rows, r => //(int r = 0; r < r1; r++)
                 {
-                    oToken?.ThrowIfCancellationRequested();
-                    for (int c = 0; c < c1; c++)
+                    token.ThrowIfCancellationRequested();
+                    for (int c = 0; c < imageA.Columns; c++)
                     {
-                        var rgb1 = oDataA[r, c];
-                        var rgb2 = oDataB[r, c];
-                        if (rgb1 >= 0 && rgb2 >= 0)
+                        var rgb1 = imageA.DataX[r, c];
+                        var rgb2 = imageB.DataX[r, c];
+                        if (rgb1.IsColor() && rgb2.IsColor() )
                         {
-                            err += ColorIntExt.Distance(rgb1, rgb2, eMode);
+                            err += ColorIntExt.Distance(rgb1, rgb2, evalMode);
+                            count++;
                         }
                     }
                 });
-                err /= r1 * c1;
+                if( count > 0)
+                    err /= count;
+                else
+                    err = double.NaN;
                 return err;
             });
         }

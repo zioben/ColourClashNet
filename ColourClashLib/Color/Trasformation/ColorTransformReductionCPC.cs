@@ -118,7 +118,7 @@ namespace ColourClashNet.Color.Transformation
                 {
                     oRealSource = new ImageData().Create( ColorTransformBase.HalveHorizontalRes(SourceData.Data));
                 }
-                var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrenght);
+                var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength);
                 var oDitheringOut = await oDithering.DitherAsync(oRealSource, oRes.DataOut, ColorDistanceEvaluationMode, oToken);
                 if (bDoubleRes)
                 {

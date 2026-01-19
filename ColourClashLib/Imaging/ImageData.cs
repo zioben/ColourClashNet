@@ -25,7 +25,7 @@ namespace ColourClashNet.Imaging
         /// <summary>
         /// Gets the two-dimensional array of integer data associated with this instance.
         /// </summary>
-        public int[,]? Data { get; private set; }
+        public int[,]? DataX { get; private set; }
 
         /// <summary>
         /// Gets the color palette used for rendering visual elements.
@@ -40,8 +40,8 @@ namespace ColourClashNet.Imaging
         {
             get
             {
-                if (Data == null) return 0;
-                return Data.GetLength(1);
+                if (DataX == null) return 0;
+                return DataX.GetLength(1);
             }
         }
 
@@ -52,8 +52,8 @@ namespace ColourClashNet.Imaging
         {
             get
             {
-                if (Data == null) return 0;
-                return Data.GetLength(0);
+                if (DataX == null) return 0;
+                return DataX.GetLength(0);
             }
         }
 
@@ -92,7 +92,7 @@ namespace ColourClashNet.Imaging
         /// <summary>
         /// Gets a value indicating whether the current object contains valid data.
         /// </summary>
-        public bool DataValid => Data != null;
+        public bool DataValid => DataX != null;
 
         /// <summary>
         /// 
@@ -105,7 +105,7 @@ namespace ColourClashNet.Imaging
             {
                 lock (locker)
                 {
-                    Data = null;
+                    DataX = null;
                     ColorPalette = new Palette();
                 }
                 return true;
@@ -135,8 +135,8 @@ namespace ColourClashNet.Imaging
                     {
                         return this;
                     }
-                    Data = oData.Clone() as int[,];                    
-                    ColorPalette = Palette.CreatePalette(Data);
+                    DataX = oData.Clone() as int[,];                    
+                    ColorPalette = Palette.CreatePalette(DataX);
                 }
                 return this;
             }
@@ -153,7 +153,7 @@ namespace ColourClashNet.Imaging
         /// <param name="oImageData"></param>
         /// <returns></returns>
         public ImageData Create(ImageData oImageData) 
-            => Create(oImageData?.Data);
+            => Create(oImageData?.DataX);
 
         /// <summary>
         /// 
@@ -163,96 +163,6 @@ namespace ColourClashNet.Imaging
         {
             return $"ImageData: {Name}, {Width}x{Height}, Colors: {Colors}";
         }
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="oImage"></param>
-        /// <returns></returns>
-        //public ImageData Create(System.Drawing.Image oImage)
-        //{
-        //    string sM = nameof(Create);
-        //    try
-        //    {
-        //        var oImageRaw = ImageTools.GdiImageToMatrix(oImage as System.Drawing.Bitmap);
-        //        return Create(oImageRaw);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        LogMan.Exception(sC, sM, "Error creating from GDI.", ex);
-        //        return this;
-        //    }
-        //}
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sFileName"></param>
-        /// <returns></returns>
-        //public ImageData Create(string sFileName)
-        //{
-        //    string sM = nameof(Create);
-        //    try
-        //    {
-        //        using (var oBitmap = ImageTools.GdiImageFromFile(sFileName))
-        //        {
-        //            return Create(oBitmap);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        LogMan.Exception(sC, sM, "Error creating from file.", ex);
-        //        return this;
-        //    }
-        //}
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sFileName"></param>
-        /// <param name="eFormat"></param>
-        /// <returns></returns>
-        //public bool SaveToFile(string sFileName, ImageExportFormat eFormat)
-        //{
-        //    string sM = nameof(SaveToFile);
-        //    try
-        //    {
-        //        lock (locker)
-        //        {
-        //            using (var oBmp = ImageTools.ImageDataToGdiImage(this))
-        //            {
-        //                return ImageTools.GdiImageToFile(oBmp, sFileName, eFormat);
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        LogMan.Exception(sC, sM, "Error saving to file.", ex);
-        //        return false;
-        //    }
-        //}
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        //public System.Drawing.Image? ToImage()
-        //{
-        //    string sM = nameof(SaveToFile);
-        //    try
-        //    {
-        //        lock (locker)
-        //        {
-        //            return ImageTools.ImageDataToGdiImage(this);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        LogMan.Exception(sC, sM, "Error Creating GDI Bitmap.", ex);
-        //        return null;
-        //    }
-        //}
+       
     }
 }

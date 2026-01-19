@@ -41,64 +41,47 @@ namespace ColourClashNet.Color
             return true;
         }
 
-        public bool Create(int[,] oDataSource)
-        {
-            Reset();
-            if (oDataSource == null)
-            {
-                return false;
-            }
-            Palette oPalette = new Palette();
-            foreach (var rgb in oDataSource) 
-            {
-                if (rgb >= 0)
-                {
-                    oPalette.Add(rgb);
-                }
-            }
-            return Create(oPalette);
-        }
-        public bool Create(ImageData oImageData)
+        public bool Create(ImageData image)
         {           
             Reset();
-            if (oImageData == null || oImageData.Colors <= 0 )
+            if (image == null || image.Colors <= 0 )
             {
                 return false;
             }
-            return Create(oImageData.ColorPalette);
+            return Create(image.ColorPalette);
         }
 
-        public void Add(int iSourceRGB, int iDestRGB)
+        public void Add(int sourceRGB, int destRGB)
         {
-            if (iSourceRGB < 0 || iDestRGB < 0)
+            if (sourceRGB < 0 || destRGB < 0)
             {
                 return;
             }
-            rgbTransformationMap[iSourceRGB] = iDestRGB;
+            rgbTransformationMap[sourceRGB] = destRGB;
         }
 
-        public void Remove(int iSourceRGB)
+        public void Remove(int sourceRGB)
         {
-            if (rgbTransformationMap.ContainsKey(iSourceRGB))
+            if (rgbTransformationMap.ContainsKey(sourceRGB))
             {
-                rgbTransformationMap.TryRemove(iSourceRGB, out int Removed);
+                rgbTransformationMap.TryRemove(sourceRGB, out int Removed);
             }
         }
 
-        public async Task<ImageData> TransformAsync(ImageData oImageData, CancellationToken? oToken )
+        public ImageData Transform(ImageData image, CancellationToken token=default )
         {
-            string sM = nameof(TransformAsync);
-            if (oImageData == null || !oImageData.DataValid)
+            string sM = nameof(Transform);
+            if (image == null || !image.DataValid)
             {
-                return null;
+                return new();
             }
-            var oDataOut = new int[oImageData.Height,oImageData.Width];
-            Parallel.For(0, oImageData.Height, r =>
+            var oDataOut = new int[image.Height,image.Width];
+            Parallel.For(0, image.Height, r =>
             {
-                oToken?.ThrowIfCancellationRequested();
-                for (int c = 0; c < oImageData.Width; c++)
+                token.ThrowIfCancellationRequested();
+                for (int c = 0; c < image.Width; c++)
                 {
-                    if (!rgbTransformationMap.TryGetValue(oImageData.Data[r, c], out oDataOut[r, c]))
+                    if (!rgbTransformationMap.TryGetValue(image.DataX[r, c], out oDataOut[r, c]))
                     {
                         oDataOut[r, c] = Defaults.ColorDefaults.DefaultInvalidColorInt;
                     }

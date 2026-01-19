@@ -30,8 +30,8 @@ namespace ColourClashNet.Color.Transformation
         //------------------------------------------------------------
         ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue);
         ColorTransformInterface Create(ImageData oDataSource);
-        ColorTransformInterface Create(int[,] oDataSource);
         Task<ColorTransformResults> ProcessColorsAsync(CancellationToken oToken = default);
+        Task<ColorTransformResults> CreateAndProcess(ImageData oDataSource, CancellationToken oToken = default);
         Task AbortProcessingAsync(CancellationTokenSource oTokenSource);
         void AbortProcessing(CancellationTokenSource oTokenSource);
 
