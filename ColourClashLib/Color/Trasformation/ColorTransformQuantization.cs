@@ -118,22 +118,19 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
+        protected override ColorTransformResults CreateTransformationMap(CancellationToken oToken=default)
         {
-            return await Task.Run(() =>
-            {
-                string sM = nameof(CreateTrasformationMapAsync);
-                LogMan.Trace(sC, sM, $"{Type} : Creating trasformation map");
+            string sM = nameof(CreateTransformationMap);
+            LogMan.Trace(sC, sM, $"{Type} : Creating trasformation map");
 
-                TransformationMap.Reset();
-                var rgbList = SourceData.ColorPalette.ToList();
-                foreach (var rgb in rgbList)
-                {
-                    int rgbQ = QuantizeColor(rgb);
-                    TransformationMap.Add(rgb, rgbQ);
-                }
-                return ColorTransformResults.CreateValidResult();
-            });
+            TransformationMap.Reset();
+            var rgbList = SourceData.ColorPalette.ToList();
+            foreach (var rgb in rgbList)
+            {
+                int rgbQ = QuantizeColor(rgb);
+                TransformationMap.Add(rgb, rgbQ);
+            }
+            return ColorTransformResults.CreateValidResult();
         }
 
         // Not needed

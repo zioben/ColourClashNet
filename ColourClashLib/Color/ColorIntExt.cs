@@ -135,7 +135,7 @@ namespace ColourClashNet.Color
         /// </summary>
         /// <param name="rgb"></param>
         /// <returns></returns>
-        public static HSV ToHSV(this int rgb) => HSV.FromIntRGB(rgb);
+        public static HSV ToHSV(this int rgb) => HSV.CreateFromIntRGB(rgb);
 
         /// <summary>
         /// Converts an integer representation of a color to its HSV (Hue, Saturation, Value) representation.
@@ -144,7 +144,7 @@ namespace ColourClashNet.Color
         /// <returns></returns>
         public static int RGBToHSV(this int rgb)
         {
-            var hsv = HSV.FromIntRGB(rgb);
+            var hsv = HSV.CreateFromIntRGB(rgb);
             int h = (int)Math.Min(0, Math.Max(360, Math.Round(hsv.H))); // 9 bit 
             int s = (int)Math.Min(0, Math.Max(100, Math.Round(hsv.S))); // 7 bit
             int v = (int)Math.Min(0, Math.Max(100, Math.Round(hsv.V))); // 7 bit
@@ -156,10 +156,10 @@ namespace ColourClashNet.Color
         /// </summary>
         /// <param name="rgb"></param>
         /// <returns></returns>
-        public static LAB ToLAB(this int rgb) => LAB.FromIntRGB(rgb);
+        public static LAB ToLAB(this int rgb) => LAB.CreateFromIntRGB(rgb);
 
 
-        public static GRAY ToGray(this int rgb) => GRAY.FromIntRGB(rgb);
+        public static GRAY ToGray(this int rgb) => GRAY.CreateFromIntRGB(rgb);
 
         public static float ToY(this int i)
         {
@@ -216,20 +216,20 @@ namespace ColourClashNet.Color
                     }
                 case ColorDistanceEvaluationMode.HSV:
                     {
-                        HSV hsvi = HSV.FromIntRGB(rgbA);
-                        HSV hsvj = HSV.FromIntRGB(rgbB);
+                        HSV hsvi = HSV.CreateFromIntRGB(rgbA);
+                        HSV hsvj = HSV.CreateFromIntRGB(rgbB);
                         return HSV.Distance(hsvi, hsvj);
                     }
                 case ColorDistanceEvaluationMode.LAB:
                     {
-                        LAB labi = LAB.FromIntRGB(rgbA);
-                        LAB labj = LAB.FromIntRGB(rgbB);
+                        LAB labi = LAB.CreateFromIntRGB(rgbA);
+                        LAB labj = LAB.CreateFromIntRGB(rgbB);
                         return LAB.Distance(labi, labj);
                     }
                 case ColorDistanceEvaluationMode.GRAY:
                     {
-                        GRAY yi = GRAY.FromIntRGB(rgbA);
-                        GRAY yj = GRAY.FromIntRGB(rgbB);
+                        GRAY yi = GRAY.CreateFromIntRGB(rgbA);
+                        GRAY yj = GRAY.CreateFromIntRGB(rgbB);
                         return GRAY.Distance(yi, yj);
                     }
 
@@ -413,7 +413,7 @@ namespace ColourClashNet.Color
         {
             return await Task.Run(() =>
             {
-                if (imageA == null || imageB == null || !imageA.DataValid || !imageA.DataValid)
+                if (imageA == null || imageB == null || !imageA.Valid || !imageA.Valid)
                 {
                     return double.NaN;
                 }

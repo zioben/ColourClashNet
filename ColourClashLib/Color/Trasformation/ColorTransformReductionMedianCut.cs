@@ -147,33 +147,30 @@ namespace ColourClashNet.Color.Transformation
 
         Palette OutputPalette = new Palette();
 
-        protected override async Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
+        protected override ColorTransformResults CreateTransformationMap(CancellationToken oToken=default)
         {
-            return await Task.Run(() =>
+            OutputPalette = new Palette();
+            var SourceHistogram = Histogram.CreateHistogram(SourceData);
+            if (SourceHistogram.ToPalette().Count < ColorsMaxWanted)
             {
-                OutputPalette = new Palette();
-                var SourceHistogram = Histogram.CreateHistogram(SourceData);
-                if (SourceHistogram.ToPalette().Count < ColorsMaxWanted)
+                foreach (var kvp in SourceHistogram.rgbHistogram)
                 {
-                    foreach (var kvp in SourceHistogram.rgbHistogram)
-                    {
-                        TransformationMap.rgbTransformationMap[kvp.Key] = kvp.Key;
-                    }
-                    OutputPalette = TransformationMap.GetOutputPalette();
+                    TransformationMap.rgbTransformationMap[kvp.Key] = kvp.Key;
                 }
-                else
-                {
-                    int iColorsMax = Math.Min(256, Math.Max(2, ColorsMaxWanted));
-                    Partition(SourceHistogram.ToPalette(), iColorsMax / 2);
-                    OutputPalette = TransformationMap.GetOutputPalette();
-                }
-                return ColorTransformResults.CreateValidResult();
-            });
+                OutputPalette = TransformationMap.GetOutputPalette();
+            }
+            else
+            {
+                int iColorsMax = Math.Min(256, Math.Max(2, ColorsMaxWanted));
+                Partition(SourceHistogram.ToPalette(), iColorsMax / 2);
+                OutputPalette = TransformationMap.GetOutputPalette();
+            }
+            return ColorTransformResults.CreateValidResult();
         }
 
         protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken oToken)
         {
-            var ret = await TransformationMap.TransformAsync(SourceData, oToken);
+            var ret = TransformationMap.Transform(SourceData, oToken);
             if (ret != null)
             {
                 return ColorTransformResults.CreateValidResult(SourceData, ret);

@@ -107,10 +107,10 @@ namespace ColourClashNet.Controls
 
         private void RebuildParams(object sender)
         {
-            if (sender is ColorTransformReductionZxSpectrum oZX)
+            if (sender is ColorTransformReductionZxSpectrumV2 oZX)
             {
-                nudZxColorLO.Value = oZX.ColLSeed;
-                nudZxColorHI.Value = oZX.ColHSeed;
+                nudZxColorLO.Value = oZX.ZxLowColorInSeed;
+                nudZxColorHI.Value = oZX.ZxHighColorInSeed;
             }
         }
 

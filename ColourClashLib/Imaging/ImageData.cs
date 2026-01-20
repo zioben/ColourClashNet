@@ -17,9 +17,9 @@ namespace ColourClashNet.Imaging
 
         object locker = new object();
 
-        /// <summary>
-        /// Gets or sets the name associated with the object.
-        /// </summary>
+      /// <summary>
+      /// Gets or sets the name associated with the object.
+      /// </summary>
         public string Name { get; set; } = "";
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace ColourClashNet.Imaging
 
 
         /// <summary>
-        /// Gets the number of columns in the data set.
+        /// Gets the Width (number of columns) in the data set as image.
         /// </summary>
         public int Width
         {
@@ -46,7 +46,7 @@ namespace ColourClashNet.Imaging
         }
 
         /// <summary>
-        /// gets the number of rows in the data set.
+        /// gets the Height (number of rows) in the data set as image.
         /// </summary>
         public int Height
         {
@@ -92,13 +92,16 @@ namespace ColourClashNet.Imaging
         /// <summary>
         /// Gets a value indicating whether the current object contains valid data.
         /// </summary>
-        public bool DataValid => DataX != null;
+        public bool Valid => DataX != null;
 
         /// <summary>
-        /// 
+        /// Resets the object's data and color palette to their default states.
         /// </summary>
-        /// <returns></returns>
-        public bool Reset()
+        /// <remarks>This method is thread-safe. If an error occurs during the reset process, the method
+        /// logs the exception and returns false.</remarks>
+        /// <returns>The current <see cref="ImageData"/> instance with updated data and color palette if <paramref name="oData"/>
+        /// is not null; otherwise, the instance remains unchanged.</returns>
+        public ImageData Reset()
         {
             string sM = nameof(Reset);
             try
@@ -108,22 +111,24 @@ namespace ColourClashNet.Imaging
                     DataX = null;
                     ColorPalette = new Palette();
                 }
-                return true;
+                return this;
             }
             catch (Exception ex)
             {
                 LogMan.Exception(sC, sM, ex);
-                return false;
+                return this;
             }
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="oData"></param>
-        /// <returns></returns>
-        public ImageData Create(int[,]? oData)
+       /// <summary>
+       /// Initializes the image data and color palette using the specified two-dimensional array of pixel values.
+       /// </summary>
+       /// <param name="matrix">A two-dimensional array of integers representing pixel data. If null, the existing image data is not
+       /// modified.</param>
+       /// <returns>The current <see cref="ImageData"/> instance with updated data and color palette if <paramref name="matrix"/>
+       /// is not null; otherwise, the instance remains unchanged.</returns>
+        public ImageData Create(int[,] matrix)
         {
             string sM = nameof(Create);
             try
@@ -131,11 +136,11 @@ namespace ColourClashNet.Imaging
                 lock (locker)
                 {
                     Reset();
-                    if (oData == null)
+                    if (matrix == null)
                     {
                         return this;
                     }
-                    DataX = oData.Clone() as int[,];                    
+                    DataX = matrix.Clone() as int[,];                    
                     ColorPalette = Palette.CreatePalette(DataX);
                 }
                 return this;
@@ -148,20 +153,22 @@ namespace ColourClashNet.Imaging
         }
 
         /// <summary>
-        /// 
+        /// Creates a new image based on the data contained in the specified <see cref="ImageData"/> instance.
         /// </summary>
-        /// <param name="oImageData"></param>
-        /// <returns></returns>
+        /// <param name="oImageData">An <see cref="ImageData"/> object containing the source data for the new image. Can be null.</param>
+        /// <returns>An <see cref="ImageData"/> instance representing the newly created image, or null if <paramref
+        /// name="oImageData"/> is null or contains no data.</returns>
         public ImageData Create(ImageData oImageData) 
             => Create(oImageData?.DataX);
 
         /// <summary>
-        /// 
+        /// Returns a string that represents the current image, including its name, dimensions, and color count.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A string containing the image name, width, height, and number of colors in the format: "ImageData: {Name},
+        /// {Width}x{Height}, Colors: {Colors}".</returns>
         public override string ToString()
         {
-            return $"ImageData: {Name}, {Width}x{Height}, Colors: {Colors}";
+            return $"ImageData: {Name} (Size: {Width}x{Height}, Colors: {Colors} )";
         }
        
     }

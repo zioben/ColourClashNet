@@ -28,7 +28,6 @@ namespace ColourClashNet.Color.Transformation
         #region Property/Fields
 
         private readonly SemaphoreSlim semaphore = new(1, 1);
-        public bool IsProcessing { get; private set; }
 
         //-------------------------------------------------------------------------------------------------------------------------------
         public ColorTransformType Type { get; protected init; }
@@ -90,16 +89,32 @@ namespace ColourClashNet.Color.Transformation
         public ColorTransformInterface Create(ImageData image)
         {
             string sM = nameof(Create);
+            bool bentered = false;
             try
             {
-                if(!semaphore.Wait(1000))
+                bentered = semaphore.Wait(1000);
+                if (!bentered )
                 {
-                    LogMan.Error(sC, sM, $"{sC}.{sM} : Cannot create");
-                    return this;
+                    throw new TimeoutException($"{sC}.{sM} : Cannot create");
                 }
                 Reset();
-                Creating?.Invoke(this, EventArgs.Empty);
+                try
+                {
+                    Creating?.Invoke(this, EventArgs.Empty);
+                }
+                catch (Exception exEvent)
+                {
+                    LogMan.Exception(sC, sM, $"{Type} : Error in {nameof(Creating)} event", exEvent);
+                }
                 SourceData.Create(image);
+                try
+                {
+                    Created?.Invoke(this, EventArgs.Empty);
+                }
+                catch (Exception exEvent)
+                {
+                    LogMan.Exception(sC, sM, $"{Type} : Error in {nameof(Created)} event", exEvent);
+                }
                 return this;
             }
             catch (Exception ex)
@@ -109,69 +124,100 @@ namespace ColourClashNet.Color.Transformation
             }
             finally
             {
-                semaphore.Release();
+                if( bentered)
+                    semaphore.Release();
             }
         }
 
         #endregion
 
 
+        protected T Clamp<T>(T value, T min, T max) where T : IComparable<T>
+        {
+            if (value.CompareTo(min) < 0) return min;
+            else if (value.CompareTo(max) > 0) return max;
+            else return value;
+        }
+
+        protected double ToDouble(object value)
+        {
+            if (value is double d)
+                return d;
+            if (value is float f)
+                return (double)f;
+            if (value is decimal dec)
+                return (double)dec;
+            if (value is int i)
+                return (double)i;
+         //   if (double.TryParse(value?.ToString(), out var result))
+         //       return result;
+            throw new ArgumentException($"Invalid value type for conversion to double: {value?.GetType().Name}");
+        }
+
+        protected double Clamp(object value, double min, double max)
+        {
+            return Math.Min(Math.Max(ToDouble(value), min), max);
+        }
+
         public virtual ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
             string sM = nameof(SetProperty);
+            bool entered=false;
             try
             {
-                if(!semaphore.Wait(1000))
+
+                entered = semaphore.Wait(1000);
+                if(!entered)
                 {
-                    LogMan.Error(sC, sM, $"{sC}.{sM} : Cannot set property {propertyName}");
+                    throw new TimeoutException($"{sC}.{sM} : Cannot set property {propertyName}");
+                }
+                try
+                {
+
+                    switch (propertyName)
+                    {
+                        case ColorTransformProperties.ColorDistanceEvaluationMode:
+                            {
+                                if (Enum.TryParse<ColorDistanceEvaluationMode>(value?.ToString(), out var eMode))
+                                    ColorDistanceEvaluationMode = eMode;
+                                else
+                                    throw new ArgumentException($"{Type} : Invalid value for {propertyName} ");
+                                break;
+                            }
+                        case ColorTransformProperties.Fixed_Palette:
+                            {
+                                if (value is List<int> oPalette)
+                                    FixedPalette = Palette.CreatePalette(oPalette);
+                                else if (value is Palette oPal)
+                                    FixedPalette = oPal;
+                                else
+                                    throw new ArgumentException($"{Type} : Invalid value for {propertyName} ");
+                                break;
+                            }
+                        case ColorTransformProperties.Dithering_Type:
+                            {
+                                DitheringType = ColorDithering.None;
+                                if (Enum.TryParse<ColorDithering>(value?.ToString(), true, out var eRes))
+                                    DitheringType = eRes;
+                                else
+                                    throw new ArgumentException($"{Type} : Invalid value for {propertyName} ");
+                                break;
+                            }
+                        case ColorTransformProperties.Dithering_Strength:
+                            {
+                                DitheringStrength = Clamp(value, 0.0, 1.0);
+                                break;
+                            }
+                        default:
+                            break;
+                    }
                     return this;
                 }
-                switch (propertyName)
+                catch (Exception exInner)
                 {
-                    case ColorTransformProperties.ColorDistanceEvaluationMode:
-                        if (Enum.TryParse<ColorDistanceEvaluationMode>(value?.ToString(), out var eMode))
-                        {
-                            ColorDistanceEvaluationMode = eMode;
-                        }
-                        break;
-                    case ColorTransformProperties.Fixed_Palette:
-                        {
-                            if (value is List<int> oPalette)
-                            {
-                                FixedPalette = Palette.CreatePalette(oPalette);
-                            }
-                            else if (value is Palette oPal)
-                            {
-                                FixedPalette = oPal;
-                            }
-                            else
-                            {
-                                FixedPalette = new Palette();
-                            }
-                        }
-                        break;
-                    case ColorTransformProperties.Dithering_Type:
-                        {
-                            DitheringType = ColorDithering.None;
-                            if (Enum.TryParse<ColorDithering>(value?.ToString(), true, out var eRes))
-                            {
-                                DitheringType = eRes;
-                            }
-                        }
-                        break;
-                    case ColorTransformProperties.Dithering_Strength:
-                        {
-                            DitheringStrength = 1.0;
-                            if (double.TryParse(value?.ToString(), out var dStrenght))
-                            {
-                                DitheringStrength = dStrenght;
-                            }
-                        }
-                        break;
-                    default:
-                        break;
+                    LogMan.Exception(sC, sM, $"{Type} : Error setting property {propertyName} ", exInner);
+                    return this;
                 }
-                return this;
             }
             catch (Exception ex)
             {
@@ -180,8 +226,9 @@ namespace ColourClashNet.Color.Transformation
             }
             finally
             {
-                semaphore.Release();
-            }   
+                if( entered )
+                    semaphore.Release();
+            }
         }
 
         internal ColorProcessingEventArgs CreateTransformEventArgs(CancellationTokenSource tokenSource, ColorTransformResults result)
@@ -197,28 +244,31 @@ namespace ColourClashNet.Color.Transformation
             => CreateTransformEventArgs(tokenSource, null);
 
 
-        protected virtual ColorTransformResults ExecuteTransform(CancellationToken token=default)
+        protected async virtual Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken token = default)
         {
-            string sM = nameof(ExecuteTransform);
-            try
+            return await Task.Run(()=>
             {
-                LogMan.Debug(sC, sM, "Executing Default Transformation ");
-                var oProcessed = TransformationMap.Transform(SourceData, token);
+                string sM = nameof(ExecuteTransformAsync);
+                try
+                {
+                    LogMan.Debug(sC, sM, "Executing Default Transformation ");
+                    var oProcessed = TransformationMap.Transform(SourceData, token);
 
-                if (oProcessed.DataValid)
-                {
-                    return ColorTransformResults.CreateValidResult(SourceData, oProcessed);
+                    if (oProcessed.Valid)
+                    {
+                        return ColorTransformResults.CreateValidResult(SourceData, oProcessed);
+                    }
+                    else
+                    {
+                        return ColorTransformResults.CreateErrorResult(SourceData, oProcessed, $"{Type} : Transformation produced invalid data");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return ColorTransformResults.CreateErrorResult(SourceData, oProcessed, $"{Type} : Transformation produced invalid data");   
+                    LogMan.Exception(sC, sM, Name, ex);
+                    return new();
                 }
-            }
-            catch (Exception ex)
-            {
-                LogMan.Exception(sC, sM, Name, ex);
-                return new();
-            }
+            }, token);
         }
 
 
@@ -227,20 +277,22 @@ namespace ColourClashNet.Color.Transformation
 
 
 
-        public async Task<ColorTransformResults> ProcessColorsAsync(CancellationToken token = default)
+        public async Task<ColorTransformResults> ProcessColorsAsync( CancellationToken token = default)
         {
             string sM = nameof(ProcessColorsAsync);
-            // Monitor.Enter(locker);
+            bool entered = false;
             try
             {
-                await semaphore.WaitAsync(token);
-
-                IsProcessing = true;
+                entered = await semaphore.WaitAsync(1000, token);
+                if(!entered)
+                {
+                    throw new TimeoutException($"{sC}.{sM} : Cannot process");
+                }
 
                 LogMan.Debug(sC, sM, $"{Type} : Processing started");
                 TransformationError = double.NaN;
 
-                if (SourceData == null || !SourceData.DataValid)
+                if (SourceData == null || !SourceData.Valid)
                 {
                     LogMan.Error(sC, sM, $"{Type} : InputData null or invalid");
                     return ColorTransformResults.CreateErrorResult($"{Type} : Invalid input data");
@@ -251,7 +303,17 @@ namespace ColourClashNet.Color.Transformation
 
                 // Notify processing, allowing clinet to handle cancellation token
                 var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
-                Processing?.Invoke(this, CreateTransformEventArgs(cts, null));
+
+                try
+                {
+                    Processing?.Invoke(this, CreateTransformEventArgs(cts, null));
+                }
+                catch (Exception exEvent)
+                {
+                    LogMan.Exception(sC, sM, $"{Type} : Error in {nameof(Processing)} event", exEvent);
+                }
+
+
 
                 // Creating Transformation Map
                 var oMapRes = CreateTransformationMap(token);
@@ -262,10 +324,10 @@ namespace ColourClashNet.Color.Transformation
                 }
 
                 // Execute color reduction
-                var oTransfRes = ExecuteTransform(token);
+                var oTransfRes = await ExecuteTransformAsync(token);
                 if (!oTransfRes.ProcessingValid)
                 {
-                    LogMan.Error(sC, sM, $"{Type} : {nameof(ExecuteTransform)} error");
+                    LogMan.Error(sC, sM, $"{Type} : {nameof(ExecuteTransformAsync)} error");
                     return oTransfRes;
                 }
 
@@ -317,7 +379,14 @@ namespace ColourClashNet.Color.Transformation
 
                 TransformationError = await RecalcTransformationErrorAsync(SourceData, token);
 
-                Processed?.Invoke(this, CreateTransformEventArgs(cts, oRetRes));
+                try
+                {
+                    Processed?.Invoke(this, CreateTransformEventArgs(cts, oRetRes));
+                }
+                catch (Exception exEvent)
+                {
+                    LogMan.Exception(sC, sM, $"{Type} : Error in {nameof(Processed)} event", exEvent);
+                }
                 return oRetRes;
             }
             catch (ThreadInterruptedException exTh)
@@ -331,8 +400,7 @@ namespace ColourClashNet.Color.Transformation
                 return ColorTransformResults.CreateErrorResult(ex);
             }
             finally
-            {
-                IsProcessing = false;
+            {               
                 semaphore.Release();
             }       
         }

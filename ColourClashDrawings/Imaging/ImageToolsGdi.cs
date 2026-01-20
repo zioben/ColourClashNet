@@ -480,7 +480,7 @@ public static partial class ImageToolsGDI
      => MatrixToGdiImageUnsafe(m);
 
     public static System.Drawing.Image? ImageDataToGdiImage(ImageData oImage)
-     => MatrixToGdiImage(oImage?.Data);
+     => MatrixToGdiImage(oImage?.DataX);
 
 
     public static System.Drawing.Image? GdiImageToGdiImage32bpp(System.Drawing.Image oImage)
@@ -526,8 +526,8 @@ public static partial class ImageToolsGDI
                 LogMan.Error(sClass, sMethod, "Palette is null");
                 return null;
             }
-
-            var mDataIndex = ImageTools.CreateIndexedData(mData, lPaletteSrc, eAlignMode);
+            ImageData oImg = new ImageData().Create(mData);
+            var mDataIndex = ImageTools.CreateIndexedData(oImg, eAlignMode);
             int HD = mDataIndex.GetLength(0);
             int WD = mDataIndex.GetLength(1);
 
@@ -569,7 +569,7 @@ public static partial class ImageToolsGDI
         => MatrixToGdiImageIndexed(mData, oPaletteSrc?.ToList(), eAlignMode);
 
     public static Bitmap? ImageDataToGdiImageIndexed(ImageData oImage, ImageWidthAlignMode eAlignMode)
-        => MatrixToGdiImageIndexed(oImage?.Data, oImage?.ColorPalette, eAlignMode);
+        => MatrixToGdiImageIndexed(oImage?.DataX, oImage?.ColorPalette, eAlignMode);
 
 
 

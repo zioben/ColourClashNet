@@ -23,7 +23,7 @@ public partial class TileItem
     public static ImageData? CreateTileData(ImageData oDataSource, int iRowSource, int iColumnSource, int iTileWidth, int iTileHeight)
     {
         string sM = nameof(CreateTileData);
-        if (!oDataSource?.DataValid ?? true)
+        if (!oDataSource?.Valid ?? true)
         {
             LogMan.Error(sC, sM, "Datasource null or invalid");
             return new();
@@ -42,7 +42,7 @@ public partial class TileItem
         {
             for (int sc = iColumnSource, c = 0; sc < CC; sc++, c++)
             {
-                oDataTile[r, c] = oDataSource.Data[sr, sc];
+                oDataTile[r, c] = oDataSource.DataX[sr, sc];
             }
         }
         return new ImageData().Create(oDataTile);

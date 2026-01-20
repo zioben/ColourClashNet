@@ -82,9 +82,9 @@ namespace ColourClashNet.Color.Transformation
             return map;
         }
 
-        protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
+        protected override ColorTransformResults CreateTransformationMap(CancellationToken token = default)
         {
-            string sMethod = nameof(CreateTrasformationMapAsync);
+            string sMethod = nameof(CreateTransformationMap);
             // Sort by most used colors
             var oTempHistogram = Histogram.CreateHistogram(SourceData).SortColorsDescending();
             // Creating a temporary palette with fixed colors and histogram colors
@@ -161,7 +161,7 @@ namespace ColourClashNet.Color.Transformation
                 if (!FastPreview)
                 {
                     var map = CreateTransformationMap(oTempHistogram, lTupleColorCluster);
-                    oArgs.ProcessingResults.DataOut = await map.TransformAsync(SourceData, oToken); 
+                    oArgs.ProcessingResults.DataOut = map.Transform(SourceData, token); 
                 }
                 RaiseProcessPartialEvent(oArgs);
             }
@@ -173,14 +173,17 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        protected override async Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken oToken)
+        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken token = default)
         {
-            var ret = await TransformationMap.TransformAsync(SourceData, oToken);
-            if (ret != null)
+            return await Task.Run(() =>
             {
-                return ColorTransformResults.CreateValidResult(SourceData, ret);    
-            }
-            return new();
+                var ret = TransformationMap.Transform(SourceData, token);
+                if (ret != null)
+                {
+                    return ColorTransformResults.CreateValidResult(SourceData, ret);
+                }
+                return new();
+            }, token);
         }
     }
 }

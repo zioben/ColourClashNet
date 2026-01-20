@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -151,10 +150,10 @@ namespace ColourClashNet.Color.Transformation
                     var oCols = new int[1, SourceData.Columns];
                     for (int c = 0; c < SourceData.Columns; c++)
                     {
-                        oCols[0, c] = oSourceNew.Data[r, c];
+                        oCols[0, c] = oSourceNew.DataX[r, c];
                     }
                     // Create row histogram and take the most used colors
-                    var oHist = Histogram.CreateHistogram(oCols);//.SortColorsDescending();
+                    var oHist = Histogram.CreateHistogram(new ImageData().Create(oCols));//.SortColorsDescending();
                     var oNewPal = oHist.SortColorsDescending().ToPalette(LineReductionMaxColors);
                     // Create 
                     //--------------------------------------------------------------
@@ -172,11 +171,11 @@ namespace ColourClashNet.Color.Transformation
                         .SetProperty(ColorTransformProperties.Fixed_Palette, oNewPal)
                         .SetProperty(ColorTransformProperties.MaxColorsWanted, oNewPal.Count)
                         .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
-                        .Create(oCols);
+                        .Create(new ImageData().Create(oCols));
                         var oColRes = await oTras.ProcessColorsAsync(token);
                         for (int c = 0; c < SourceData.Columns; c++)
                         {
-                            oRet[r, c] = oColRes.DataOut.Data[0, c];
+                            oRet[r, c] = oColRes.DataOut.DataX[0, c];
                         }
                     }
                     //--------------------------------------------------------------

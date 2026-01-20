@@ -30,22 +30,13 @@ namespace ColourClashNet.Color.Transformation
             switch (eProperty)
             {
                 case ColorTransformProperties.HsvHueShift:
-                    if (double.TryParse(oValue?.ToString(), out var h))
-                    {
-                        HueShift = h;
-                    }
+                    HueShift = Clamp(oValue, -180, 180);
                     break;
                 case ColorTransformProperties.HsvBrightnessMultFactor:
-                    if (double.TryParse(oValue?.ToString(), out var b))
-                    {
-                        BrightnessMultFactor = b;
-                    }
+                    BrightnessMultFactor = ToDouble(oValue);
                     break;
                 case ColorTransformProperties.HsvSaturationMultFactor:
-                    if (double.TryParse(oValue?.ToString(), out var s))
-                    {
-                        SaturationMultFactor = s;
-                    }
+                    SaturationMultFactor = ToDouble(oValue);
                     break;
                 default:
                     break;
@@ -56,12 +47,12 @@ namespace ColourClashNet.Color.Transformation
         // Not Needed
         //protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync( CancellationToken oToken=default)
+        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken token = default)
         {
             return await Task.Run(() =>
             {
                 string sM = nameof(ExecuteTransformAsync);
-             
+
                 var oProcessed = new int[SourceData.Rows, SourceData.Columns];
                 BypassDithering = true;
 
@@ -69,7 +60,7 @@ namespace ColourClashNet.Color.Transformation
                 {
                     for (int c = 0; c < SourceData.Columns; c++)
                     {
-                        var hsv = SourceData.Data[r, c].ToHSV();
+                        var hsv = HSV.CreateFromIntRGB(SourceData.DataX[r, c]);
                         if (hsv.Valid)
                         {
                             hsv.H = hsv.H + (float)HueShift;
@@ -78,12 +69,11 @@ namespace ColourClashNet.Color.Transformation
                             oProcessed[r, c] = hsv.ToIntRGB();
                         }
                     }
-                    oToken.ThrowIfCancellationRequested();
+                    token.ThrowIfCancellationRequested();
                 });
 
                 return ColorTransformResults.CreateValidResult(SourceData, new ImageData().Create(oProcessed));
-            });
+            }, token);
         }
-
     }
 }

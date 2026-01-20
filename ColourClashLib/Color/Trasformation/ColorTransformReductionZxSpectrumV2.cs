@@ -221,16 +221,16 @@ namespace ColourClashNet.Color.Transformation
             // Merge data with best tile approximation
             ImageData oResultData = null;// await TileManager.MergeDataAsync(SourceData, lTM, oToken);
             // Evaluate error on processed image
-            var dError = await ColorIntExt.EvaluateErrorAsync(SourceData.Data, oResultData.Data, ColorDistanceEvaluationMode, oToken);
+            var dError = await ColorIntExt.EvaluateErrorAsync(SourceData, oResultData, ColorDistanceEvaluationMode, oToken);
 
-            var oRestltDataMapped = await zxMap.TransformAsync(oResultData, oToken);
+            var oRestltDataMapped = zxMap.Transform(oResultData, oToken);
             if (lTM.Count == 1)
             {
-                return new Tuple<int[,]?, double, TileManager, TileManager>(oRestltDataMapped.Data, dError, lTaskList[0].Result, null);
+                return new Tuple<int[,]?, double, TileManager, TileManager>(oRestltDataMapped.DataX, dError, lTaskList[0].Result, null);
             }
             else
             {
-                return new Tuple<int[,]?, double, TileManager, TileManager>(oRestltDataMapped.Data, dError, lTaskList[0].Result, lTaskList[1].Result);
+                return new Tuple<int[,]?, double, TileManager, TileManager>(oRestltDataMapped.DataX, dError, lTaskList[0].Result, lTaskList[1].Result);
             }
         }
 

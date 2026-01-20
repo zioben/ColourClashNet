@@ -28,21 +28,22 @@ namespace ColourClashNet.Color.Transformation
         public bool BypassDithering { get; set; }
 
         //------------------------------------------------------------
+
         ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue);
-        ColorTransformInterface Create(ImageData oDataSource);
-        Task<ColorTransformResults> ProcessColorsAsync(CancellationToken oToken = default);
-        Task<ColorTransformResults> CreateAndProcess(ImageData oDataSource, CancellationToken oToken = default);
-        Task AbortProcessingAsync(CancellationTokenSource oTokenSource);
-        void AbortProcessing(CancellationTokenSource oTokenSource);
+        ColorTransformInterface Create(ImageData image);
+        Task<ColorTransformResults> ProcessColorsAsync(CancellationToken token = default);
+        Task<ColorTransformResults> CreateAndProcess(ImageData oDataSource, CancellationToken token = default);
+        Task AbortProcessingAsync(CancellationTokenSource tokenSource);
+        void AbortProcessing(CancellationTokenSource tokenSource);
 
         //------------------------------------------------------------
 
-        event EventHandler Creating;
-        event EventHandler Created;
-        event EventHandler<ColorProcessingEventArgs> Processing;
-        event EventHandler<ColorProcessingEventArgs> ProcessAdvance;
-        event EventHandler<ColorProcessingEventArgs> ProcessPartial;
-        event EventHandler<ColorProcessingEventArgs> Processed;
+        event EventHandler? Creating;
+        event EventHandler? Created;
+        event EventHandler<ColorProcessingEventArgs>? Processing;
+        event EventHandler<ColorProcessingEventArgs>? ProcessAdvance;
+        event EventHandler<ColorProcessingEventArgs>? ProcessPartial;
+        event EventHandler<ColorProcessingEventArgs>? Processed;
 
     }
 }

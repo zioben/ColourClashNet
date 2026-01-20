@@ -85,13 +85,13 @@ namespace ColourClashNet.Color.Transformation
                 {
                     if (iRgbPrev < 0)
                     {
-                        iRgbPrev = oDataPreProcessed.Data[r, c];
+                        iRgbPrev = oDataPreProcessed.DataX[r, c];
                         oHamData[r, c] = iRgbPrev;
                         continue;
                     }
                     else
                     {
-                        int iRgbSrc = oQuantization.QuantizeColor( oDataSource.Data[r, c] );
+                        int iRgbSrc = oQuantization.QuantizeColor( oDataSource.DataX[r, c] );
                         if (iRgbSrc < 0)
                         {
                             iRgbPrev = ColorDefaults.DefaultInvalidColorInt;
@@ -104,7 +104,7 @@ namespace ColourClashNet.Color.Transformation
                         int sR = iRgbSrc.ToR();
                         int sG = iRgbSrc.ToG();
                         int sB = iRgbSrc.ToB();
-                        int iHamO = oQuantization.QuantizeColor( oDataPreProcessed.Data[r,c] );
+                        int iHamO = oQuantization.QuantizeColor( oDataPreProcessed.DataX[r,c] );
                         int iHamR = ColorIntExt.FromRGB(sR, pG, pB);
                         int iHamG = ColorIntExt.FromRGB(pR, sG, pB);
                         int iHamB = ColorIntExt.FromRGB(pR, pG, sB);
@@ -127,7 +127,7 @@ namespace ColourClashNet.Color.Transformation
         //    return await Task.Run(() => { return new int[,]; } );
         //}
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken oToken=default)
+        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransformAsync);
 
@@ -156,9 +156,7 @@ namespace ColourClashNet.Color.Transformation
                     return null;
             }
 
-            oQuantization.Create(SourceData);
-            var oResultQuantized = await oQuantization.ProcessColorsAsync(oToken);
-            var oDataQuantized = oResultQuantized.DataOut;
+            var oResultQuantized = await oQuantization.CreateAndProcess(SourceData, token);
 
             switch (HamColorReductionMode)
             {
@@ -184,19 +182,18 @@ namespace ColourClashNet.Color.Transformation
                     break;
             }
 
-            oColorReduction.Create(SourceData);
-            var oDataPreprocessedResult = await oColorReduction.ProcessColorsAsync(oToken);
-            var oDataPreprocessed = oDataPreprocessedResult.DataOut;
+
+            var oDataPreprocessedResult = await oColorReduction.CreateAndProcess(oResultQuantized.DataOut, token);
             BypassDithering = true;
 
             ImageData? oAmigaData; 
             switch (AmigaVideoMode)
             {
                 case EnumAMigaVideoMode.Ham6:
-                    oAmigaData = ToHam(SourceData, oDataPreprocessed,  ColorQuantizationMode.RGB444 );
+                    oAmigaData = ToHam(SourceData, oDataPreprocessedResult.DataOut, ColorQuantizationMode.RGB444 );
                     break;
                 case EnumAMigaVideoMode.Ham8:
-                    oAmigaData = ToHam(SourceData, oDataPreprocessed, ColorQuantizationMode.RGB666 );
+                    oAmigaData = ToHam(SourceData, oDataPreprocessedResult.DataOut, ColorQuantizationMode.RGB666 );
                     break;
                 case EnumAMigaVideoMode.ExtraHalfBright:
                     oAmigaData = null;

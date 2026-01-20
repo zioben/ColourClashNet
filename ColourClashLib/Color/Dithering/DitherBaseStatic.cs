@@ -11,9 +11,9 @@ namespace ColourClashNet.Color.Dithering
 {
     public abstract partial class DitherBase 
     {
-        public static DitherInterface CreateDitherInterface(ColorDithering eModelType, double ditheringStrength, int iKernelSize)
+        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, double ditheringStrength, int kernelSize)
         {
-            switch (eModelType)
+            switch (ditheringModel)
             {
                 case ColorDithering.Atkinson:
                     return new DitherAtkinson() { DitheringStrenght = ditheringStrength };
@@ -26,7 +26,7 @@ namespace ColourClashNet.Color.Dithering
                 case ColorDithering.JarvisJudiceNinke:
                     return new DitherJarvisJudiceNinke() { DitheringStrenght = ditheringStrength };
                 case ColorDithering.Ordered:
-                    return new DitherOrdered() { DitheringStrenght = ditheringStrength, Size = Math.Min(2,iKernelSize) };
+                    return new DitherOrdered() { DitheringStrenght = ditheringStrength, Size = Math.Min(2,kernelSize) };
                 case ColorDithering.Ordered_2x2:
                     return new DitherOrdered() { DitheringStrenght = ditheringStrength, Size = 2 };
                 case ColorDithering.Ordered_4x4:
@@ -46,8 +46,8 @@ namespace ColourClashNet.Color.Dithering
             }
         }
 
-        public static DitherInterface CreateDitherInterface(ColorDithering eModelType, int iKernelSize) => CreateDitherInterface(eModelType, 100, iKernelSize);
-        public static DitherInterface CreateDitherInterface(ColorDithering eModelType, double dDitherStrength) => CreateDitherInterface(eModelType, dDitherStrength, ColorDefaults.DefaultDitherKernelSize);      
-        public static DitherInterface CreateDitherInterface(ColorDithering eModelType) => CreateDitherInterface(eModelType, 100, ColorDefaults.DefaultDitherKernelSize);
+        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, int kernelSize) => CreateDitherInterface(ditheringModel, 100, kernelSize);
+        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, double ditheringStrength) => CreateDitherInterface(ditheringModel, ditheringStrength, ColorDefaults.DefaultDitherKernelSize);      
+        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel) => CreateDitherInterface(ditheringModel, 100, ColorDefaults.DefaultDitherKernelSize);
     }
 }

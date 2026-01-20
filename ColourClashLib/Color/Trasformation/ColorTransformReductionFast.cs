@@ -35,48 +35,45 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-//        Palette OutputPalette = new Palette();
+        //        Palette OutputPalette = new Palette();
 
-        protected override async Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
+        protected override ColorTransformResults CreateTransformationMap(CancellationToken oToken = default)
         {
-            return await Task.Run(() =>
+            //OutputPalette = new Palette();
+            TransformationMap.Reset();
+            var SourceHistogram = Histogram.CreateHistogram(SourceData);
+            var oTempHist = SourceHistogram.SortColorsDescending();
+            var oTempPalette = Palette.MergePalette(FixedPalette, oTempHist.ToPalette());
+            if (oTempPalette.Count < ColorsMaxWanted)
             {
-                //OutputPalette = new Palette();
-                TransformationMap.Reset();
-                var SourceHistogram = Histogram.CreateHistogram(SourceData);
-                var oTempHist = SourceHistogram.SortColorsDescending();
-                var oTempPalette = Palette.MergePalette(FixedPalette, oTempHist.ToPalette());
-                if (oTempPalette.Count < ColorsMaxWanted)
+                foreach (var kvp in SourceHistogram.rgbHistogram)
                 {
-                    foreach (var kvp in SourceHistogram.rgbHistogram)
-                    {
-                        //OutputPalette.Add(kvp.Key);
-                        TransformationMap.Add(kvp.Key, kvp.Key);
-                    }
+                    //OutputPalette.Add(kvp.Key);
+                    TransformationMap.Add(kvp.Key, kvp.Key);
                 }
-                else
+            }
+            else
+            {
+                var listAll = oTempPalette.ToList();
+                var listMax = listAll.Take(ColorsMaxWanted).ToList();
+                var oPalette = Palette.CreatePalette(listMax);
+                listAll.ForEach(rgbItem =>
                 {
-                    var listAll = oTempPalette.ToList();
-                    var listMax = listAll.Take(ColorsMaxWanted).ToList();
-                    var oPalette = Palette.CreatePalette(listMax);
-                    listAll.ForEach(rgbItem =>
-                    {
-                        oToken?.ThrowIfCancellationRequested();
-                        // From list of ColorsMaxWanted element get the best color approssimation
-                        var rgbBest = ColorIntExt.GetNearestColor(rgbItem, oPalette, ColorDistanceEvaluationMode);
-                        //var dErrorMin = listMax.Min(rgbMax => rgbMax.Distance(rgbItem, ColorDistanceEvaluationMode));
-                        //var rgbBest = listMax.FirstOrDefault(rgbMax => rgbMax.Distance(rgbItem, ColorDistanceEvaluationMode) == dErrorMin);
-                        //OutputPalette.Add(rgbBest);
-                        TransformationMap.rgbTransformationMap[rgbItem] = rgbBest;
-                    });
-                }
-                return ColorTransformResults.CreateValidResult();
-            });
+                    oToken.ThrowIfCancellationRequested();
+                    // From list of ColorsMaxWanted element get the best color approssimation
+                    var rgbBest = ColorIntExt.GetNearestColor(rgbItem, oPalette, ColorDistanceEvaluationMode);
+                    //var dErrorMin = listMax.Min(rgbMax => rgbMax.Distance(rgbItem, ColorDistanceEvaluationMode));
+                    //var rgbBest = listMax.FirstOrDefault(rgbMax => rgbMax.Distance(rgbItem, ColorDistanceEvaluationMode) == dErrorMin);
+                    //OutputPalette.Add(rgbBest);
+                    TransformationMap.rgbTransformationMap[rgbItem] = rgbBest;
+                });
+            }
+            return ColorTransformResults.CreateValidResult();
         }
 
         protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken oToken)
         {
-            var oRetData = await TransformationMap.TransformAsync(SourceData, oToken);
+            var oRetData = TransformationMap.Transform(SourceData, oToken);
             return ColorTransformResults.CreateValidResult(SourceData, oRetData);
         }
     }

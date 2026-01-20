@@ -14,13 +14,12 @@ public partial class Palette
     static string sC = nameof(Palette);
 
     /// <summary>
-    /// Merges multiple color palettes into a single palette containing all unique colors from the provided
-    /// palettes.
+    /// Creates a new palette by merging the colors from the specified collection of palettes.
     /// </summary>
-    /// <param name="sourcePalettes">A collection of palettes to merge. Palettes in the collection may be null and will be ignored. If null, an
-    /// empty palette is returned.</param>
-    /// <returns>A new Palette instance containing all colors from the non-null palettes in the collection. If no palettes
-    /// are provided or all are null, the returned palette will be empty.</returns>
+    /// <param name="sourcePalettes">A collection of palettes whose colors will be combined. Null palettes within the collection are ignored. If the
+    /// collection itself is null, an empty palette is returned.</param>
+    /// <returns>A new Palette instance containing all colors from the non-null palettes in the collection. If no palettes are
+    /// provided or all are null, the returned palette will be empty.</returns>
     public static Palette MergePalette(IEnumerable<Palette?> sourcePalettes)
     {
         var sM = nameof(MergePalette);
@@ -52,22 +51,23 @@ public partial class Palette
     }
 
    /// <summary>
-   /// Merges two color palettes into a single palette.
+   /// Merges two palettes into a single palette containing the combined colors from both inputs.
    /// </summary>
-   /// <param name="a">The first palette to merge. Can be null.</param>
-   /// <param name="b">The second palette to merge. Can be null.</param>
-   /// <returns>A new Palette instance containing the merged colors from both input palettes. If both parameters are null,
-   /// returns an empty palette.</returns>
-    public static Palette MergePalette(Palette a, Palette b)
+   /// <remarks>If both palettes contain the same color, the resulting palette may handle duplicates according
+   /// to the implementation of the underlying merge logic.</remarks>
+   /// <param name="paletteA">The first palette to merge. Cannot be null.</param>
+   /// <param name="paletteB">The second palette to merge. Cannot be null.</param>
+   /// <returns>A new Palette instance containing the combined colors from both input palettes.</returns>
+    public static Palette MergePalette(Palette paletteA, Palette paletteB)
     {
-        return MergePalette(new[] { a, b });
+        return MergePalette(new[] { paletteA, paletteB });
     }
 
     /// <summary>
-    /// Creates a new color palette based on the specified source palette.
+    /// Creates a new palette instance based on the specified source palette.
     /// </summary>
-    /// <param name="sourcePalette">The palette to use as the basis for the new color palette. Can be null.</param>
-    /// <returns>A new Palette instance containing the colors from the source palette.</returns>
+    /// <param name="sourcePalette">The palette to use as the basis for the new palette. Cannot be null.</param>
+    /// <returns>A new Palette instance that is a copy of the specified source palette.</returns>
     public static Palette CreatePalette(Palette sourcePalette)
     {
         var sM = nameof(CreatePalette);
@@ -76,25 +76,23 @@ public partial class Palette
 
 
 
-    /// <summary>
-    /// Creates a color palette from the specified sequence of integer color values.
-    /// </summary>
-    /// <param name="sourceEnumerable">An enumerable collection of integers representing color values to include in the palette. Can be null to
-    /// create an empty palette.</param>
-    /// <returns>A Palette instance containing the colors specified in the source enumerable. Returns an empty palette if
-    /// sourceEnumerable is null or contains no elements.</returns>
+   /// <summary>
+   /// Creates a new Palette instance using the specified sequence of color values.
+   /// </summary>
+   /// <param name="sourceEnumerable">An enumerable collection of integers representing color values to include in the palette. Cannot be null.</param>
+   /// <returns>A Palette object containing the colors specified in the source enumerable.</returns>
     public static Palette CreatePalette(IEnumerable<int> sourceEnumerable)
        => new Palette().Create(sourceEnumerable);
 
     /// <summary>
     /// Creates a color palette by extracting valid color values from the specified two-dimensional array.
     /// </summary>
-    /// <param name="mData">A two-dimensional array of integers representing color data. Each element is evaluated to determine if it
+    /// <param name="matrix">A two-dimensional array of integers representing color data. Each element is evaluated to determine if it
     /// represents a valid color.</param>
     /// <returns>A Palette containing all valid colors found in the input array. If no valid colors are found or if the input
     /// is null, the returned Palette will be empty.</returns>
-    public static Palette CreatePalette(int[,] mData)
-       => new Palette().Create(mData);
+    public static Palette CreatePalette(int[,] matrix)
+       => new Palette().Create(matrix);
 
     /// <summary>
     /// 

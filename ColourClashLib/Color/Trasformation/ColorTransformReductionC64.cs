@@ -69,8 +69,8 @@ namespace ColourClashNet.Color.Transformation
                 {
                     int iRGBA = basePalette[i];
                     int iRGBB = basePalette[j];   
-                    var HSVA = HSV.FromIntRGB(iRGBA);
-                    var HSVB = HSV.FromIntRGB(iRGBB);                   
+                    var HSVA = HSV.CreateFromIntRGB(iRGBA);
+                    var HSVB = HSV.CreateFromIntRGB(iRGBB);                   
                     LogMan.Message(sC, sM, $"{i} : {j} -> {HSVA.V:f1} - {HSVB.V:f1}");
                     if (Math.Abs(HSVA.V-HSVB.V)<15.0)
                     {
@@ -99,7 +99,7 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        protected override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
+        protected override ColorTransformResults CreateTransformationMap(CancellationToken oToken=default)
         {
             switch (VideoMode)
             {
@@ -112,7 +112,7 @@ namespace ColourClashNet.Color.Transformation
                     break;
             }
 
-            return base.CreateTrasformationMapAsync(oToken);
+            return base.CreateTransformationMap(oToken);
         }
 
         // Not Needed
@@ -120,7 +120,7 @@ namespace ColourClashNet.Color.Transformation
         async Task<ImageData?> PreProcessAsync(ImageData oDataSource, bool bHalveRes, CancellationToken oToken)
         {
             string sM= nameof(PreProcessAsync);
-            if ( !oDataSource?.DataValid ?? true )
+            if ( !oDataSource?.Valid ?? true )
             {
                 LogMan.Error(sC, sM, "No data source provided");
                 return null;
@@ -128,10 +128,10 @@ namespace ColourClashNet.Color.Transformation
             var oRealSource = oDataSource;
             if (bHalveRes)
             {
-                oRealSource = new ImageData().Create(ColorTransformBase.HalveHorizontalRes(oDataSource.Data));
+                oRealSource = new ImageData().Create(ColorTransformBase.HalveHorizontalRes(oDataSource.DataX));
             }
             // Reduce all to the base 16 C64 colors without restrictions
-            var oProcessed = await TransformationMap.TransformAsync(oRealSource, oToken);
+            var oProcessed = TransformationMap.Transform(oRealSource, oToken);
             var oDithered = oProcessed;
             if (DitheringType !=  ColorDithering.None )
             {
@@ -196,7 +196,7 @@ namespace ColourClashNet.Color.Transformation
             if (res2)
             {
                 var oTmpHalfProc = oManager.CreateImageFromTiles();
-                var oResultData = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc.Data);
+                var oResultData = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc.DataX);
                 return new ImageData().Create(oResultData);
             }
             else
@@ -221,7 +221,7 @@ namespace ColourClashNet.Color.Transformation
             if (res2)
             {
                 var oTmpHalfProc = oManager.CreateImageFromTiles();
-                var oResultData = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc.Data);
+                var oResultData = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc.DataX);
                 return new ImageData().Create(oResultData);
             }
             else
@@ -233,7 +233,7 @@ namespace ColourClashNet.Color.Transformation
 
 
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken oToken)
+        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken token = default)
         {
             ImageData? oPreprocessedData = null;
             BypassDithering = true;
@@ -243,27 +243,27 @@ namespace ColourClashNet.Color.Transformation
                 case C64VideoMode.DebugEnhancedPalette:
                 case C64VideoMode.DebugBasePalette:
                     {
-                        oPreprocessedData = await ToBasePaletteAsync(SourceData, oToken);
+                        oPreprocessedData = await ToBasePaletteAsync(SourceData, token);
                     }
                     break;
                 case C64VideoMode.HiRes:
                     {                       
-                        oPreprocessedData = await ToHiresAsync(SourceData, oToken);
+                        oPreprocessedData = await ToHiresAsync(SourceData, token);
                     }
                 break;
                 case C64VideoMode.FLI:
                     {
-                        oPreprocessedData = await ToFliAsync(SourceData, oToken);
+                        oPreprocessedData = await ToFliAsync(SourceData, token);
                     }
                 break;
                 case C64VideoMode.Multicolor:
                     {
-                        oPreprocessedData = await ToMultiColorAsync(SourceData, oToken);
+                        oPreprocessedData = await ToMultiColorAsync(SourceData, token);
                     }
                 break;
                 case C64VideoMode.MCI:
                     {
-                        oPreprocessedData = await ToMultiColorAsync(SourceData, oToken);
+                        oPreprocessedData = await ToMultiColorAsync(SourceData, token);
                     }
                     break;
                 default:

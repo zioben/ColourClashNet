@@ -273,7 +273,7 @@ public partial class TileManager
     public ImageData? CreateImageFromTiles()
     {
         string sM = nameof(CreateImageFromTiles);
-        if (!SourceData?.DataValid ?? true)
+        if (!SourceData?.Valid ?? true)
         {
             LogMan.Error(sC, sM, "invalid source data");
             return null;

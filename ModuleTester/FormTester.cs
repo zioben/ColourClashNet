@@ -203,7 +203,7 @@ namespace ModuleTester
             oTrasf.SetProperty(ColorTransformProperties.Zx_Autotune, bAtuotune);
             oTrasf.SetProperty(ColorTransformProperties.Zx_DitherHighColorImage, true);
             oTrasf.SetProperty(ColorTransformProperties.Zx_IncludeBlackInHighColorImage, true);
-            oTrasf.SetProperty(ColorTransformProperties.Zx_PaletteMode, ColorTransformReductionZxSpectrum.ZxPaletteMode.Both);
+            oTrasf.SetProperty(ColorTransformProperties.Zx_PaletteMode, ColorTransformReductionZxSpectrumV2.ZxPaletteMode.Both);
             await ProcessAsync(oTrasf);
         }
 

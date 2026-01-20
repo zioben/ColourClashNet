@@ -44,66 +44,66 @@ namespace ColourClashNet.Color
 
 
         /// <summary>
-        /// Create Histogram from ImageData
+        /// 
         /// </summary>
-        /// <param name="oDataSource">Image Data</param>
-        /// <returns>this object</returns>
-        public Histogram Create(ImageData oDataSource)
+        /// <param name="image"></param>
+        /// <returns></returns>
+        public Histogram Create(ImageData image)
         {
             Reset();
-            return Histogram.CreateHistogramStatic(oDataSource?.Data, this);
+            return Histogram.CreateHistogramStatic(image?.DataX, this);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="oHist"></param>
+        /// <param name="histogram"></param>
         /// <returns></returns>
-        public Histogram Create(Histogram oHist )
+        public Histogram Create(Histogram histogram )
         {
             Reset();
-            foreach( var kvp in oHist.rgbHistogram )
+            foreach( var kvp in histogram.rgbHistogram )
             {
                 rgbHistogram[kvp.Key] = kvp.Value;
             }
             return this;
         }
 
-        /// <summary>
-        /// Add occurrences to a RGB color in the histogram.<BR/>
-        /// only 'ColorIntInfo.IsColor' will be accepted.
-        /// </summary>
-        /// <param name="rgb">color data</param>
-        /// <param name="count">number of occourrences ot color data</param>
-        public void AddToHistogram(int rgb, int value)
+       /// <summary>
+       /// 
+       /// </summary>
+       /// <param name="rgb"></param>
+       /// <param name="count"></param>
+        public void AddToHistogram(int rgb, int count)
         {
-            if (rgb < 0)
+            if (rgb < 0 || count <= 0)
                 return;
             if (rgb.IsColor())
             {
                 if( rgbHistogram.ContainsKey(rgb))
                 {
-                    rgbHistogram[rgb] += value;
+                    rgbHistogram[rgb] += count;
                 }
                 else
                 {
-                    rgbHistogram[rgb] = value;
+                    rgbHistogram[rgb] = count;
                 }
             }
         }
 
-        /// <summary>
-        /// Add one occurrence to a RGB color in the histogram.<BR/>
-        /// only 'ColorIntInfo.IsColor' will be accepted.
-        /// </summary>
-        /// <param name="rgb">color data</param>
+       /// <summary>
+       /// Increments the count for the specified RGB color value in the histogram by one.
+       /// </summary>
+       /// <param name="rgb">The RGB color value to add to the histogram. The value should be a 32-bit integer representing an ARGB or RGB
+       /// color, depending on the histogram's expected format.</param>
         public void AddToHistogram(int rgb)
             => AddToHistogram(rgb, 1);
 
-        /// <summary>
-        /// Extract colors in the histogram as a Color Palette
-        /// </summary>
-        /// <returns></returns>
+       /// <summary>
+       /// Creates a new Palette containing all valid RGB values present in the histogram.
+       /// </summary>
+       /// <returns>A Palette instance populated with all non-negative RGB values from the histogram. The Palette will be empty
+       /// if no valid RGB values are found.</returns>
         public Palette ToPalette()
         {
             var oCP = new Palette();
@@ -117,11 +117,14 @@ namespace ColourClashNet.Color
             return oCP; 
         }
         
-        /// <summary>
-        /// Extract colors in the histogram as a Color Palette
-        /// </summary>
-        /// <returns></returns>
-        public Palette ToPalette(int iMaxColors)
+       /// <summary>
+       /// Creates a new palette containing up to the specified maximum number of unique colors from the current
+       /// histogram.
+       /// </summary>
+       /// <param name="maxColorWanted">The maximum number of colors to include in the resulting palette. Must be greater than or equal to zero.</param>
+       /// <returns>A new Palette instance containing up to maxColorWanted unique colors. If fewer colors are available, the
+       /// palette will contain all available colors.</returns>
+        public Palette ToPalette(int maxColorWanted)
         {
             var oCP = new Palette();
             foreach (var rgb in rgbHistogram.Keys)
@@ -130,7 +133,7 @@ namespace ColourClashNet.Color
                 {
                     oCP.Add(rgb);
                 }
-                if (oCP.Count >= iMaxColors)
+                if (oCP.Count >= maxColorWanted)
                 {
                     return oCP;
                 }
@@ -138,10 +141,13 @@ namespace ColourClashNet.Color
             return oCP;
         }
 
-        /// <summary>
-        /// Sort colors in the histogram by occurrences in descending order 
-        /// </summary>
-        /// <returns>new Histogram</returns>
+       /// <summary>
+       /// Returns a new histogram with colors sorted in descending order by their frequency.
+       /// </summary>
+       /// <remarks>The returned histogram is independent of the original and modifications to it do not
+       /// affect the source histogram.</remarks>
+       /// <returns>A new <see cref="Histogram"/> instance containing the same color-frequency pairs as the original, ordered
+       /// from most to least frequent.</returns>
         public Histogram SortColorsDescending()
         {
             var lSorted = rgbHistogram
@@ -155,10 +161,11 @@ namespace ColourClashNet.Color
             return oRet;
         }
 
-        /// <summary>
-        /// Sort colors in the histogram by occurrences in ascending order
-        /// </summary>
-        /// <returns>this object</returns>
+       /// <summary>
+       /// Returns a new histogram with its colors sorted in ascending order by their frequency.
+       /// </summary>
+       /// <returns>A new <see cref="Histogram"/> instance containing the same color-frequency pairs as the original, ordered
+       /// from least to most frequent. Returns <see langword="null"/> if the histogram is empty.</returns>
         public Histogram? SortColorsAscending()
         {
             var lSorted = rgbHistogram
@@ -171,6 +178,13 @@ namespace ColourClashNet.Color
             }
             return oRet;
         }
+
+        /// <summary>
+        /// Returns a string that represents the current histogram, including the count of items.
+        /// </summary>
+        /// <returns>A string representation of the histogram in the format "Histogram(Count={Count})".</returns>
+        public override string ToString()
+            => $"Histogram(Colors: {Count})";
     }
 
 

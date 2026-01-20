@@ -106,7 +106,7 @@ public partial class TileItem : ColorTransformReductionCluster
             int r = dr - DataSourceOriginR;
             for (int dc = DataSourceOriginC, c = 0; dc < CC; dc++, c++)
             {
-                oDestinationData[dr, dc] = OutputData.Data[r, c];
+                oDestinationData[dr, dc] = OutputData.DataX[r, c];
             }
         });
         return true;

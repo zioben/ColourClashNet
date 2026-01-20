@@ -90,15 +90,19 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        async Task<ImageData?> PreProcessAsync(bool bHalveRes, CancellationToken? oToken)
+        async Task<ImageData> PreProcessAsync(bool bHalveRes, CancellationToken oToken=default)
         {
-            var oTmpData = SourceData;
-            if (bHalveRes)
+            return await Task.Run(() =>
             {
-                oTmpData = new ImageData().Create( ColorTransformBase.HalveHorizontalRes(SourceData.Data) );
-            }
-            var oTmpDataProc = await TransformationMap.TransformAsync(oTmpData, oToken);
-            return oTmpDataProc;
+
+                var oTmpData = SourceData;
+                if (bHalveRes)
+                {
+                    oTmpData = new ImageData().Create(ColorTransformBase.HalveHorizontalRes(SourceData.DataX));
+                }
+                var oTmpDataProc = TransformationMap.Transform(oTmpData, oToken);
+                return oTmpDataProc;
+            }, oToken);
         }
 
         async Task<ImageData?> PostProcessAsync(ImageData oPreprocessData, int iMaxColors, bool bDoubleRes, CancellationToken oToken)
@@ -106,8 +110,7 @@ namespace ColourClashNet.Color.Transformation
             var oRes = await new ColorTransformReductionFast()
                 .SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors)
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
-                .Create(oPreprocessData)
-                .ProcessColorsAsync(oToken);
+                .CreateAndProcess(oPreprocessData, oToken);
 
             BypassDithering = true;
 
@@ -116,19 +119,19 @@ namespace ColourClashNet.Color.Transformation
                 var oRealSource = SourceData;
                 if (bDoubleRes)
                 {
-                    oRealSource = new ImageData().Create( ColorTransformBase.HalveHorizontalRes(SourceData.Data));
+                    oRealSource = new ImageData().Create( ColorTransformBase.HalveHorizontalRes(SourceData.DataX));
                 }
                 var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength);
                 var oDitheringOut = await oDithering.DitherAsync(oRealSource, oRes.DataOut, ColorDistanceEvaluationMode, oToken);
                 if (bDoubleRes)
                 {
-                    return new ImageData().Create( DoubleHorizontalRes(oDitheringOut.Data));
+                    return new ImageData().Create( DoubleHorizontalRes(oDitheringOut.DataX));
                 }
                 return oDitheringOut;
             }
             if (bDoubleRes)
             {
-                return new ImageData().Create(DoubleHorizontalRes(oRes.DataOut.Data));
+                return new ImageData().Create(DoubleHorizontalRes(oRes.DataOut.DataX));
             }
             return oRes.DataOut;
         }

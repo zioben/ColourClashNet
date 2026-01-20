@@ -58,7 +58,7 @@ namespace ColourClashNet.Color.Transformation
                 //    trans = new TileBase();
                 //    break;
                 case ColorTransformType.ColorReductionZxSpectrum:
-                    trans = new ColorTransformReductionZxSpectrum();
+                    trans = new ColorTransformReductionZxSpectrumV2();                    
                     break;
                 case ColorTransformType.ColorRemover:
                     trans = new ColorTransformBkgRemover();
@@ -67,6 +67,7 @@ namespace ColourClashNet.Color.Transformation
                     trans = new ColorTransformIdentity();
                     break;
             }
+            
             foreach (var kvp in paramList)
                 trans.SetProperty(kvp.Key, kvp.Value);
             return trans;

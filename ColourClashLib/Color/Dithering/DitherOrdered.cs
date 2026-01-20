@@ -104,19 +104,19 @@ namespace ColourClashNet.Color.Dithering
         }
 
         //public override async Task<int[,]?> DitherAsync(int[,]? oDataOriginal, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken)
-        public override async Task<ImageData?> DitherAsync(ImageData oImageReference, ImageData oImageReduced, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken)
+        public override async Task<ImageData?> DitherAsync(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token=default)
         {
             return await Task.Run(() =>
             {
                 string sM = nameof(DitherAsync);
                 try
                 {
-                    if (oImageReference == null || !oImageReference.DataValid)
+                    if (!imageReference?.Valid ?? true)
                     {
                         LogMan.Error(sC, sM, $"{Type} : Invalid reference data");
                         return null;
                     }
-                    if (oImageReduced == null || !oImageReduced.DataValid)
+                    if (!imageProcessed?.Valid ?? true)
                     {
                         LogMan.Error(sC, sM, $"{Type} : Invalid reduced data");
                         return null;
@@ -127,9 +127,9 @@ namespace ColourClashNet.Color.Dithering
                         return null;
                     }
 
-                    var oDataOriginal = oImageReference.Data;
-                    var oDataProcessed = oImageReduced.Data;
-                    var oDataProcessedPalette = oImageReduced.ColorPalette;
+                    var oDataOriginal = imageReference.DataX;
+                    var oDataProcessed = imageProcessed.DataX;
+                    var oDataProcessedPalette = imageProcessed.ColorPalette;
                     if (!Create())
                     {
                         LogMan.Error(sC, sM, $"{Type} : Creation error");
@@ -145,6 +145,7 @@ namespace ColourClashNet.Color.Dithering
                     var dStrenght = DitheringStrenght;// / 100.0;
                     Parallel.For(0, R, r =>
                     {
+                        token.ThrowIfCancellationRequested();
                         for (int c = 0; c < C; c++)
                         {
                             int col = oDataOriginal[r, c];
@@ -153,9 +154,8 @@ namespace ColourClashNet.Color.Dithering
                             var cg = Math.Max(0, col.ToG() + dV);
                             var cb = Math.Max(0, col.ToB() + dV);
                             var iCol = ColorIntExt.FromRGB(cr, cg, cb);
-                            oDataOut[r, c] = ColorIntExt.GetNearestColor(iCol, oDataProcessedPalette, eDistanceMode);
+                            oDataOut[r, c] = ColorIntExt.GetNearestColor(iCol, oDataProcessedPalette, colorEvaluationMode);
                         }
-                        oToken?.ThrowIfCancellationRequested();
                     });
                     LogMan.Trace(sC, sM, $"{Type} : Dithering completed");
                     return new ImageData().Create( oDataOut );

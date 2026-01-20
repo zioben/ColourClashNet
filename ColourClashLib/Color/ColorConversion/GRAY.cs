@@ -7,7 +7,7 @@ namespace ColourClashNet.Color
     /// <summary>
     /// Represents a color in CIELAB color space.
     /// </summary>
-    public struct GRAY
+    public class GRAY : ColorConverterInterface
     {
         /// <summary>
         /// Red Weight [0..1]
@@ -28,7 +28,23 @@ namespace ColourClashNet.Color
         /// Grayscale Value 
         /// </summary>
         public int Y { get; set; }
-       
+        public GRAY(float wr, float wg, float wb, int rgb)
+        {
+            WeightR = wr;
+            WeightG = wg;
+            WeightB = wb;
+            Y = GetGray(rgb);
+        }
+
+        public GRAY(int rgb)
+        {
+            Y = GetGray(rgb);
+        }
+        public GRAY()
+        {
+            Y = -1;
+        }
+
         int GetGray(int rgb)
         {
             if (rgb.IsColor())
@@ -38,32 +54,12 @@ namespace ColourClashNet.Color
             return -1;
         }
 
-        public GRAY(float wr, float wg, float wb, int rgb )
-        {
-            WeightR = wr;
-            WeightG = wg;
-            WeightB = wb;
-            Y = GetGray(rgb);
-        }
-
-        public GRAY(int rgb) 
+        public bool FromIntRGB(int rgb)
         {
             Y = GetGray(rgb);
-        }
-        public GRAY()
-        {
-            Y = -1;
-        }
+            return Valid;
+        }   
 
-        /// <summary>
-        /// Converts an RGB color (int) to GRAY
-        /// </summary>
-        public static GRAY FromIntRGB(float wr, float wg, float wb, int rgb) => new GRAY(wr, wg, wb, rgb);
-
-        /// <summary>
-        /// Converts an RGB color (int) to GRAY
-        /// </summary>
-        public static GRAY FromIntRGB(int rgb) => new GRAY(rgb);
 
         /// <summary>
         /// Converts GRAY to integer grayscale RGB representation.
@@ -72,15 +68,25 @@ namespace ColourClashNet.Color
 
         public bool Valid => Y >= 0;
 
+        /// <summary>
+        /// Converts an RGB color (int) to GRAY
+        /// </summary>
+        public static GRAY CreateFromIntRGB(float wr, float wg, float wb, int rgb) => new GRAY(wr, wg, wb, rgb);
+
+        /// <summary>
+        /// Converts an RGB color (int) to GRAY
+        /// </summary>
+        public static GRAY CreateFromIntRGB(int rgb) 
+            => new GRAY(rgb);
 
         /// <summary>
         /// Calculates Euclidean distance between two GRAY.
         /// </summary>
-        public static double Distance(GRAY a, GRAY b)
+        public static double Distance(GRAY grayA, GRAY grayB)
         {
-            if (!a.Valid || !b.Valid)
+            if (!grayA.Valid || !grayB.Valid)
                 return double.NaN;
-            return Math.Abs(a.Y - b.Y); 
+            return Math.Abs(grayA.Y - grayB.Y); 
         }
 
 

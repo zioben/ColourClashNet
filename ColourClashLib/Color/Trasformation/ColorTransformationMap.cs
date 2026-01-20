@@ -71,7 +71,7 @@ namespace ColourClashNet.Color
         public ImageData Transform(ImageData image, CancellationToken token=default )
         {
             string sM = nameof(Transform);
-            if (image == null || !image.DataValid)
+            if (image == null || !image.Valid)
             {
                 return new();
             }

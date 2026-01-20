@@ -26,20 +26,20 @@ namespace ColourClashNet.Color.Dithering
             return true;
         }
 
-        public override async Task<ImageData?> DitherAsync(ImageData oImageReference, ImageData oImageReduced, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken)
+        public override async Task<ImageData?> DitherAsync(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token=default)
         {
             return await Task.Run(() =>
             {
                 string sMethod = nameof(DitherAsync);
                 try
                 {
-                    if (oImageReduced == null)
+                    if (imageProcessed == null)
                     {
                         LogMan.Error(sClass, sMethod, "Invalid input data");
                         return null;
                     }
                     LogMan.Trace(sClass, sMethod, $"{Type} : Dithering is a simple clone");
-                    return new ImageData().Create(oImageReduced);
+                    return new ImageData().Create(imageProcessed);
 
                 }
                 catch (Exception ex)

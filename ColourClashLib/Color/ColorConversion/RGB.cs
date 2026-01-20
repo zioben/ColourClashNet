@@ -6,12 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashLib.Color
+namespace ColourClashLib.Color 
 {
     /// <summary>
     /// Represents a color in HSV (Hue, Saturation, Value) color space.
     /// </summary>
-    public struct RGB
+    public class RGB : ColorConverterInterface
     {
         public int R { get; set; }
         public int G { get; set; }
@@ -28,13 +28,29 @@ namespace ColourClashLib.Color
         /// <summary>
         /// Converts an RGB color (int representation) to HSV.
         /// </summary>
-        public static RGB FromIntRGB(int rgb)
+        public bool FromIntRGB(int rgb)
         {
             if (rgb.IsColor())
             {
-                return new RGB(rgb.ToR(), rgb.ToG(), rgb.ToG());
+                R = rgb.ToR();
+                G = rgb.ToG();
+                B = rgb.ToB();
             }
-            return new RGB(-1, -1, -1);
+            else
+            {
+                R = G = B = -1;
+            }
+            return Valid;
+        }
+
+        /// <summary>
+        /// Converts an RGB color (int representation) to HSV.
+        /// </summary>
+        public static RGB CreateFromIntRGB(int rgb)
+        {
+            var RGB = new RGB(-1, -1, -1);
+            RGB.FromIntRGB(rgb);
+            return RGB;
         }
 
         /// <summary>
@@ -45,13 +61,13 @@ namespace ColourClashLib.Color
         /// <summary>
         /// Calculates Euclidean distance between two RGB colors.
         /// </summary>
-        public static double Distance(RGB a, RGB b)
+        public static double Distance(RGB rgbA, RGB rgbB)
         {
-            if (!a.Valid || !b.Valid)
+            if (!rgbA.Valid || !rgbB.Valid)
                 return double.NaN;                
-            double dL = a.R - b.R;
-            double dA = a.G - b.G;
-            double dB = a.B - b.B;
+            double dL = rgbA.R - rgbB.R;
+            double dA = rgbA.G - rgbB.G;
+            double dB = rgbA.B - rgbB.B;
             return Math.Sqrt(dL * dL + dA * dA + dB * dB);
         }
 

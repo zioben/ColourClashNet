@@ -21,21 +21,21 @@ namespace ColourClashNet.Color
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="oDataSource"></param>
-        /// <param name="oHist"></param>
-        static void CreateHistogramArray(int[,] oDataSource, Histogram oHist)
+        /// <param name="matrix"></param>
+        /// <param name="histogram"></param>
+        static void CreateHistogramArray(int[,] matrix, Histogram histogram)
         {
             lock (oLocker)
             {
                 Array.Clear(oColorArray, 0, oColorArray.Length);
-                oHist.Reset();
-                int R = oDataSource.GetLength(0);
-                int C = oDataSource.GetLength(1);
+                histogram.Reset();
+                int R = matrix.GetLength(0);
+                int C = matrix.GetLength(1);
                 for (int r = 0; r < R; r++)
                 {
                     for (int c = 0; c < C; c++)
                     {
-                        var rgb = oDataSource[r, c];
+                        var rgb = matrix[r, c];
                         if (rgb.IsColor())
                         {
                             oColorArray[rgb]++;
@@ -46,31 +46,31 @@ namespace ColourClashNet.Color
                 {
                     if (oColorArray[rgb] > 0)
                     {
-                        oHist.AddToHistogram(rgb, oColorArray[rgb]);
+                        histogram.AddToHistogram(rgb, oColorArray[rgb]);
                     }
                 }
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="oDataSource"></param>
-        /// <param name="oHist"></param>
-        /// <returns></returns>
-        static bool CreateHistogramDirect(int[,] oDataSource, Histogram oHist)
+       /// <summary>
+       /// 
+       /// </summary>
+       /// <param name="matrix"></param>
+       /// <param name="histogram"></param>
+       /// <returns></returns>
+        static bool CreateHistogramDirect(int[,] matrix, Histogram histogram)
         {
-            if (oDataSource == null || oHist == null)
+            if (matrix == null || histogram == null)
                 return false;
-            oHist.Reset();
-            int R = oDataSource.GetLength(0);
-            int C = oDataSource.GetLength(1);
+            histogram.Reset();
+            int R = matrix.GetLength(0);
+            int C = matrix.GetLength(1);
             for (int r = 0; r < R; r++)
             {
                 for (int c = 0; c < C; c++)
                 {
-                    var rgb = oDataSource[r, c];
-                    oHist.AddToHistogram(rgb, 1);
+                    var rgb = matrix[r, c];
+                    histogram.AddToHistogram(rgb, 1);
                 }
             }
             return true;
@@ -79,33 +79,33 @@ namespace ColourClashNet.Color
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="oDataSource"></param>
-        /// <param name="oHist"></param>
+        /// <param name="matrix"></param>
+        /// <param name="histogram"></param>
         /// <returns></returns>
-        static Histogram CreateHistogramStatic(int[,] oDataSource, Histogram oHist)
+        static Histogram CreateHistogramStatic(int[,] matrix, Histogram histogram)
         {
             string sMethod = nameof(CreateHistogramStatic);
             try
             {
-                if (oDataSource == null || oHist == null)
+                if (matrix == null || histogram == null)
                 {
                     LogMan.Error(sClass, sMethod, "Invalid data source");
                     return new Histogram();
                 }
-                oHist.Reset();
-                int R = oDataSource.GetLength(0);
-                int C = oDataSource.GetLength(1);
+                histogram.Reset();
+                int R = matrix.GetLength(0);
+                int C = matrix.GetLength(1);
                 if (R * C > SizeLimit)
                 {
                     LogMan.Trace(sClass, sMethod, "Using array method for large image");
-                    CreateHistogramArray(oDataSource, oHist);
+                    CreateHistogramArray(matrix, histogram);
                 }
                 else
                 {
                     LogMan.Trace(sClass, sMethod, "Using direct method for small image");
-                    CreateHistogramDirect(oDataSource, oHist);
+                    CreateHistogramDirect(matrix, histogram);
                 }
-                return oHist;
+                return histogram;
             }
             catch (Exception ex)
             {
@@ -117,26 +117,18 @@ namespace ColourClashNet.Color
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="oDataSource"></param>
+        /// <param name="image"></param>
         /// <returns></returns>
-        public static Histogram CreateHistogram(int[,] oDataSource)
-          => CreateHistogramStatic(oDataSource, new Histogram());
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="oImageData"></param>
-        /// <returns></returns>
-        public static Histogram CreateHistogram(ImageData oImageData) 
-            => CreateHistogramStatic(oImageData?.Data, new Histogram());
+        public static Histogram CreateHistogram(ImageData image) 
+            => CreateHistogramStatic(image?.DataX, new Histogram());
 
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="oHistSrc"></param>
+        /// <param name="histogram"></param>
         /// <returns></returns>
-        public static Histogram CreateHistogram(Histogram oHistSrc)
-            => new Histogram().Create(oHistSrc);
+        public static Histogram CreateHistogram(Histogram histogram)
+            => new Histogram().Create(histogram);
     }
 }

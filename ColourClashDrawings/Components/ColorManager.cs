@@ -153,7 +153,7 @@ namespace ColourClashNet.Components
             }
         }
         public bool Create(ImageData oImageData)
-            => Create(oImageData?.Data);
+            => Create(oImageData?.DataX);
 
         public async Task PreProcess()
         {
@@ -274,7 +274,7 @@ namespace ColourClashNet.Components
                         break;
                     case ColorTransformType.ColorReductionZxSpectrum:
                         {
-                            var oTrasf = new ColorTransformReductionZxSpectrum();
+                            var oTrasf = new ColorTransformReductionZxSpectrumV2();
                             //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
                             //oTrasf.ColL = Config.ZxEqColorLO;
                             //oTrasf.ColH = Config.ZxEqColorHI;

@@ -18,7 +18,7 @@ namespace ColourClashNet.Color.Dithering
         string Description { get; }
         double DitheringStrenght { get; set; }
         bool Create();
-        Task<ImageData?> DitherAsync(ImageData oImageReference, ImageData oImageReduced, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken);
+        Task<ImageData?> DitherAsync(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token=default);
 
 
 

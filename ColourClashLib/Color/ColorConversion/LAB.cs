@@ -1,12 +1,13 @@
-﻿using ColourClashNet.Color;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Color;
 using System;
 
-namespace ColourClashNet.Color
+namespace ColourClashNet.Color 
 {
     /// <summary>
     /// Represents a color in CIELAB color space.
     /// </summary>
-    public struct LAB
+    public class LAB : ColorConverterInterface
     {
         /// <summary>
         /// Lightness [0,100]
@@ -32,39 +33,50 @@ namespace ColourClashNet.Color
             B = b;
         }
 
+        public LAB(int rgb)
+        {
+            FromIntRGB(rgb);
+        }
+
         /// <summary>
         /// Converts an RGB color (int) to LAB.
         /// </summary>
-        public static LAB FromIntRGB(int rgb)
+        public bool FromIntRGB(int rgb)
         {
-            // Step 1: RGB -> XYZ
-            float r = rgb.ToR() / 255f;
-            float g = rgb.ToG() / 255f;
-            float b = rgb.ToB() / 255f;
+            if (rgb.IsColor())
+            {
+                // Step 1: RGB -> XYZ
+                float r = rgb.ToR() / 255f;
+                float g = rgb.ToG() / 255f;
+                float b = rgb.ToB() / 255f;
 
-            r = (r > 0.04045f) ? (float)Math.Pow((r + 0.055f) / 1.055f, 2.4) : r / 12.92f;
-            g = (g > 0.04045f) ? (float)Math.Pow((g + 0.055f) / 1.055f, 2.4) : g / 12.92f;
-            b = (b > 0.04045f) ? (float)Math.Pow((b + 0.055f) / 1.055f, 2.4) : b / 12.92f;
+                r = (r > 0.04045f) ? (float)Math.Pow((r + 0.055f) / 1.055f, 2.4) : r / 12.92f;
+                g = (g > 0.04045f) ? (float)Math.Pow((g + 0.055f) / 1.055f, 2.4) : g / 12.92f;
+                b = (b > 0.04045f) ? (float)Math.Pow((b + 0.055f) / 1.055f, 2.4) : b / 12.92f;
 
-            float X = r * 0.4124f + g * 0.3576f + b * 0.1805f;
-            float Y = r * 0.2126f + g * 0.7152f + b * 0.0722f;
-            float Z = r * 0.0193f + g * 0.1192f + b * 0.9505f;
+                float X = r * 0.4124f + g * 0.3576f + b * 0.1805f;
+                float Y = r * 0.2126f + g * 0.7152f + b * 0.0722f;
+                float Z = r * 0.0193f + g * 0.1192f + b * 0.9505f;
 
-            // Step 2: Normalize for D65 reference white
-            X /= 0.95047f;
-            Y /= 1.00000f;
-            Z /= 1.08883f;
+                // Step 2: Normalize for D65 reference white
+                X /= 0.95047f;
+                Y /= 1.00000f;
+                Z /= 1.08883f;
 
-            // Step 3: XYZ -> LAB
-            X = (X > 0.008856f) ? (float)Math.Pow(X, 1.0 / 3) : (7.787f * X) + 16f / 116f;
-            Y = (Y > 0.008856f) ? (float)Math.Pow(Y, 1.0 / 3) : (7.787f * Y) + 16f / 116f;
-            Z = (Z > 0.008856f) ? (float)Math.Pow(Z, 1.0 / 3) : (7.787f * Z) + 16f / 116f;
+                // Step 3: XYZ -> LAB
+                X = (X > 0.008856f) ? (float)Math.Pow(X, 1.0 / 3) : (7.787f * X) + 16f / 116f;
+                Y = (Y > 0.008856f) ? (float)Math.Pow(Y, 1.0 / 3) : (7.787f * Y) + 16f / 116f;
+                Z = (Z > 0.008856f) ? (float)Math.Pow(Z, 1.0 / 3) : (7.787f * Z) + 16f / 116f;
 
-            float L = 116f * Y - 16f;
-            float A = 500f * (X - Y);
-            float B = 200f * (Y - Z);
-
-            return new LAB(L, A, B);
+                L = 116f * Y - 16f;
+                A = 500f * (X - Y);
+                B = 200f * (Y - Z);
+            }
+            else
+            {
+                L = A = B = -1;
+            }
+            return Valid;
         }
 
         /// <summary>
@@ -106,18 +118,19 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Calculates Euclidean distance between two LAB colors (ΔE).
         /// </summary>
-        public static double Distance(LAB a, LAB b)
+        public static double Distance(LAB labA, LAB labB)
         {
-            if (!a.Valid || !b.Valid)
+            if (!labA.Valid || !labB.Valid)
                 return double.NaN;
 
-            double dL = a.L - b.L;
-            double dA = a.A - b.A;
-            double dB = a.B - b.B;
+            double dL = labA.L - labB.L;
+            double dA = labA.A - labB.A;
+            double dB = labA.B - labB.B;
             return Math.Sqrt(dL * dL + dA * dA + dB * dB);
         }
 
-
+        public static LAB CreateFromIntRGB(int rgb)
+            => new LAB(rgb);
 
         public override string ToString() => $"LAB(L={L:F2}, A={A:F2}, B={B:F2})";
     }

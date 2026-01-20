@@ -57,9 +57,7 @@ public abstract class DitherErrorDiffusion : DitherBase
     }
 
 
-//    public override async Task<ImageData> DitherAsync(int[,]? oDataOriginal, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken)
-
-    public override async Task<ImageData?> DitherAsync(ImageData oImageReference, ImageData oImageReduced, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken)
+    public override async Task<ImageData?> DitherAsync(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token=default)
     {
         return await Task.Run(() =>
         {
@@ -67,12 +65,12 @@ public abstract class DitherErrorDiffusion : DitherBase
             try
             {
 
-                if (oImageReference == null || !oImageReference.DataValid)
+                if (imageReference == null || !imageReference.Valid)
                 {
                     LogMan.Error(sC, sM, $"{Type} : Invalid reference data");
                     return null;
                 }
-                if (oImageReduced == null || !oImageReduced.DataValid)
+                if (imageProcessed == null || !imageProcessed.Valid)
                 {
                     LogMan.Error(sC, sM, $"{Type} : Invalid reduced data");
                     return null;
@@ -83,9 +81,9 @@ public abstract class DitherErrorDiffusion : DitherBase
                     return null;
                 }
 
-                var oDataOriginal = oImageReference.Data;
-                var oDataProcessed = oImageReduced.Data;
-                var oDataProcessedPalette = oImageReduced.ColorPalette;
+                var oDataOriginal = imageReference.DataX;
+                var oDataProcessed = imageProcessed.DataX;
+                var oDataProcessedPalette = imageProcessed.ColorPalette;
 
                 LogMan.Trace(sC, sM, $"{Type} : Dithering");
 
@@ -104,6 +102,7 @@ public abstract class DitherErrorDiffusion : DitherBase
 
                 Parallel.For(0, R, r =>
                 {
+                    token.ThrowIfCancellationRequested();
                     for (int c = 0; c < C; c++)
                     {
                         var oDatOrig = oDataOriginal[r, c];
@@ -115,7 +114,6 @@ public abstract class DitherErrorDiffusion : DitherBase
                         oGP[r, c] = oDataProc.ToG();
                         oBP[r, c] = oDataProc.ToB();
                     }
-                    oToken?.ThrowIfCancellationRequested();
                 });
 
                 var oDataOut = new int[R, C];
@@ -124,7 +122,7 @@ public abstract class DitherErrorDiffusion : DitherBase
 
                 for (int r = 0; r < R; r++)
                 {
-                    oToken?.ThrowIfCancellationRequested();
+                    token.ThrowIfCancellationRequested();
                     for (int c = 0; c < C; c++)
                     {
                         var OldPixelR = Math.Max(0, Math.Min(255, oRO[r, c]));
@@ -132,7 +130,7 @@ public abstract class DitherErrorDiffusion : DitherBase
                         var OldPixelB = Math.Max(0, Math.Min(255, oBO[r, c]));
 
                         var OldPixel = ColorIntExt.FromRGB(OldPixelR, OldPixelG, OldPixelB);
-                        var NewPixel = ColorIntExt.GetNearestColor(OldPixel, oDataProcessedPalette, eDistanceMode);
+                        var NewPixel = ColorIntExt.GetNearestColor(OldPixel, oDataProcessedPalette, colorEvaluationMode);
                         oDataOut[r, c] = NewPixel;
 
                         var NewPixelR = NewPixel.ToR();
@@ -166,7 +164,7 @@ public abstract class DitherErrorDiffusion : DitherBase
 
                 for (int r = 0; r < R; r++)
                 {
-                    oToken?.ThrowIfCancellationRequested();
+                    token.ThrowIfCancellationRequested();
                     for (int c = 0; c < C; c++)
                     {
                         if (oDataProcessed[r, c] < 0)
