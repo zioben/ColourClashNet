@@ -335,7 +335,7 @@ namespace ColourClashNet.Color.Transformation
                 var oRetRes = new ColorTransformResults();
                 if (BypassDithering || DitheringType == ColorDithering.None)
                 {
-                    OutputData.Create(oRetRes.DataOut);
+                    OutputData.Create(oTransfRes.DataOut);
                     oRetRes = ColorTransformResults.CreateValidResult(SourceData, OutputData);
                 }
                 else
