@@ -3,7 +3,14 @@ using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
+using System.Drawing.Imaging;
+using System.Globalization;
 using System.Threading.Tasks;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionAmiga;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionC64;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionCPC;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrumV2;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -43,7 +50,7 @@ namespace ColourClashNet.Color.Transformation
 
         //-------------------------------------------------------------------------------------------------------------------------------
         public Palette FixedPalette { get; protected set; } = new Palette();
-        public int FixedColors => FixedPalette?.Count??0;
+        public int FixedColors => FixedPalette?.Count ?? 0;
         public bool FastPreview { get; set; }
 
         //-------------------------------------------------------------------------------------------------------------------------------
@@ -62,9 +69,9 @@ namespace ColourClashNet.Color.Transformation
 
         #region abstract Methods
 
-        protected virtual ColorTransformResults CreateTransformationMap( CancellationToken oToken=default )
+        protected virtual ColorTransformResults CreateTransformationMap(CancellationToken oToken = default)
         {
-            string sM = nameof(CreateTransformationMap);    
+            string sM = nameof(CreateTransformationMap);
             LogMan.Debug(sM, sM, $"{Type} : Default {nameof(CreateTransformationMap)} called - no processing");
             return ColorTransformResults.CreateValidResult();
         }
@@ -82,9 +89,9 @@ namespace ColourClashNet.Color.Transformation
             OutputData.Reset();
         }
 
-     
+
         protected bool ProcessPartialEventRegistered => ProcessPartial != null;
-        protected void RaiseProcessPartialEvent( ColorProcessingEventArgs oArgs ) => ProcessPartial?.Invoke(this, oArgs);
+        protected void RaiseProcessPartialEvent(ColorProcessingEventArgs oArgs) => ProcessPartial?.Invoke(this, oArgs);
 
         public ColorTransformInterface Create(ImageData image)
         {
@@ -93,7 +100,7 @@ namespace ColourClashNet.Color.Transformation
             try
             {
                 bentered = semaphore.Wait(1000);
-                if (!bentered )
+                if (!bentered)
                 {
                     throw new TimeoutException($"{sC}.{sM} : Cannot create");
                 }
@@ -124,7 +131,7 @@ namespace ColourClashNet.Color.Transformation
             }
             finally
             {
-                if( bentered)
+                if (bentered)
                     semaphore.Release();
             }
         }
@@ -141,17 +148,33 @@ namespace ColourClashNet.Color.Transformation
 
         protected double ToDouble(object value)
         {
-            if (value is double d)
-                return d;
-            if (value is float f)
-                return (double)f;
-            if (value is decimal dec)
-                return (double)dec;
-            if (value is int i)
-                return (double)i;
-         //   if (double.TryParse(value?.ToString(), out var result))
-         //       return result;
+            if (value is IConvertible c)
+                return c.ToDouble(CultureInfo.InvariantCulture);
             throw new ArgumentException($"Invalid value type for conversion to double: {value?.GetType().Name}");
+        }
+
+        protected bool ToBool(object value)
+        {
+            if (value is IConvertible c)
+                return c.ToBoolean(CultureInfo.InvariantCulture);
+            throw new ArgumentException($"Invalid value type for conversion to boolean: {value?.GetType().Name}");
+        }
+        protected int ToInt(object value)
+        {
+            if (value is IConvertible c)
+                return c.ToInt32(CultureInfo.InvariantCulture);
+            throw new ArgumentException($"Invalid value type for conversion to boolean: {value?.GetType().Name}");
+        }
+
+        protected T ToEnum<T>(object value) where T : struct, Enum
+        {
+            if (value == null)
+                throw new ArgumentNullException(nameof(value));
+
+            if (Enum.TryParse<T>(value.ToString(), out var eVal))
+                return eVal;
+
+            throw new ArgumentException($"Invalid value for enum conversion to {typeof(T).Name}: {value}", nameof(value));
         }
 
         protected double Clamp(object value, double min, double max)
@@ -159,15 +182,15 @@ namespace ColourClashNet.Color.Transformation
             return Math.Min(Math.Max(ToDouble(value), min), max);
         }
 
-        public virtual ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        protected virtual ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
             string sM = nameof(SetProperty);
-            bool entered=false;
+            bool entered = false;
             try
             {
 
                 entered = semaphore.Wait(1000);
-                if(!entered)
+                if (!entered)
                 {
                     throw new TimeoutException($"{sC}.{sM} : Cannot set property {propertyName}");
                 }
@@ -177,37 +200,24 @@ namespace ColourClashNet.Color.Transformation
                     switch (propertyName)
                     {
                         case ColorTransformProperties.ColorDistanceEvaluationMode:
-                            {
-                                if (Enum.TryParse<ColorDistanceEvaluationMode>(value?.ToString(), out var eMode))
-                                    ColorDistanceEvaluationMode = eMode;
-                                else
-                                    throw new ArgumentException($"{Type} : Invalid value for {propertyName} ");
+                                    ColorDistanceEvaluationMode = ToEnum<ColorDistanceEvaluationMode>(value);
                                 break;
-                            }
                         case ColorTransformProperties.Fixed_Palette:
-                            {
-                                if (value is List<int> oPalette)
-                                    FixedPalette = Palette.CreatePalette(oPalette);
-                                else if (value is Palette oPal)
-                                    FixedPalette = oPal;
+                                if (value is IEnumerable<int> palette1)
+                                    FixedPalette = Palette.CreatePalette(palette1);
+                                if (value is List<int> palette2)
+                                    FixedPalette = Palette.CreatePalette(palette2);
+                                else if (value is Palette palette3)
+                                    FixedPalette = Palette.CreatePalette(palette3);
                                 else
                                     throw new ArgumentException($"{Type} : Invalid value for {propertyName} ");
                                 break;
-                            }
                         case ColorTransformProperties.Dithering_Type:
-                            {
-                                DitheringType = ColorDithering.None;
-                                if (Enum.TryParse<ColorDithering>(value?.ToString(), true, out var eRes))
-                                    DitheringType = eRes;
-                                else
-                                    throw new ArgumentException($"{Type} : Invalid value for {propertyName} ");
+                                DitheringType = ToEnum<ColorDithering>(value);
                                 break;
-                            }
                         case ColorTransformProperties.Dithering_Strength:
-                            {
                                 DitheringStrength = Clamp(value, 0.0, 1.0);
                                 break;
-                            }
                         default:
                             break;
                     }
@@ -226,10 +236,45 @@ namespace ColourClashNet.Color.Transformation
             }
             finally
             {
-                if( entered )
+                if (entered)
                     semaphore.Release();
             }
         }
+
+        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, int value)
+            => SetProperty(propertyName, (object)value);
+        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, double value)
+            => SetProperty(propertyName, (object)value);
+        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Palette value)
+            => SetProperty(propertyName, (object)value);
+        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, List<int> value)
+            => SetProperty(propertyName, (object)value);
+        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, IEnumerable<int> value)
+            => SetProperty(propertyName, (object)value);
+        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorDistanceEvaluationMode value)
+            => SetProperty(propertyName, (object)value);
+        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, string value)
+            => SetProperty(propertyName, (object)value);
+        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, decimal value)
+            => SetProperty(propertyName, (object)value);
+        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorDithering value)
+            => SetProperty(propertyName, (object)value);
+        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Boolean value)
+            => SetProperty(propertyName, (object)value);
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorQuantizationMode value)
+        //    => SetProperty(propertyName, (object)value);
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, EnumAmigaVideoMode value)
+        //    => SetProperty(propertyName, (object)value);
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, EnumHamColorProcessingMode value)
+        //    => SetProperty(propertyName, (object)value);
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, C64VideoMode value)
+        //    => SetProperty(propertyName, (object)value);
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, CPCVideoMode value)
+        //    => SetProperty(propertyName, (object)value);
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ZxPaletteMode value)
+        //    => SetProperty(propertyName, (object)value);
+        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Enum value)
+            => SetProperty(propertyName, (object)value);
 
         internal ColorProcessingEventArgs CreateTransformEventArgs(CancellationTokenSource tokenSource, ColorTransformResults result)
             => new ColorProcessingEventArgs()
@@ -237,38 +282,36 @@ namespace ColourClashNet.Color.Transformation
                 ColorTransformInterface = this,
                 CancellationTokenSource = tokenSource,
                 ProcessingResults = result,
-                TransformationMap = this.TransformationMap  
+                TransformationMap = this.TransformationMap
             };
 
         internal ColorProcessingEventArgs CreateTransformEventArgs(CancellationTokenSource tokenSource)
             => CreateTransformEventArgs(tokenSource, null);
 
 
-        protected async virtual Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken token = default)
+        protected virtual ColorTransformResults ExecuteTransform(CancellationToken token = default)
         {
-            return await Task.Run(()=>
-            {
-                string sM = nameof(ExecuteTransformAsync);
-                try
-                {
-                    LogMan.Debug(sC, sM, "Executing Default Transformation ");
-                    var oProcessed = TransformationMap.Transform(SourceData, token);
 
-                    if (oProcessed.Valid)
-                    {
-                        return ColorTransformResults.CreateValidResult(SourceData, oProcessed);
-                    }
-                    else
-                    {
-                        return ColorTransformResults.CreateErrorResult(SourceData, oProcessed, $"{Type} : Transformation produced invalid data");
-                    }
-                }
-                catch (Exception ex)
+            string sM = nameof(ExecuteTransform);
+            try
+            {
+                LogMan.Debug(sC, sM, "Executing Default Transformation ");
+                var oProcessed = TransformationMap.Transform(SourceData, token);
+
+                if (oProcessed.Valid)
                 {
-                    LogMan.Exception(sC, sM, Name, ex);
-                    return new();
+                    return ColorTransformResults.CreateValidResult(SourceData, oProcessed);
                 }
-            }, token);
+                else
+                {
+                    return ColorTransformResults.CreateErrorResult(SourceData, oProcessed, $"{Type} : Transformation produced invalid data");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, Name, ex);
+                return new();
+            }
         }
 
 
@@ -277,14 +320,14 @@ namespace ColourClashNet.Color.Transformation
 
 
 
-        public async Task<ColorTransformResults> ProcessColorsAsync( CancellationToken token = default)
+        public ColorTransformResults ProcessColors(CancellationToken token = default)
         {
-            string sM = nameof(ProcessColorsAsync);
+            string sM = nameof(ProcessColors);
             bool entered = false;
             try
             {
-                entered = await semaphore.WaitAsync(1000, token);
-                if(!entered)
+                entered = semaphore.Wait(1000, token);
+                if (!entered)
                 {
                     throw new TimeoutException($"{sC}.{sM} : Cannot process");
                 }
@@ -301,7 +344,7 @@ namespace ColourClashNet.Color.Transformation
                 // Reset transformation map
                 TransformationMap.Reset();
 
-                // Notify processing, allowing clinet to handle cancellation token
+                // Notify processing, allowing client to handle cancellation token
                 var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
 
                 try
@@ -324,10 +367,10 @@ namespace ColourClashNet.Color.Transformation
                 }
 
                 // Execute color reduction
-                var oTransfRes = await ExecuteTransformAsync(token);
+                var oTransfRes = ExecuteTransform(token);
                 if (!oTransfRes.ProcessingValid)
                 {
-                    LogMan.Error(sC, sM, $"{Type} : {nameof(ExecuteTransformAsync)} error");
+                    LogMan.Error(sC, sM, $"{Type} : {nameof(ExecuteTransform)} error");
                     return oTransfRes;
                 }
 
@@ -361,7 +404,7 @@ namespace ColourClashNet.Color.Transformation
                     else
                     {
                         var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength);
-                        var oImageDataDither = await oDithering.DitherAsync(SourceData, oProcessedData, ColorDistanceEvaluationMode, token);
+                        var oImageDataDither = oDithering.Dither(SourceData, oProcessedData, ColorDistanceEvaluationMode, token);
                         if (oImageDataDither == null)
                         {
                             LogMan.Error(sC, sM, $"{Type} :  Dithering error");
@@ -377,7 +420,7 @@ namespace ColourClashNet.Color.Transformation
 
                 }
 
-                TransformationError = await RecalcTransformationErrorAsync(SourceData, token);
+                TransformationError = RecalcTransformationError(SourceData, token);
 
                 try
                 {
@@ -400,31 +443,34 @@ namespace ColourClashNet.Color.Transformation
                 return ColorTransformResults.CreateErrorResult(ex);
             }
             finally
-            {               
-                semaphore.Release();
-            }       
-        }
-
-        public async Task AbortProcessingAsync(CancellationTokenSource tokenSource)
-        {
-            if (tokenSource != null)
             {
-                await tokenSource.CancelAsync();
+                if (entered)
+                    semaphore.Release();
             }
         }
+
+
         public void AbortProcessing(CancellationTokenSource tokenSource)
         {
             tokenSource?.Cancel();
         }
 
-        public async Task<double> RecalcTransformationErrorAsync(ImageData referenceImage, CancellationToken token = default)
-            => TransformationError = await ColorIntExt.EvaluateErrorAsync(referenceImage, OutputData, ColorDistanceEvaluationMode, token);
+        public double RecalcTransformationError(ImageData referenceImage, CancellationToken token = default)
+            => TransformationError = ColorIntExt.EvaluateError(referenceImage, OutputData, ColorDistanceEvaluationMode, token);
 
-        public async Task<ColorTransformResults> CreateAndProcess(ImageData oDataSource, CancellationToken token = default)
-        {
-            Create(oDataSource);
-            return await ProcessColorsAsync(token);
-        }
+        public ColorTransformResults CreateAndProcessColors(ImageData oDataSource, CancellationToken token = default)
+            => Create(oDataSource).ProcessColors(token);
+
+        //public async Task<ColorTransformResults> Create(ImageData oDataSource, CancellationToken token = default)
+        //   => await Task.Run<ColorTransformResults>(() => Create(oDataSource, token));
+        //public async Task<ColorTransformResults> ProcessColorsAsync(CancellationToken token = default)
+        //   => await Task.Run<ColorTransformResults>(() => ProcessColors(token));
+
+        public async Task<ColorTransformResults> CreateAndProcessColorsAsync(ImageData oDataSource, CancellationToken token = default)
+           => await Task.Run<ColorTransformResults>(() => CreateAndProcessColors(oDataSource, token));
+
+        public async Task AbortProcessingAsync(CancellationTokenSource tokenSource)
+           => await Task.Run(() => AbortProcessing(tokenSource));
 
         #endregion
 

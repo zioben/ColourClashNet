@@ -68,8 +68,8 @@ namespace ColourClashNet.Color.Transformation
                     break;
             }
             
-            foreach (var kvp in paramList)
-                trans.SetProperty(kvp.Key, kvp.Value);
+           // foreach (var kvp in paramList)
+           //     trans.SetProperty(kvp.Key, kvp.Value);
             return trans;
         }
 

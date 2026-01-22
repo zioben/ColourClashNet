@@ -26,7 +26,7 @@ namespace ColourClashNet.Color
     /// additional metadata (e.g., color type).</remarks>
     public static class ColorIntExt
     {
-        
+
 
         /// <summary>
         /// Sets the color information type in the integer representation of a color.
@@ -61,7 +61,7 @@ namespace ColourClashNet.Color
 
 
         public static bool IsColor(this int rgb) => GetColorInfo(rgb) == ColorInfo.IsColor;
-      //  public static bool IsTagged(this int rgb) => GetColorInfo(rgb) == ;
+        //  public static bool IsTagged(this int rgb) => GetColorInfo(rgb) == ;
         public static bool IsInvalid(this int rgb) => GetColorInfo(rgb) == ColorInfo.Invalid;
 
 
@@ -272,7 +272,7 @@ namespace ColourClashNet.Color
         /// <param name="dg"></param>
         /// <param name="db"></param>
         /// <returns></returns>
-        public static int FromRGB(double dr, double dg, double db) => FromRGB((int) dr, (int) dg, (int) db);
+        public static int FromRGB(double dr, double dg, double db) => FromRGB((int)dr, (int)dg, (int)db);
 
 
         /// <summary>
@@ -409,41 +409,38 @@ namespace ColourClashNet.Color
 
         static public double EvaluateError(int rgbA, int rgbB, ColorDistanceEvaluationMode eMode) => Distance(rgbA, rgbB, eMode);
 
-        static public async Task<double> EvaluateErrorAsync(ImageData imageA, ImageData imageB, ColorDistanceEvaluationMode evalMode, CancellationToken token=default)
+        static public double EvaluateError(ImageData imageA, ImageData imageB, ColorDistanceEvaluationMode evalMode, CancellationToken token = default)
         {
-            return await Task.Run(() =>
-            {
-                if (imageA == null || imageB == null || !imageA.Valid || !imageA.Valid)
-                {
-                    return double.NaN;
-                }
-                if ( imageA.Rows != imageB.Rows || imageA.Columns!=imageB.Columns || imageA.Rows == 0 || imageA.Columns == 0)
-                {
-                    return double.NaN;
-                }
-                double err = 0;
-                int count = 0;
-                Parallel.For(0, imageA.Rows, r => //(int r = 0; r < r1; r++)
-                {
-                    token.ThrowIfCancellationRequested();
-                    for (int c = 0; c < imageA.Columns; c++)
-                    {
-                        var rgb1 = imageA.DataX[r, c];
-                        var rgb2 = imageB.DataX[r, c];
-                        if (rgb1.IsColor() && rgb2.IsColor() )
-                        {
-                            err += ColorIntExt.Distance(rgb1, rgb2, evalMode);
-                            count++;
-                        }
-                    }
-                });
-                if( count > 0)
-                    err /= count;
-                else
-                    err = double.NaN;
-                return err;
-            });
-        }
 
+            if (imageA == null || imageB == null || !imageA.Valid || !imageA.Valid)
+            {
+                return double.NaN;
+            }
+            if (imageA.Rows != imageB.Rows || imageA.Columns != imageB.Columns || imageA.Rows == 0 || imageA.Columns == 0)
+            {
+                return double.NaN;
+            }
+            double err = 0;
+            int count = 0;
+            Parallel.For(0, imageA.Rows, r => //(int r = 0; r < r1; r++)
+            {
+                token.ThrowIfCancellationRequested();
+                for (int c = 0; c < imageA.Columns; c++)
+                {
+                    var rgb1 = imageA.DataX[r, c];
+                    var rgb2 = imageB.DataX[r, c];
+                    if (rgb1.IsColor() && rgb2.IsColor())
+                    {
+                        err += ColorIntExt.Distance(rgb1, rgb2, evalMode);
+                        count++;
+                    }
+                }
+            });
+            if (count > 0)
+                err /= count;
+            else
+                err = double.NaN;
+            return err;
+        }
     }
 }

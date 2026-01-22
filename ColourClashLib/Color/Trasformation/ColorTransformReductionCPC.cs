@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionC64;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -71,17 +72,13 @@ namespace ColourClashNet.Color.Transformation
             );
         }
 
-        public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
+        protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
-            base.SetProperty(eProperty, oValue);
-            switch (eProperty)
+            base.SetProperty(propertyName, value);
+            switch (propertyName)
             {
                 case ColorTransformProperties.CPC_VideoMode:
-                    if (Enum.TryParse<CPCVideoMode>(oValue?.ToString(), out var evm))
-                    {
-                        VideoMode = evm;
-                        return this;
-                    }
+                        VideoMode = ToEnum<CPCVideoMode>(value);
                     break;
                 default:
                     break;
@@ -89,28 +86,26 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
+      
 
-        async Task<ImageData> PreProcessAsync(bool bHalveRes, CancellationToken oToken=default)
-        {
-            return await Task.Run(() =>
+
+        ImageData? PreProcess(bool bHalveRes, CancellationToken oToken=default)
+        {           
+            var oTmpData = SourceData;
+            if (bHalveRes)
             {
-
-                var oTmpData = SourceData;
-                if (bHalveRes)
-                {
-                    oTmpData = new ImageData().Create(ColorTransformBase.HalveHorizontalRes(SourceData.DataX));
-                }
-                var oTmpDataProc = TransformationMap.Transform(oTmpData, oToken);
-                return oTmpDataProc;
-            }, oToken);
+                oTmpData = new ImageData().Create(ColorTransformBase.HalveHorizontalRes(SourceData.DataX));
+            }
+            var oTmpDataProc = TransformationMap.Transform(oTmpData, oToken);
+            return oTmpDataProc;
         }
 
-        async Task<ImageData?> PostProcessAsync(ImageData oPreprocessData, int iMaxColors, bool bDoubleRes, CancellationToken oToken)
+        ImageData? PostProcessAsync(ImageData oPreprocessData, int iMaxColors, bool bDoubleRes, CancellationToken oToken)
         {
-            var oRes = await new ColorTransformReductionFast()
+            var oRes = new ColorTransformReductionFast()
                 .SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors)
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
-                .CreateAndProcess(oPreprocessData, oToken);
+                .CreateAndProcessColors(oPreprocessData, oToken);
 
             BypassDithering = true;
 
@@ -122,7 +117,7 @@ namespace ColourClashNet.Color.Transformation
                     oRealSource = new ImageData().Create( ColorTransformBase.HalveHorizontalRes(SourceData.DataX));
                 }
                 var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength);
-                var oDitheringOut = await oDithering.DitherAsync(oRealSource, oRes.DataOut, ColorDistanceEvaluationMode, oToken);
+                var oDitheringOut = oDithering.Dither(oRealSource, oRes.DataOut, ColorDistanceEvaluationMode, oToken);
                 if (bDoubleRes)
                 {
                     return new ImageData().Create( DoubleHorizontalRes(oDitheringOut.DataX));
@@ -140,60 +135,60 @@ namespace ColourClashNet.Color.Transformation
 
 
 
-        async Task<ImageData?> ToMode0Async( CancellationToken oToken)
+        ImageData? ToMode0( CancellationToken oToken)
         {
             BypassDithering = true;
-            var oTmp1 = await PreProcessAsync( true, oToken);
-            var oTmp2 = await PostProcessAsync(oTmp1, 16, true, oToken);
+            var oTmp1 = PreProcess(true, oToken);
+            var oTmp2 = PostProcessAsync(oTmp1, 16, true, oToken);
             return oTmp2;
         }
-        async Task<ImageData?> ToMode1Async( CancellationToken oToken)
+        ImageData? ToMode1( CancellationToken oToken)
         {
             BypassDithering = true;
-            var oTmp1 = await PreProcessAsync(false, oToken);
-            var oTmp2 = await PostProcessAsync(oTmp1, 4, false, oToken);
-            return oTmp2;
-        }
-
-        async Task<ImageData?> ToMode2Async( CancellationToken oToken)
-        {
-            BypassDithering = true;
-            var oTmp1 = await PreProcessAsync(false, oToken);
-            var oTmp2 = await PostProcessAsync(oTmp1, 2, false, oToken);
+            var oTmp1 = PreProcess(false, oToken);
+            var oTmp2 = PostProcessAsync(oTmp1, 4, false, oToken);
             return oTmp2;
         }
 
-        async Task<ImageData?> ToMode3Async( CancellationToken oToken)
+        ImageData? ToMode2( CancellationToken oToken)
         {
             BypassDithering = true;
-            var oTmp1 = await PreProcessAsync(true, oToken);
-            var oTmp2 = await PostProcessAsync(oTmp1, 4, true, oToken);
+            var oTmp1 = PreProcess(false, oToken);
+            var oTmp2 = PostProcessAsync(oTmp1, 2, false, oToken);
             return oTmp2;
         }
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken oToken)
+        ImageData? ToMode3( CancellationToken oToken)
+        {
+            BypassDithering = true;
+            var oTmp1 = PreProcess(true, oToken);
+            var oTmp2 = PostProcessAsync(oTmp1, 4, true, oToken);
+            return oTmp2;
+        }
+
+        protected override ColorTransformResults ExecuteTransform(CancellationToken oToken)
         {
             ImageData? ret = null;
             switch (VideoMode)
             {
                 case CPCVideoMode.Mode0:
                     {                       
-                        ret= await ToMode0Async(oToken );
+                        ret= ToMode0(oToken );
                     }
                     break;
                 case CPCVideoMode.Mode1:
                     {
-                        ret = await ToMode1Async(oToken);
+                        ret = ToMode1(oToken);
                     }
                     break;
                 case CPCVideoMode.Mode2:
                     {
-                        ret = await ToMode2Async(oToken);
+                        ret = ToMode2(oToken);
                     }
                     break;
                 case CPCVideoMode.Mode3:
                     {
-                        ret = await ToMode3Async(oToken);
+                        ret = ToMode3(oToken);
                     }
                     break;
                 default:

@@ -155,18 +155,19 @@ namespace ColourClashNet.Components
         public bool Create(ImageData oImageData)
             => Create(oImageData?.DataX);
 
-        public async Task PreProcess()
+        public bool PreProcess()
         {
-            await RemoveBkgAndQuantizeAsync(true);
+            RemoveBkgAndQuantize(true);
             InvalidatePreProcess = false;
+            return true;
         }
 
         public void Create(System.Drawing.Image oImage) => Create(ImageToolsGDI.GdiImageToMatrix(oImage as Bitmap));    
 
 
-        async Task<ImageData> RemoveBkgAndQuantizeAsync(bool bRaiseEvent )
+        ImageData RemoveBkgAndQuantize(bool bRaiseEvent )
         {
-            string sMethod = nameof(RemoveBkgAndQuantizeAsync);
+            string sMethod = nameof(RemoveBkgAndQuantize);
             if (DataSourceX == null)
             {
                 LogMan.Error(sClass, sMethod, "No source data");
@@ -178,9 +179,7 @@ namespace ColourClashNet.Components
                 ResetProcessingData();
                 LogMan.Message(sClass, sMethod, "Starting Processing");
                 LogMan.Trace(sClass, sMethod, "Process Identity Transformation");
-                oTrasformSource.Create(DataSourceX);
-
-                await oTrasformSource.ProcessColorsAsync(CancellationToken.None);
+                oTrasformSource.CreateAndProcessColors(DataSourceX);
 
                 CancellationTokenSource cts = new CancellationTokenSource();
 
@@ -189,7 +188,7 @@ namespace ColourClashNet.Components
                     .Create(DataSourceX)
                     .SetProperty(ColorTransformProperties.ColorBackgroundReplacement, Config.BackgroundColorReplacement)
                     .SetProperty(ColorTransformProperties.ColorBackgroundList, Config.BackgroundColorList);                
-                var DataBkgRemovedRes = (await oTrasformBkgRemover.ProcessColorsAsync(cts.Token));
+                var DataBkgRemovedRes = oTrasformBkgRemover.ProcessColors(cts.Token);
                 DataBkgRemoved = DataBkgRemovedRes.DataOut;
                 ImageBkgRemoved = ImageToolsGDI.ImageDataToGdiImage(DataBkgRemoved);
 
@@ -197,7 +196,7 @@ namespace ColourClashNet.Components
                 oTrasformQuantizer
                     .Create(DataBkgRemoved)
                     .SetProperty(ColorTransformProperties.QuantizationMode, Config.ColorQuantizationMode);
-                var DataQuantizedRes = (await oTrasformQuantizer.ProcessColorsAsync(cts.Token));
+                var DataQuantizedRes = oTrasformQuantizer.ProcessColors(cts.Token);
                 DataQuantized = DataQuantizedRes.DataOut;
                 ImageQuantized = ImageToolsGDI.ImageDataToGdiImage(DataQuantized);
 
@@ -228,9 +227,9 @@ namespace ColourClashNet.Components
         }
 
 
-        public async Task<ImageData> ProcessColorsAsync(ColorTransformType eTrasformType)
+        public ImageData ProcessColors(ColorTransformType eTrasformType)
         {
-            string sMethod = nameof(ProcessColorsAsync);
+            string sMethod = nameof(ProcessColors);
             oTrasformProcessing = null;
             try
             {
@@ -348,7 +347,7 @@ namespace ColourClashNet.Components
                 CancellationTokenSource cts = new CancellationTokenSource();
                 oTrasformProcessing.Create(DataQuantized);
                 //oTrasformProcessing.SetDithering(DitherBase.CreateDitherInterface(Config.DitheringAlgorithm, Config.DitheringStrenght));
-                var DataProcessedRes = await oTrasformProcessing.ProcessColorsAsync(cts.Token);
+                var DataProcessedRes = oTrasformProcessing.ProcessColors(cts.Token);
                 DataProcessed = DataProcessedRes.DataOut;
                 ImageProcessed = ImageToolsGDI.ImageDataToGdiImage(DataProcessed);
                 OnProcess?.Invoke(this, new ColorManagerProcessEventArgs
@@ -366,6 +365,9 @@ namespace ColourClashNet.Components
             }
             return DataProcessed;
         }
+
+        public async Task<ImageData> ProcessColorsAsync(ColorTransformType eTrasformType)
+            => await Task.Run(() => ProcessColors(eTrasformType));  
 
     }
 }

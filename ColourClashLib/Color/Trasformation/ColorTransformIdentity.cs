@@ -22,11 +22,9 @@ namespace ColourClashNet.Color.Transformation
         // Not Needed
         // protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken token = default)
+        protected override ColorTransformResults ExecuteTransform(CancellationToken token = default)
         {
-            return await Task.Run(() =>
-            {
-                string sM = nameof(ExecuteTransformAsync);
+              string sM = nameof(ExecuteTransform);
                 try
                 {
                     var res = ColorTransformResults.CreateValidResult(SourceData, new ImageData().Create(SourceData));
@@ -41,7 +39,7 @@ namespace ColourClashNet.Color.Transformation
                         Message = ex.Message
                     };
                 }
-            }, token );
+
         }
     }
 }

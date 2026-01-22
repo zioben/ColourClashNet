@@ -97,7 +97,7 @@ namespace ColourClashNet.Controls
             InitMenu();
             CreateComboBox(cbC64VideoMode, Enum.GetNames(typeof(ColorTransformReductionC64.C64VideoMode)).ToList());
             CreateComboBox(cbCpcVideoMode, Enum.GetNames(typeof(ColorTransformReductionCPC.CPCVideoMode)).ToList());
-            CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformReductionAmiga.EnumAMigaVideoMode)).ToList());
+            CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode)).ToList());
             oBitmapRenderSource.ColorAdded += (s, e) => { BuildBkgPalette(); };
             oBitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };
             oColorManager.OnQuantize += (s, e) => { RefreshData(); };
@@ -369,7 +369,7 @@ namespace ColourClashNet.Controls
             oColorManager.Config.ZxEqColorHI = (int)nudZxColorHI.Value;
             oColorManager.Config.ZxEqBlackHI = chkZxBlackHI.Checked;
             oColorManager.Config.ZxEqDitherHI = chkZxDitherHI.Checked;
-            oColorManager.Config.AmigaScreenMode = (ColorTransformReductionAmiga.EnumAMigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAMigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString());
+            oColorManager.Config.AmigaScreenMode = (ColorTransformReductionAmiga.EnumAmigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString());
         }
 
         private async void btnReduceColors_Click(object sender, EventArgs e)

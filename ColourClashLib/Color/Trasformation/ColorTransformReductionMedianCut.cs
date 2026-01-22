@@ -19,26 +19,18 @@ namespace ColourClashNet.Color.Transformation
         public int ColorsMaxWanted { get; set; } = -1;
         public bool UseColorMean { get; set; } = true;
 
-        public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
+        protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
-            base.SetProperty(eProperty, oValue);
+            base.SetProperty(propertyName, value);
 
-            switch (eProperty)
+            switch (propertyName)
             {
-                case ColorTransformProperties.MaxColorsWanted:
-                    if (int.TryParse(oValue.ToString(), out var l))
-                    {
-                        ColorsMaxWanted = l;
-                        return this;
-                    }
+                case ColorTransformProperties.MaxColorsWanted:                 
+                        ColorsMaxWanted = ToInt(value);
                     break;
                
                 case ColorTransformProperties.UseColorMean:
-                    if (bool.TryParse(oValue?.ToString(), out var cm))
-                    {
-                        UseColorMean = cm;
-                        return this;
-                    }
+                        UseColorMean = ToBool(value);
                     break;
                 default:
                     break;
@@ -168,7 +160,7 @@ namespace ColourClashNet.Color.Transformation
             return ColorTransformResults.CreateValidResult();
         }
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken oToken)
+        protected override ColorTransformResults ExecuteTransform(CancellationToken oToken)
         {
             var ret = TransformationMap.Transform(SourceData, oToken);
             if (ret != null)

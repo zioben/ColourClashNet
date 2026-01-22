@@ -58,7 +58,7 @@ namespace ModuleTester
         }
 
 
-        async Task ProcessAsync(ColorTransformInterface oTrasf)
+        void Process(ColorTransformInterface oTrasf)
         {
             bitmapRender2.Image = null;
             var eDither = ColorDithering.None;
@@ -80,7 +80,7 @@ namespace ModuleTester
                 var cts = new CancellationTokenSource();
                 ProcessingForm.CreateProcessingForm(oTrasf);
                 oTrasf.Create(oImageData);
-                var ret = await oTrasf.ProcessColorsAsync(cts.Token);
+                var ret = oTrasf.ProcessColors(cts.Token);
                 Invoke(() =>
                 {
                     bitmapRender2.Image = ImageToolsGDI.ImageDataToGdiImage(ret.DataOut);
@@ -92,21 +92,21 @@ namespace ModuleTester
         }
 
 
-        async Task TestTransformID()
+        void TestTransformID()
         {
             ColourClashNet.Color.Transformation.ColorTransformIdentity oTrasf = new();
             oTrasf.SetProperty(ColourClashNet.Color.ColorTransformProperties.Dithering_Type, ColorDithering.None);
             oTrasf.SetProperty(ColorTransformProperties.MaxColorsWanted, 16);
-            await ProcessAsync(oTrasf);
+            Process(oTrasf);
         }
-        async Task TestTransformQuantizer()
+        void TestTransformQuantizer()
         {
             ColourClashNet.Color.Transformation.ColorTransformQuantization oTrasf = new();
             oTrasf.SetProperty(ColorTransformProperties.QuantizationMode, ColorQuantizationMode.RGB222);
-            await ProcessAsync(oTrasf);
+            Process(oTrasf);
         }
 
-        async Task TestTransformBkgRemover()
+        void TestTransformBkgRemover()
         {
             ColourClashNet.Color.Transformation.ColorTransformBkgRemover oTrasf = new();
             List<int> oList = new List<int>();
@@ -122,71 +122,71 @@ namespace ModuleTester
             }
             oTrasf.SetProperty(ColorTransformProperties.ColorBackgroundList, oList);
             oTrasf.SetProperty(ColorTransformProperties.ColorBackgroundReplacement, 0);
-            await ProcessAsync(oTrasf);
+            Process(oTrasf);
         }
 
-        async Task TestTransformAmiga()
+        void TestTransformAmiga()
         {
             ColourClashNet.Color.Transformation.ColorTransformReductionAmiga oTrasf = new();
-            oTrasf.SetProperty(ColorTransformProperties.Amiga_VideoMode, ColorTransformReductionAmiga.EnumAMigaVideoMode.Ham6);
-            oTrasf.SetProperty(ColorTransformProperties.Amiga_HamColorReductionMode, ColorTransformReductionAmiga.EnumHamFirstColorReductionMode.Fast);
-            await ProcessAsync(oTrasf);
+            oTrasf.SetProperty(ColorTransformProperties.Amiga_VideoMode, ColorTransformReductionAmiga.EnumAmigaVideoMode.Ham6);
+            oTrasf.SetProperty(ColorTransformProperties.Amiga_HamColorProcessingMode, ColorTransformReductionAmiga.EnumHamColorProcessingMode.Fast);
+            Process(oTrasf);
         }
 
-        async Task TestTransformLumSat()
+        void TestTransformLumSat()
         {
             ColourClashNet.Color.Transformation.ColorTransformLumSat oTrasf = new();
             oTrasf.SetProperty(ColorTransformProperties.HsvBrightnessMultFactor, 2);
             oTrasf.SetProperty(ColorTransformProperties.HsvHueShift, 180);
             oTrasf.SetProperty(ColorTransformProperties.HsvSaturationMultFactor, 2);
-            await ProcessAsync(oTrasf);
+            Process(oTrasf);
         }
 
-        async Task TestTransformC64()
+        void TestTransformC64()
         {
             ColourClashNet.Color.Transformation.ColorTransformReductionC64 oTrasf = new();
             oTrasf.SetProperty(ColorTransformProperties.C64_VideoMode, ColorTransformReductionC64.C64VideoMode.Multicolor);
-            await ProcessAsync(oTrasf);
+            Process(oTrasf);
         }
 
-        async Task TestTransformCluster()
+        void TestTransformCluster()
         {
             ColourClashNet.Color.Transformation.ColorTransformReductionCluster oTrasf = new();
             oTrasf.SetProperty(ColorTransformProperties.ClusterTrainingLoop, 10);
             oTrasf.SetProperty(ColorTransformProperties.UseColorMean, true);
             oTrasf.SetProperty(ColorTransformProperties.MaxColorsWanted, 16);
-            await ProcessAsync(oTrasf);
+            Process(oTrasf);
         }
 
-        async Task TestTransformCPC()
+        void TestTransformCPC()
         {
             ColourClashNet.Color.Transformation.ColorTransformReductionCPC oTrasf = new();
             oTrasf.SetProperty(ColorTransformProperties.CPC_VideoMode, ColorTransformReductionCPC.CPCVideoMode.Mode0);
-            await ProcessAsync(oTrasf);
+            Process(oTrasf);
         }
 
-        async Task TestTransformEGA()
+        void TestTransformEGA()
         {
             ColourClashNet.Color.Transformation.ColorTransformReductionEGA oTrasf = new();
-            await ProcessAsync(oTrasf);
+            Process(oTrasf);
         }
 
-        async Task TestTransformFast()
+        void TestTransformFast()
         {
             ColourClashNet.Color.Transformation.ColorTransformReductionFast oTrasf = new();
             oTrasf.SetProperty(ColorTransformProperties.MaxColorsWanted, 16);
-            await ProcessAsync(oTrasf);
+            Process(oTrasf);
         }
 
-        async Task TestTransformMedianCut()
+        void TestTransformMedianCut()
         {
             ColourClashNet.Color.Transformation.ColorTransformReductionMedianCut oTrasf = new();
             oTrasf.SetProperty(ColorTransformProperties.MaxColorsWanted, 16);
             oTrasf.SetProperty(ColorTransformProperties.UseColorMean, true);
-            await ProcessAsync(oTrasf);
+            Process(oTrasf);
         }
 
-        async Task TestTransformSpectrum()
+        void TestTransformSpectrum()
         {
             bool bAtuotune = true;
             ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrumV2 oTrasf = new();
@@ -204,10 +204,10 @@ namespace ModuleTester
             oTrasf.SetProperty(ColorTransformProperties.Zx_DitherHighColorImage, true);
             oTrasf.SetProperty(ColorTransformProperties.Zx_IncludeBlackInHighColorImage, true);
             oTrasf.SetProperty(ColorTransformProperties.Zx_PaletteMode, ColorTransformReductionZxSpectrumV2.ZxPaletteMode.Both);
-            await ProcessAsync(oTrasf);
+            Process(oTrasf);
         }
 
-        async Task TestTransformPalette()
+        void TestTransformPalette()
         {
             ColourClashNet.Color.Transformation.ColorTransformReductionPalette oTrasf = new();
             List<int> oList = new List<int>();
@@ -216,7 +216,7 @@ namespace ModuleTester
                 oList.Add(ColorIntExt.FromRGB(i, i, i));
             }
             oTrasf.SetProperty(ColorTransformProperties.Fixed_Palette, oList);
-            await ProcessAsync(oTrasf);
+            Process(oTrasf);
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -234,7 +234,7 @@ namespace ModuleTester
             var oTrasf = propertyGrid1.SelectedObject as ColorTransformInterface;
             if (oTrasf != null)
             {
-                await ProcessAsync(oTrasf);
+                Process(oTrasf);
             }
         }
 
@@ -242,47 +242,47 @@ namespace ModuleTester
 
         private async void butID(object sender, EventArgs e)
         {
-            await TestTransformID();
+            TestTransformID();
         }
 
         private async void btnQuantizer_Click(object sender, EventArgs e)
         {
-            await TestTransformQuantizer();
+            TestTransformQuantizer();
         }
 
         private async void btnBkgRem_Click(object sender, EventArgs e)
         {
-            await TestTransformBkgRemover();
+            TestTransformBkgRemover();
         }
 
         private async void btnAmiga_Click(object sender, EventArgs e)
         {
-            await TestTransformAmiga();
+            TestTransformAmiga();
         }
 
         private async void btnLumSat_Click(object sender, EventArgs e)
         {
-            await TestTransformLumSat();
+            TestTransformLumSat();
         }
 
         private async void btnC64_Click(object sender, EventArgs e)
         {
-            await TestTransformC64();
+            TestTransformC64();
         }
 
         private async void btnEGA_Click(object sender, EventArgs e)
         {
-            await TestTransformEGA();
+            TestTransformEGA();
         }
 
         private async void btnAmstrad_Click(object sender, EventArgs e)
         {
-            await TestTransformCPC();
+            TestTransformCPC();
         }
 
         private async void btnSpeccy_Click(object sender, EventArgs e)
         {
-            await TestTransformSpectrum();
+            TestTransformSpectrum();
         }
 
         private void btnCGA_Click(object sender, EventArgs e)
@@ -292,22 +292,22 @@ namespace ModuleTester
 
         private async void btnFast_Click(object sender, EventArgs e)
         {
-            await TestTransformFast();
+            TestTransformFast();
         }
 
         private async void btnMedian_Click(object sender, EventArgs e)
         {
-            await TestTransformMedianCut();
+            TestTransformMedianCut();
         }
 
         private async void btnCluster_Click(object sender, EventArgs e)
         {
-            await TestTransformCluster();
+            TestTransformCluster();
         }
 
         private async void btnPalette_Click(object sender, EventArgs e)
         {
-            await TestTransformPalette();
+            TestTransformPalette();
         }
 
         private void btnLoad_Click(object sender, EventArgs e)

@@ -1,4 +1,8 @@
-﻿using System;
+﻿using ColourClashNet.Color.Dithering;
+using ColourClashNet.Color.Tile;
+using ColourClashNet.Imaging;
+using ColourClashNet.Log;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Design.Serialization;
@@ -9,10 +13,7 @@ using System.Reflection.Emit;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashNet.Color.Dithering;
-using ColourClashNet.Color.Tile;
-using ColourClashNet.Imaging;
-using ColourClashNet.Log;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionAmiga;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -21,7 +22,7 @@ namespace ColourClashNet.Color.Transformation
         static string sClass = nameof(ColorTransformReductionZxSpectrumV2);
 
         public enum ZxPaletteMode
-        { 
+        {
             PaletteLo = 0,
             PaletteHi = 1,
             Both = 2,
@@ -33,7 +34,6 @@ namespace ColourClashNet.Color.Transformation
             Description = "Reduce color to ZX Spectrum color map and apply Colourclash reduction";
         }
 
-
         public int ZxLowColorInSeed { get; set; } = 0x0080;
         public int ZxHighColorInSeed { get; set; } = 0x00FF;
         public ZxPaletteMode PaletteMode { get; set; } = ZxPaletteMode.Both;
@@ -44,57 +44,32 @@ namespace ColourClashNet.Color.Transformation
         public int ZxLowColorOutSeed { get; init; } = 0x00D8;
         public int ZxHighColorOutSeed { get; init; } = 0x00FF;
 
-        public override ColorTransformInterface SetProperty( ColorTransformProperties eProperty, object oValue )
+        protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
-            base.SetProperty(eProperty, oValue);
+            base.SetProperty(propertyName, value);
 
-            switch ( eProperty) 
+            switch (propertyName)
             {
                 case ColorTransformProperties.Zx_ColL_Seed:
-                    if (int.TryParse(oValue.ToString(), out var l))
-                    {
-                        ZxLowColorInSeed = l;
-                    }
+                    ZxLowColorInSeed = ToInt(value);
                     break;
                 case ColorTransformProperties.Zx_ColH_Seed:
-                    if (int.TryParse(oValue.ToString(), out var h))
-                    {
-                        ZxHighColorInSeed = h;
-                    }
+                    ZxHighColorInSeed = ToInt(value);
                     break;
                 case ColorTransformProperties.Zx_DitherLowColorImage:
-                    if (bool.TryParse(oValue?.ToString(), out var bLow))
-                    {
-                        DitherHighColorImage = bLow;
-                    }
+                    DitherHighColorImage = ToBool(value);
                     break;
                 case ColorTransformProperties.Zx_DitherHighColorImage:
-                    if (bool.TryParse(oValue?.ToString(), out var bHigh))
-                    {
-                        DitherHighColorImage = bHigh;    
-                    }
+                    DitherHighColorImage = ToBool(value);
                     break;
                 case ColorTransformProperties.Zx_IncludeBlackInHighColorImage:
-                    if (bool.TryParse(oValue?.ToString(), out var b))
-                    {
-                        IncludeBlackInHighColor = b;
-                    }
+                    IncludeBlackInHighColor = ToBool(value);
                     break;
                 case ColorTransformProperties.Zx_PaletteMode:
-                    {
-                        if (Enum.TryParse<ZxPaletteMode>(oValue?.ToString(), out var eMode))
-                        {
-                            PaletteMode = eMode;
-                        }
-                    }
+                    PaletteMode = ToEnum<ZxPaletteMode>(value);
                     break;
                 case ColorTransformProperties.Zx_Autotune:
-                    {
-                        if (bool.TryParse(oValue?.ToString(), out var bAutotune))
-                        {
-                            AutoTune = bAutotune;
-                        }
-                    }
+                    AutoTune = ToBool(value);
                     break;
                 default:
                     break;
@@ -102,6 +77,7 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
+      
 
         ColorTransformationMap CreateZxMap(int iColIn, int iColOut, bool bUseBlack)
         {
@@ -120,7 +96,7 @@ namespace ColourClashNet.Color.Transformation
             return oMap;
         }
 
-        async Task<TileManager> CreateAndProcessTilesAsync(Palette oPalette, bool bUseDithering, CancellationToken oToken)
+        TileManager CreateAndProcessTiles(Palette oPalette, bool bUseDithering, CancellationToken oToken)
         {
             var oPreProcessing = new ColorTransformReductionPalette()
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
@@ -128,7 +104,7 @@ namespace ColourClashNet.Color.Transformation
                 .SetProperty(ColorTransformProperties.Dithering_Type, bUseDithering ? DitheringType : ColorDithering.None)
                 .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrength)
                 .Create(SourceData);
-            var oPreRes = await oPreProcessing.ProcessColorsAsync(oToken);
+            var oPreRes = oPreProcessing.ProcessColors(oToken);
             var oPreData = oPreRes.DataOut;
             TileManager oTileManager = TileManager.Create(8, 8, 2)
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
@@ -136,9 +112,9 @@ namespace ColourClashNet.Color.Transformation
                 .SetProperty(ColorTransformProperties.Forced_Palette, oPalette)
                 .SetProperty(ColorTransformProperties.Dithering_Type, bUseDithering ? DitheringType : ColorDithering.None)
                 .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrength);
-            var retC = await oTileManager.CreateAsync(oPreData, oToken);
-            var retP = await oTileManager.ProcessColorsAsync(oToken);
-            await oTileManager.EvaluateImageErrorAsync(SourceData,oToken);
+            var retC = oTileManager.Create(oPreData, oToken);
+            var retP = oTileManager.ProcessColors(oToken);
+            oTileManager.EvaluateImageErrorAsync(SourceData, oToken);
             return oTileManager;
         }
 
@@ -159,14 +135,14 @@ namespace ColourClashNet.Color.Transformation
                 {
                     for (int c = 0; c < C1; c++)
                     {
-                        ret[r,c] = tempImage1[r,c];
+                        ret[r, c] = tempImage1[r, c];
                     }
                 }
                 if (r < R2)
                 {
                     for (int c = 0; c < C2; c++)
                     {
-                        ret[r, C1+c] = tempImage2[r, c];
+                        ret[r, C1 + c] = tempImage2[r, c];
                     }
                 }
             }
@@ -187,13 +163,13 @@ namespace ColourClashNet.Color.Transformation
                     {
                         //zxMapHi = CreateZxMap(iColHSeed, iColHSeed, true);
                         zxMap = zxMapHi;
-                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapHi.GetInputPalette(), DitherLowColorImage, oToken));
+                        // lTaskList.Add(CreateAndProcessTiles(zxMapHi.GetInputPalette(), DitherLowColorImage, oToken));
                     }
                     break;
                 case ZxPaletteMode.PaletteLo:
                     {
                         zxMap = zxMapLo;
-                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapLo.GetInputPalette(), DitherHighColorImage, oToken));
+                        // lTaskList.Add(CreateAndProcessTiles(zxMapLo.GetInputPalette(), DitherHighColorImage, oToken));
                     }
                     break;
                 case ZxPaletteMode.Both:
@@ -206,8 +182,8 @@ namespace ColourClashNet.Color.Transformation
                         {
                             zxMap.Add(rgbHI.Key, rgbHI.Value);
                         }
-                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapLo.GetInputPalette(), DitherLowColorImage, oToken));
-                        lTaskList.Add(CreateAndProcessTilesAsync(zxMapHi.GetInputPalette(), DitherHighColorImage, oToken));
+                        //lTaskList.Add(CreateAndProcessTiles(zxMapLo.GetInputPalette(), DitherLowColorImage, oToken));
+                        // lTaskList.Add(CreateAndProcessTiles(zxMapHi.GetInputPalette(), DitherHighColorImage, oToken));
                     }
                     break;
                 default:
@@ -221,7 +197,7 @@ namespace ColourClashNet.Color.Transformation
             // Merge data with best tile approximation
             ImageData oResultData = null;// await TileManager.MergeDataAsync(SourceData, lTM, oToken);
             // Evaluate error on processed image
-            var dError = await ColorIntExt.EvaluateErrorAsync(SourceData, oResultData, ColorDistanceEvaluationMode, oToken);
+            var dError = ColorIntExt.EvaluateError(SourceData, oResultData, ColorDistanceEvaluationMode, oToken);
 
             var oRestltDataMapped = zxMap.Transform(oResultData, oToken);
             if (lTM.Count == 1)
@@ -234,106 +210,109 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
+
+
         object locker = new object();
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken oToken)
+        protected override ColorTransformResults ExecuteTransform(CancellationToken oToken)
         {
-            string sMethod = nameof(ExecuteTransformAsync);
+            string sMethod = nameof(ExecuteTransform);
 
             BypassDithering = true;
 
-            if (!AutoTune)
-            {
-                var oTuple = await ExecuteTransformZxAsync(ZxLowColorInSeed, ZxHighColorInSeed, oToken);
-                TransformationError = oTuple.Item2;
-                return ColorTransformResults.CreateValidResult(SourceData, null);// oTuple.Item1);
-            }
+            return ColorTransformResults.CreateErrorResult("Autotuning not implemented in V2");
+            //if (!AutoTune)
+            //{
+            //    var oTuple = ExecuteTransformZxAsync(ZxLowColorInSeed, ZxHighColorInSeed, oToken);
+            //    TransformationError = oTuple.Item2;
+            //    return ColorTransformResults.CreateValidResult(SourceData, null);// oTuple.Item1);
+            //}
 
-            // Processing Color Range - [LBest, HBest]
-            int LBest = ZxLowColorInSeed;
-            int HBest = ZxHighColorInSeed;
-            var oBest = await ExecuteTransformZxAsync(LBest, HBest, oToken);
-            var dMinError = oBest.Item2;
-            var dError = double.PositiveInfinity;
-            int iStep = 0;
-            bool bExit = false;
-            int[,] tempImage = MergeTempImage(oBest.Item1, oBest.Item1);
-            RaiseProcessPartialEvent(new ColorProcessingEventArgs()
-            {
-                ColorTransformInterface = this,
-                CompletedPercent = 0,
-               // TempImage = tempImage,
-               // Message = "First Tuning",
-            });
-            while (!bExit)// (iL + 1) <= iH && dError <= dMinError)
-            {
-                var iL = LBest + 8;
-                var iH = HBest - 8;
-                List<Task<Tuple<int[,]?, double, TileManager, TileManager>>> tasklist = new();
-                // Evaluate increasing low values; 
-                tasklist.Add(Task.Run(async () => await ExecuteTransformZxAsync(iL, HBest, oToken)));
-                // Evaluate decreasing high values
-                tasklist.Add(Task.Run(async () => await ExecuteTransformZxAsync(LBest, iH, oToken)));
-                await Task.WhenAll(tasklist);
-                var oResultL = tasklist[0].Result;
-                var oResultH = tasklist[1].Result;
+            //// Processing Color Range - [LBest, HBest]
+            //int LBest = ZxLowColorInSeed;
+            //int HBest = ZxHighColorInSeed;
+            //var oBest = ExecuteTransformZxAsync(LBest, HBest, oToken);
+            //var dMinError = oBest.Item2;
+            //var dError = double.PositiveInfinity;
+            //int iStep = 0;
+            //bool bExit = false;
+            //int[,] tempImage = MergeTempImage(oBest.Item1, oBest.Item1);
+            //RaiseProcessPartialEvent(new ColorProcessingEventArgs()
+            //{
+            //    ColorTransformInterface = this,
+            //    CompletedPercent = 0,
+            //   // TempImage = tempImage,
+            //   // Message = "First Tuning",
+            //});
+            //while (!bExit)// (iL + 1) <= iH && dError <= dMinError)
+            //{
+            //    var iL = LBest + 8;
+            //    var iH = HBest - 8;
+            //    List<Task<Tuple<int[,]?, double, TileManager, TileManager>>> tasklist = new();
+            //    // Evaluate increasing low values; 
+            //    tasklist.Add(Task.Run(() => ExecuteTransformZxAsync(iL, HBest, oToken)));
+            //    // Evaluate decreasing high values
+            //    tasklist.Add(Task.Run(()=> ExecuteTransformZxAsync(LBest, iH, oToken)));
+            //    Task.WhenAll(tasklist);
+            //    var oResultL = tasklist[0].Result;
+            //    var oResultH = tasklist[1].Result;
 
-                // Create Temp image with both preprocess images
-                tempImage = MergeTempImage(oResultL.Item1, oResultH.Item1);
-                RaiseProcessPartialEvent(new ColorProcessingEventArgs()
-                {
-                    ColorTransformInterface = this,
-                    CompletedPercent = 100.0 * (++iStep) * 8.0 / 256.0,
-                    //Message = $"Step {iStep} : Autotuning between [{iL},{HBest}] - [{LBest},{iH}]",
-                    //TempImage = tempImage,
-                    //ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, tasklist[0].Result.Item1)
-                });
-                var dErrL = oResultL.Item2;
-                var dErrH = oResultH.Item2;
-                LogMan.Warning(sClass, sMethod, $"------------------------------------");
-                LogMan.Warning(sClass, sMethod, $"Ref   error = {dMinError:f1} [{LBest} - {HBest}]");
-                LogMan.Warning(sClass, sMethod, $"L-Err error = {dErrL:f1} [{iL} - {HBest}]");
-                LogMan.Warning(sClass, sMethod, $"H-Err error = {dErrH:f1} [{LBest} - {iH}]");
-                if (dErrL < dErrH)
-                {
-                    HBest = iH;
-                    if (dErrL < dMinError)
-                    {
-                        ZxHighColorInSeed = iH;
-                        oBest = oResultH;
-                    }
-                }
-                else
-                {
-                    LBest = iL;
-                    if (dErrH < dMinError)
-                    {
-                        ZxLowColorInSeed = iL;
-                        oBest = oResultL;
-                    }
-                }
-                dError = Math.Min(dErrL, dErrH);
-                if (iH < iL)
-                    bExit = true;
-                if (dError > dMinError)
-                    bExit = true;
-                else
-                {
-                    dMinError = dError;
-                }
-            }
+            //    // Create Temp image with both preprocess images
+            //    tempImage = MergeTempImage(oResultL.Item1, oResultH.Item1);
+            //    RaiseProcessPartialEvent(new ColorProcessingEventArgs()
+            //    {
+            //        ColorTransformInterface = this,
+            //        CompletedPercent = 100.0 * (++iStep) * 8.0 / 256.0,
+            //        //Message = $"Step {iStep} : Autotuning between [{iL},{HBest}] - [{LBest},{iH}]",
+            //        //TempImage = tempImage,
+            //        //ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, tasklist[0].Result.Item1)
+            //    });
+            //    var dErrL = oResultL.Item2;
+            //    var dErrH = oResultH.Item2;
+            //    LogMan.Warning(sClass, sMethod, $"------------------------------------");
+            //    LogMan.Warning(sClass, sMethod, $"Ref   error = {dMinError:f1} [{LBest} - {HBest}]");
+            //    LogMan.Warning(sClass, sMethod, $"L-Err error = {dErrL:f1} [{iL} - {HBest}]");
+            //    LogMan.Warning(sClass, sMethod, $"H-Err error = {dErrH:f1} [{LBest} - {iH}]");
+            //    if (dErrL < dErrH)
+            //    {
+            //        HBest = iH;
+            //        if (dErrL < dMinError)
+            //        {
+            //            ZxHighColorInSeed = iH;
+            //            oBest = oResultH;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        LBest = iL;
+            //        if (dErrH < dMinError)
+            //        {
+            //            ZxLowColorInSeed = iL;
+            //            oBest = oResultL;
+            //        }
+            //    }
+            //    dError = Math.Min(dErrL, dErrH);
+            //    if (iH < iL)
+            //        bExit = true;
+            //    if (dError > dMinError)
+            //        bExit = true;
+            //    else
+            //    {
+            //        dMinError = dError;
+            //    }
+            // }
 
-            TransformationMap.Reset();
-            BypassDithering = true;
-            var oFinalData = oBest.Item1;
-            if (oFinalData != null)
-            {
-                return ColorTransformResults.CreateValidResult(SourceData, null);// oFinalData);
-            }
-            else
-            {
-                return ColorTransformResults.CreateErrorResult("Error creating final data");
-            }
+            //TransformationMap.Reset();
+            //BypassDithering = true;
+            //var oFinalData = oBest.Item1;
+            //if (oFinalData != null)
+            //{
+            //    return ColorTransformResults.CreateValidResult(SourceData, null);// oFinalData);
+            //}
+            //else
+            //{
+            //    return ColorTransformResults.CreateErrorResult("Error creating final data");
+            //}
         }
 
 

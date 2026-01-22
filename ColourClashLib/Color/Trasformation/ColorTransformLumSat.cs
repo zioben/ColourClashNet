@@ -24,7 +24,7 @@ namespace ColourClashNet.Color.Transformation
         public double BrightnessMultFactor { get; set; } = 1.0;
 
 
-        public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
+        protected override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
         {
             base.SetProperty(eProperty, oValue);
             switch (eProperty)
@@ -47,11 +47,10 @@ namespace ColourClashNet.Color.Transformation
         // Not Needed
         //protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken token = default)
+        protected override ColorTransformResults ExecuteTransform(CancellationToken token = default)
         {
-            return await Task.Run(() =>
-            {
-                string sM = nameof(ExecuteTransformAsync);
+           
+                string sM = nameof(ExecuteTransform);
 
                 var oProcessed = new int[SourceData.Rows, SourceData.Columns];
                 BypassDithering = true;
@@ -73,7 +72,7 @@ namespace ColourClashNet.Color.Transformation
                 });
 
                 return ColorTransformResults.CreateValidResult(SourceData, new ImageData().Create(oProcessed));
-            }, token);
+            
         }
     }
 }

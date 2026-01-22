@@ -130,66 +130,64 @@ public partial class TileManager
 
 
 
-    public async Task<TileManager> CreateAsync(ImageData oDataSource, CancellationToken oToken)
+    public TileManager Create(ImageData oDataSource, CancellationToken oToken)
     {
-        return await Task.Run(() =>
+
+        string sM = nameof(Create);
+        if (oDataSource == null)
         {
-            string sM = nameof(CreateAsync);
-            if (oDataSource == null)
-            {
-                LogMan.Error(sC, sM, "Source data is null");
-                return this;
-            }
-            if (TileW <= 0 || TileH <= 0 || MaxColorsWanted <= 0)
-            {
-                LogMan.Error(sC, sM, "Tile dimensions or max colors wanted are invalid");
-                return this;
-            }
-            SourceData = new ImageData().Create(oDataSource);
-            if (SourceData == null)
-            {
-                LogMan.Error(sC, sM, "Failed to copy source data");
-                return this;
-            }
-            if (ColorPalette == null)
-                ColorPalette = new();
-            if (ForcedColorPalette == null)
-                ForcedColorPalette = new();
-
-            TileRR = (SourceData.Rows + TileH - 1) / TileH;
-            TileCC = (SourceData.Columns + TileW - 1) / TileW;
-            TileData = new TileItem[TileRR, TileCC];
-
-            Parallel.For(0, TileRR, r =>
-            {
-                for (int c = 0; c < TileCC; c++)
-                {
-                    oToken.ThrowIfCancellationRequested();
-                    int rr = r;
-                    int cc = c;
-                    TileData[rr, cc] = new TileItem()
-                    {
-                        TileW = TileW,
-                        TileH = TileH
-                    };
-                    TileData[rr, cc]
-                     .Create(oDataSource, rr * TileH, cc * TileW)
-                     .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
-                     .SetProperty(ColorTransformProperties.Fixed_Palette, ForcedColorPalette)
-                     .SetProperty(ColorTransformProperties.MaxColorsWanted, MaxColorsWanted)
-                     .SetProperty(ColorTransformProperties.UseColorMean, false)
-                     .SetProperty(ColorTransformProperties.ClusterTrainingLoop, 10)
-                     .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
-                     .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
-                }
-            });
+            LogMan.Error(sC, sM, "Source data is null");
             return this;
+        }
+        if (TileW <= 0 || TileH <= 0 || MaxColorsWanted <= 0)
+        {
+            LogMan.Error(sC, sM, "Tile dimensions or max colors wanted are invalid");
+            return this;
+        }
+        SourceData = new ImageData().Create(oDataSource);
+        if (SourceData == null)
+        {
+            LogMan.Error(sC, sM, "Failed to copy source data");
+            return this;
+        }
+        if (ColorPalette == null)
+            ColorPalette = new();
+        if (ForcedColorPalette == null)
+            ForcedColorPalette = new();
+
+        TileRR = (SourceData.Rows + TileH - 1) / TileH;
+        TileCC = (SourceData.Columns + TileW - 1) / TileW;
+        TileData = new TileItem[TileRR, TileCC];
+
+        Parallel.For(0, TileRR, r =>
+        {
+            for (int c = 0; c < TileCC; c++)
+            {
+                oToken.ThrowIfCancellationRequested();
+                int rr = r;
+                int cc = c;
+                TileData[rr, cc] = new TileItem()
+                {
+                    TileW = TileW,
+                    TileH = TileH
+                };
+                TileData[rr, cc]
+                 .Create(oDataSource, rr * TileH, cc * TileW)
+                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
+                 .SetProperty(ColorTransformProperties.Fixed_Palette, ForcedColorPalette)
+                 .SetProperty(ColorTransformProperties.MaxColorsWanted, MaxColorsWanted)
+                 .SetProperty(ColorTransformProperties.UseColorMean, false)
+                 .SetProperty(ColorTransformProperties.ClusterTrainingLoop, 10)
+                 .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
+                 .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
+            }
         });
+        return this;
     }
 
 
 
-    public async Task<bool> ProcessColorsAsync(CancellationToken oToken)
+    public bool ProcessColors(CancellationToken oToken)
     {
         TransformationError = double.NaN;
 
@@ -212,11 +210,11 @@ public partial class TileManager
         for (int r = 0; r < RT; r++)
         {
             oToken.ThrowIfCancellationRequested();
-            await Parallel.ForAsync(0, CT, new ParallelOptions() { MaxDegreeOfParallelism = 1 }, async (c, oToken) =>
+            Parallel.For(0, CT, c=>  //new ParallelOptions() { MaxDegreeOfParallelism = 1 }, c =>
             {
                 int rr = r;
                 int cc = c;
-                await TileData[rr, cc].ProcessColorsAsync(oToken);
+                TileData[rr, cc].ProcessColors(oToken);
             });
         }
 
@@ -246,7 +244,7 @@ public partial class TileManager
         return TransformationError;
     }
 
-    public async Task<double> EvaluateImageErrorAsync(ImageData oDataReference, CancellationToken? oToken)
+    public double EvaluateImageErrorAsync(ImageData oDataReference, CancellationToken oToken)
     {
         TransformationError = double.NaN;
         if (TileData == null || oDataReference == null)
@@ -257,14 +255,14 @@ public partial class TileManager
         int CT = TileData.GetLength(1);
         // Merge Data
         var tasks = new List<Task<double>>();
-        await Parallel.ForAsync(0, RT, async (r, oToken) =>
+        Parallel.For(0, RT, r =>
         {
             int row = r * TileH;
             for (int c = 0; c < CT; c++)
             {
                 int col = c * TileW;
                 var oTileRefData = TileItem.CreateTileData(oDataReference, row, col, TileW, TileH);
-                await TileData[r, c].RecalcTransformationErrorAsync(oTileRefData, oToken);
+                TileData[r, c].RecalcTransformationError(oTileRefData, oToken);
             }
         });
         return RecalcTransformationError();

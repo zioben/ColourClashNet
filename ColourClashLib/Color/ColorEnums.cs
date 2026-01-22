@@ -129,7 +129,7 @@ namespace ColourClashNet.Color
         ClusterTrainingLoop,
         CPC_VideoMode,
         Amiga_VideoMode,
-        Amiga_HamColorReductionMode,
+        Amiga_HamColorProcessingMode,
         UseColorMean,
         UseFixedPalette,
         UseSharedPalette,

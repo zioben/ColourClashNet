@@ -25,7 +25,7 @@ namespace ColourClashNet.Color.Transformation
 
 
 
-        public override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
             base.SetProperty(propertyName, value);
             switch (propertyName)
@@ -33,10 +33,12 @@ namespace ColourClashNet.Color.Transformation
                 case ColorTransformProperties.ColorBackgroundList:
                     {
                         BackgroundPalette = new Palette();
-                        if (value is IEnumerable<int> list)
-                            BackgroundPalette = Palette.CreatePalette(list);
-                        else if (value is Palette palette)
-                            BackgroundPalette = Palette.CreatePalette(palette);
+                        if (value is IEnumerable<int> palette1)
+                            BackgroundPalette = Palette.CreatePalette(palette1);
+                        else if (value is IEnumerable<int> palette2)
+                            BackgroundPalette = Palette.CreatePalette(palette2);
+                        else if (value is Palette palette3)
+                            BackgroundPalette = Palette.CreatePalette(palette3);
                         else
                             throw new ArgumentException($"Invalid value type for {propertyName}: {value.GetType().Name}");
                     }
@@ -55,10 +57,9 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken token = default)
+        protected override ColorTransformResults ExecuteTransform(CancellationToken token = default)
         {
-            return await Task.Run(() =>
-            {
+           
                 string sM = nameof(CreateTransformationMap);
                 LogMan.Trace(sC, sM, $"{Type} : Creating trasformation map");
 
@@ -75,7 +76,6 @@ namespace ColourClashNet.Color.Transformation
                     TransformationMap.Add(rgb, ColorBackgroundReplacement);
                 }
                 return ColorTransformResults.CreateValidResult();
-            }, token);
         }
     }
 }

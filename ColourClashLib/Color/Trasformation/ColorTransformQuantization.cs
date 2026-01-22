@@ -23,17 +23,13 @@ namespace ColourClashNet.Color.Transformation
 
         public ColorQuantizationMode QuantizationMode { get; set; }
 
-        public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
+        protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
-            base.SetProperty(eProperty, oValue);
-            switch (eProperty)
+            base.SetProperty(propertyName, value);
+            switch (propertyName)
             {
                 case ColorTransformProperties.QuantizationMode:
-                    if (Enum.TryParse<ColorQuantizationMode>(oValue?.ToString(), out var evm))
-                    {
-                        QuantizationMode = evm;
-                        return this;
-                    }
+                        QuantizationMode = ToEnum<ColorQuantizationMode>(value);
                     break;
                 default:
                     break;

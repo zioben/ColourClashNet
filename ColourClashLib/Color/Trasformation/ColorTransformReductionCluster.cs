@@ -10,6 +10,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionC64;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -27,31 +28,19 @@ namespace ColourClashNet.Color.Transformation
             Description = "Reduces color bit spectrum";
         }
 
-        public override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
+        protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
-            base.SetProperty(eProperty, oValue);
-            switch (eProperty)
+            base.SetProperty(propertyName, value);
+            switch (propertyName)
             {
                 case ColorTransformProperties.MaxColorsWanted:
-                    if (int.TryParse(oValue.ToString(), out var l))
-                    {
-                        MaxColorsWanted = l;
-                        return this;
-                    }
+                        MaxColorsWanted = ToInt(value);
                     break;
                 case ColorTransformProperties.ClusterTrainingLoop:
-                    if (int.TryParse(oValue?.ToString(), out var d))
-                    {
-                        TrainingLoop = d;
-                        return this;
-                    }
+                        TrainingLoop = ToInt(value);
                     break;
                 case ColorTransformProperties.UseColorMean:
-                    if (bool.TryParse(oValue.ToString(), out var h))
-                    {
-                        UseClusterColorMean = h;
-                        return this;
-                    }
+                        UseClusterColorMean = ToBool(value);
                     break;
                 default:
                     break;
@@ -59,6 +48,7 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
+     
 
         ColorTransformationMap CreateTransformationMap( Histogram oTempHistogram, List<Tuple<List<int>, Dictionary<int, int>>> lTupleColorCluster)
         {
@@ -173,17 +163,15 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken token = default)
+        protected override ColorTransformResults ExecuteTransform(CancellationToken token = default)
         {
-            return await Task.Run(() =>
-            {
+            
                 var ret = TransformationMap.Transform(SourceData, token);
                 if (ret != null)
                 {
                     return ColorTransformResults.CreateValidResult(SourceData, ret);
                 }
                 return new();
-            }, token);
         }
     }
 }

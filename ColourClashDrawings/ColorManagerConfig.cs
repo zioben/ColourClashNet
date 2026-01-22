@@ -59,7 +59,7 @@ namespace ColourClashNet.Drawing
         public int ZxEqColorHI { get; set; } = 0xFF;
         public bool ZxEqBlackHI { get; set; } = true;
         public bool ZxEqDitherHI { get; set; } = true;
-        public ColorTransformReductionAmiga.EnumAMigaVideoMode AmigaScreenMode { get; set; } = ColorTransformReductionAmiga.EnumAMigaVideoMode.Ham6;
+        public ColorTransformReductionAmiga.EnumAmigaVideoMode AmigaScreenMode { get; set; } = ColorTransformReductionAmiga.EnumAmigaVideoMode.Ham6;
         public ColorTransformReductionC64.C64VideoMode C64ScreenMode { get; set; } = ColorTransformReductionC64.C64VideoMode.Multicolor;
         public ColorTransformReductionCPC.CPCVideoMode CPCScreenMode { get; set; } = ColorTransformReductionCPC.CPCVideoMode.Mode0;
 
@@ -67,7 +67,7 @@ namespace ColourClashNet.Drawing
         {
             oTrasf
                 .SetProperty(ColorTransformProperties.ColorBackgroundList, BackgroundColorList)
-                .SetProperty(ColorTransformProperties.Amiga_HamColorReductionMode, ColorTransformReductionAmiga.EnumHamFirstColorReductionMode.Fast)
+                .SetProperty(ColorTransformProperties.Amiga_HamColorProcessingMode, ColorTransformReductionAmiga.EnumHamColorProcessingMode.Fast)
                 .SetProperty(ColorTransformProperties.Amiga_VideoMode, AmigaScreenMode)
                 .SetProperty(ColorTransformProperties.C64_VideoMode, C64ScreenMode)
                 .SetProperty(ColorTransformProperties.ClusterTrainingLoop, ClusteringTrainingLoop)

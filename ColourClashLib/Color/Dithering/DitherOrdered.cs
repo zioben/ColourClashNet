@@ -103,12 +103,10 @@ namespace ColourClashNet.Color.Dithering
             return true;
         }
 
-        //public override async Task<int[,]?> DitherAsync(int[,]? oDataOriginal, int[,]? oDataProcessed, Palette? oDataProcessedPalette, ColorDistanceEvaluationMode eDistanceMode, CancellationToken? oToken)
-        public override async Task<ImageData?> DitherAsync(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token=default)
+         public override ImageData? Dither(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token=default)
         {
-            return await Task.Run(() =>
-            {
-                string sM = nameof(DitherAsync);
+           
+                string sM = nameof(Dither);
                 try
                 {
                     if (!imageReference?.Valid ?? true)
@@ -165,7 +163,6 @@ namespace ColourClashNet.Color.Dithering
                     LogMan.Exception(sC, sM, $"{Type}", ex);
                     return null;
                 }
-            });
         }
     }
 }
