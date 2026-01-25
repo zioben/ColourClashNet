@@ -109,12 +109,12 @@ namespace ColourClashNet.Color.Dithering
                 string sM = nameof(Dither);
                 try
                 {
-                    if (!imageReference?.Valid ?? true)
+                    if (!imageReference?.IsValid ?? true)
                     {
                         LogMan.Error(sC, sM, $"{Type} : Invalid reference data");
                         return null;
                     }
-                    if (!imageProcessed?.Valid ?? true)
+                    if (!imageProcessed?.IsValid ?? true)
                     {
                         LogMan.Error(sC, sM, $"{Type} : Invalid reduced data");
                         return null;
@@ -125,8 +125,8 @@ namespace ColourClashNet.Color.Dithering
                         return null;
                     }
 
-                    var oDataOriginal = imageReference.DataX;
-                    var oDataProcessed = imageProcessed.DataX;
+                    var oDataOriginal = imageReference.matrix;
+                    var oDataProcessed = imageProcessed.matrix;
                     var oDataProcessedPalette = imageProcessed.ColorPalette;
                     if (!Create())
                     {

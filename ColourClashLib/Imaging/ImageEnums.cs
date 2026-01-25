@@ -22,11 +22,17 @@ namespace ColourClashNet.Imaging
         CbmAmigaRawBitplaneInterleavedCopperlist,
     }
 
-    public enum ImageWidthAlignMode
+    public enum WidthAlignMode
     {
-        None = 0,
-        MultiplePixel16 = 16,
-        MultiplePixel32 = 32,
-        MultiplePixel64 = 64
+        Multiple001 = 1,
+        Multiple002 = 2,
+        Multiple004 = 4,
+        Multiple008 = 8,
+        Multiple016 = 16,
+        Multiple032 = 32,
+        Multiple064 = 64,
+        Multiple128 = 128,
+        Multiple256 = 256,
     }
+
 }

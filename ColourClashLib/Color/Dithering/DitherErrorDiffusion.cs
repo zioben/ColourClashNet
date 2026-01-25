@@ -64,12 +64,12 @@ public abstract class DitherErrorDiffusion : DitherBase
         try
         {
 
-            if (imageReference == null || !imageReference.Valid)
+            if ( !imageReference?.IsValid ?? true )
             {
                 LogMan.Error(sC, sM, $"{Type} : Invalid reference data");
                 return null;
             }
-            if (imageProcessed == null || !imageProcessed.Valid)
+            if ( !imageProcessed?.IsValid ?? true )
             {
                 LogMan.Error(sC, sM, $"{Type} : Invalid reduced data");
                 return null;
@@ -80,8 +80,8 @@ public abstract class DitherErrorDiffusion : DitherBase
                 return null;
             }
 
-            var oDataOriginal = imageReference.DataX;
-            var oDataProcessed = imageProcessed.DataX;
+            var oDataOriginal = imageReference.matrix;
+            var oDataProcessed = imageProcessed.matrix;
             var oDataProcessedPalette = imageProcessed.ColorPalette;
 
             LogMan.Trace(sC, sM, $"{Type} : Dithering");

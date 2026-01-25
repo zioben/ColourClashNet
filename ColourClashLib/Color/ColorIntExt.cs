@@ -412,7 +412,7 @@ namespace ColourClashNet.Color
         static public double EvaluateError(ImageData imageA, ImageData imageB, ColorDistanceEvaluationMode evalMode, CancellationToken token = default)
         {
 
-            if (imageA == null || imageB == null || !imageA.Valid || !imageA.Valid)
+            if ( (!imageA?.IsValid ?? true) || (!imageB?.IsValid ?? true) )
             {
                 return double.NaN;
             }
@@ -427,8 +427,8 @@ namespace ColourClashNet.Color
                 token.ThrowIfCancellationRequested();
                 for (int c = 0; c < imageA.Columns; c++)
                 {
-                    var rgb1 = imageA.DataX[r, c];
-                    var rgb2 = imageB.DataX[r, c];
+                    var rgb1 = imageA.matrix[r, c];
+                    var rgb2 = imageB.matrix[r, c];
                     if (rgb1.IsColor() && rgb2.IsColor())
                     {
                         err += ColorIntExt.Distance(rgb1, rgb2, evalMode);

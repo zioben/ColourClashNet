@@ -24,7 +24,7 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Gets a value indicating whether the collection contains one or more elements.
         /// </summary>
-        public bool Valid => Count > 0;
+        public bool IsValid => Count > 0;
 
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace ColourClashNet.Color
         /// implementation of the underlying Create method.</param>
         /// <returns>A Palette instance generated from the provided image data.</returns>
         public Palette Create(ImageData oImageData)
-            => Create(oImageData?.DataX);
+            => Create(oImageData?.matrix);
 
         /// <summary>
         /// Creates a new palette from the specified palette

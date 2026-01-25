@@ -9,6 +9,7 @@ using System.ComponentModel.Design.Serialization;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection.Emit;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -34,6 +35,20 @@ namespace ColourClashNet.Color.Transformation
             Description = "Reduce color to ZX Spectrum color map and apply Colourclash reduction";
         }
 
+        ColorTransformType processingType { get; } = ColorTransformType.ColorReductionGenericPalette;
+        Dictionary<ColorTransformProperties, object> CreateProcessingParams( Palette palette, ColorDithering ditheringType )
+        {
+            var dict = new Dictionary<ColorTransformProperties, object>();
+            dict[ColorTransformProperties.ColorDistanceEvaluationMode] = ColorDistanceEvaluationMode;
+            dict[ColorTransformProperties.Fixed_Palette] = palette;
+            dict[ColorTransformProperties.Forced_Palette] = palette;
+            dict[ColorTransformProperties.Dithering_Type] = ditheringType;
+            dict[ColorTransformProperties.Dithering_Strength] = DitheringStrength;
+            dict[ColorTransformProperties.MaxColorsWanted] = 2;
+            return dict;
+        }
+
+
         public int ZxLowColorInSeed { get; set; } = 0x0080;
         public int ZxHighColorInSeed { get; set; } = 0x00FF;
         public ZxPaletteMode PaletteMode { get; set; } = ZxPaletteMode.Both;
@@ -44,7 +59,7 @@ namespace ColourClashNet.Color.Transformation
         public int ZxLowColorOutSeed { get; init; } = 0x00D8;
         public int ZxHighColorOutSeed { get; init; } = 0x00FF;
 
-        protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
             base.SetProperty(propertyName, value);
 
@@ -96,25 +111,22 @@ namespace ColourClashNet.Color.Transformation
             return oMap;
         }
 
-        TileManager CreateAndProcessTiles(Palette oPalette, bool bUseDithering, CancellationToken oToken)
+        TileManager CreateAndProcessTiles(Palette oPalette, bool bUseDithering, CancellationToken token = default)
         {
+            var dithering = bUseDithering ? DitheringType : ColorDithering.None;
+
             var oPreProcessing = new ColorTransformReductionPalette()
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
                 .SetProperty(ColorTransformProperties.Fixed_Palette, oPalette)
-                .SetProperty(ColorTransformProperties.Dithering_Type, bUseDithering ? DitheringType : ColorDithering.None)
+                .SetProperty(ColorTransformProperties.Dithering_Type, dithering )
                 .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrength)
                 .Create(SourceData);
-            var oPreRes = oPreProcessing.ProcessColors(oToken);
+            var oPreRes = oPreProcessing.ProcessColors(token);
             var oPreData = oPreRes.DataOut;
-            TileManager oTileManager = TileManager.Create(8, 8, 2)
-                .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
-                .SetProperty(ColorTransformProperties.Fixed_Palette, oPalette)
-                .SetProperty(ColorTransformProperties.Forced_Palette, oPalette)
-                .SetProperty(ColorTransformProperties.Dithering_Type, bUseDithering ? DitheringType : ColorDithering.None)
-                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrength);
-            var retC = oTileManager.Create(oPreData, oToken);
-            var retP = oTileManager.ProcessColors(oToken);
-            oTileManager.EvaluateImageErrorAsync(SourceData, oToken);
+
+            TileManager oTileManager = TileManager.CreateTileManager(8, 8, oPreData, processingType, CreateProcessingParams(oPalette, dithering), token);
+            var tileProcRes = oTileManager.ProcessColors(token);
+            oTileManager.RecalcGlobalTransformationError(SourceData, token);
             return oTileManager;
         }
 
@@ -202,11 +214,11 @@ namespace ColourClashNet.Color.Transformation
             var oRestltDataMapped = zxMap.Transform(oResultData, oToken);
             if (lTM.Count == 1)
             {
-                return new Tuple<int[,]?, double, TileManager, TileManager>(oRestltDataMapped.DataX, dError, lTaskList[0].Result, null);
+                return new Tuple<int[,]?, double, TileManager, TileManager>(oRestltDataMapped.matrix, dError, lTaskList[0].Result, null);
             }
             else
             {
-                return new Tuple<int[,]?, double, TileManager, TileManager>(oRestltDataMapped.DataX, dError, lTaskList[0].Result, lTaskList[1].Result);
+                return new Tuple<int[,]?, double, TileManager, TileManager>(oRestltDataMapped.matrix, dError, lTaskList[0].Result, lTaskList[1].Result);
             }
         }
 

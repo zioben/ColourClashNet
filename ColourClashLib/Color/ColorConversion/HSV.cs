@@ -28,7 +28,7 @@ namespace ColourClashNet.Color
         /// </summary>
         public float V { get; set; }
 
-        public bool Valid => H >= 0 && S >= 0 && V >= 0;
+        public bool IsValid => H >= 0 && S >= 0 && V >= 0;
 
 
         public HSV(float h, float s, float v)
@@ -86,7 +86,7 @@ namespace ColourClashNet.Color
                 S = -1;
                 V = -1;               
             }
-            return Valid;
+            return IsValid;
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace ColourClashNet.Color
         /// </summary>
         public static double Distance(HSV hsvA, HSV hsvB)
         {
-            if (!hsvA.Valid || !hsvB.Valid)
+            if (!hsvA.IsValid || !hsvB.IsValid)
                 return double.NaN;
             double dh = Math.Min(Math.Abs(hsvA.H - hsvB.H), 360 - Math.Abs(hsvA.H - hsvB.H));
             double ds = hsvA.S - hsvB.S;

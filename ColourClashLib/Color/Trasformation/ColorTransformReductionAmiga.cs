@@ -42,7 +42,7 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
             base.SetProperty(propertyName, value);
             switch (propertyName)
@@ -82,13 +82,13 @@ namespace ColourClashNet.Color.Transformation
                 {
                     if (iRgbPrev < 0)
                     {
-                        iRgbPrev = oDataPreProcessed.DataX[r, c];
+                        iRgbPrev = oDataPreProcessed.matrix[r, c];
                         oHamData[r, c] = iRgbPrev;
                         continue;
                     }
                     else
                     {
-                        int iRgbSrc = oQuantization.QuantizeColor( oDataSource.DataX[r, c] );
+                        int iRgbSrc = oQuantization.QuantizeColor( oDataSource.matrix[r, c] );
                         if (iRgbSrc < 0)
                         {
                             iRgbPrev = ColorDefaults.DefaultInvalidColorInt;
@@ -101,7 +101,7 @@ namespace ColourClashNet.Color.Transformation
                         int sR = iRgbSrc.ToR();
                         int sG = iRgbSrc.ToG();
                         int sB = iRgbSrc.ToB();
-                        int iHamO = oQuantization.QuantizeColor( oDataPreProcessed.DataX[r,c] );
+                        int iHamO = oQuantization.QuantizeColor( oDataPreProcessed.matrix[r,c] );
                         int iHamR = ColorIntExt.FromRGB(sR, pG, pB);
                         int iHamG = ColorIntExt.FromRGB(pR, sG, pB);
                         int iHamB = ColorIntExt.FromRGB(pR, pG, sB);

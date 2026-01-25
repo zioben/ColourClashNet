@@ -20,294 +20,282 @@ public partial class TileManager
 {
     static string sC = nameof(TileManager);
 
-    TileItem[,]? TileData { get; set; }
+    object locker = new object();
+
+    TileProcessing[,]? tileProcessingMatrix;
     public int TileW { get; private set; } = 8;
     public int TileH { get; private set; } = 8;
-    public int TileRR { get; private set; } = 0;
-    public int TileCC { get; private set; } = 0;
 
-    public Palette ColorPalette { get; set; } = new Palette();
-    public Palette ForcedColorPalette { get; set; } = new Palette();
-
+    public int TileRows => tileProcessingMatrix?.GetLength(0) ?? 0;
+    public int TileColumns => tileProcessingMatrix?.GetLength(1) ?? 0;
     public bool TileBorderShow { get; set; } = true;
     public int TileBorderColor { get; set; } = ColorIntExt.FromRGB(255, 0, 255);
 
-    public ImageData SourceData { get; private set; }
-    ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
+    public ImageData ImageSource { get; private set; } = new ImageData();
 
-    public int MaxColorsWanted { get; private set; } = 2;
+    public ColorTransformType ProcessingType { get; private set; } = ColorTransformType.ColorReductionClustering;
+    public Dictionary<ColorTransformProperties, object> ProcessingParameters { get; private set; } = new Dictionary<ColorTransformProperties, object>();
+    public double GlobalTransformationError { get; set; } = double.NaN;
 
-    public ColorDithering DitheringType { get; set; }
-    public double DitheringStrenght { get; set; } = 1.0;
-
-    public double TransformationError { get; set; } = double.NaN;
-
-    public TileItem? GetTileData(int r, int c)
+    public bool IsValid
     {
-        if (r >= 0 && r < TileRR && c >= 0 && c < TileCC)
+        get
         {
-            return TileData?[r, c];
+            lock (locker)
+            {
+                return tileProcessingMatrix != null &&
+                    ImageSource.IsValid &&
+                    TileW > 0 &&
+                    TileH > 0 &&
+                    TileRows > 0 &&
+                    TileColumns > 0;
+            }
         }
-        return null;
     }
 
-
-    public TileManager SetProperty(ColorTransformProperties eProperty, object oValue)
+    public TileProcessing? GetTileProcessing(int r, int c)
     {
-        switch (eProperty)
+        lock (locker)
         {
-            case ColorTransformProperties.ColorDistanceEvaluationMode:
-                if (Enum.TryParse<ColorDistanceEvaluationMode>(oValue?.ToString(), out var eMode))
-                {
-                    ColorDistanceEvaluationMode = eMode;
-                }
-                break;
-            case ColorTransformProperties.Fixed_Palette:
-                {
-                    if (oValue is IEnumerable<int> oPalette)
-                    {
-                        ColorPalette = Palette.CreatePalette(oPalette);
-                    }
-                    else if (oValue is Palette oPal)
-                    {
-                        ColorPalette = Palette.CreatePalette(oPal);
-                    }
-                    else
-                    {
-                        ColorPalette = new Palette();
-                    }
-                }
-                break;
-            case ColorTransformProperties.Forced_Palette:
-                {
-                    if (oValue is IEnumerable<int> oPalette)
-                    {
-                        ForcedColorPalette = Palette.CreatePalette(oPalette);
-                    }
-                    else if (oValue is Palette oPal)
-                    {
-                        ForcedColorPalette = oPal;
-                    }
-                    else
-                    {
-                        ForcedColorPalette = new Palette();
-                    }
-                }
-                break;
-            case ColorTransformProperties.Dithering_Type:
-                {
-                    DitheringType = ColorDithering.None;
-                    if (Enum.TryParse<ColorDithering>(oValue?.ToString(), true, out var eRes))
-                    {
-                        DitheringType = eRes;
-                    }
-                }
-                break;
-            case ColorTransformProperties.Dithering_Strength:
-                {
-                    DitheringStrenght = 1.0;
-                    if (double.TryParse(oValue?.ToString(), out var dStrenght))
-                    {
-                        DitheringStrenght = dStrenght;
-                    }
-                }
-                break;
-            case ColorTransformProperties.MaxColorsWanted:
-                {
-                    MaxColorsWanted = 0;
-                    if (int.TryParse(oValue.ToString(), out var iColors))
-                    {
-                        MaxColorsWanted = iColors;
-                    }
-                }
-                break;
-            default:
-                break;
+            if (r >= 0 && r < TileRows && c >= 0 && c < TileColumns)
+            {
+                return tileProcessingMatrix?[r, c] ?? null;
+            }
+            return null;
         }
-        return this;
     }
 
+    public void Reset()
+    {
+        lock (locker)
+        {
+            tileProcessingMatrix = null;
+            ImageSource = new ImageData();
+            GlobalTransformationError = double.NaN;
+            ProcessingType = ColorTransformType.ColorReductionClustering;
+            ProcessingParameters = new Dictionary<ColorTransformProperties, object>();
+        }
+    }
 
-
-
-    public TileManager Create(ImageData oDataSource, CancellationToken oToken)
+    public TileManager Create(int tileWidth, int tileHeight, ImageData image, ColorTransformType processingType, Dictionary<ColorTransformProperties, object> processingParameters , CancellationToken oToken=default)
     {
 
         string sM = nameof(Create);
-        if (oDataSource == null)
+        lock (locker)
         {
-            LogMan.Error(sC, sM, "Source data is null");
-            return this;
-        }
-        if (TileW <= 0 || TileH <= 0 || MaxColorsWanted <= 0)
-        {
-            LogMan.Error(sC, sM, "Tile dimensions or max colors wanted are invalid");
-            return this;
-        }
-        SourceData = new ImageData().Create(oDataSource);
-        if (SourceData == null)
-        {
-            LogMan.Error(sC, sM, "Failed to copy source data");
-            return this;
-        }
-        if (ColorPalette == null)
-            ColorPalette = new();
-        if (ForcedColorPalette == null)
-            ForcedColorPalette = new();
-
-        TileRR = (SourceData.Rows + TileH - 1) / TileH;
-        TileCC = (SourceData.Columns + TileW - 1) / TileW;
-        TileData = new TileItem[TileRR, TileCC];
-
-        Parallel.For(0, TileRR, r =>
-        {
-            for (int c = 0; c < TileCC; c++)
+            try
             {
-                oToken.ThrowIfCancellationRequested();
-                int rr = r;
-                int cc = c;
-                TileData[rr, cc] = new TileItem()
+
+                Reset();
+                TileW = tileWidth;
+                TileH = tileHeight;
+                if (TileW <= 0 || TileH <= 0)
                 {
-                    TileW = TileW,
-                    TileH = TileH
-                };
-                TileData[rr, cc]
-                 .Create(oDataSource, rr * TileH, cc * TileW)
-                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
-                 .SetProperty(ColorTransformProperties.Fixed_Palette, ForcedColorPalette)
-                 .SetProperty(ColorTransformProperties.MaxColorsWanted, MaxColorsWanted)
-                 .SetProperty(ColorTransformProperties.UseColorMean, false)
-                 .SetProperty(ColorTransformProperties.ClusterTrainingLoop, 10)
-                 .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
-                 .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght);
+                    LogMan.Error(sC, sM, "Tile dimensions or max colors wanted are invalid");
+                    Reset();
+                    return this;
+                }
+                ProcessingType = processingType;
+                ProcessingParameters = new Dictionary<ColorTransformProperties, object>(ProcessingParameters);
+                ImageSource = new ImageData().Create(image);
+                if (!ImageSource.IsValid)
+                {
+                    LogMan.Error(sC, sM, "Source image data is invalid");
+                    Reset();
+                    return this;
+                }
+                tileProcessingMatrix = new TileProcessing[(ImageSource.Rows + TileH - 1) / TileH, (ImageSource.Columns + TileW - 1) / TileW];
+
+                Parallel.For(0, TileRows, r =>
+                {
+                    for (int c = 0; c < TileColumns; c++)
+                    {
+                        oToken.ThrowIfCancellationRequested();
+                        int rr = r;
+                        int cc = c;
+                        tileProcessingMatrix[rr, cc] = TileProcessing.CreateTileProcessing(
+                            ImageSource,
+                            rr * TileH,
+                            cc * TileW,
+                            TileW,
+                            TileH,
+                            ProcessingType,
+                            ProcessingParameters);
+                    }
+                });
+                return this;
             }
-        });
-        return this;
+            catch (OperationCanceledException)
+            {
+                LogMan.Warning(sC, sM, "Operation cancelled");
+                Reset();
+                return this;
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, "Exception creating TileManager", ex);
+                Reset();
+                return this;
+            }
+        }
     }
 
 
 
-    public bool ProcessColors(CancellationToken oToken)
+    public bool ProcessColors(CancellationToken token = default)
     {
-        TransformationError = double.NaN;
-
-        if (SourceData == null)
+        string sM = nameof(ProcessColors);  
+        GlobalTransformationError = double.NaN;
+        try
         {
-            return false;
-        }
-        if (TileW == 0 || TileH == 0)
-        {
-            return false;
-        }
-        if (TileData == null)
-        {
-            return false;
-        }
-
-        int RT = TileData.GetLength(0);
-        int CT = TileData.GetLength(1);
-
-        for (int r = 0; r < RT; r++)
-        {
-            oToken.ThrowIfCancellationRequested();
-            Parallel.For(0, CT, c=>  //new ParallelOptions() { MaxDegreeOfParallelism = 1 }, c =>
+            if (!IsValid)
             {
-                int rr = r;
-                int cc = c;
-                TileData[rr, cc].ProcessColors(oToken);
-            });
-        }
-
-        RecalcTransformationError();
-        return true;
-    }
-
-    public double RecalcTransformationError()
-    {
-        if (TileData == null)
-        {
-            TransformationError = double.NaN;
-        }
-        else
-        {
-            TransformationError = 0;
-            int RT = TileData.GetLength(0);
-            int CT = TileData.GetLength(1);
-            for (int r = 0; r < RT; r++)
+                LogMan.Error(sC, sM, "TileManager is not valid");
+                return false;
+            }
+            Parallel.For(0, TileRows, r =>
             {
-                for (int c = 0; c < CT; c++)
+                token.ThrowIfCancellationRequested();
+                for (int c = 0; c < TileColumns; c++)
                 {
-                    TransformationError += TileData[r, c].TransformationError;
+                    int rr = r;
+                    int cc = c;
+                    token.ThrowIfCancellationRequested();
+                    tileProcessingMatrix[rr, cc].ProcessTile(token);
+                };
+            });
+            RecalcGlobalTransformationError();
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            LogMan.Warning(sC, sM, "Operation cancelled");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            LogMan.Exception(sC, sM, "Exception processing colors", ex);
+            return false;
+        }
+    }
+
+    public double RecalcGlobalTransformationError()
+    {
+        string sM = nameof(RecalcGlobalTransformationError);
+        try
+        {
+            lock (locker)
+            {
+                GlobalTransformationError = double.NaN;
+                if (!IsValid)
+                {
+                    LogMan.Error(sC, sM, "invalid data");
+                }
+                for (int r = 0; r < TileRows; r++)
+                {
+                    for (int c = 0; c < TileColumns; c++)
+                    {
+                        var err = tileProcessingMatrix[r, c].TransformationError;
+                        if (double.IsNaN(err))
+                        {
+                            LogMan.Error(sC, sM, $"invalid transformation error in tile ({r},{c})");
+                            throw new Exception("invalid transformation error");
+                        }
+                        else
+                        {
+                            GlobalTransformationError += err;
+                        }
+                    }
                 }
             }
         }
-        return TransformationError;
+        catch (Exception ex)
+        {
+            LogMan.Exception(sC, sM, "Exception recalculating global transformation error", ex);
+            GlobalTransformationError = double.NaN;
+        }
+        return GlobalTransformationError;
     }
 
-    public double EvaluateImageErrorAsync(ImageData oDataReference, CancellationToken oToken)
+    public double RecalcGlobalTransformationError(ImageData referenceImage, CancellationToken token = default)
     {
-        TransformationError = double.NaN;
-        if (TileData == null || oDataReference == null)
+        string sM = nameof(RecalcGlobalTransformationError);
+        try
         {
-            return TransformationError;
-        }
-        int RT = TileData.GetLength(0);
-        int CT = TileData.GetLength(1);
-        // Merge Data
-        var tasks = new List<Task<double>>();
-        Parallel.For(0, RT, r =>
-        {
-            int row = r * TileH;
-            for (int c = 0; c < CT; c++)
+            lock (locker)
             {
-                int col = c * TileW;
-                var oTileRefData = TileItem.CreateTileData(oDataReference, row, col, TileW, TileH);
-                TileData[r, c].RecalcTransformationError(oTileRefData, oToken);
+                GlobalTransformationError = double.NaN;
+                if (!IsValid)
+                {
+                    LogMan.Error(sC, sM, "invalid data");
+                }
+                for (int r = 0; r < TileRows; r++)
+                {
+                    for (int c = 0; c < TileColumns; c++)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        var err = tileProcessingMatrix[r, c].RecalculateTransformationError(referenceImage);
+                        if (double.IsNaN(err))
+                        {
+                            LogMan.Error(sC, sM, $"invalid transformation error in tile ({r},{c})");
+                            throw new Exception("invalid transformation error");
+                        }
+                        else
+                        {
+                            GlobalTransformationError += err;
+                        }
+                    }
+                }
             }
-        });
-        return RecalcTransformationError();
+        }
+        catch (OperationCanceledException)
+        {
+            LogMan.Warning(sC, sM, "Operation cancelled");
+            GlobalTransformationError = double.NaN;
+
+        }
+        catch (Exception ex)
+        {
+            LogMan.Exception(sC, sM, "Exception recalculating global transformation error", ex);
+            GlobalTransformationError = double.NaN;
+        }
+        return GlobalTransformationError;
     }
+       
 
     public ImageData? CreateImageFromTiles()
     {
         string sM = nameof(CreateImageFromTiles);
-        if (!SourceData?.Valid ?? true)
+        if (!IsValid)
         {
-            LogMan.Error(sC, sM, "invalid source data");
+            LogMan.Error(sC, sM, "TileManager is not valid");
             return null;
         }
-        if (TileW == 0 || TileH == 0 || TileData == null)
-        {
-            LogMan.Error(sC, sM, "invalid tile data");
-            return null;
-        }
-        int RT = TileData.GetLength(0);
-        int CT = TileData.GetLength(1);
-        var oRet = new int[SourceData.Rows, SourceData.Columns];
+        var matrix = new int[ImageSource.Rows, ImageSource.Columns];
 
-        for (int r = 0; r < RT; r++)
+        Parallel.For(0, TileRows, r =>
         {
-            Parallel.For(0, CT, c =>
+            for (int c = 0; c < TileColumns; c++)
             {
                 int rr = r;
                 int cc = c;
-                TileData[rr, cc].MergeData(oRet);
-            });
-        }
+                tileProcessingMatrix[rr, cc].MergeData(matrix);
+            }
+        });
 
         if (TileBorderShow && TileBorderColor >= 0)
         {
-            for (int r = 0; r < RT; r++)
+            for (int r = 0; r < TileRows; r++)
             {
                 int y = r * TileH;
-                for (int c = 0; c < CT; c++)
+                for (int c = 0; c < TileColumns; c++)
                 {
                     int x = c * TileW;
-                    oRet[y, x] = TileBorderColor;
+                    matrix[y, x] = TileBorderColor;
                 }
             }
         }
-        return new ImageData().Create(oRet);
+        return new ImageData().Create(matrix);
     }
 
 

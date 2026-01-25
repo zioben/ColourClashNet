@@ -14,6 +14,6 @@ namespace ColourClashNet.Color
        
         public int ToIntRGB();
 
-        public bool Valid { get; }
+        public bool IsValid { get; }
     }
 }

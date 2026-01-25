@@ -23,7 +23,7 @@ namespace ColourClashNet.Color.Transformation
 
         public ColorQuantizationMode QuantizationMode { get; set; }
 
-        protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
             base.SetProperty(propertyName, value);
             switch (propertyName)

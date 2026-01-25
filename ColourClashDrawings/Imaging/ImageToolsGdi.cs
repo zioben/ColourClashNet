@@ -27,9 +27,9 @@ public static partial class ImageToolsGDI
     /// <param name="oImage">The image whose width is to be aligned. If null, a width of 0 is used.</param>
     /// <param name="ePixelWidthAlign">The alignment mode that determines how the image width should be adjusted.</param>
     /// <returns>The width of the image, adjusted according to the specified alignment mode.</returns>
-    static public int GetImageNewWidthAlign(Image oImage, ImageWidthAlignMode ePixelWidthAlign)
+    static public int GetImageNewWidthAlign(Image oImage, WidthAlignMode ePixelWidthAlign)
     {
-        return ImageTools.GetImageNewWidthAlign(oImage?.Width ?? 0, ePixelWidthAlign);
+        return MatrixTools.GetNewWidthAlign(oImage?.Width ?? 0, ePixelWidthAlign);
     }
 
     /// <summary>
@@ -480,7 +480,7 @@ public static partial class ImageToolsGDI
      => MatrixToGdiImageUnsafe(m);
 
     public static System.Drawing.Image? ImageDataToGdiImage(ImageData oImage)
-     => MatrixToGdiImage(oImage?.DataX);
+     => MatrixToGdiImage(oImage?.GetMatrix());
 
 
     public static System.Drawing.Image? GdiImageToGdiImage32bpp(System.Drawing.Image oImage)
@@ -511,7 +511,7 @@ public static partial class ImageToolsGDI
         }
     }
 
-    unsafe static Bitmap? MatrixToGdiImageIndexedUnsafe(int[,] mData, List<int> lPaletteSrc, ImageWidthAlignMode eAlignMode)
+    unsafe static Bitmap? MatrixToGdiImageIndexedUnsafe(int[,] mData, List<int> lPaletteSrc, WidthAlignMode eAlignMode)
     {
         string sMethod = nameof(MatrixToGdiImageIndexed);
         try
@@ -527,7 +527,7 @@ public static partial class ImageToolsGDI
                 return null;
             }
             ImageData oImg = new ImageData().Create(mData);
-            var mDataIndex = ImageTools.CreateIndexedData(oImg, eAlignMode);
+            var mDataIndex = ImageTools.CreateIndexedMatrix(oImg, eAlignMode);
             int HD = mDataIndex.GetLength(0);
             int WD = mDataIndex.GetLength(1);
 
@@ -562,14 +562,14 @@ public static partial class ImageToolsGDI
         }
     }
 
-    public static Bitmap? MatrixToGdiImageIndexed(int[,] mData, List<int> lPaletteSrc, ImageWidthAlignMode eAlignMode)
+    public static Bitmap? MatrixToGdiImageIndexed(int[,] mData, List<int> lPaletteSrc, WidthAlignMode eAlignMode)
        => MatrixToGdiImageIndexedUnsafe(mData, lPaletteSrc, eAlignMode);
 
-    public static Bitmap? MatrixToGdiImageIndexed(int[,] mData, Palette oPaletteSrc, ImageWidthAlignMode eAlignMode)
+    public static Bitmap? MatrixToGdiImageIndexed(int[,] mData, Palette oPaletteSrc, WidthAlignMode eAlignMode)
         => MatrixToGdiImageIndexed(mData, oPaletteSrc?.ToList(), eAlignMode);
 
-    public static Bitmap? ImageDataToGdiImageIndexed(ImageData oImage, ImageWidthAlignMode eAlignMode)
-        => MatrixToGdiImageIndexed(oImage?.DataX, oImage?.ColorPalette, eAlignMode);
+    public static Bitmap? ImageDataToGdiImageIndexed(ImageData oImage, WidthAlignMode eAlignMode)
+        => MatrixToGdiImageIndexed(oImage?.GetMatrix(), oImage?.ColorPalette, eAlignMode);
 
 
 

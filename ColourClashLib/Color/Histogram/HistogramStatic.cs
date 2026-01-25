@@ -120,7 +120,7 @@ namespace ColourClashNet.Color
         /// <param name="image"></param>
         /// <returns></returns>
         public static Histogram CreateHistogram(ImageData image) 
-            => CreateHistogramStatic(image?.DataX, new Histogram());
+            => CreateHistogramStatic(image?.matrix, new Histogram());
 
 
         /// <summary>

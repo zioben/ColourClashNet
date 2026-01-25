@@ -25,7 +25,16 @@ namespace ColourClashNet.Imaging
         /// <summary>
         /// Gets the two-dimensional array of integer data associated with this instance.
         /// </summary>
-        public int[,]? DataX { get; private set; }
+        internal protected int[,]? matrix;
+
+        public int[,] GetMatrix()
+        {
+            lock (locker)
+            {
+                if (matrix == null) return null;
+                return matrix.Clone() as int[,];
+            }
+        }
 
         /// <summary>
         /// Gets the color palette used for rendering visual elements.
@@ -40,8 +49,8 @@ namespace ColourClashNet.Imaging
         {
             get
             {
-                if (DataX == null) return 0;
-                return DataX.GetLength(1);
+                if (matrix == null) return 0;
+                return matrix.GetLength(1);
             }
         }
 
@@ -52,8 +61,8 @@ namespace ColourClashNet.Imaging
         {
             get
             {
-                if (DataX == null) return 0;
-                return DataX.GetLength(0);
+                if (matrix == null) return 0;
+                return matrix.GetLength(0);
             }
         }
 
@@ -92,7 +101,7 @@ namespace ColourClashNet.Imaging
         /// <summary>
         /// Gets a value indicating whether the current object contains valid data.
         /// </summary>
-        public bool Valid => DataX != null;
+        public bool IsValid => matrix != null;
 
         /// <summary>
         /// Resets the object's data and color palette to their default states.
@@ -108,7 +117,7 @@ namespace ColourClashNet.Imaging
             {
                 lock (locker)
                 {
-                    DataX = null;
+                    matrix = null;
                     ColorPalette = new Palette();
                 }
                 return this;
@@ -140,8 +149,38 @@ namespace ColourClashNet.Imaging
                     {
                         return this;
                     }
-                    DataX = matrix.Clone() as int[,];                    
-                    ColorPalette = Palette.CreatePalette(DataX);
+                    this.matrix = matrix.Clone() as int[,];
+                    ColorPalette = Palette.CreatePalette(this.matrix);
+                }
+                return this;
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, "Error creating from data.", ex);
+                return this;
+            }
+        }
+
+
+        /// <summary>
+        /// Initializes the image data with the specified width and height, resetting any existing data.
+        /// </summary>
+        /// <remarks>This method resets any existing image data before initializing the new data. The
+        /// color palette is also regenerated based on the new dimensions. This method is not thread-safe; external
+        /// synchronization is required if accessed concurrently.</remarks>
+        /// <param name="width">The number of columns for the image data. Must be greater than zero.</param>
+        /// <param name="height">The number of rows for the image data. Must be greater than zero.</param>
+        /// <returns>The current instance of <see cref="ImageData"/> with the data initialized to the specified dimensions.</returns>
+        public ImageData Create(int width, int height )
+        {
+            string sM = nameof(Create);
+            try
+            {
+                lock (locker)
+                {
+                    Reset();
+                    matrix = new int[height, width]; 
+                    ColorPalette = Palette.CreatePalette(matrix);
                 }
                 return this;
             }
@@ -153,13 +192,48 @@ namespace ColourClashNet.Imaging
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        public ImageData Create(int xStart, int yStart, int width, int height )
+        {
+            string sM = nameof(Create);
+            try
+            {
+               
+                lock (locker)
+                {
+                    Reset();
+                    var matrixDst = new int[height, width];
+                    if (!MatrixTools.Blit(matrix, matrixDst, yStart, xStart, 0, 0, width, height))
+                    { 
+                        LogMan.Error(sC, sM, "Error blitting data for crop.");
+                        return new ImageData();
+                    }
+                    return new ImageData().Create(matrixDst);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, "Error creating from data.", ex);
+                return new ImageData();
+            }
+        }
+
+
+        /// <summary>
         /// Creates a new image based on the data contained in the specified <see cref="ImageData"/> instance.
         /// </summary>
-        /// <param name="oImageData">An <see cref="ImageData"/> object containing the source data for the new image. Can be null.</param>
+        /// <param name="imageSrc">An <see cref="ImageData"/> object containing the source data for the new image. Can be null.</param>
         /// <returns>An <see cref="ImageData"/> instance representing the newly created image, or null if <paramref
-        /// name="oImageData"/> is null or contains no data.</returns>
-        public ImageData Create(ImageData oImageData) 
-            => Create(oImageData?.DataX);
+        /// name="imageSrc"/> is null or contains no data.</returns>
+        public ImageData Create(ImageData imageSrc) 
+            => Create(imageSrc?.matrix);
+
 
         /// <summary>
         /// Returns a string that represents the current image, including its name, dimensions, and color count.
@@ -170,6 +244,5 @@ namespace ColourClashNet.Imaging
         {
             return $"ImageData: {Name} (Size: {Width}x{Height}, Colors: {Colors} )";
         }
-       
     }
 }

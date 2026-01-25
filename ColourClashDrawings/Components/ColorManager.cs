@@ -153,7 +153,7 @@ namespace ColourClashNet.Components
             }
         }
         public bool Create(ImageData oImageData)
-            => Create(oImageData?.DataX);
+            => Create(oImageData?.GetMatrix());
 
         public bool PreProcess()
         {

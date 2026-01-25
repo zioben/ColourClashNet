@@ -24,7 +24,7 @@ namespace ColourClashNet.Color.Transformation
         public double BrightnessMultFactor { get; set; } = 1.0;
 
 
-        protected override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
+        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
         {
             base.SetProperty(eProperty, oValue);
             switch (eProperty)
@@ -59,8 +59,8 @@ namespace ColourClashNet.Color.Transformation
                 {
                     for (int c = 0; c < SourceData.Columns; c++)
                     {
-                        var hsv = HSV.CreateFromIntRGB(SourceData.DataX[r, c]);
-                        if (hsv.Valid)
+                        var hsv = HSV.CreateFromIntRGB(SourceData.matrix[r, c]);
+                        if (hsv.IsValid)
                         {
                             hsv.H = hsv.H + (float)HueShift;
                             hsv.S = (float)Math.Min(100, hsv.S * SaturationMultFactor);

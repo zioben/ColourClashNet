@@ -12,7 +12,7 @@ namespace ColourClashNet.Color.Transformation
 {
     public abstract partial class ColorTransformBase : ColorTransformInterface
     {
-        public ColorTransformInterface CreateColorTransformInterface(ColorTransformType transformType, Dictionary<ColorTransformProperties, object> paramList)
+        public static ColorTransformInterface CreateColorTransformInterface(ColorTransformType transformType, Dictionary<ColorTransformProperties, object> paramList)
         {
             string sMethod = nameof(CreateColorTransformInterface);
             ColorTransformInterface trans = null;
@@ -54,9 +54,6 @@ namespace ColourClashNet.Color.Transformation
                 case ColorTransformType.ColorReductionScanline:
                     trans = new ColorTransformReductionScanLine();
                     break;
-                //case ColorTransformType.ColorReductionTileBase:
-                //    trans = new TileBase();
-                //    break;
                 case ColorTransformType.ColorReductionZxSpectrum:
                     trans = new ColorTransformReductionZxSpectrumV2();                    
                     break;
@@ -64,12 +61,14 @@ namespace ColourClashNet.Color.Transformation
                     trans = new ColorTransformBkgRemover();
                     break;
                 default:
-                    trans = new ColorTransformIdentity();
-                    break;
+                    throw new ArgumentOutOfRangeException(sMethod, $"Transform type {transformType} not recognised");
             }
-            
-           // foreach (var kvp in paramList)
-           //     trans.SetProperty(kvp.Key, kvp.Value);
+
+            if (trans is ColorTransformBase transBase)
+            {
+                foreach (var kvp in paramList)
+                    transBase.SetProperty(kvp.Key, kvp.Value);
+            }
             return trans;
         }
 

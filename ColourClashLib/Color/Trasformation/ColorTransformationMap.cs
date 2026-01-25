@@ -71,7 +71,7 @@ namespace ColourClashNet.Color
         public ImageData Transform(ImageData image, CancellationToken token=default )
         {
             string sM = nameof(Transform);
-            if (image == null || !image.Valid)
+            if ((!image?.IsValid ?? true))
             {
                 return new();
             }
@@ -81,7 +81,7 @@ namespace ColourClashNet.Color
                 token.ThrowIfCancellationRequested();
                 for (int c = 0; c < image.Width; c++)
                 {
-                    if (!rgbTransformationMap.TryGetValue(image.DataX[r, c], out oDataOut[r, c]))
+                    if (!rgbTransformationMap.TryGetValue(image.matrix[r, c], out oDataOut[r, c]))
                     {
                         oDataOut[r, c] = Defaults.ColorDefaults.DefaultInvalidColorInt;
                     }

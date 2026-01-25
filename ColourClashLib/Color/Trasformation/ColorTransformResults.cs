@@ -19,7 +19,7 @@ namespace ColourClashNet.Color.Transformation
         public ImageData? DataIn { get; internal set; }
         public ImageData? DataOut { get; internal set; }
         public double ProcessingScore { get; internal set; } = double.NaN;
-        public bool ProcessingValid { get; internal set; }
+        public bool IsSuccess { get; internal set; }
         public string Message { get; internal set; } = string.Empty;
         public Exception? Exception { get; internal set; }
 
@@ -29,7 +29,7 @@ namespace ColourClashNet.Color.Transformation
             DataIn = inputData,
             DataOut = outputData,
             ProcessingScore = processingScore,
-            ProcessingValid = true,
+            IsSuccess = true,
             Message = sMessage
         };
 

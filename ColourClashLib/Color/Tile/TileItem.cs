@@ -4,6 +4,7 @@ using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -11,63 +12,90 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Tile;
 
-public partial class TileItem : ColorTransformReductionCluster
+public partial class TileItem
 {
     static readonly string sC =nameof(TileItem);
-   
-    /// <summary>
-    /// Tile Width
-    /// </summary>
-    public int TileW { get; internal set; } = 8;
 
-    /// <summary>
-    /// Tile Height
-    /// </summary>
-    public int TileH { get; internal set; } = 8;
-
-    /// <summary>
-    /// Original position in source
-    /// </summary>
-    public int DataSourceOriginC { get; private set; } = 0;
-
-    /// <summary>
-    /// Original position in source
-    /// </summary>
-    public int DataSourceOriginR { get; private set; } = 0;
+    object locker = new object();
 
     /// <summary>
     /// Original image reference
     /// </summary>
-    public ImageData ImageSource { get; internal set; } = null;
+    public ImageData TileImage { get; internal set; } = new();
 
- 
-    [Obsolete("Not supported in Tile class", true)]
-    public ColorTransformResults Create(int[,]? oDataSource, CancellationToken? oToken)
+    /// <summary>
+    /// Tile Width
+    /// </summary>
+    public int TileW => TileImage?.Width ?? 0;
+
+    /// <summary>
+    /// Tile Height
+    /// </summary>
+    public int TileH => TileImage?.Height ?? 0;
+
+    /// <summary>
+    /// Original position in source
+    /// </summary>
+    public int OriginX { get; private set; } = 0;
+
+    /// <summary>
+    /// Original position in source
+    /// </summary>
+    public int OriginY { get; private set; } = 0;
+
+
+    /// <summary>
+    /// Gets a value indicating whether the current image source is valid.
+    /// </summary>
+    public bool IsValid => TileImage?.IsValid ?? false;
+
+    /// <summary>
+    /// Resets the origin coordinates and image source to their default values.
+    /// </summary>
+    /// <remarks>This method sets the origin coordinates to zero and reinitializes the image source. Use this
+    /// method to restore the object's state to its initial configuration.</remarks>
+    public void Reset()
     {
-        throw new NotSupportedException("Not valid on Tile Class");
+        lock (locker)
+        {
+            OriginX = 0;
+            OriginY = 0;
+            TileImage = new();
+        }
     }
 
 
-    public TileItem Create(ImageData oDataSource, int iSourceIndexR, int iSourceIndexC)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="sourceImage"></param>
+    /// <param name="sourceX"></param>
+    /// <param name="sourceY"></param>
+    /// <param name="tileWidth"></param>
+    /// <param name="tileHeight"></param>
+    /// <returns></returns>
+    public TileItem Create(ImageData sourceImage, int sourceX, int sourceY, int tileWidth, int tileHeight)
     {
         string sM = nameof(Create);
         try
         {
-            DataSourceOriginC = iSourceIndexC;
-            DataSourceOriginR = iSourceIndexR;
-            if (oDataSource == null)
+            lock (locker)
             {
-                LogMan.Error(sC, sM, "Datasource null");
+                Reset();
+                if (sourceImage == null)
+                {
+                    LogMan.Error(sC, sM, "Source image null");
+                    return this;
+                }
+                if (tileWidth <= 0 || tileHeight <= 0)
+                {
+                    LogMan.Error(sC, sM, "Invalid Tile Dimension");
+                    return this;
+                }
+                OriginX = sourceX;
+                TileImage = ImageData.CreateImageData(sourceImage, sourceX, sourceY, tileWidth, tileHeight);
                 return this;
             }
-            if (TileW <= 0 || TileH <= 0 || MaxColorsWanted <= 0)
-            {
-                LogMan.Error(sC, sM, "Invalid Tile Data");
-                return this;
-            }
-            var oTileData = CreateTileData(oDataSource, iSourceIndexR, iSourceIndexC, TileW, TileH);
-            base.Create( oTileData);
-            return this;
         }
         catch (Exception ex)
         {
@@ -76,44 +104,12 @@ public partial class TileItem : ColorTransformReductionCluster
         }
     }
 
-
     /// <summary>
-    /// Copy tile processed data on destination data
-    /// <para>No data will be copied on error</para>
+    /// 
     /// </summary>
-    /// <param name="oDestinationData">Data to be overweritten</param>
-    public bool MergeData(int[,]? oDestinationData)
-    {
-        string sM = nameof(MergeData); 
-        if (oDestinationData == null)
-        {
-            LogMan.Error(sC, sM, "Destination data null");
-            return false;
-        }
-        if (OutputData == null)
-        {
-            LogMan.Error(sC, sM, "Tile output data null");
-            return false;
-        }
-        int R = oDestinationData.GetLength(0);
-        int C = oDestinationData.GetLength(1);
-        int RR = Math.Max(0, Math.Min(R, DataSourceOriginR + TileH));
-        int CC = Math.Max(0, Math.Min(C, DataSourceOriginC + TileW));
-
-        // Merge Data
-        Parallel.For(DataSourceOriginR, RR, dr =>//  int dr = DataSourceOriginR, r = 0; dr < RR; dr++, r++)
-        {
-            int r = dr - DataSourceOriginR;
-            for (int dc = DataSourceOriginC, c = 0; dc < CC; dc++, c++)
-            {
-                oDestinationData[dr, dc] = OutputData.DataX[r, c];
-            }
-        });
-        return true;
-    }
-
+    /// <returns></returns>
     public override string ToString()
     {
-        return $"R={DataSourceOriginR}:C={DataSourceOriginC}:H={TileH}:W={TileW} : TE={TransformationError}";
+        return $"R={OriginY}:C={OriginX}:H={TileH}:W={TileW}";
     }  
 }

@@ -72,7 +72,7 @@ namespace ColourClashNet.Color.Transformation
             );
         }
 
-        protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
             base.SetProperty(propertyName, value);
             switch (propertyName)
@@ -94,7 +94,7 @@ namespace ColourClashNet.Color.Transformation
             var oTmpData = SourceData;
             if (bHalveRes)
             {
-                oTmpData = new ImageData().Create(ColorTransformBase.HalveHorizontalRes(SourceData.DataX));
+                oTmpData = new ImageData().Create(ColorTransformBase.HalveHorizontalRes(SourceData.matrix));
             }
             var oTmpDataProc = TransformationMap.Transform(oTmpData, oToken);
             return oTmpDataProc;
@@ -114,19 +114,19 @@ namespace ColourClashNet.Color.Transformation
                 var oRealSource = SourceData;
                 if (bDoubleRes)
                 {
-                    oRealSource = new ImageData().Create( ColorTransformBase.HalveHorizontalRes(SourceData.DataX));
+                    oRealSource = new ImageData().Create( ColorTransformBase.HalveHorizontalRes(SourceData.matrix));
                 }
                 var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength);
                 var oDitheringOut = oDithering.Dither(oRealSource, oRes.DataOut, ColorDistanceEvaluationMode, oToken);
                 if (bDoubleRes)
                 {
-                    return new ImageData().Create( DoubleHorizontalRes(oDitheringOut.DataX));
+                    return new ImageData().Create( DoubleHorizontalRes(oDitheringOut.matrix));
                 }
                 return oDitheringOut;
             }
             if (bDoubleRes)
             {
-                return new ImageData().Create(DoubleHorizontalRes(oRes.DataOut.DataX));
+                return new ImageData().Create(DoubleHorizontalRes(oRes.DataOut.matrix));
             }
             return oRes.DataOut;
         }

@@ -57,7 +57,7 @@ namespace ColourClashNet.Color
         public bool FromIntRGB(int rgb)
         {
             Y = GetGray(rgb);
-            return Valid;
+            return IsValid;
         }   
 
 
@@ -66,7 +66,7 @@ namespace ColourClashNet.Color
         /// </summary>
         public int ToIntRGB() => ColorIntExt.FromRGB(Y, Y, Y);
 
-        public bool Valid => Y >= 0;
+        public bool IsValid => Y >= 0;
 
         /// <summary>
         /// Converts an RGB color (int) to GRAY
@@ -84,7 +84,7 @@ namespace ColourClashNet.Color
         /// </summary>
         public static double Distance(GRAY grayA, GRAY grayB)
         {
-            if (!grayA.Valid || !grayB.Valid)
+            if (!grayA.IsValid || !grayB.IsValid)
                 return double.NaN;
             return Math.Abs(grayA.Y - grayB.Y); 
         }

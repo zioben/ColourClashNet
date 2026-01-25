@@ -49,7 +49,7 @@ namespace ColourClashNet.Color.Transformation
         public ImageData OutputData { get; protected set; } = new ImageData();
 
         //-------------------------------------------------------------------------------------------------------------------------------
-        public Palette FixedPalette { get; protected set; } = new Palette();
+        public Palette FixedPalette { get; internal protected set; } = new Palette();
         public int FixedColors => FixedPalette?.Count ?? 0;
         public bool FastPreview { get; set; }
 
@@ -64,6 +64,8 @@ namespace ColourClashNet.Color.Transformation
         public ColorDithering DitheringType { get; set; }
 
         public double DitheringStrength { get; set; } = 1.0;
+
+       
 
         #endregion
 
@@ -83,7 +85,10 @@ namespace ColourClashNet.Color.Transformation
 
         #region Create/Destroy
 
-        void Reset()
+        Chrono m_chrono = new Chrono();
+        public double ProcessingTimeMilliseconds => m_chrono.ElapsedMilliseconds;
+
+        public virtual void Reset()
         {
             SourceData.Reset();
             OutputData.Reset();
@@ -182,7 +187,7 @@ namespace ColourClashNet.Color.Transformation
             return Math.Min(Math.Max(ToDouble(value), min), max);
         }
 
-        protected virtual ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        protected internal virtual ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
             string sM = nameof(SetProperty);
             bool entered = false;
@@ -297,8 +302,7 @@ namespace ColourClashNet.Color.Transformation
             {
                 LogMan.Debug(sC, sM, "Executing Default Transformation ");
                 var oProcessed = TransformationMap.Transform(SourceData, token);
-
-                if (oProcessed.Valid)
+                if (oProcessed.IsValid)
                 {
                     return ColorTransformResults.CreateValidResult(SourceData, oProcessed);
                 }
@@ -320,7 +324,7 @@ namespace ColourClashNet.Color.Transformation
 
 
 
-        public ColorTransformResults ProcessColors(CancellationToken token = default)
+        public ColorTransformResults ProcessColors( CancellationToken token = default)
         {
             string sM = nameof(ProcessColors);
             bool entered = false;
@@ -332,10 +336,35 @@ namespace ColourClashNet.Color.Transformation
                     throw new TimeoutException($"{sC}.{sM} : Cannot process");
                 }
 
+
+                //LogMan.Debug(sC, sM, $"{Type} : Creating support classes");
+
+                //Reset();
+
+                //try
+                //{
+                //    Creating?.Invoke(this, EventArgs.Empty);
+                //}
+                //catch (Exception exEvent)
+                //{
+                //    LogMan.Exception(sC, sM, $"{Type} : Error in {nameof(Creating)} event", exEvent);
+                //}
+                //SourceData.Create(image);
+                //try
+                //{
+                //    Created?.Invoke(this, EventArgs.Empty);
+                //}
+                //catch (Exception exEvent)
+                //{
+                //    LogMan.Exception(sC, sM, $"{Type} : Error in {nameof(Created)} event", exEvent);
+                //}
+
+
+
                 LogMan.Debug(sC, sM, $"{Type} : Processing started");
                 TransformationError = double.NaN;
 
-                if (SourceData == null || !SourceData.Valid)
+                if (SourceData == null || !SourceData.IsValid)
                 {
                     LogMan.Error(sC, sM, $"{Type} : InputData null or invalid");
                     return ColorTransformResults.CreateErrorResult($"{Type} : Invalid input data");
@@ -360,7 +389,7 @@ namespace ColourClashNet.Color.Transformation
 
                 // Creating Transformation Map
                 var oMapRes = CreateTransformationMap(token);
-                if (!oMapRes.ProcessingValid)
+                if (!oMapRes.IsSuccess)
                 {
                     LogMan.Error(sC, sM, $"{Type} : {nameof(CreateTransformationMap)} Error");
                     return oMapRes;
@@ -368,7 +397,7 @@ namespace ColourClashNet.Color.Transformation
 
                 // Execute color reduction
                 var oTransfRes = ExecuteTransform(token);
-                if (!oTransfRes.ProcessingValid)
+                if (!oTransfRes.IsSuccess)
                 {
                     LogMan.Error(sC, sM, $"{Type} : {nameof(ExecuteTransform)} error");
                     return oTransfRes;
@@ -467,7 +496,7 @@ namespace ColourClashNet.Color.Transformation
         //   => await Task.Run<ColorTransformResults>(() => ProcessColors(token));
 
         public async Task<ColorTransformResults> CreateAndProcessColorsAsync(ImageData oDataSource, CancellationToken token = default)
-           => await Task.Run<ColorTransformResults>(() => CreateAndProcessColors(oDataSource, token));
+           => await Task.Run<ColorTransformResults>((Func<ColorTransformResults>)(() => this.CreateAndProcessColors(oDataSource, token)));
 
         public async Task AbortProcessingAsync(CancellationTokenSource tokenSource)
            => await Task.Run(() => AbortProcessing(tokenSource));

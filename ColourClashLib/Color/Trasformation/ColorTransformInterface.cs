@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -26,9 +27,11 @@ namespace ColourClashNet.Color.Transformation
         //------------------------------------------------------------
         ColorDithering DitheringType { get; set; }
         public bool BypassDithering { get; set; }
+        public double ProcessingTimeMilliseconds { get; }
 
         //------------------------------------------------------------
 
+        //------------------------------------------------------------
         //ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue);
 
         ColorTransformInterface SetProperty(ColorTransformProperties propertyName, int value);
@@ -46,6 +49,7 @@ namespace ColourClashNet.Color.Transformation
         //------------------------------------------------------------
 
         ColorTransformInterface Create(ImageData image);
+      
         ColorTransformResults ProcessColors(CancellationToken token = default);
         ColorTransformResults CreateAndProcessColors(ImageData image, CancellationToken token = default);
         void AbortProcessing(CancellationTokenSource token);
@@ -56,6 +60,10 @@ namespace ColourClashNet.Color.Transformation
        // Task<ColorTransformResults> ProcessColorsAsync(CancellationToken token = default);
         Task<ColorTransformResults> CreateAndProcessColorsAsync(ImageData image, CancellationToken token = default);
         Task AbortProcessingAsync(CancellationTokenSource token);
+
+
+        ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; }
+        double TransformationError { get; }
 
         //------------------------------------------------------------
 

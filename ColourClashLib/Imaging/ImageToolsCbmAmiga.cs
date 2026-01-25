@@ -97,9 +97,9 @@ namespace ColourClashNet.Imaging
           
         //}
 
-        static public byte[,] BitplaneCreateData(int[,] mDataSrc, List<int> lPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
+        static public byte[,] BitplaneCreateData(int[,] mDataSrc, List<int> lPaletteSrc, WidthAlignMode ePixelWidthAlign, bool bInterleavedData)
         {
-            var mDataIndex = CreateIndexedData(mDataSrc, lPaletteSrc, ePixelWidthAlign);
+            var mDataIndex = MatrixTools.CreateIndexedMatrix(mDataSrc, lPaletteSrc, ePixelWidthAlign);
             return BitplaneCreateData(mDataIndex, bInterleavedData, lPaletteSrc.Count);
         }
 
@@ -182,7 +182,7 @@ namespace ColourClashNet.Imaging
         //    BitplaneWriteFileBpl(sFile, mDataIndex, llPaletteSrc.Max(X => X.Count),bInterleavedData);
         //    BitplaneWriteFilePalette(sFile, llPaletteSrc);
         //}
-        public static void BitplaneWriteFile(string sFile, int[,] mDataSrc, List<int> lPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
+        public static void BitplaneWriteFile(string sFile, int[,] mDataSrc, List<int> lPaletteSrc, WidthAlignMode ePixelWidthAlign, bool bInterleavedData)
         {
             var mDataIndex = BitplaneCreateData(mDataSrc, lPaletteSrc, ePixelWidthAlign, bInterleavedData);
             BitplaneWriteFileBpl(sFile, mDataIndex, lPaletteSrc.Count, bInterleavedData);

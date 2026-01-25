@@ -32,7 +32,7 @@ namespace ColourClashNet.Color
         /// <summary>
         /// 
         /// </summary>
-        public bool Valid => Count > 0;    
+        public bool IsValid => Count > 0;    
 
         /// <summary>
         /// Reset the histogram
@@ -51,7 +51,7 @@ namespace ColourClashNet.Color
         public Histogram Create(ImageData image)
         {
             Reset();
-            return Histogram.CreateHistogramStatic(image?.DataX, this);
+            return Histogram.CreateHistogramStatic(image?.matrix, this);
         }
 
         /// <summary>

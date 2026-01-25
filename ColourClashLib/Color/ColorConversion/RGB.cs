@@ -17,7 +17,7 @@ namespace ColourClashLib.Color
         public int G { get; set; }
         public int B { get; set; }
 
-        public bool Valid => R >= 0 && B >= 0 && G >= 0;
+        public bool IsValid => R >= 0 && B >= 0 && G >= 0;
         public RGB(int r, int g, int b)
         {
             R = r;
@@ -40,7 +40,7 @@ namespace ColourClashLib.Color
             {
                 R = G = B = -1;
             }
-            return Valid;
+            return IsValid;
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace ColourClashLib.Color
         /// </summary>
         public static double Distance(RGB rgbA, RGB rgbB)
         {
-            if (!rgbA.Valid || !rgbB.Valid)
+            if (!rgbA.IsValid || !rgbB.IsValid)
                 return double.NaN;                
             double dL = rgbA.R - rgbB.R;
             double dA = rgbA.G - rgbB.G;

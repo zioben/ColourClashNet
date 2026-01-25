@@ -4,6 +4,7 @@ using ColourClashNet.Log;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -81,7 +82,22 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
-        protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        int TileBorderColor = 0x_00_00_FF_00;
+
+        ColorTransformType processingType { get; } = ColorTransformType.ColorReductionGenericPalette;
+        Dictionary<ColorTransformProperties, object> CreateProcessingParams(Palette palette, ColorDithering ditheringType, int maxColors)
+        {
+            var dict = new Dictionary<ColorTransformProperties, object>();
+            dict[ColorTransformProperties.ColorDistanceEvaluationMode] = ColorDistanceEvaluationMode;
+            dict[ColorTransformProperties.Fixed_Palette] = palette;
+            dict[ColorTransformProperties.Forced_Palette] = palette;
+            dict[ColorTransformProperties.Dithering_Type] = ditheringType;
+            dict[ColorTransformProperties.Dithering_Strength] = DitheringStrength;
+            dict[ColorTransformProperties.MaxColorsWanted] = maxColors;
+            return dict;
+        }
+
+        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
             base.SetProperty(propertyName, value);
             switch (propertyName)
@@ -119,7 +135,7 @@ namespace ColourClashNet.Color.Transformation
         ImageData? PreProcess(ImageData oDataSource, bool bHalveRes, CancellationToken oToken)
         {
             string sM= nameof(PreProcess);
-            if ( !oDataSource?.Valid ?? true )
+            if ( !oDataSource?.IsValid ?? true )
             {
                 LogMan.Error(sC, sM, "No data source provided");
                 return null;
@@ -127,7 +143,7 @@ namespace ColourClashNet.Color.Transformation
             var oRealSource = oDataSource;
             if (bHalveRes)
             {
-                oRealSource = new ImageData().Create(ColorTransformBase.HalveHorizontalRes(oDataSource.DataX));
+                oRealSource = new ImageData().Create(ColorTransformBase.HalveHorizontalRes(oDataSource.matrix));
             }
             // Reduce all to the base 16 C64 colors without restrictions
             var oProcessed = TransformationMap.Transform(oRealSource, oToken);
@@ -155,15 +171,11 @@ namespace ColourClashNet.Color.Transformation
         ImageData ToHires(ImageData oDataSource, CancellationToken oToken)
         {
             var oTmpData = PreProcess(oDataSource, false, oToken);
-            TileManager oManager = TileManager.Create(8, 8, 2)
-                .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
-                .SetProperty(ColorTransformProperties.Fixed_Palette, FixedPalette)
-                .SetProperty(ColorTransformProperties.Forced_Palette, null);
-
+            TileManager oManager = TileManager.CreateTileManager(8, 8, oDataSource, processingType, CreateProcessingParams(FixedPalette, DitheringType, 2), oToken);
             oManager.TileBorderShow = TileBorderShow;
-            var res1 = oManager.Create(oTmpData,oToken);
-            var res2 = oManager.ProcessColors(oToken);
-            if (res2)
+            oManager.TileBorderColor = TileBorderColor;
+            var tileResul = oManager.ProcessColors(oToken);
+            if (tileResul)
             {
                 var oImageData = oManager.CreateImageFromTiles();
                 return oImageData;
@@ -184,18 +196,15 @@ namespace ColourClashNet.Color.Transformation
             var oTmpHistogram = Histogram.CreateHistogram(oTmpData);
             var oForcedPalette = oTmpHistogram.SortColorsDescending().ToPalette(1);
 
-            TileManager oManager = TileManager.Create(4, 8, 4)
-                .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
-                .SetProperty(ColorTransformProperties.Fixed_Palette, FixedPalette)
-                .SetProperty(ColorTransformProperties.Forced_Palette, oForcedPalette);
-
+            TileManager oManager = TileManager.CreateTileManager(4, 8, oDataSource, processingType, CreateProcessingParams(FixedPalette, DitheringType, 4), oToken);
             oManager.TileBorderShow = TileBorderShow;
-            var res1 = oManager.Create(oTmpData, oToken);
-            var res2 = oManager.ProcessColors(oToken);
-            if (res2)
+            oManager.TileBorderColor = TileBorderColor;
+            var tileResul = oManager.ProcessColors(oToken);
+            if (tileResul)
             {
+                var oImageData = oManager.CreateImageFromTiles();
                 var oTmpHalfProc = oManager.CreateImageFromTiles();
-                var oResultData = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc.DataX);
+                var oResultData = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc.matrix);
                 return new ImageData().Create(oResultData);
             }
             else
@@ -205,22 +214,19 @@ namespace ColourClashNet.Color.Transformation
         }
 
         // Create a Tile Map 1x4 2 selectable color per tile
-        ImageData? ToFli(ImageData oTmpDataSource, CancellationToken oToken)
+        ImageData? ToFli(ImageData oDataSource, CancellationToken oToken=default)
         {
-            var oTmpData = PreProcess(oTmpDataSource, true, oToken);
+            var oTmpData = PreProcess(oDataSource, true, oToken);
 
-            TileManager oManager = TileManager.Create(4, 1, 2)
-                .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
-                .SetProperty(ColorTransformProperties.Fixed_Palette, FixedPalette)
-                .SetProperty(ColorTransformProperties.Forced_Palette, null);
-
+            TileManager oManager = TileManager.CreateTileManager(4, 1, oDataSource, processingType, CreateProcessingParams(FixedPalette, DitheringType, 2), oToken);
             oManager.TileBorderShow = TileBorderShow;
-            var res1 = oManager.Create(oTmpData, oToken);
-            var res2 = oManager.ProcessColors(oToken);
-            if (res2)
+            oManager.TileBorderColor = TileBorderColor;
+            var tileResul = oManager.ProcessColors(oToken);
+            if (tileResul)
             {
+                var oImageData = oManager.CreateImageFromTiles();
                 var oTmpHalfProc = oManager.CreateImageFromTiles();
-                var oResultData = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc.DataX);
+                var oResultData = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc.matrix);
                 return new ImageData().Create(oResultData);
             }
             else

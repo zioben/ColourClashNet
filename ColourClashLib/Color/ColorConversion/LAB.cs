@@ -24,7 +24,7 @@ namespace ColourClashNet.Color
         /// </summary>
         public float B { get; set; }
 
-        public bool Valid => L >=0 && A >=0 && B >=0;   
+        public bool IsValid => L >=0 && A >=0 && B >=0;   
 
         public LAB(float l, float a, float b)
         {
@@ -76,7 +76,7 @@ namespace ColourClashNet.Color
             {
                 L = A = B = -1;
             }
-            return Valid;
+            return IsValid;
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace ColourClashNet.Color
         /// </summary>
         public static double Distance(LAB labA, LAB labB)
         {
-            if (!labA.Valid || !labB.Valid)
+            if (!labA.IsValid || !labB.IsValid)
                 return double.NaN;
 
             double dL = labA.L - labB.L;

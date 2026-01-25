@@ -26,7 +26,7 @@ namespace ColourClashNet.Color.Transformation
         public List<UInt16> ColorListMask { get; private set; } = new List<UInt16>();
         public bool UseColorMean { get; set; } = true;
 
-        protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
             base.SetProperty(propertyName, value);
 
@@ -125,7 +125,7 @@ namespace ColourClashNet.Color.Transformation
                 var oCols = new int[1, SourceData.Columns];
                 for (int c = 0; c < SourceData.Columns; c++)
                 {
-                    oCols[0, c] = oSourceNew.DataX[r, c];
+                    oCols[0, c] = oSourceNew.matrix[r, c];
                 }
                 // Create row histogram and take the most used colors
                 var oHist = Histogram.CreateHistogram(new ImageData().Create(oCols));//.SortColorsDescending();
@@ -150,7 +150,7 @@ namespace ColourClashNet.Color.Transformation
                     var oColRes = oTras.ProcessColors(oToken);
                     for (int c = 0; c < SourceData.Columns; c++)
                     {
-                        oRet[r, c] = oColRes.DataOut.DataX[0, c];
+                        oRet[r, c] = oColRes.DataOut.matrix[0, c];
                     }
                 }
                 //--------------------------------------------------------------
