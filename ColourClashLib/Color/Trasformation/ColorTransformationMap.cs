@@ -76,7 +76,8 @@ namespace ColourClashNet.Color
                 return new();
             }
             var oDataOut = new int[image.Height,image.Width];
-            Parallel.For(0, image.Height, r =>
+            //Parallel.For(0, image.Height, r =>
+            for( int r =0; r<image.Height; r++)
             {
                 token.ThrowIfCancellationRequested();
                 for (int c = 0; c < image.Width; c++)
@@ -86,7 +87,7 @@ namespace ColourClashNet.Color
                         oDataOut[r, c] = Defaults.ColorDefaults.DefaultInvalidColorInt;
                     }
                 }
-            });
+            }//);
             return new ImageData().Create(oDataOut);
         }
 

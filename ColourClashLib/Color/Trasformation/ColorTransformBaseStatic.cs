@@ -71,48 +71,5 @@ namespace ColourClashNet.Color.Transformation
             }
             return trans;
         }
-
-        static public int[,] HalveHorizontalRes(int[,]? oTmpDataSource)
-        {
-            if (oTmpDataSource == null)
-                return null;
-            var R = oTmpDataSource.GetLength(0);
-            var C = oTmpDataSource.GetLength(1);
-            var CO = (C + 1) / 2;
-            var oRet = new int[R, CO];
-            Parallel.For(0, R, r =>
-            {
-                for (int c = 0, co = 0; c < C; c += 2, co++)
-                {
-                    if (c < C - 1)
-                    {
-                        var a = oTmpDataSource[r, c];
-                        var b = oTmpDataSource[r, c + 1];
-                        oRet[r, co] = ColorIntExt.GetColorMean(a, a);
-                    }
-                }
-            });
-            return oRet;
-        }
-
-        public static int[,] DoubleHorizontalRes(int[,]? oTmpDataSource)
-        {
-            if (oTmpDataSource == null)
-                return null;
-            var R = oTmpDataSource.GetLength(0);
-            var C = oTmpDataSource.GetLength(1);
-            var oRet = new int[R, C * 2];
-
-            Parallel.For(0, R, r =>
-            {
-                for (int c = 0, co = 0; c < C; c++)
-                {
-                    var a = oTmpDataSource[r, c];
-                    oRet[r, co++] = a;
-                    oRet[r, co++] = a;
-                }
-            });
-            return oRet;
-        }
     }
 }

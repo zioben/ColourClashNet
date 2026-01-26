@@ -93,6 +93,7 @@ public partial class TileItem
                     return this;
                 }
                 OriginX = sourceX;
+                OriginY = sourceY;
                 TileImage = ImageData.CreateImageData(sourceImage, sourceX, sourceY, tileWidth, tileHeight);
                 return this;
             }

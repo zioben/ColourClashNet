@@ -209,7 +209,7 @@ namespace ColourClashNet.Imaging
                 {
                     Reset();
                     var matrixDst = new int[height, width];
-                    if (!MatrixTools.Blit(matrix, matrixDst, yStart, xStart, 0, 0, width, height))
+                    if (!MatrixTools.Blit(matrix, matrixDst, xStart, yStart, 0, 0, width, height))
                     { 
                         LogMan.Error(sC, sM, "Error blitting data for crop.");
                         return new ImageData();

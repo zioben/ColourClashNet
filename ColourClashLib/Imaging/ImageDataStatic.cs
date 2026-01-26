@@ -29,7 +29,7 @@ namespace ColourClashNet.Imaging
         {
             string sM = nameof(CreateImageData);    
             var imageDst = new ImageData().Create(width,height);
-            if(!MatrixTools.Blit(imageSrc.matrix, imageDst.matrix, ys, xs, 0, 0, width, height))
+            if(!MatrixTools.Blit(imageSrc.matrix, imageDst.matrix, xs, ys, 0, 0, width, height))
                 LogMan.Warning(sC, sM, "Blit failed when creating cropped image data.");
             return imageDst;
         }

@@ -30,14 +30,9 @@ namespace ColourClashNet.Color.Transformation
         public C64VideoMode VideoMode { get; set; }= C64VideoMode.Multicolor;
 
         public bool TileBorderShow { get; set; } = false;
-
-        public ColorTransformReductionC64()
-        {
-            Type = ColorTransformType.ColorReductionCBM64;
-            Description = "Reduce color to C64 palette";
-            CreatePalette();
-        }
-
+        int TileBorderColor = 0x_00_00_FF_00;
+        
+       
         List<int> basePalette = new List<int>
                 {
                     0x00_00_00_00,
@@ -59,6 +54,18 @@ namespace ColourClashNet.Color.Transformation
 
         List<int> enhancedPalette = new List<int>();
 
+        ColorTransformType processingType { get; } = ColorTransformType.ColorReductionClustering;
+
+        TileManager tileManager = new TileManager();
+
+        public ColorTransformReductionC64()
+        {
+            Type = ColorTransformType.ColorReductionCBM64;
+            Description = "Reduce color to C64 palette";
+            CreatePalette();
+        }
+
+
         void CreatePalette()
         {
             var sM = nameof(CreatePalette);
@@ -72,7 +79,7 @@ namespace ColourClashNet.Color.Transformation
                     int iRGBB = basePalette[j];   
                     var HSVA = HSV.CreateFromIntRGB(iRGBA);
                     var HSVB = HSV.CreateFromIntRGB(iRGBB);                   
-                    LogMan.Message(sC, sM, $"{i} : {j} -> {HSVA.V:f1} - {HSVB.V:f1}");
+                   // LogMan.Message(sC, sM, $"{i} : {j} -> {HSVA.V:f1} - {HSVB.V:f1}");
                     if (Math.Abs(HSVA.V-HSVB.V)<15.0)
                     {
                         int iRGBM = ColorIntExt.GetColorMean(iRGBA, iRGBB);
@@ -82,20 +89,22 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
-        int TileBorderColor = 0x_00_00_FF_00;
-
-        ColorTransformType processingType { get; } = ColorTransformType.ColorReductionGenericPalette;
-        Dictionary<ColorTransformProperties, object> CreateProcessingParams(Palette palette, ColorDithering ditheringType, int maxColors)
+     
+        Dictionary<ColorTransformProperties, object> CreateProcessingParams(int maxColors, Palette fixedPalette )
         {
             var dict = new Dictionary<ColorTransformProperties, object>();
             dict[ColorTransformProperties.ColorDistanceEvaluationMode] = ColorDistanceEvaluationMode;
-            dict[ColorTransformProperties.Fixed_Palette] = palette;
-            dict[ColorTransformProperties.Forced_Palette] = palette;
-            dict[ColorTransformProperties.Dithering_Type] = ditheringType;
+            dict[ColorTransformProperties.Fixed_Palette] = FixedPalette;
+            dict[ColorTransformProperties.Forced_Palette] = fixedPalette;
+            dict[ColorTransformProperties.Dithering_Type] = DitheringType ;
             dict[ColorTransformProperties.Dithering_Strength] = DitheringStrength;
             dict[ColorTransformProperties.MaxColorsWanted] = maxColors;
+            dict[ColorTransformProperties.UseColorMean] = false;
+            dict[ColorTransformProperties.ClusterTrainingLoop] = 5;
             return dict;
         }
+
+       
 
         internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
@@ -130,55 +139,51 @@ namespace ColourClashNet.Color.Transformation
             return base.CreateTransformationMap(oToken);
         }
 
+        TileManager CreateTileManager( int tileHeight, int tileWidth, int maxColors, ImageData image, Palette fixedColorPalette, CancellationToken token=default)
+        {
+            tileManager = TileManager.CreateTileManager(tileHeight, tileWidth, image, processingType, CreateProcessingParams(maxColors, fixedColorPalette), token);
+            tileManager.TileBorderShow = TileBorderShow;
+            tileManager.TileBorderColor = TileBorderColor;
+            return tileManager;
+        }
+
         // Not Needed
         // protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
-        ImageData? PreProcess(ImageData oDataSource, bool bHalveRes, CancellationToken oToken)
+        ImageData? PreProcess(bool bHalveRes, CancellationToken token=default)
         {
             string sM= nameof(PreProcess);
-            if ( !oDataSource?.IsValid ?? true )
-            {
-                LogMan.Error(sC, sM, "No data source provided");
-                return null;
-            }
-            var oRealSource = oDataSource;
-            if (bHalveRes)
-            {
-                oRealSource = new ImageData().Create(ColorTransformBase.HalveHorizontalRes(oDataSource.matrix));
-            }
+            var refImage = bHalveRes ? ImageTools.HalveXResolution(SourceData) : SourceData;
             // Reduce all to the base 16 C64 colors without restrictions
-            var oProcessed = TransformationMap.Transform(oRealSource, oToken);
-            var oDithered = oProcessed;
+            var procImage = TransformationMap.Transform(refImage, token);
+            var dithImage = procImage;
             if (DitheringType !=  ColorDithering.None )
             {
                 var oDither = Dithering.DitherBase.CreateDitherInterface(DitheringType,DitheringStrength);             
-                oDithered = oDither.Dither(oRealSource, oProcessed, ColorDistanceEvaluationMode, oToken);
+                dithImage = oDither.Dither(refImage, procImage, ColorDistanceEvaluationMode, token);
             }
             // Raise pre processing event
             RaiseProcessPartialEvent(new ColorProcessingEventArgs()
             {
                 ColorTransformInterface = this,
                 CompletedPercent = 0,
-                ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, oDithered, "Dithered Base")
+                ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, dithImage, "Dithered Base")
             });
-            return oDithered;
+            return dithImage;
         }
 
         // Only to debug purpose, this is the best image obtainable using C64 palette
-        ImageData? ToBasePalette(ImageData oTmpDataSource, CancellationToken oToken) 
-            => PreProcess(oTmpDataSource, false, oToken);
+        ImageData? ToBasePalette(CancellationToken token=default) 
+            => PreProcess(false, token);
 
         // Cerate a Tile Map 8x8 2 indipendent colors
-        ImageData ToHires(ImageData oDataSource, CancellationToken oToken)
+        ImageData ToHires(CancellationToken token=default)
         {
-            var oTmpData = PreProcess(oDataSource, false, oToken);
-            TileManager oManager = TileManager.CreateTileManager(8, 8, oDataSource, processingType, CreateProcessingParams(FixedPalette, DitheringType, 2), oToken);
-            oManager.TileBorderShow = TileBorderShow;
-            oManager.TileBorderColor = TileBorderColor;
-            var tileResul = oManager.ProcessColors(oToken);
+            var oTmpData = PreProcess(false, token);
+            var oManager = CreateTileManager(8, 8, 2, oTmpData, null, token);
+            var tileResul = oManager.ProcessColors(token);
             if (tileResul)
             {
-                var oImageData = oManager.CreateImageFromTiles();
-                return oImageData;
+                return oManager.CreateImageFromTiles();
             }
             else
             {
@@ -188,24 +193,16 @@ namespace ColourClashNet.Color.Transformation
 
 
         // Create a Tile Map 8x4 1 fixed color + 3 selectable colors per tile
-        ImageData ToMultiColor(ImageData oDataSource, CancellationToken oToken)
+        ImageData ToMultiColor(CancellationToken token=default)
         {
-            var oTmpData = PreProcess(oDataSource, true, oToken);
-
-            // Select the most used 
-            var oTmpHistogram = Histogram.CreateHistogram(oTmpData);
-            var oForcedPalette = oTmpHistogram.SortColorsDescending().ToPalette(1);
-
-            TileManager oManager = TileManager.CreateTileManager(4, 8, oDataSource, processingType, CreateProcessingParams(FixedPalette, DitheringType, 4), oToken);
-            oManager.TileBorderShow = TileBorderShow;
-            oManager.TileBorderColor = TileBorderColor;
-            var tileResul = oManager.ProcessColors(oToken);
+            var preprocessImage = PreProcess(true, token);
+            var paletteFixedColor = Histogram.CreateHistogram(preprocessImage).SortColorsDescending().ToPalette(1);
+            TileManager oManager = CreateTileManager(4, 8, 4, preprocessImage, paletteFixedColor, token);
+            var tileResul = oManager.ProcessColors(token);
             if (tileResul)
             {
-                var oImageData = oManager.CreateImageFromTiles();
-                var oTmpHalfProc = oManager.CreateImageFromTiles();
-                var oResultData = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc.matrix);
-                return new ImageData().Create(oResultData);
+                var tileImage = oManager.CreateImageFromTiles();
+                return ImageTools.DoubleXResolution(tileImage);
             }
             else
             {
@@ -214,29 +211,24 @@ namespace ColourClashNet.Color.Transformation
         }
 
         // Create a Tile Map 1x4 2 selectable color per tile
-        ImageData? ToFli(ImageData oDataSource, CancellationToken oToken=default)
+        ImageData? ToFli(CancellationToken token = default)
         {
-            var oTmpData = PreProcess(oDataSource, true, oToken);
+            var preprocessImage = PreProcess(true, token);
 
-            TileManager oManager = TileManager.CreateTileManager(4, 1, oDataSource, processingType, CreateProcessingParams(FixedPalette, DitheringType, 2), oToken);
-            oManager.TileBorderShow = TileBorderShow;
-            oManager.TileBorderColor = TileBorderColor;
-            var tileResul = oManager.ProcessColors(oToken);
+            // Select the most used color
+            var paletteFixedColor = Histogram.CreateHistogram(preprocessImage).SortColorsDescending().ToPalette(1);
+            TileManager oManager = CreateTileManager(4, 1, 2, preprocessImage, null, token);
+            var tileResul = oManager.ProcessColors(token);
             if (tileResul)
             {
-                var oImageData = oManager.CreateImageFromTiles();
-                var oTmpHalfProc = oManager.CreateImageFromTiles();
-                var oResultData = ColorTransformBase.DoubleHorizontalRes(oTmpHalfProc.matrix);
-                return new ImageData().Create(oResultData);
+                var tileImage = oManager.CreateImageFromTiles();
+                return ImageTools.DoubleXResolution(tileImage);
             }
             else
             {
                 return null;
             }
         }
-
-
-
 
         protected override ColorTransformResults ExecuteTransform(CancellationToken token = default)
         {
@@ -248,27 +240,27 @@ namespace ColourClashNet.Color.Transformation
                 case C64VideoMode.DebugEnhancedPalette:
                 case C64VideoMode.DebugBasePalette:
                     {
-                        oPreprocessedData = ToBasePalette(SourceData, token);
+                        oPreprocessedData = ToBasePalette(token);
                     }
                     break;
                 case C64VideoMode.HiRes:
                     {                       
-                        oPreprocessedData = ToHires(SourceData, token);
+                        oPreprocessedData = ToHires(token);
                     }
                 break;
                 case C64VideoMode.FLI:
                     {
-                        oPreprocessedData = ToFli(SourceData, token);
+                        oPreprocessedData = ToFli(token);
                     }
                 break;
                 case C64VideoMode.Multicolor:
                     {
-                        oPreprocessedData = ToMultiColor(SourceData, token);
+                        oPreprocessedData = ToMultiColor(token);
                     }
                 break;
                 case C64VideoMode.MCI:
                     {
-                        oPreprocessedData = ToMultiColor(SourceData, token);
+                        oPreprocessedData = ToMultiColor(token);
                     }
                     break;
                 default:

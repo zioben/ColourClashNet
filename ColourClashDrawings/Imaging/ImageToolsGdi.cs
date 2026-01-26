@@ -335,11 +335,11 @@ public static partial class ImageToolsGDI
                 for (int y = 0; y < oBmp.Height; y++)
                 {
                     int yoff = oLock.Stride * y;
-                    for (int x = 0; x < oBmp.Width; x += 4)
+                    for (int x = 0, xx = 0; x < oBmp.Width; x++,xx+=4)
                     {
-                        byte r = ptr[x + yoff + 0];
-                        byte g = ptr[x + yoff + 1];
-                        byte b = ptr[x + yoff + 2];
+                        byte b = ptr[xx + yoff + 0];
+                        byte g = ptr[xx + yoff + 1];
+                        byte r = ptr[xx + yoff + 2];
                         m[y, x] = ColorIntExt.FromRGB(r, g, b);
                     }
                 }

@@ -49,30 +49,33 @@ namespace ColourClashNet.Color.Transformation
 
         protected override ColorTransformResults ExecuteTransform(CancellationToken token = default)
         {
-           
-                string sM = nameof(ExecuteTransform);
 
-                var oProcessed = new int[SourceData.Rows, SourceData.Columns];
-                BypassDithering = true;
+            string sM = nameof(ExecuteTransform);
 
-                Parallel.For(0, SourceData.Rows, r =>
+            var oProcessed = new int[SourceData.Rows, SourceData.Columns];
+            BypassDithering = true;
+
+            // More Performant without Parallel ?
+            //for (int r = 0; r < SourceData.Rows; r++ )
+            Parallel.For(0, SourceData.Rows, new ParallelOptions { CancellationToken = token }, r =>
+            {
+                for (int c = 0; c < SourceData.Columns; c++)
                 {
-                    for (int c = 0; c < SourceData.Columns; c++)
+                    var hsv = HSV.CreateFromIntRGB(SourceData.matrix[r, c]);
+                    if (hsv.IsValid)
                     {
-                        var hsv = HSV.CreateFromIntRGB(SourceData.matrix[r, c]);
-                        if (hsv.IsValid)
-                        {
-                            hsv.H = hsv.H + (float)HueShift;
-                            hsv.S = (float)Math.Min(100, hsv.S * SaturationMultFactor);
-                            hsv.V = (float)Math.Min(100, hsv.V * BrightnessMultFactor);
-                            oProcessed[r, c] = hsv.ToIntRGB();
-                        }
+                        hsv.H = hsv.H + (float)HueShift;
+                        hsv.S = (float)Math.Min(100, hsv.S * SaturationMultFactor);
+                        hsv.V = (float)Math.Min(100, hsv.V * BrightnessMultFactor);
+                        oProcessed[r, c] = hsv.ToIntRGB();
                     }
-                    token.ThrowIfCancellationRequested();
-                });
+                }
+                token.ThrowIfCancellationRequested();
+            });
+            //}
 
-                return ColorTransformResults.CreateValidResult(SourceData, new ImageData().Create(oProcessed));
-            
+            return ColorTransformResults.CreateValidResult(SourceData, new ImageData().Create(oProcessed));
+
         }
     }
 }

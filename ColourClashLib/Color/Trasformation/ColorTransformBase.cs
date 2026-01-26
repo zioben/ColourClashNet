@@ -65,7 +65,7 @@ namespace ColourClashNet.Color.Transformation
 
         public double DitheringStrength { get; set; } = 1.0;
 
-       
+
 
         #endregion
 
@@ -80,8 +80,6 @@ namespace ColourClashNet.Color.Transformation
 
 
         #endregion
-
-
 
         #region Create/Destroy
 
@@ -190,60 +188,31 @@ namespace ColourClashNet.Color.Transformation
         protected internal virtual ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
         {
             string sM = nameof(SetProperty);
-            bool entered = false;
-            try
+            switch (propertyName)
             {
-
-                entered = semaphore.Wait(1000);
-                if (!entered)
-                {
-                    throw new TimeoutException($"{sC}.{sM} : Cannot set property {propertyName}");
-                }
-                try
-                {
-
-                    switch (propertyName)
-                    {
-                        case ColorTransformProperties.ColorDistanceEvaluationMode:
-                                    ColorDistanceEvaluationMode = ToEnum<ColorDistanceEvaluationMode>(value);
-                                break;
-                        case ColorTransformProperties.Fixed_Palette:
-                                if (value is IEnumerable<int> palette1)
-                                    FixedPalette = Palette.CreatePalette(palette1);
-                                if (value is List<int> palette2)
-                                    FixedPalette = Palette.CreatePalette(palette2);
-                                else if (value is Palette palette3)
-                                    FixedPalette = Palette.CreatePalette(palette3);
-                                else
-                                    throw new ArgumentException($"{Type} : Invalid value for {propertyName} ");
-                                break;
-                        case ColorTransformProperties.Dithering_Type:
-                                DitheringType = ToEnum<ColorDithering>(value);
-                                break;
-                        case ColorTransformProperties.Dithering_Strength:
-                                DitheringStrength = Clamp(value, 0.0, 1.0);
-                                break;
-                        default:
-                            break;
-                    }
-                    return this;
-                }
-                catch (Exception exInner)
-                {
-                    LogMan.Exception(sC, sM, $"{Type} : Error setting property {propertyName} ", exInner);
-                    return this;
-                }
+                case ColorTransformProperties.ColorDistanceEvaluationMode:
+                    ColorDistanceEvaluationMode = ToEnum<ColorDistanceEvaluationMode>(value);
+                    break;
+                case ColorTransformProperties.Fixed_Palette:
+                    if (value is IEnumerable<int> palette1)
+                        FixedPalette = Palette.CreatePalette(palette1);
+                    if (value is List<int> palette2)
+                        FixedPalette = Palette.CreatePalette(palette2);
+                    else if (value is Palette palette3)
+                        FixedPalette = Palette.CreatePalette(palette3);
+                    else
+                        throw new ArgumentException($"{Type} : Invalid value for {propertyName} ");
+                    break;
+                case ColorTransformProperties.Dithering_Type:
+                    DitheringType = ToEnum<ColorDithering>(value);
+                    break;
+                case ColorTransformProperties.Dithering_Strength:
+                    DitheringStrength = Clamp(value, 0.0, 1.0);
+                    break;
+                default:
+                    break;
             }
-            catch (Exception ex)
-            {
-                LogMan.Exception(sC, sM, ex);
-                return this;
-            }
-            finally
-            {
-                if (entered)
-                    semaphore.Release();
-            }
+            return this;
         }
 
         public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, int value)
@@ -359,7 +328,7 @@ namespace ColourClashNet.Color.Transformation
                 //    LogMan.Exception(sC, sM, $"{Type} : Error in {nameof(Created)} event", exEvent);
                 //}
 
-
+                m_chrono.Start();
 
                 LogMan.Debug(sC, sM, $"{Type} : Processing started");
                 TransformationError = double.NaN;
@@ -459,6 +428,7 @@ namespace ColourClashNet.Color.Transformation
                 {
                     LogMan.Exception(sC, sM, $"{Type} : Error in {nameof(Processed)} event", exEvent);
                 }
+                m_chrono.Update();
                 return oRetRes;
             }
             catch (ThreadInterruptedException exTh)

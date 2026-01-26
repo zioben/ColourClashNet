@@ -20,7 +20,7 @@ public partial class TileProcessing
     {
         get
         {
-            if (tileItem?.IsValid ?? false)
+            if (!tileItem?.IsValid ?? true)
             {
                 return false;
             }

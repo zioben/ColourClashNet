@@ -96,7 +96,7 @@ public partial class TileManager
                     return this;
                 }
                 ProcessingType = processingType;
-                ProcessingParameters = new Dictionary<ColorTransformProperties, object>(ProcessingParameters);
+            
                 ImageSource = new ImageData().Create(image);
                 if (!ImageSource.IsValid)
                 {
@@ -104,25 +104,26 @@ public partial class TileManager
                     Reset();
                     return this;
                 }
-                tileProcessingMatrix = new TileProcessing[(ImageSource.Rows + TileH - 1) / TileH, (ImageSource.Columns + TileW - 1) / TileW];
+                tileProcessingMatrix = new TileProcessing[(ImageSource.Height) / TileH, (ImageSource.Width) / TileW];
 
-                Parallel.For(0, TileRows, r =>
+                //Parallel.For(0, TileRows, r =>
+                for (int r = 0; r < TileRows; r++)
                 {
                     for (int c = 0; c < TileColumns; c++)
                     {
                         oToken.ThrowIfCancellationRequested();
-                        int rr = r;
-                        int cc = c;
-                        tileProcessingMatrix[rr, cc] = TileProcessing.CreateTileProcessing(
+                        int ys = r * TileH;
+                        int xs = c * TileW;
+                        tileProcessingMatrix[r, c] = TileProcessing.CreateTileProcessing(
                             ImageSource,
-                            rr * TileH,
-                            cc * TileW,
+                            xs,
+                            ys,
                             TileW,
                             TileH,
                             ProcessingType,
-                            ProcessingParameters);
+                            processingParameters);
                     }
-                });
+                }//);
                 return this;
             }
             catch (OperationCanceledException)
@@ -153,7 +154,8 @@ public partial class TileManager
                 LogMan.Error(sC, sM, "TileManager is not valid");
                 return false;
             }
-            Parallel.For(0, TileRows, r =>
+            //Parallel.For(0, TileRows, r =>
+            for (int r = 0; r < TileRows; r++)
             {
                 token.ThrowIfCancellationRequested();
                 for (int c = 0; c < TileColumns; c++)
@@ -163,7 +165,7 @@ public partial class TileManager
                     token.ThrowIfCancellationRequested();
                     tileProcessingMatrix[rr, cc].ProcessTile(token);
                 };
-            });
+            }//);
             RecalcGlobalTransformationError();
             return true;
         }
@@ -190,7 +192,9 @@ public partial class TileManager
                 if (!IsValid)
                 {
                     LogMan.Error(sC, sM, "invalid data");
+                    return GlobalTransformationError;
                 }
+                GlobalTransformationError = 0;
                 for (int r = 0; r < TileRows; r++)
                 {
                     for (int c = 0; c < TileColumns; c++)
@@ -273,7 +277,8 @@ public partial class TileManager
         }
         var matrix = new int[ImageSource.Rows, ImageSource.Columns];
 
-        Parallel.For(0, TileRows, r =>
+        //Parallel.For(0, TileRows, r =>
+        for (int r = 0; r < TileRows; r++)
         {
             for (int c = 0; c < TileColumns; c++)
             {
@@ -281,7 +286,7 @@ public partial class TileManager
                 int cc = c;
                 tileProcessingMatrix[rr, cc].MergeData(matrix);
             }
-        });
+        }//);
 
         if (TileBorderShow && TileBorderColor >= 0)
         {

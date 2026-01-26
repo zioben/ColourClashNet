@@ -14,7 +14,7 @@ namespace ColourClashNet.Imaging;
 
 public static partial class ImageTools
 {
-    static string sClass = nameof(ImageTools);
+    static string sC = nameof(ImageTools);
 
     #region Indexed Data Creation
 
@@ -36,6 +36,41 @@ public static partial class ImageTools
     /// <returns>A two-dimensional byte array containing the indexed pixel data of the image.</returns>
     static public byte[,]? CreateIndexedMatrix(ImageData oImage)
         => MatrixTools.CreateIndexedMatrix(oImage?.matrix, oImage?.ColorPalette);
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="oImage"></param>
+    /// <returns></returns>
+    public static ImageData? DoubleXResolution(ImageData oImage)
+    {
+        string sM = nameof(DoubleXResolution);  
+        if (oImage == null)
+        {
+            LogMan.Error(sC,sM, "Input image is null.");
+            return new ImageData();
+        }
+        var matrix = MatrixTools.DoubleColumnResolution(oImage.matrix);
+        return new ImageData().Create(matrix);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="oImage"></param>
+    /// <returns></returns>
+    public static ImageData? HalveXResolution(ImageData oImage)
+    {
+        string sM = nameof(DoubleXResolution);
+        if (oImage == null)
+        {
+            LogMan.Error(sC, sM, "Input image is null.");
+            return new ImageData();
+        }
+        var matrix = MatrixTools.HalveColumnResolution(oImage.matrix);
+        return new ImageData().Create(matrix);
+    }
 
     #endregion
 }

@@ -181,17 +181,17 @@ public static class MatrixTools
     /// null. The returned array has the specified height and width, with elements copied from the corresponding region
     /// of the source matrix.</remarks>
     /// <param name="matrix">The source two-dimensional array from which to crop a submatrix. Cannot be null.</param>
-    /// <param name="r">The zero-based row index of the upper-left corner of the crop area within the source matrix. Must be within the
-    /// bounds of the matrix.</param>
-    /// <param name="c">The zero-based column index of the upper-left corner of the crop area within the source matrix. Must be within
+    /// <param name="xs">The zero-based column index of the upper-left corner of the crop area within the source matrix. Must be within
     /// the bounds of the matrix.</param>
+    /// <param name="ys">The zero-based row index of the upper-left corner of the crop area within the source matrix. Must be within the
+    /// bounds of the matrix.</param>
     /// <param name="width">The width, in columns, of the submatrix to extract. Must be greater than zero and the crop area must not exceed
     /// the bounds of the source matrix.</param>
     /// <param name="height">The height, in rows, of the submatrix to extract. Must be greater than zero and the crop area must not exceed
     /// the bounds of the source matrix.</param>
     /// <returns>A new two-dimensional array containing the cropped submatrix, or null if the source matrix is null or the
     /// specified crop area is out of bounds.</returns>
-    static public int[,]? Crop(int[,] matrix, int r, int c, int width, int height)
+    static public int[,]? Crop(int[,] matrix, int xs, int ys,  int width, int height)
     {
         string sMethod = nameof(Crop);
         try
@@ -203,7 +203,7 @@ public static class MatrixTools
             }
             int R = matrix.GetLength(0);
             int C = matrix.GetLength(1);
-            if (r < 0 || r >= R || c < 0 || c >= C || width <= 0 || height <= 0 || r + height > R || c + width > C)
+            if (ys < 0 || ys >= R || xs < 0 || xs >= C || width <= 0 || height <= 0 || ys + height > R || xs + width > C)
             {
                 LogMan.Error(sClass, sMethod, "Crop parameters are out of bounds");
                 return null;
@@ -213,7 +213,7 @@ public static class MatrixTools
             {
                 for (int x = 0; x < width; x++)
                 {
-                    oRet[y, x] = matrix[r + y, c + x];
+                    oRet[y, x] = matrix[ys + y, xs + x];
                 }
             }
             return oRet;
@@ -252,17 +252,20 @@ public static class MatrixTools
         }
     }
 
+    static Rectangle<int>GetRectangle(int[,] matrix)
+        => new(0, 0, matrix?.GetLength(1)??0, matrix?.GetLength(0)??0);
+
     /// <summary>
     /// 
     /// </summary>
     /// <param name="matrix"></param>
-    /// <param name="rowStart"></param>
-    /// <param name="columnStart"></param>
-    /// <param name="rowLenght"></param>
-    /// <param name="columnLenght"></param>
+    /// <param name="xs"></param>
+    /// <param name="ys"></param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
     /// <param name="fillRGB"></param>
     /// <returns></returns>
-    static public bool Clear(int[,] matrix, int rowStart, int columnStart, int rowLenght, int columnLenght, int fillRGB = 0)
+    static public bool Clear(int[,] matrix, int xs, int ys, int width, int height, int fillRGB = 0)
     {
         string sMethod = nameof(Clear);
         try
@@ -272,17 +275,17 @@ public static class MatrixTools
                 LogMan.Error(sClass, sMethod, "Source data matrix is null");
                 return false;
             }
-            MatrixRectangle<int> rectClipped = MatrixRectangle<int>.Intestect(new(rowStart, columnStart, rowLenght, columnLenght), new(0, 0, matrix.GetLength(0), matrix.GetLength(1)));
+            Rectangle<int> rectClipped = Rectangle<int>.Intersect(new(xs, ys, width, height), GetRectangle(matrix));
             if (rectClipped.IsEmpty)
             {
                 LogMan.Error(sClass, sMethod, "Clear rectangle is out of bounds");
                 return false;
             }
-            for (int r = 0; r < rectClipped.RowsLenght; r++)
+            for (int r = 0; r < rectClipped.Height; r++)
             {
-                for (int c = 0; c < rectClipped.ColumnsLenght; c++)
+                for (int c = 0; c < rectClipped.Width; c++)
                 {
-                    matrix[rectClipped.RS + r, rectClipped.CS + c] = fillRGB;
+                    matrix[rectClipped.X + r, rectClipped.Y + c] = fillRGB;
                 }
             }
             return true;
@@ -302,14 +305,14 @@ public static class MatrixTools
     /// regions is copied.</remarks>
     /// <param name="matrixSrc">The two-dimensional source matrix from which elements are copied. Cannot be null.</param>
     /// <param name="matrixDst">The two-dimensional destination matrix to which elements are copied. Cannot be null.</param>
-    /// <param name="rs">The starting row index in the source matrix for the region to copy.</param>
-    /// <param name="cs">The starting column index in the source matrix for the region to copy.</param>
-    /// <param name="re">The starting row index in the destination matrix where the region will be placed.</param>
-    /// <param name="ce">The starting column index in the destination matrix where the region will be placed.</param>
+    /// <param name="xSrc">The starting column index in the source matrix for the region to copy.</param>
+    /// <param name="ySrc">The starting row index in the source matrix for the region to copy.</param>
+    /// <param name="xDst">The starting column index in the destination matrix where the region will be placed.</param>
+    /// <param name="yDst">The starting row index in the destination matrix where the region will be placed.</param>
     /// <param name="columnLenght">The width, in elements, of the region to copy.</param>
     /// <param name="rowLenght">The height, in elements, of the region to copy.</param>
     /// <returns>true if the region was successfully copied; otherwise, false.</returns>
-    static public bool Blit(int[,] matrixSrc, int[,] matrixDst, int rs, int cs, int re, int ce, int rowLenght, int columnLenght)
+    static public bool Blit(int[,] matrixSrc, int[,] matrixDst, int xSrc, int ySrc, int xDst, int yDst,  int width, int height)
     {
         string sMethod = nameof(Crop);
         try
@@ -319,19 +322,26 @@ public static class MatrixTools
                 LogMan.Error(sClass, sMethod, "Source data matrix is null");
                 return false;
             }
-            ImageRectangle<int> rectSrc = ImageRectangle<int>.Intestect(new(0, 0, matrixSrc.GetLength(1), matrixSrc.GetLength(0)), new(cs, rs, columnLenght, rowLenght));
-            ImageRectangle<int> rectDst = ImageRectangle<int>.Intestect(new(0, 0, matrixDst.GetLength(1), matrixDst.GetLength(0)), new(ce, re, columnLenght, rowLenght));
-            ImageRectangle<int> rectSrcClipped = ImageRectangle<int>.Intestect(rectSrc, rectDst);
-            if (rectSrcClipped.IsEmpty)
+            Rectangle<int> rectSrc = Rectangle<int>.Intersect(new(xSrc, ySrc, width,height),GetRectangle(matrixSrc));
+            Rectangle<int> rectDst = Rectangle<int>.Intersect(new(xDst, yDst, width, height),GetRectangle(matrixDst));
+            if ( rectSrc.IsEmpty)
             {
-                LogMan.Error(sClass, sMethod, "Blit rectangles do not overlap");
+                LogMan.Warning(sClass, sMethod, "Source blit rectangle is out of bounds");
                 return false;
             }
-            for (int y = 0; y < rectSrcClipped.Height; y++)
+            if (rectDst.IsEmpty)
             {
-                for (int x = 0; x < rectSrcClipped.Width; x++)
+                LogMan.Warning(sClass, sMethod, "Destination blit rectangle is out of bounds");
+                return false;
+            }
+            int minHeight = Math.Min(rectSrc.Height, rectDst.Height);
+            int minWidth = Math.Min(rectSrc.Width, rectDst.Width);
+            //var rectSrcClip = new MatrixRectangle<int>(rectSrc.Row, rectSrc.Column, minHeight, minWidth);
+            for (int y = 0; y <minHeight; y++)
+            {
+                for (int x = 0; x < minWidth; x++)
                 {
-                    matrixDst[rectDst.YS + y, rectDst.XS + x] = matrixSrc[rectSrc.YS + y, rectSrc.XS + x];
+                    matrixDst[rectDst.Y + y, rectDst.X + x] = matrixSrc[rectSrc.Y + y, rectSrc.X + x];
                 }
             }
             return true;
@@ -353,7 +363,60 @@ public static class MatrixTools
     /// <param name="rowDest"></param>
     /// <param name="columnDest"></param>
     /// <returns></returns>
-    static public bool Blit(int[,] matrixSrc, int[,] matrixDst, MatrixRectangle<int> rectangleSource, int rowDest, int columnDest)
-       => Blit(matrixSrc, matrixDst, rectangleSource.Row, rectangleSource.Column, rowDest, columnDest, rectangleSource.RowsLenght, rectangleSource.ColumnsLenght);
+    static public bool Blit(int[,] matrixSrc, int[,] matrixDst, Rectangle<int> rectangleSource, int xDst, int yDst)
+       => Blit(matrixSrc, matrixDst, rectangleSource.X, rectangleSource.Y, xDst, yDst, rectangleSource.Width,rectangleSource.Height);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="matrix"></param>
+    /// <returns></returns>
+    static public int[,] HalveColumnResolution(int[,]? matrix)
+    {
+        if (matrix == null)
+            return null;
+        var R = matrix.GetLength(0);
+        var C = matrix.GetLength(1);
+        var CO = (C + 1) / 2;
+        var oRet = new int[R, CO];
+        Parallel.For(0, R, r =>
+        {
+            for (int c = 0, co = 0; c < C; c += 2, co++)
+            {
+                if (c < C - 1)
+                {
+                    var a = matrix[r, c];
+                    var b = matrix[r, c + 1];
+                    oRet[r, co] = ColorIntExt.GetColorMean(a, a);
+                }
+            }
+        });
+        return oRet;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="matrix"></param>
+    /// <returns></returns>
+    public static int[,] DoubleColumnResolution(int[,]? matrix)
+    {
+        if (matrix == null)
+            return null;
+        var R = matrix.GetLength(0);
+        var C = matrix.GetLength(1);
+        var oRet = new int[R, C * 2];
+
+        Parallel.For(0, R, r =>
+        {
+            for (int c = 0, co = 0; c < C; c++)
+            {
+                var a = matrix[r, c];
+                oRet[r, co++] = a;
+                oRet[r, co++] = a;
+            }
+        });
+        return oRet;
+    }
 
 }

@@ -62,30 +62,26 @@ namespace ColourClashNet.Color
                 if (delta > 0)
                 {
                     if (r == max)
-                    {
                         h = 60 * (((g - b) / delta) % 6);
-                    }
                     else if (g == max)
-                    {
                         h = 60 * (((b - r) / delta) + 2);
-                    }
                     else
-                    {
                         h = 60 * (((r - g) / delta) + 4);
-                    }
                 }
 
                 if (h < 0) h += 360;
 
-                float s = max == 0 ? 0 : (delta / max) * 100f;
-                float v = max * 100f;
+                H = h;
+                S = max == 0 ? 0 : (delta / max) * 100f;
+                V = max * 100f;
             }
             else
             {
                 H = -1;
                 S = -1;
-                V = -1;               
+                V = -1;
             }
+
             return IsValid;
         }
 
@@ -98,6 +94,12 @@ namespace ColourClashNet.Color
             float s = S / 100f;
             float v = V / 100f;
 
+            if (s == 0)
+            {
+                int gray = (int)Math.Round(v * 255);
+                return ColorIntExt.FromRGB(gray, gray, gray);
+            }
+
             float c = v * s;
             float x = c * (1 - Math.Abs((h / 60f) % 2 - 1));
             float m = v - c;
@@ -105,15 +107,19 @@ namespace ColourClashNet.Color
             float r1 = 0, g1 = 0, b1 = 0;
 
             if (h >= 0 && h < 60) { r1 = c; g1 = x; b1 = 0; }
-            else if (h >= 60 && h < 120) { r1 = x; g1 = c; b1 = 0; }
-            else if (h >= 120 && h < 180) { r1 = 0; g1 = c; b1 = x; }
-            else if (h >= 180 && h < 240) { r1 = 0; g1 = x; b1 = c; }
-            else if (h >= 240 && h < 300) { r1 = x; g1 = 0; b1 = c; }
+            else if (h < 120) { r1 = x; g1 = c; b1 = 0; }
+            else if (h < 180) { r1 = 0; g1 = c; b1 = x; }
+            else if (h < 240) { r1 = 0; g1 = x; b1 = c; }
+            else if (h < 300) { r1 = x; g1 = 0; b1 = c; }
             else { r1 = c; g1 = 0; b1 = x; }
 
             int r = (int)Math.Round((r1 + m) * 255);
             int g = (int)Math.Round((g1 + m) * 255);
             int b = (int)Math.Round((b1 + m) * 255);
+
+            r = Math.Clamp(r, 0, 255);
+            g = Math.Clamp(g, 0, 255);
+            b = Math.Clamp(b, 0, 255);
 
             return ColorIntExt.FromRGB(r, g, b);
         }

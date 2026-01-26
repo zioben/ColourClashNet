@@ -1,3 +1,5 @@
+using ColourClashNet.Color.Transformation;
+using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using NLog;
 
@@ -5,6 +7,8 @@ namespace ModuleTester
 {
     internal static class Program
     {
+
+
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>
@@ -16,7 +20,10 @@ namespace ModuleTester
             ApplicationConfiguration.Initialize();
             LogMan.Create();
             LogMan.MinLogLevel = ColourClashNet.Log.LogLevel.Message;
+
             Application.Run(new FormTester());
+
+
         }
     }
 }

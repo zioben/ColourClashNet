@@ -22,10 +22,12 @@ namespace ColourClashNet.Color.Transformation
         {
             TransformationMap.Reset();
             var rgbList = SourceData.ColorPalette.ToList();
-            Parallel.ForEach(rgbList, rgb =>
+
+            //Parallel.ForEach(rgbList, rgb =>
+            foreach (var rgb in rgbList)    
             {
                 TransformationMap.Add(rgb, ColorIntExt.GetNearestColor(rgb, FixedPalette, this.ColorDistanceEvaluationMode));
-            });
+            }//);
             //Ferificed OK
             //var t = TransformationMap.rgbTransformationMap.Values.Distinct().ToList();
             return ColorTransformResults.CreateValidResult();
