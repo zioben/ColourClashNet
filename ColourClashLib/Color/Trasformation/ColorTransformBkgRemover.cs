@@ -33,11 +33,11 @@ namespace ColourClashNet.Color.Transformation
                     {
                         BackgroundPalette = new Palette();
                         if (value is IEnumerable<int> palette1)
-                            BackgroundPalette = Palette.CreatePalette(palette1);
+                            BackgroundPalette = new Palette().Create(palette1);
                         else if (value is IEnumerable<int> palette2)
-                            BackgroundPalette = Palette.CreatePalette(palette2);
+                            BackgroundPalette = new Palette().Create(palette2);
                         else if (value is Palette palette3)
-                            BackgroundPalette = Palette.CreatePalette(palette3);
+                            BackgroundPalette = new Palette().Create(palette3);
                         else
                             throw new ArgumentException($"Invalid value type for {propertyName}: {value.GetType().Name}");
                     }

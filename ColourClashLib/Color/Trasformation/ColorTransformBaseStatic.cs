@@ -18,6 +18,7 @@ namespace ColourClashNet.Color.Transformation
             ColorTransformInterface trans = null;
             switch (transformType)
             {
+                case ColorTransformType.ColorIdentity:
                 case ColorTransformType.None:
                     trans = new ColorTransformIdentity();
                     break;
@@ -55,7 +56,7 @@ namespace ColourClashNet.Color.Transformation
                     trans = new ColorTransformReductionScanLine();
                     break;
                 case ColorTransformType.ColorReductionZxSpectrum:
-                    trans = new ColorTransformReductionZxSpectrumV2();                    
+                    trans = new ColorTransformReductionZxSpectrum();                    
                     break;
                 case ColorTransformType.ColorRemover:
                     trans = new ColorTransformBkgRemover();

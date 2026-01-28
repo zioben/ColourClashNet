@@ -38,10 +38,10 @@ namespace ColourClashNet.Color.Transformation
         {
             //OutputPalette = new Palette();
             TransformationMap.Reset();
-            var SourceHistogram = Histogram.CreateHistogram(SourceData);
+            var SourceHistogram = new Histogram().Create(SourceData);
             var oTempHist = SourceHistogram.SortColorsDescending();
             var oTempPalette = Palette.MergePalette(FixedPalette, oTempHist.ToPalette());
-            if (oTempPalette.Count < ColorsMaxWanted)
+            if (oTempPalette.Count <= ColorsMaxWanted)
             {
                 foreach (var kvp in SourceHistogram.rgbHistogram)
                 {
@@ -53,7 +53,7 @@ namespace ColourClashNet.Color.Transformation
             {
                 var listAll = oTempPalette.ToList();
                 var listMax = listAll.Take(ColorsMaxWanted).ToList();
-                var oPalette = Palette.CreatePalette(listMax);
+                var oPalette = new Palette().Create(listMax);
                 listAll.ForEach(rgbItem =>
                 {
                     oToken.ThrowIfCancellationRequested();

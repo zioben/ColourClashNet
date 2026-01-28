@@ -133,11 +133,11 @@ namespace ColourClashNet.Imaging
        /// <summary>
        /// Initializes the image data and color palette using the specified two-dimensional array of pixel values.
        /// </summary>
-       /// <param name="matrix">A two-dimensional array of integers representing pixel data. If null, the existing image data is not
+       /// <param name="matrixSrc">A two-dimensional array of integers representing pixel data. If null, the existing image data is not
        /// modified.</param>
-       /// <returns>The current <see cref="ImageData"/> instance with updated data and color palette if <paramref name="matrix"/>
+       /// <returns>The current <see cref="ImageData"/> instance with updated data and color palette if <paramref name="matrixSrc"/>
        /// is not null; otherwise, the instance remains unchanged.</returns>
-        public ImageData Create(int[,] matrix)
+        public ImageData Create(int[,] matrixSrc)
         {
             string sM = nameof(Create);
             try
@@ -145,12 +145,13 @@ namespace ColourClashNet.Imaging
                 lock (locker)
                 {
                     Reset();
-                    if (matrix == null)
+                    if (matrixSrc == null)
                     {
+                        LogMan.Error(sC, sM, "Source matrix is null, cannot create image data.");
                         return this;
                     }
-                    this.matrix = matrix.Clone() as int[,];
-                    ColorPalette = Palette.CreatePalette(this.matrix);
+                    this.matrix = matrixSrc.Clone() as int[,];
+                    ColorPalette = new Palette().Create(this);
                 }
                 return this;
             }
@@ -180,7 +181,7 @@ namespace ColourClashNet.Imaging
                 {
                     Reset();
                     matrix = new int[height, width]; 
-                    ColorPalette = Palette.CreatePalette(matrix);
+                    ColorPalette = new Palette().Create(this);
                 }
                 return this;
             }
@@ -199,15 +200,14 @@ namespace ColourClashNet.Imaging
         /// <param name="width"></param>
         /// <param name="height"></param>
         /// <returns></returns>
-        public ImageData Create(int xStart, int yStart, int width, int height )
+        public ImageData Extract(int xStart, int yStart, int width, int height )
         {
-            string sM = nameof(Create);
+            string sM = nameof(Extract);
             try
             {
                
                 lock (locker)
                 {
-                    Reset();
                     var matrixDst = new int[height, width];
                     if (!MatrixTools.Blit(matrix, matrixDst, xStart, yStart, 0, 0, width, height))
                     { 

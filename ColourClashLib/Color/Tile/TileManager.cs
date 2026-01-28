@@ -28,7 +28,7 @@ public partial class TileManager
 
     public int TileRows => tileProcessingMatrix?.GetLength(0) ?? 0;
     public int TileColumns => tileProcessingMatrix?.GetLength(1) ?? 0;
-    public bool TileBorderShow { get; set; } = true;
+    public bool TileBorderShow { get; set; } = false;
     public int TileBorderColor { get; set; } = ColorIntExt.FromRGB(255, 0, 255);
 
     public ImageData ImageSource { get; private set; } = new ImageData();
@@ -114,7 +114,7 @@ public partial class TileManager
                         oToken.ThrowIfCancellationRequested();
                         int ys = r * TileH;
                         int xs = c * TileW;
-                        tileProcessingMatrix[r, c] = TileProcessing.CreateTileProcessing(
+                        tileProcessingMatrix[r, c] = new TileProcessing().Create(
                             ImageSource,
                             xs,
                             ys,
@@ -166,7 +166,7 @@ public partial class TileManager
                     tileProcessingMatrix[rr, cc].ProcessTile(token);
                 };
             }//);
-            RecalcGlobalTransformationError();
+            var dError = RecalcGlobalTransformationError();
             return true;
         }
         catch (OperationCanceledException)
@@ -188,13 +188,13 @@ public partial class TileManager
         {
             lock (locker)
             {
-                GlobalTransformationError = double.NaN;
+                GlobalTransformationError = 0;
                 if (!IsValid)
                 {
                     LogMan.Error(sC, sM, "invalid data");
+                    GlobalTransformationError = double.NaN;
                     return GlobalTransformationError;
                 }
-                GlobalTransformationError = 0;
                 for (int r = 0; r < TileRows; r++)
                 {
                     for (int c = 0; c < TileColumns; c++)
@@ -228,10 +228,12 @@ public partial class TileManager
         {
             lock (locker)
             {
-                GlobalTransformationError = double.NaN;
+                GlobalTransformationError = 0;
                 if (!IsValid)
                 {
                     LogMan.Error(sC, sM, "invalid data");
+                    GlobalTransformationError = double.NaN;
+                    return GlobalTransformationError;
                 }
                 for (int r = 0; r < TileRows; r++)
                 {
@@ -256,7 +258,6 @@ public partial class TileManager
         {
             LogMan.Warning(sC, sM, "Operation cancelled");
             GlobalTransformationError = double.NaN;
-
         }
         catch (Exception ex)
         {

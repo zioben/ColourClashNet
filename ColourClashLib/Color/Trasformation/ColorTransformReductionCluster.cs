@@ -76,7 +76,7 @@ namespace ColourClashNet.Color.Transformation
         {
             string sMethod = nameof(CreateTransformationMap);
             // Sort by most used colors
-            var oTempHistogram = Histogram.CreateHistogram(SourceData).SortColorsDescending();
+            var oTempHistogram = new Histogram().Create(SourceData).SortColorsDescending();
             // Creating a temporary palette with fixed colors and histogram colors
             var oTempPalette = Palette.MergePalette(FixedPalette, oTempHistogram.ToPalette());
             // If we have less colors than wanted, just map them directly

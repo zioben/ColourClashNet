@@ -11,9 +11,6 @@ namespace ColourClashNet.Color.Tile;
 public partial class TileManager
 {
 
-    static public TileManager CreateTileManager(int tileWidth, int tileHeight, ImageData image, ColorTransformType processingType, Dictionary<ColorTransformProperties, object> processingParameters, CancellationToken oToken = default)
-        => new TileManager().Create(tileWidth, tileHeight, image, processingType, processingParameters, oToken);
-
     static bool MergeToMatrix(int[,] oDataOut, List<TileManager?> lTileMan)
     {
         string sM = nameof(MergeToMatrix);

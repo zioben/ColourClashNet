@@ -24,7 +24,10 @@ namespace ColourClashNet.Color
         /// </summary>
         public float B { get; set; }
 
-        public bool IsValid => L >=0 && A >=0 && B >=0;   
+        public bool IsValid => 
+            L >= 0f && L <= 100f &&
+            A >= -128f && A <= 127f &&
+            B >= -128f && B <= 127f;
 
         public LAB(float l, float a, float b)
         {
@@ -74,7 +77,8 @@ namespace ColourClashNet.Color
             }
             else
             {
-                L = A = B = -1;
+                L = -1;
+                A = B = 0;
             }
             return IsValid;
         }

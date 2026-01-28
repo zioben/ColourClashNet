@@ -62,43 +62,4 @@ public partial class Palette
     {
         return MergePalette(new[] { paletteA, paletteB });
     }
-
-    /// <summary>
-    /// Creates a new palette instance based on the specified source palette.
-    /// </summary>
-    /// <param name="sourcePalette">The palette to use as the basis for the new palette. Cannot be null.</param>
-    /// <returns>A new Palette instance that is a copy of the specified source palette.</returns>
-    public static Palette CreatePalette(Palette sourcePalette)
-    {
-        var sM = nameof(CreatePalette);
-        return MergePalette(new[] { sourcePalette });
-    }
-
-
-
-   /// <summary>
-   /// Creates a new Palette instance using the specified sequence of color values.
-   /// </summary>
-   /// <param name="sourceEnumerable">An enumerable collection of integers representing color values to include in the palette. Cannot be null.</param>
-   /// <returns>A Palette object containing the colors specified in the source enumerable.</returns>
-    public static Palette CreatePalette(IEnumerable<int> sourceEnumerable)
-       => new Palette().Create(sourceEnumerable);
-
-    /// <summary>
-    /// Creates a color palette by extracting valid color values from the specified two-dimensional array.
-    /// </summary>
-    /// <param name="matrix">A two-dimensional array of integers representing color data. Each element is evaluated to determine if it
-    /// represents a valid color.</param>
-    /// <returns>A Palette containing all valid colors found in the input array. If no valid colors are found or if the input
-    /// is null, the returned Palette will be empty.</returns>
-    public static Palette CreatePalette(int[,] matrix)
-       => new Palette().Create(matrix);
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="oImageData"></param>
-    /// <returns></returns>
-    public static Palette CreatePalette(ImageData oImageData)
-       => new Palette().Create(oImageData);
 }

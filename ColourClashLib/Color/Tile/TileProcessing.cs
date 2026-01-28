@@ -65,7 +65,7 @@ public partial class TileProcessing
         lock (locker)
         {
             Reset();
-            tileItem = TileItem.CreateTileItem(sourceImage, sourceX, sourceY, tileWidth, tileHeight);
+            tileItem = new TileItem().Create(sourceImage, sourceX, sourceY, tileWidth, tileHeight);
             transformation = ColorTransformBase.CreateColorTransformInterface(colorTransformType, colorTransformParams );
             return this;
         }
@@ -130,7 +130,7 @@ public partial class TileProcessing
                 LogMan.Error(sC, sM, "No valid transformed image");
                 transformationError = double.NaN;
             }
-            var refTile = ImageData.CreateImageData(rferenceImage, tileItem.OriginX, tileItem.OriginY, tileItem.TileW, tileItem.TileH);
+            var refTile = rferenceImage.Extract( tileItem.OriginX, tileItem.OriginY, tileItem.TileW, tileItem.TileH);
             transformationError = ColorIntExt.EvaluateError(refTile, TileProcessedImage, colorDistanceEvaluationMode);
             return transformationError;
         }

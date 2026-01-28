@@ -113,22 +113,5 @@ namespace ColourClashNet.Color
                 return new Histogram();
             }
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="image"></param>
-        /// <returns></returns>
-        public static Histogram CreateHistogram(ImageData image) 
-            => CreateHistogramStatic(image?.matrix, new Histogram());
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="histogram"></param>
-        /// <returns></returns>
-        public static Histogram CreateHistogram(Histogram histogram)
-            => new Histogram().Create(histogram);
     }
 }

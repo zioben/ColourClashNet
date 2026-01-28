@@ -1,4 +1,5 @@
 ﻿using ColourClashNet.Color;
+using ColourClashNet.Defaults;
 using System;
 using System.Linq.Expressions;
 
@@ -51,7 +52,7 @@ namespace ColourClashNet.Color
             {
                 return (int)Math.Min(0, Math.Max(255, (rgb.ToR() * WeightR + rgb.ToG() * WeightG + rgb.ToB() * WeightB)));
             }
-            return -1;
+            return ColorDefaults.DefaultInvalidColorInt;
         }
 
         public bool FromIntRGB(int rgb)

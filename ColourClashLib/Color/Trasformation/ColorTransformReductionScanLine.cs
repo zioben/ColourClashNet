@@ -76,7 +76,7 @@ namespace ColourClashNet.Color.Transformation
             // MainPaletteUsed = false;
             if (CreateSharedPalette)
             {
-                var oMainHist = Histogram.CreateHistogram(SourceData);
+                var oMainHist = new Histogram().Create(SourceData);
                 var oMainPalette = oMainHist.ToPalette();
                 if (oMainPalette.Count <= ColorsMaxWanted)
                 {
@@ -108,7 +108,7 @@ namespace ColourClashNet.Color.Transformation
 
                     var oMainRet = oLineTrasf.ProcessColors(oToken);
                     oSourceNew = oMainRet.DataOut;
-                    var oHistNew = Histogram.CreateHistogram(SourceData);
+                    var oHistNew = new Histogram().Create(SourceData);
                     oLineFixedPalette = oHistNew.ToPalette();
                 }
             }
@@ -128,7 +128,7 @@ namespace ColourClashNet.Color.Transformation
                     oCols[0, c] = oSourceNew.matrix[r, c];
                 }
                 // Create row histogram and take the most used colors
-                var oHist = Histogram.CreateHistogram(new ImageData().Create(oCols));//.SortColorsDescending();
+                var oHist = new Histogram().Create(new ImageData().Create(oCols));//.SortColorsDescending();
                 var oNewPal = oHist.SortColorsDescending().ToPalette(LineReductionMaxColors);
                 // Create 
                 //--------------------------------------------------------------

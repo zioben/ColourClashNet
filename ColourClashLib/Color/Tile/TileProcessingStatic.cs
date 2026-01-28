@@ -12,9 +12,7 @@ namespace ColourClashNet.Color.Tile;
 public partial class TileProcessing
 {
 
-    public static TileProcessing CreateTileProcessing(ImageData sourceImage, int sourceX, int sourceY, int tileWidth, int tileHeight, ColorTransformType transformationType, Dictionary<ColorTransformProperties,object> transformationProperties ) 
-        => new TileProcessing().Create(sourceImage, sourceX, sourceY, tileWidth, tileHeight, transformationType, transformationProperties);
-
+  
     /// <summary>
     /// Copy the best tile (lower color error) on destination data
     /// </summary>

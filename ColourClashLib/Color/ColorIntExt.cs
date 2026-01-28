@@ -422,7 +422,8 @@ namespace ColourClashNet.Color
             }
             double err = 0;
             int count = 0;
-            Parallel.For(0, imageA.Rows, r => //(int r = 0; r < r1; r++)
+            for (int r = 0; r < imageA.Rows; r++)
+            //Parallel.For(0, imageA.Rows, r => //(int r = 0; r < r1; r++)
             {
                 token.ThrowIfCancellationRequested();
                 for (int c = 0; c < imageA.Columns; c++)
@@ -435,7 +436,7 @@ namespace ColourClashNet.Color
                         count++;
                     }
                 }
-            });
+            }//);
             if (count > 0)
                 err /= count;
             else

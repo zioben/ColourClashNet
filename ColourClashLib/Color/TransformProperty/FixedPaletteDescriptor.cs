@@ -25,13 +25,13 @@ public sealed class FixedPaletteDescriptor
         return value switch
         {
             Palette p => p,
-            IEnumerable<int> seq => Palette.CreatePalette(seq),
+            IEnumerable<int> seq => new Palette().Create(seq),
             _ => throw new ArgumentException("Invalid palette value")
         };
     }
 
     protected override void ApplyTyped(ColorTransformBase transform, Palette value)
     {
-        transform.FixedPalette = Palette.CreatePalette( value );
+        transform.FixedPalette = new Palette().Create( value );
     }
 }

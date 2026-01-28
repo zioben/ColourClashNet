@@ -273,7 +273,7 @@ namespace ColourClashNet.Components
                         break;
                     case ColorTransformType.ColorReductionZxSpectrum:
                         {
-                            var oTrasf = new ColorTransformReductionZxSpectrumV2();
+                            var oTrasf = new ColorTransformReductionZxSpectrum();
                             //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
                             //oTrasf.ColL = Config.ZxEqColorLO;
                             //oTrasf.ColH = Config.ZxEqColorHI;

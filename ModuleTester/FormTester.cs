@@ -19,6 +19,8 @@ namespace ModuleTester
             bitmapRender2.Control = pictureBox2;
             CreateCombo();
             LogMan.OnLogMessage += LogMan_OnLogMessage;
+
+          //  TestTransformSpectrum();
         }
 
         ConcurrentQueue<string> oLogBag = new ConcurrentQueue<string>();
@@ -51,7 +53,7 @@ namespace ModuleTester
             {
                 cbColorMode.Items.Add(item);
             }
-            cbDithering.SelectedIndex = 0;
+            cbDithering.SelectedIndex = 5;
 
 
             cbPreset.SelectedIndex = 1;
@@ -189,7 +191,7 @@ namespace ModuleTester
         void TestTransformSpectrum()
         {
             bool bAtuotune = true;
-            ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrumV2 oTrasf = new();
+            ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum oTrasf = new();
             if (bAtuotune)
             {
                 oTrasf.SetProperty(ColorTransformProperties.Zx_ColL_Seed, 0x0000);
@@ -203,7 +205,7 @@ namespace ModuleTester
             oTrasf.SetProperty(ColorTransformProperties.Zx_Autotune, bAtuotune);
             oTrasf.SetProperty(ColorTransformProperties.Zx_DitherHighColorImage, true);
             oTrasf.SetProperty(ColorTransformProperties.Zx_IncludeBlackInHighColorImage, true);
-            oTrasf.SetProperty(ColorTransformProperties.Zx_PaletteMode, ColorTransformReductionZxSpectrumV2.ZxPaletteMode.Both);
+            oTrasf.SetProperty(ColorTransformProperties.Zx_PaletteMode, ColorTransformReductionZxSpectrum.ZxPaletteMode.Both);
             Process(oTrasf);
         }
 

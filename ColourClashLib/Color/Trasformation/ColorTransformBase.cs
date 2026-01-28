@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using static ColourClashNet.Color.Transformation.ColorTransformReductionAmiga;
 using static ColourClashNet.Color.Transformation.ColorTransformReductionC64;
 using static ColourClashNet.Color.Transformation.ColorTransformReductionCPC;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrumV2;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -195,11 +195,11 @@ namespace ColourClashNet.Color.Transformation
                     break;
                 case ColorTransformProperties.Fixed_Palette:
                     if (value is IEnumerable<int> palette1)
-                        FixedPalette = Palette.CreatePalette(palette1);
+                        FixedPalette = new Palette().Create(palette1);
                     if (value is List<int> palette2)
-                        FixedPalette = Palette.CreatePalette(palette2);
+                        FixedPalette = new Palette().Create(palette2);
                     else if (value is Palette palette3)
-                        FixedPalette = Palette.CreatePalette(palette3);
+                        FixedPalette = new Palette().Create(palette3);
                     else
                         throw new ArgumentException($"{Type} : Invalid value for {propertyName} ");
                     break;
@@ -366,60 +366,60 @@ namespace ColourClashNet.Color.Transformation
 
                 // Execute color reduction
                 var oTransfRes = ExecuteTransform(token);
+                var oRetRes = new ColorTransformResults();
                 if (!oTransfRes.IsSuccess)
                 {
                     LogMan.Error(sC, sM, $"{Type} : {nameof(ExecuteTransform)} error");
-                    return oTransfRes;
-                }
-
-
-                var oRetRes = new ColorTransformResults();
-                if (BypassDithering || DitheringType == ColorDithering.None)
-                {
-                    OutputData.Create(oTransfRes.DataOut);
-                    oRetRes = ColorTransformResults.CreateValidResult(SourceData, OutputData);
                 }
                 else
                 {
 
-                    var oProcessedData = oTransfRes.DataOut;
-
-                    var oHash = new HashSet<int>();
-                    foreach (var rgb in oProcessedData.ColorPalette.ToList())
+                    if (BypassDithering || DitheringType == ColorDithering.None)
                     {
-                        if (rgb.IsColor())
-                        {
-                            oHash.Add(rgb);
-                        }
-                    }
-
-                    if (oHash.Count > 256)
-                    {
-                        LogMan.Warning(sC, sM, $"{Name} : Processing Completed - {DitheringType} : Too many colors to apply a dither : {oHash.Count}");
-                        OutputData.Create(oProcessedData);
+                        OutputData.Create(oTransfRes.DataOut);
                         oRetRes = ColorTransformResults.CreateValidResult(SourceData, OutputData);
                     }
                     else
                     {
-                        var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength);
-                        var oImageDataDither = oDithering.Dither(SourceData, oProcessedData, ColorDistanceEvaluationMode, token);
-                        if (oImageDataDither == null)
+
+                        var oProcessedData = oTransfRes.DataOut;
+
+                        var oHash = new HashSet<int>();
+                        foreach (var rgb in oProcessedData.ColorPalette.ToList())
                         {
-                            LogMan.Error(sC, sM, $"{Type} :  Dithering error");
-                            oRetRes = ColorTransformResults.CreateErrorResult(SourceData, oProcessedData, $"{Type} : Dithering error");
+                            if (rgb.IsColor())
+                            {
+                                oHash.Add(rgb);
+                            }
+                        }
+
+                        if (oHash.Count > 256)
+                        {
+                            LogMan.Warning(sC, sM, $"{Name} : Processing Completed - {DitheringType} : Too many colors to apply a dither : {oHash.Count}");
+                            OutputData.Create(oProcessedData);
+                            oRetRes = ColorTransformResults.CreateValidResult(SourceData, OutputData);
                         }
                         else
                         {
-                            OutputData.Create(oImageDataDither);
-                            LogMan.Debug(sC, sM, $"{Type} : Processing Completed with dithering");
-                            oRetRes = ColorTransformResults.CreateValidResult(SourceData, OutputData);
+                            var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength);
+                            var oImageDataDither = oDithering.Dither(SourceData, oProcessedData, ColorDistanceEvaluationMode, token);
+                            if (oImageDataDither == null)
+                            {
+                                LogMan.Error(sC, sM, $"{Type} :  Dithering error");
+                                oRetRes = ColorTransformResults.CreateErrorResult(SourceData, oProcessedData, $"{Type} : Dithering error");
+                            }
+                            else
+                            {
+                                OutputData.Create(oImageDataDither);
+                                LogMan.Debug(sC, sM, $"{Type} : Processing Completed with dithering");
+                                oRetRes = ColorTransformResults.CreateValidResult(SourceData, OutputData);
+                            }
                         }
+
                     }
 
+                    TransformationError = RecalcTransformationError(SourceData, token);
                 }
-
-                TransformationError = RecalcTransformationError(SourceData, token);
-
                 try
                 {
                     Processed?.Invoke(this, CreateTransformEventArgs(cts, oRetRes));
