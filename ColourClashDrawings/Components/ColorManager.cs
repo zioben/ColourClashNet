@@ -4,6 +4,7 @@ using ColourClashNet.Color.Transformation;
 using ColourClashNet.Drawing;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
+using ModuleTester;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -345,6 +346,7 @@ namespace ColourClashNet.Components
                     PreProcess();
                 }
                 CancellationTokenSource cts = new CancellationTokenSource();
+                ProcessingForm.CreateProcessingForm(oTrasformProcessing, cts);
                 oTrasformProcessing.Create(DataQuantized);
                 //oTrasformProcessing.SetDithering(DitherBase.CreateDitherInterface(Config.DitheringAlgorithm, Config.DitheringStrenght));
                 var DataProcessedRes = oTrasformProcessing.ProcessColors(cts.Token);

@@ -75,12 +75,12 @@ namespace ColourClashNet.Color
             {
                 return new();
             }
-            var oDataOut = new int[image.Height,image.Width];
+            var oDataOut = new int[image.Rows,image.Columns];
             //Parallel.For(0, image.Height, r =>
-            for( int r =0; r<image.Height; r++)
+            for( int r =0; r<image.Rows; r++)
             {
                 token.ThrowIfCancellationRequested();
-                for (int c = 0; c < image.Width; c++)
+                for (int c = 0; c < image.Columns; c++)
                 {
                     if (!rgbTransformationMap.TryGetValue(image.matrix[r, c], out oDataOut[r, c]))
                     {

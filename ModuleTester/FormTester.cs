@@ -59,9 +59,10 @@ namespace ModuleTester
             cbPreset.SelectedIndex = 1;
         }
 
-
+        ColorTransformInterface oOldTrasf = null;
         void Process(ColorTransformInterface oTrasf)
         {
+            oOldTrasf = oTrasf;
             bitmapRender2.Image = null;
             var eDither = ColorDithering.None;
             if (!Enum.TryParse<ColorDithering>(cbDithering.SelectedItem?.ToString(), out eDither))
@@ -80,7 +81,7 @@ namespace ModuleTester
             _ = Task.Run(async () =>
             {
                 var cts = new CancellationTokenSource();
-                ProcessingForm.CreateProcessingForm(oTrasf);
+                ProcessingForm.CreateProcessingForm(oTrasf,cts);
                 oTrasf.Create(oImageData);
                 var ret = oTrasf.ProcessColors(cts.Token);
                 Invoke(() =>
@@ -96,6 +97,11 @@ namespace ModuleTester
 
         void TestTransformID()
         {
+            if (oOldTrasf?.Type == ColorTransformType.ColorIdentity)
+            {
+                Process(oOldTrasf);
+                return;
+            }
             ColourClashNet.Color.Transformation.ColorTransformIdentity oTrasf = new();
             oTrasf.SetProperty(ColourClashNet.Color.ColorTransformProperties.Dithering_Type, ColorDithering.None);
             oTrasf.SetProperty(ColorTransformProperties.MaxColorsWanted, 16);
@@ -103,6 +109,11 @@ namespace ModuleTester
         }
         void TestTransformQuantizer()
         {
+            if (oOldTrasf?.Type == ColorTransformType.ColorReductionQuantization)
+            {
+                Process(oOldTrasf);
+                return;
+            }
             ColourClashNet.Color.Transformation.ColorTransformQuantization oTrasf = new();
             oTrasf.SetProperty(ColorTransformProperties.QuantizationMode, ColorQuantizationMode.RGB222);
             Process(oTrasf);
@@ -110,6 +121,11 @@ namespace ModuleTester
 
         void TestTransformBkgRemover()
         {
+            if (oOldTrasf?.Type == ColorTransformType.ColorRemover)
+            {
+                Process(oOldTrasf);
+                return;
+            }
             ColourClashNet.Color.Transformation.ColorTransformBkgRemover oTrasf = new();
             List<int> oList = new List<int>();
             for (int r = 0; r < 256; r++)
@@ -129,6 +145,11 @@ namespace ModuleTester
 
         void TestTransformAmiga()
         {
+            if (oOldTrasf?.Type == ColorTransformType.ColorReductionHam)
+            {
+                Process(oOldTrasf);
+                return;
+            }
             ColourClashNet.Color.Transformation.ColorTransformReductionAmiga oTrasf = new();
             oTrasf.SetProperty(ColorTransformProperties.Amiga_VideoMode, ColorTransformReductionAmiga.EnumAmigaVideoMode.Ham6);
             oTrasf.SetProperty(ColorTransformProperties.Amiga_HamColorProcessingMode, ColorTransformReductionAmiga.EnumHamColorProcessingMode.Fast);
@@ -137,6 +158,11 @@ namespace ModuleTester
 
         void TestTransformLumSat()
         {
+            if (oOldTrasf?.Type == ColorTransformType.ColorReductionSaturation)
+            {
+                Process(oOldTrasf);
+                return;
+            }
             ColourClashNet.Color.Transformation.ColorTransformLumSat oTrasf = new();
             oTrasf.SetProperty(ColorTransformProperties.HsvBrightnessMultFactor, 2);
             oTrasf.SetProperty(ColorTransformProperties.HsvHueShift, 180);
@@ -146,6 +172,11 @@ namespace ModuleTester
 
         void TestTransformC64()
         {
+            if (oOldTrasf?.Type == ColorTransformType.ColorReductionCBM64)
+            {
+                Process(oOldTrasf);
+                return;
+            }
             ColourClashNet.Color.Transformation.ColorTransformReductionC64 oTrasf = new();
             oTrasf.SetProperty(ColorTransformProperties.C64_VideoMode, ColorTransformReductionC64.C64VideoMode.Multicolor);
             Process(oTrasf);
@@ -153,6 +184,11 @@ namespace ModuleTester
 
         void TestTransformCluster()
         {
+            if (oOldTrasf?.Type == ColorTransformType.ColorReductionClustering)
+            {
+                Process(oOldTrasf);
+                return;
+            }
             ColourClashNet.Color.Transformation.ColorTransformReductionCluster oTrasf = new();
             oTrasf.SetProperty(ColorTransformProperties.ClusterTrainingLoop, 10);
             oTrasf.SetProperty(ColorTransformProperties.UseColorMean, true);
@@ -162,6 +198,11 @@ namespace ModuleTester
 
         void TestTransformCPC()
         {
+            if (oOldTrasf?.Type == ColorTransformType.ColorReductionCPC)
+            {
+                Process(oOldTrasf);
+                return;
+            }
             ColourClashNet.Color.Transformation.ColorTransformReductionCPC oTrasf = new();
             oTrasf.SetProperty(ColorTransformProperties.CPC_VideoMode, ColorTransformReductionCPC.CPCVideoMode.Mode0);
             Process(oTrasf);
@@ -169,12 +210,22 @@ namespace ModuleTester
 
         void TestTransformEGA()
         {
+            if (oOldTrasf?.Type == ColorTransformType.ColorReductionEga)
+            {
+                Process(oOldTrasf);
+                return;
+            }
             ColourClashNet.Color.Transformation.ColorTransformReductionEGA oTrasf = new();
             Process(oTrasf);
         }
 
         void TestTransformFast()
         {
+            if (oOldTrasf?.Type == ColorTransformType.ColorReductionFast)
+            {
+                Process(oOldTrasf);
+                return;
+            }
             ColourClashNet.Color.Transformation.ColorTransformReductionFast oTrasf = new();
             oTrasf.SetProperty(ColorTransformProperties.MaxColorsWanted, 16);
             Process(oTrasf);
@@ -182,6 +233,11 @@ namespace ModuleTester
 
         void TestTransformMedianCut()
         {
+            if (oOldTrasf?.Type == ColorTransformType.ColorReductionMedianCut)
+            {
+                Process(oOldTrasf);
+                return;
+            }
             ColourClashNet.Color.Transformation.ColorTransformReductionMedianCut oTrasf = new();
             oTrasf.SetProperty(ColorTransformProperties.MaxColorsWanted, 16);
             oTrasf.SetProperty(ColorTransformProperties.UseColorMean, true);
@@ -190,12 +246,17 @@ namespace ModuleTester
 
         void TestTransformSpectrum()
         {
+            if (oOldTrasf?.Type == ColorTransformType.ColorReductionZxSpectrum)
+            {
+                Process(oOldTrasf);
+                return;
+            }
             bool bAtuotune = true;
             ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum oTrasf = new();
             if (bAtuotune)
             {
-                oTrasf.SetProperty(ColorTransformProperties.Zx_ColL_Seed, 0x0000);
-                oTrasf.SetProperty(ColorTransformProperties.Zx_ColH_Seed, 0x00FF);
+                oTrasf.SetProperty(ColorTransformProperties.Zx_ColL_Seed, 128);
+                oTrasf.SetProperty(ColorTransformProperties.Zx_ColH_Seed, 256);
             }
             else
             {
@@ -211,6 +272,11 @@ namespace ModuleTester
 
         void TestTransformPalette()
         {
+            if (oOldTrasf?.Type == ColorTransformType.ColorReductionGenericPalette)
+            {
+                Process(oOldTrasf);
+                return;
+            }
             ColourClashNet.Color.Transformation.ColorTransformReductionPalette oTrasf = new();
             List<int> oList = new List<int>();
             for (int i = 0; i < 256; i += 16)

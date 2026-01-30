@@ -35,9 +35,7 @@ namespace ColourClashNet.Color
         public void Add(int iRGB)
         {
             if (iRGB.IsColor())
-            {
                 rgbPalette.Add(iRGB);
-            }
         }
 
         /// <summary>
@@ -52,6 +50,16 @@ namespace ColourClashNet.Color
         public void Reset() => rgbPalette.Clear();
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public Palette Create()
+        {
+            Reset();
+            return this;
+        }
+
+        /// <summary>
         /// Creates a palette by adding colors from the specified collection of RGB values.
         /// </summary>
         /// <remarks>If the provided collection is null, the palette is reset and no colors are added. In
@@ -63,26 +71,12 @@ namespace ColourClashNet.Color
         /// returned.</returns>
         public Palette Create( IEnumerable<int> rgbData ) 
         {
-            var sM = nameof(Create);
-            try
-            {
-                Reset();
-                if (rgbData == null)
-                {
-                    LogMan.Error(sC, sM, "color source set null");
-                    return this;
-                }
-                foreach (var rgb in rgbData)
-                {
-                   Add(rgb);
-                }
-                return this;
-            }
-            catch (Exception ex)
-            {
-                LogMan.Exception(sC, sM, ex);
-                return new Palette();
-            }
+            Reset();
+            if (rgbData == null)
+                throw new ArgumentNullException(nameof(rgbData));
+            foreach (var rgb in rgbData)
+                Add(rgb);
+            return this;
         }
 
         /// <summary>
@@ -90,7 +84,7 @@ namespace ColourClashNet.Color
         /// </summary>
         /// <param name="oData">A two-dimensional array containing color data, where each element represents a color value. Cannot be null.</param>
         /// <returns>A Palette instance initialized with the specified color data.</returns>
-        Palette Create( int[,] oData)
+        internal Palette Create( int[,] oData)
             => Create(oData?.Cast<int>());
 
 

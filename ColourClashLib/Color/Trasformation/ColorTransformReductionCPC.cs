@@ -145,7 +145,7 @@ namespace ColourClashNet.Color.Transformation
             return imagePost;
         }
 
-        protected override ColorTransformResults ExecuteTransform(CancellationToken oToken)
+        protected override ColorTransformResult ExecuteTransform(CancellationToken oToken)
         {
             ImageData? ret = null;
             BypassDithering = true;
@@ -172,9 +172,9 @@ namespace ColourClashNet.Color.Transformation
             }
             if (ret != null)
             { 
-                return ColorTransformResults.CreateValidResult(SourceData, ret);
+                return ColorTransformResult.CreateValidResult(SourceData, ret);
             }
-            return new ColorTransformResults();
+            return new ColorTransformResult();
         }
     }
 }

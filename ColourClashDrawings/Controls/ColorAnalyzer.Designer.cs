@@ -37,6 +37,7 @@
             openToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItemSave = new ToolStripMenuItem();
             exportToolStripMenuItem = new ToolStripMenuItem();
+            newContainerToolStripMenuItem = new ToolStripMenuItem();
             bitmapIndexedToolStripMenuItem = new ToolStripMenuItem();
             indexedPNGToolStripMenuItem = new ToolStripMenuItem();
             bitmapToolStripMenuItem = new ToolStripMenuItem();
@@ -130,7 +131,9 @@
             oBitmapRenderDest = new ColourClashNet.Components.BitmapRender(components);
             oColorManager = new ColourClashNet.Components.ColorManager(components);
             sfdExportImage = new SaveFileDialog();
-            newContainerToolStripMenuItem = new ToolStripMenuItem();
+            chkZxDitherImageLo = new CheckBox();
+            cbZxPaletteMode = new ComboBox();
+            label10 = new Label();
             menuStripMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitMain).BeginInit();
             splitMain.Panel1.SuspendLayout();
@@ -236,30 +239,37 @@
             exportToolStripMenuItem.Size = new Size(180, 22);
             exportToolStripMenuItem.Text = "Export";
             // 
+            // newContainerToolStripMenuItem
+            // 
+            newContainerToolStripMenuItem.Name = "newContainerToolStripMenuItem";
+            newContainerToolStripMenuItem.Size = new Size(156, 22);
+            newContainerToolStripMenuItem.Text = "New Container";
+            newContainerToolStripMenuItem.Click += newContainerToolStripMenuItem_Click;
+            // 
             // bitmapIndexedToolStripMenuItem
             // 
             bitmapIndexedToolStripMenuItem.Name = "bitmapIndexedToolStripMenuItem";
-            bitmapIndexedToolStripMenuItem.Size = new Size(180, 22);
+            bitmapIndexedToolStripMenuItem.Size = new Size(156, 22);
             bitmapIndexedToolStripMenuItem.Text = "Bitmap Indexed";
             bitmapIndexedToolStripMenuItem.Click += bitmapIndexedToolStripMenuItem_Click;
             // 
             // indexedPNGToolStripMenuItem
             // 
             indexedPNGToolStripMenuItem.Name = "indexedPNGToolStripMenuItem";
-            indexedPNGToolStripMenuItem.Size = new Size(180, 22);
+            indexedPNGToolStripMenuItem.Size = new Size(156, 22);
             indexedPNGToolStripMenuItem.Text = "PNG Indexed";
             // 
             // bitmapToolStripMenuItem
             // 
             bitmapToolStripMenuItem.Name = "bitmapToolStripMenuItem";
-            bitmapToolStripMenuItem.Size = new Size(180, 22);
+            bitmapToolStripMenuItem.Size = new Size(156, 22);
             bitmapToolStripMenuItem.Text = "Bitmap";
             bitmapToolStripMenuItem.Click += bitmapToolStripMenuItem_Click;
             // 
             // pNGToolStripMenuItem
             // 
             pNGToolStripMenuItem.Name = "pNGToolStripMenuItem";
-            pNGToolStripMenuItem.Size = new Size(180, 22);
+            pNGToolStripMenuItem.Size = new Size(156, 22);
             pNGToolStripMenuItem.Text = "PNG";
             pNGToolStripMenuItem.Click += pNGToolStripMenuItem_Click;
             // 
@@ -267,7 +277,7 @@
             // 
             amigaToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { iFFILBMToolStripMenuItem, bitplaneToolStripMenuItem1, rawBitplaneAndOCSCopperlistToolStripMenuItem, sourceCodeToolStripMenuItem });
             amigaToolStripMenuItem.Name = "amigaToolStripMenuItem";
-            amigaToolStripMenuItem.Size = new Size(180, 22);
+            amigaToolStripMenuItem.Size = new Size(156, 22);
             amigaToolStripMenuItem.Text = "Amiga";
             // 
             // iFFILBMToolStripMenuItem
@@ -878,6 +888,9 @@
             // 
             // tpMainSinclair
             // 
+            tpMainSinclair.Controls.Add(cbZxPaletteMode);
+            tpMainSinclair.Controls.Add(label10);
+            tpMainSinclair.Controls.Add(chkZxDitherImageLo);
             tpMainSinclair.Controls.Add(zxBtnReset);
             tpMainSinclair.Controls.Add(chkZxAutotune);
             tpMainSinclair.Controls.Add(chkZxDitherHI);
@@ -897,11 +910,11 @@
             // 
             // zxBtnReset
             // 
-            zxBtnReset.Location = new Point(177, 51);
+            zxBtnReset.Location = new Point(13, 97);
             zxBtnReset.Name = "zxBtnReset";
-            zxBtnReset.Size = new Size(75, 23);
+            zxBtnReset.Size = new Size(197, 23);
             zxBtnReset.TabIndex = 23;
-            zxBtnReset.Text = "Reset";
+            zxBtnReset.Text = "Reset Seed Color";
             zxBtnReset.UseVisualStyleBackColor = true;
             zxBtnReset.Click += zxBtnReset_Click;
             // 
@@ -910,7 +923,7 @@
             chkZxAutotune.AutoSize = true;
             chkZxAutotune.Checked = true;
             chkZxAutotune.CheckState = CheckState.Checked;
-            chkZxAutotune.Location = new Point(177, 21);
+            chkZxAutotune.Location = new Point(174, 148);
             chkZxAutotune.Name = "chkZxAutotune";
             chkZxAutotune.Size = new Size(148, 19);
             chkZxAutotune.TabIndex = 22;
@@ -922,7 +935,7 @@
             chkZxDitherHI.AutoSize = true;
             chkZxDitherHI.Checked = true;
             chkZxDitherHI.CheckState = CheckState.Checked;
-            chkZxDitherHI.Location = new Point(7, 118);
+            chkZxDitherHI.Location = new Point(10, 182);
             chkZxDitherHI.Name = "chkZxDitherHI";
             chkZxDitherHI.Size = new Size(109, 19);
             chkZxDitherHI.TabIndex = 21;
@@ -932,7 +945,7 @@
             // btnReduceColorsZx
             // 
             btnReduceColorsZx.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            btnReduceColorsZx.Location = new Point(7, 147);
+            btnReduceColorsZx.Location = new Point(10, 219);
             btnReduceColorsZx.Name = "btnReduceColorsZx";
             btnReduceColorsZx.Size = new Size(330, 48);
             btnReduceColorsZx.TabIndex = 14;
@@ -945,7 +958,7 @@
             chkZxBlackHI.AutoSize = true;
             chkZxBlackHI.Checked = true;
             chkZxBlackHI.CheckState = CheckState.Checked;
-            chkZxBlackHI.Location = new Point(7, 93);
+            chkZxBlackHI.Location = new Point(174, 182);
             chkZxBlackHI.Name = "chkZxBlackHI";
             chkZxBlackHI.Size = new Size(94, 19);
             chkZxBlackHI.TabIndex = 20;
@@ -955,7 +968,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(7, 23);
+            label1.Location = new Point(13, 40);
             label1.Name = "label1";
             label1.Size = new Size(51, 15);
             label1.TabIndex = 18;
@@ -963,17 +976,17 @@
             // 
             // nudZxColorHI
             // 
-            nudZxColorHI.Location = new Point(73, 51);
+            nudZxColorHI.Location = new Point(109, 68);
             nudZxColorHI.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
             nudZxColorHI.Name = "nudZxColorHI";
-            nudZxColorHI.Size = new Size(79, 23);
+            nudZxColorHI.Size = new Size(101, 23);
             nudZxColorHI.TabIndex = 17;
             nudZxColorHI.Value = new decimal(new int[] { 255, 0, 0, 0 });
             // 
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(7, 53);
+            label4.Location = new Point(13, 70);
             label4.Name = "label4";
             label4.Size = new Size(48, 15);
             label4.TabIndex = 19;
@@ -981,10 +994,10 @@
             // 
             // nudZxColorLO
             // 
-            nudZxColorLO.Location = new Point(74, 21);
+            nudZxColorLO.Location = new Point(110, 38);
             nudZxColorLO.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
             nudZxColorLO.Name = "nudZxColorLO";
-            nudZxColorLO.Size = new Size(78, 23);
+            nudZxColorLO.Size = new Size(100, 23);
             nudZxColorLO.TabIndex = 16;
             nudZxColorLO.Value = new decimal(new int[] { 190, 0, 0, 0 });
             // 
@@ -1155,7 +1168,7 @@
             oBitmapRenderSource.ImageBlockScroll = false;
             oBitmapRenderSource.ImageMoveOverControlBorder = true;
             oBitmapRenderSource.ImageZoomManual = 1F;
-            oBitmapRenderSource.ImageZoomMode = ColourClashNet.Components.BitmapRender.EnumZoom.Zoom1;
+            oBitmapRenderSource.ImageZoomMode = Components.BitmapRender.EnumZoom.Zoom1;
             oBitmapRenderSource.MouseImageFollowing = true;
             oBitmapRenderSource.MouseMovingButton = MouseButtons.Left;
             oBitmapRenderSource.MouseSelectButton = MouseButtons.Right;
@@ -1168,7 +1181,7 @@
             oBitmapRenderDest.ImageBlockScroll = false;
             oBitmapRenderDest.ImageMoveOverControlBorder = true;
             oBitmapRenderDest.ImageZoomManual = 1F;
-            oBitmapRenderDest.ImageZoomMode = ColourClashNet.Components.BitmapRender.EnumZoom.Zoom1;
+            oBitmapRenderDest.ImageZoomMode = Components.BitmapRender.EnumZoom.Zoom1;
             oBitmapRenderDest.MouseImageFollowing = true;
             oBitmapRenderDest.MouseMovingButton = MouseButtons.Left;
             oBitmapRenderDest.MouseSelectButton = MouseButtons.Right;
@@ -1185,12 +1198,34 @@
             // 
             sfdExportImage.AddExtension = false;
             // 
-            // newContainerToolStripMenuItem
+            // chkZxDitherImageLo
             // 
-            newContainerToolStripMenuItem.Name = "newContainerToolStripMenuItem";
-            newContainerToolStripMenuItem.Size = new Size(180, 22);
-            newContainerToolStripMenuItem.Text = "New Container";
-            newContainerToolStripMenuItem.Click += newContainerToolStripMenuItem_Click;
+            chkZxDitherImageLo.AutoSize = true;
+            chkZxDitherImageLo.Checked = true;
+            chkZxDitherImageLo.CheckState = CheckState.Checked;
+            chkZxDitherImageLo.Location = new Point(10, 148);
+            chkZxDitherImageLo.Name = "chkZxDitherImageLo";
+            chkZxDitherImageLo.Size = new Size(112, 19);
+            chkZxDitherImageLo.TabIndex = 24;
+            chkZxDitherImageLo.Text = "Dither Image LO";
+            chkZxDitherImageLo.UseVisualStyleBackColor = true;
+            // 
+            // cbZxPaletteMode
+            // 
+            cbZxPaletteMode.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbZxPaletteMode.FormattingEnabled = true;
+            cbZxPaletteMode.Location = new Point(109, 9);
+            cbZxPaletteMode.Name = "cbZxPaletteMode";
+            cbZxPaletteMode.Size = new Size(101, 23);
+            cbZxPaletteMode.TabIndex = 25;
+            // 
+            // label10
+            // 
+            label10.Location = new Point(10, 12);
+            label10.Name = "label10";
+            label10.Size = new Size(83, 21);
+            label10.TabIndex = 26;
+            label10.Text = "Palette Mode";
             // 
             // ColorAnalyzer
             // 
@@ -1358,5 +1393,8 @@
         private CheckBox chkZxAutotune;
         private Button zxBtnReset;
         private ToolStripMenuItem newContainerToolStripMenuItem;
+        private ComboBox cbZxPaletteMode;
+        private Label label10;
+        private CheckBox chkZxDitherImageLo;
     }
 }

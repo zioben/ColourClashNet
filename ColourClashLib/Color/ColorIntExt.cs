@@ -2,6 +2,7 @@
 using ColourClashNet.Color;
 using ColourClashNet.Defaults;
 using ColourClashNet.Imaging;
+using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
@@ -131,25 +132,11 @@ namespace ColourClashNet.Color
         }
 
         /// <summary>
-        /// Converts an integer representation of a color to its HSV (Hue, Saturation, Value) representation.
+        /// 
         /// </summary>
         /// <param name="rgb"></param>
         /// <returns></returns>
         public static HSV ToHSV(this int rgb) => HSV.CreateFromIntRGB(rgb);
-
-        /// <summary>
-        /// Converts an integer representation of a color to its HSV (Hue, Saturation, Value) representation.
-        /// </summary>
-        /// <param name="rgb"></param>
-        /// <returns></returns>
-        public static int RGBToHSV(this int rgb)
-        {
-            var hsv = HSV.CreateFromIntRGB(rgb);
-            int h = (int)Math.Min(0, Math.Max(360, Math.Round(hsv.H))); // 9 bit 
-            int s = (int)Math.Min(0, Math.Max(100, Math.Round(hsv.S))); // 7 bit
-            int v = (int)Math.Min(0, Math.Max(100, Math.Round(hsv.V))); // 7 bit
-            return ((int)Math.Round(hsv.H)) << 15 | ((int)Math.Round(hsv.S)) << 7 | ((int)Math.Round(hsv.V));
-        }
 
         /// <summary>
         /// Converts an integer representation of a color to its LAB  representation.
@@ -158,34 +145,13 @@ namespace ColourClashNet.Color
         /// <returns></returns>
         public static LAB ToLAB(this int rgb) => LAB.CreateFromIntRGB(rgb);
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rgb"></param>
+        /// <returns></returns>
         public static GRAY ToGray(this int rgb) => GRAY.CreateFromIntRGB(rgb);
 
-        public static float ToY(this int i)
-        {
-            if (i < 0)
-                return float.MaxValue;
-            int r = i.ToR();
-            int g = i.ToG();
-            int b = i.ToB();
-            return (r + b + g) / 3;
-        }
-
-
-        /// <summary>
-        /// Converts an integer representation of a color to its Value (Brightness) component in the HSV color space.
-        /// </summary>
-        /// <param name="i"></param>
-        /// <returns></returns>
-        public static float ToV(this int i)
-        {
-            if (i < 0)
-                return float.MaxValue;
-            int r = i.ToR();
-            int g = i.ToG();
-            int b = i.ToB();
-            return Math.Max(Math.Max(r, g), b) / 255f * 100f;
-        }
 
         /// <summary>
         /// Calculates the distance between two colors represented as integers, based on the specified color distance evaluation mode.
@@ -301,12 +267,14 @@ namespace ColourClashNet.Color
             {
                 return ColorDefaults.DefaultInvalidColorInt;
             }
+
             var rgbList = oPalette.ToList();
-            double dmin = rgbList.Min(X => X.Distance(iColor, eMode));
-            if (dmin == 0)
-                return iColor;
-            var bestCol = rgbList.FirstOrDefault(X => X.Distance(iColor, eMode) == dmin);
-            return bestCol;
+            var bestCol = rgbList
+            .Select(c => (Color: c, Dist: c.Distance(iColor, eMode)))
+            .OrderBy(x => x.Dist)
+            .First();
+
+            return bestCol.Color;
         }
 
         /// <summary>
@@ -412,7 +380,7 @@ namespace ColourClashNet.Color
         static public double EvaluateError(ImageData imageA, ImageData imageB, ColorDistanceEvaluationMode evalMode, CancellationToken token = default)
         {
 
-            if ( (!imageA?.IsValid ?? true) || (!imageB?.IsValid ?? true) )
+            if ((!imageA?.IsValid ?? true) || (!imageB?.IsValid ?? true))
             {
                 return double.NaN;
             }
@@ -442,6 +410,39 @@ namespace ColourClashNet.Color
             else
                 err = double.NaN;
             return err;
+        }
+
+        static double GetMaxColorDistance(IEnumerable<int> rgbCollection, ColorDistanceEvaluationMode evalMode, CancellationToken token = default)
+        {
+            if (rgbCollection == null)
+                throw new ArgumentNullException(nameof(rgbCollection));
+
+            if( rgbCollection.Count()== 0)
+                return double.NaN;
+
+            double maxDistance = rgbCollection.Max(Y => rgbCollection.Max(X => Distance(Y, X, evalMode)));
+
+            return maxDistance;
+        }
+
+        public static double GetMaxColorDistance(Palette colorPalette, ColorDistanceEvaluationMode evalMode, CancellationToken token = default)
+        {
+            if (colorPalette == null)
+                throw new ArgumentNullException(nameof(colorPalette));
+            return GetMaxColorDistance(colorPalette.ToList(), evalMode, CancellationToken.None);
+        }
+
+        public static double GetMaxColorDistance(Histogram hist, ColorDistanceEvaluationMode evalMode, CancellationToken token = default)
+        {
+            if (hist == null)
+                throw new ArgumentNullException(nameof(hist));
+            return GetMaxColorDistance(hist.ToPalette(), evalMode, CancellationToken.None);
+        }
+        public static double GetMaxColorDistance(ImageData image, ColorDistanceEvaluationMode evalMode, CancellationToken token = default)
+        {
+            if (image == null)
+                throw new ArgumentNullException(nameof(image));
+            return GetMaxColorDistance(image.ColorPalette, evalMode, CancellationToken.None);
         }
     }
 }

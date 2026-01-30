@@ -56,7 +56,7 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        protected override ColorTransformResults ExecuteTransform(CancellationToken token = default)
+        protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
            
                 string sM = nameof(CreateTransformationMap);
@@ -74,7 +74,7 @@ namespace ColourClashNet.Color.Transformation
                     TransformationMap.Remove(rgb);
                     TransformationMap.Add(rgb, ColorBackgroundReplacement);
                 }
-                return ColorTransformResults.CreateValidResult();
+            return base.ExecuteTransform(token);// ColorTransformResult.CreateValidResult();
         }
     }
 }

@@ -39,12 +39,13 @@ public partial class TileProcessing
     public int OriginRow => tileItem?.OriginY ?? 0; 
     public int OriginColoumn => tileItem?.OriginX ?? 0; 
     public int TileW => tileItem?.TileW ?? 0;       
-    public int TileH => tileItem?.TileH ?? 0;   
-
+    public int TileH => tileItem?.TileH ?? 0;
+    public double NormalizationError { get; private set; } = 1.0;
     
     double transformationError = double.NaN;
 
     public double TransformationError => !double.IsNaN(transformationError) ? transformationError : transformation?.TransformationError ?? double.NaN;
+
 
     public ImageData? TileSourceImage => tileItem?.TileImage;
     public ImageData? TileProcessedImage => transformation?.OutputData;
@@ -57,37 +58,35 @@ public partial class TileProcessing
             tileItem = null;
             transformation = null;
             transformationError = double.NaN;
+            NormalizationError = 1.0;
         }
     }
 
-    public TileProcessing Create(ImageData sourceImage, int sourceX, int sourceY, int tileWidth, int tileHeight, ColorTransformType colorTransformType, Dictionary<ColorTransformProperties, object> colorTransformParams)
+    public TileProcessing Create(ImageData sourceImage, int sourceX, int sourceY, int tileWidth, int tileHeight, double normalizationError, ColorTransformType colorTransformType, Dictionary<ColorTransformProperties, object> colorTransformParams)
     {
         lock (locker)
         {
             Reset();
+            NormalizationError = normalizationError;
             tileItem = new TileItem().Create(sourceImage, sourceX, sourceY, tileWidth, tileHeight);
             transformation = ColorTransformBase.CreateColorTransformInterface(colorTransformType, colorTransformParams );
             return this;
         }
     }
 
-    public TileProcessing ProcessTile(CancellationToken token = default)
+    public ColorTransformResult ProcessTile(CancellationToken token = default)
     {
         string sM = nameof(ProcessTile);
         lock (locker)
         {
             if (!IsValid)
-            {
-                LogMan.Error(sC, sM, "No valid data");
-                return this;
-            }
-            transformation?.Create(tileItem.TileImage);
-            var result = transformation?.ProcessColors(token) ?? ColorTransformResults.CreateErrorResult("Invalid processing");
+                throw new InvalidOperationException(sM);
+            var result = transformation?.Create(tileItem.TileImage).ProcessColors(token) ?? ColorTransformResult.CreateErrorResult("Invalid processing");
             if (!result.IsSuccess)
             {
                 LogMan.Error(sC, sM, $"Tile transformation failed: {result.Message}");
             }
-            return this;
+            return result;
         }
     }
 
@@ -115,7 +114,7 @@ public partial class TileProcessing
         }
     }
 
-    public double RecalculateTransformationError(ImageData rferenceImage, ColorDistanceEvaluationMode colorDistanceEvaluationMode)
+    public double RecalculateTransformationError(ImageData rferenceImage, ColorDistanceEvaluationMode colorDistanceEvaluationMode, CancellationToken token)
     {
         string sM = nameof(RecalculateTransformationError);
         lock (locker)
@@ -131,13 +130,13 @@ public partial class TileProcessing
                 transformationError = double.NaN;
             }
             var refTile = rferenceImage.Extract( tileItem.OriginX, tileItem.OriginY, tileItem.TileW, tileItem.TileH);
-            transformationError = ColorIntExt.EvaluateError(refTile, TileProcessedImage, colorDistanceEvaluationMode);
-            return transformationError;
+            transformationError = ColorIntExt.EvaluateError(refTile, TileProcessedImage, colorDistanceEvaluationMode, token);
+            return transformationError/NormalizationError;
         }
     }
 
-    public double RecalculateTransformationError(ImageData rferenceImage)
-        => RecalculateTransformationError(rferenceImage, ColorDistanceEvaluationMode);
+    public double RecalculateTransformationError(ImageData rferenceImage, CancellationToken token)
+        => RecalculateTransformationError(rferenceImage, ColorDistanceEvaluationMode, token );
 
     public override string ToString()
     {

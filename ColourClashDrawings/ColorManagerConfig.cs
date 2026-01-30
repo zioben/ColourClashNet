@@ -57,8 +57,11 @@ namespace ColourClashNet.Drawing
         public bool ZxEqAutotune { get; set; } = false;
         public int ZxEqColorLO { get; set; } = 0x80;
         public int ZxEqColorHI { get; set; } = 0xFF;
-        public bool ZxEqBlackHI { get; set; } = true;
+        public bool ZxIncludeBlackHI { get; set; } = true;
         public bool ZxEqDitherHI { get; set; } = true;
+        public bool ZxEqDitherLO { get; set; } = true;
+
+        public ColorTransformReductionZxSpectrum.ZxPaletteMode ZxPaletteMode { get; set; } = ColorTransformReductionZxSpectrum.ZxPaletteMode.Both;
         public ColorTransformReductionAmiga.EnumAmigaVideoMode AmigaScreenMode { get; set; } = ColorTransformReductionAmiga.EnumAmigaVideoMode.Ham6;
         public ColorTransformReductionC64.C64VideoMode C64ScreenMode { get; set; } = ColorTransformReductionC64.C64VideoMode.Multicolor;
         public ColorTransformReductionCPC.CPCVideoMode CPCScreenMode { get; set; } = ColorTransformReductionCPC.CPCVideoMode.Mode0;
@@ -92,7 +95,9 @@ namespace ColourClashNet.Drawing
                 .SetProperty(ColorTransformProperties.Zx_ColH_Seed, ZxEqColorHI)
                 .SetProperty(ColorTransformProperties.Zx_ColL_Seed, ZxEqColorLO)
                 .SetProperty(ColorTransformProperties.Zx_DitherHighColorImage, ZxEqDitherHI)
-                .SetProperty(ColorTransformProperties.Zx_IncludeBlackInHighColorImage, ZxEqBlackHI)
+                .SetProperty(ColorTransformProperties.Zx_DitherLowColorImage, ZxEqDitherLO)
+                .SetProperty(ColorTransformProperties.Zx_IncludeBlackInHighColorImage, ZxIncludeBlackHI)
+                .SetProperty(ColorTransformProperties.Zx_PaletteMode, ZxPaletteMode)
                 .SetProperty(ColorTransformProperties.Zx_Autotune, ZxEqAutotune);
 
                 //.SetProperty(ColorTransformProperties.Zx_PaletteMode, ZxEqBlackHI)

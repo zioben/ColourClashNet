@@ -52,7 +52,7 @@ namespace ColourClashNet.Color.Dithering
         double dDivider = 4;
         double[,] oThMat = null;
 
-      
+
 
         double[,] BuildNextThMatrix(double[,] oMatrix)
         {
@@ -103,66 +103,63 @@ namespace ColourClashNet.Color.Dithering
             return true;
         }
 
-         public override ImageData? Dither(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token=default)
+        public override ImageData? Dither(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
         {
-           
-                string sM = nameof(Dither);
-                try
-                {
-                    if (!imageReference?.IsValid ?? true)
-                    {
-                        LogMan.Error(sC, sM, $"{Type} : Invalid reference data");
-                        return null;
-                    }
-                    if (!imageProcessed?.IsValid ?? true)
-                    {
-                        LogMan.Error(sC, sM, $"{Type} : Invalid reduced data");
-                        return null;
-                    }
-                    if (!Create())
-                    {
-                        LogMan.Error(sC, sM, $"{Type} : Creation Error");
-                        return null;
-                    }
 
-                    var oDataOriginal = imageReference.matrix;
-                    var oDataProcessed = imageProcessed.matrix;
-                    var oDataProcessedPalette = imageProcessed.ColorPalette;
-                    if (!Create())
-                    {
-                        LogMan.Error(sC, sM, $"{Type} : Creation error");
-                        return null;
-                    }
-                    LogMan.Trace(sC, sM, $"{Type} : Dithering");
-                    int S = oThMat.GetLength(0);
+            string sM = nameof(Dither);
 
-                    double dSpread = 127.0;
-                    int R = oDataOriginal.GetLength(0);
-                    int C = oDataOriginal.GetLength(1);
-                    var oDataOut = new int[R, C];
-                    var dStrenght = DitheringStrenght;// / 100.0;
-                    Parallel.For(0, R, r =>
-                    {
-                        token.ThrowIfCancellationRequested();
-                        for (int c = 0; c < C; c++)
-                        {
-                            int col = oDataOriginal[r, c];
-                            var dV = dSpread * dStrenght * oThMat[r % S, c % S];
-                            var cr = Math.Max(0, col.ToR() + dV);
-                            var cg = Math.Max(0, col.ToG() + dV);
-                            var cb = Math.Max(0, col.ToB() + dV);
-                            var iCol = ColorIntExt.FromRGB(cr, cg, cb);
-                            oDataOut[r, c] = ColorIntExt.GetNearestColor(iCol, oDataProcessedPalette, colorEvaluationMode);
-                        }
-                    });
-                    LogMan.Trace(sC, sM, $"{Type} : Dithering completed");
-                    return new ImageData().Create( oDataOut );
-                }
-                catch (Exception ex)
+            try
+            {
+                if (imageReference == null)
+                    throw new ArgumentNullException(nameof(imageReference));
+                if (imageProcessed == null)
+                    throw new ArgumentNullException(nameof(imageProcessed));
+                if (!imageReference.IsValid)
+                    throw new InvalidDataException(nameof(imageReference));
+                if (!imageProcessed.IsValid)
+                    throw new InvalidDataException(nameof(imageProcessed));
+                if (!Create())
+                    throw new InvalidDataException(nameof(imageProcessed));
+
+                var oDataOriginal = imageReference.matrix;
+                var oDataProcessed = imageProcessed.matrix;
+                var oDataProcessedPalette = imageProcessed.ColorPalette;
+                if (!Create())
                 {
-                    LogMan.Exception(sC, sM, $"{Type}", ex);
+                    LogMan.Error(sC, sM, $"{Type} : Creation error");
                     return null;
                 }
+                LogMan.Trace(sC, sM, $"{Type} : Dithering");
+                int S = oThMat.GetLength(0);
+
+                double dSpread = 127.0;
+                int R = oDataOriginal.GetLength(0);
+                int C = oDataOriginal.GetLength(1);
+                var oDataOut = new int[R, C];
+                var dStrenght = DitheringStrenght;// / 100.0;
+                Parallel.For(0, R, r =>
+                {
+                    token.ThrowIfCancellationRequested();
+                    for (int c = 0; c < C; c++)
+                    {
+                        int col = oDataOriginal[r, c];
+                        var dV = dSpread * dStrenght * oThMat[r % S, c % S];
+                        var cr = Math.Max(0, col.ToR() + dV);
+                        var cg = Math.Max(0, col.ToG() + dV);
+                        var cb = Math.Max(0, col.ToB() + dV);
+                        var iCol = ColorIntExt.FromRGB(cr, cg, cb);
+                        oDataOut[r, c] = ColorIntExt.GetNearestColor(iCol, oDataProcessedPalette, colorEvaluationMode);
+                    }
+                });
+                LogMan.Trace(sC, sM, $"{Type} : Dithering completed");
+                return new ImageData().Create(oDataOut);
+            }
+            catch (OperationCanceledException ex)
+            {
+                LogMan.Exception(sC, sM, $"{Type}", ex);
+                return null;
+            }
         }
     }
 }
+

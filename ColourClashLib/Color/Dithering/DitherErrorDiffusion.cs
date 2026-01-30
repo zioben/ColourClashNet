@@ -57,28 +57,23 @@ public abstract class DitherErrorDiffusion : DitherBase
     }
 
 
-    public override ImageData? Dither(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
+    public override ImageData Dither(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
     {
 
         string sM = nameof(Dither);
         try
         {
+            if( imageReference == null )
+                throw new ArgumentNullException(nameof(imageReference));
+            if( imageProcessed == null )    
+                throw new ArgumentNullException(nameof(imageProcessed));
 
-            if ( !imageReference?.IsValid ?? true )
-            {
-                LogMan.Error(sC, sM, $"{Type} : Invalid reference data");
-                return null;
-            }
+            if ( !imageReference.IsValid )
+                throw new ArgumentException(nameof(imageReference));   
             if ( !imageProcessed?.IsValid ?? true )
-            {
-                LogMan.Error(sC, sM, $"{Type} : Invalid reduced data");
-                return null;
-            }
+                throw new ArgumentException(nameof(imageReference));
             if (!Create())
-            {
-                LogMan.Error(sC, sM, $"{Type} : Creation Error");
-                return null;
-            }
+                throw new MethodAccessException(nameof(Create));
 
             var oDataOriginal = imageReference.matrix;
             var oDataProcessed = imageProcessed.matrix;
@@ -99,7 +94,8 @@ public abstract class DitherErrorDiffusion : DitherBase
             var oGP = new double[R, C];
             var oBP = new double[R, C];
 
-            Parallel.For(0, R, r =>
+            for(int r = 0; r < R; r++)
+            //Parallel.For(0, R, r =>
             {
                 token.ThrowIfCancellationRequested();
                 for (int c = 0; c < C; c++)
@@ -113,7 +109,7 @@ public abstract class DitherErrorDiffusion : DitherBase
                     oGP[r, c] = oDataProc.ToG();
                     oBP[r, c] = oDataProc.ToB();
                 }
-            });
+            }//);
 
             var oDataOut = new int[R, C];
 
@@ -176,7 +172,7 @@ public abstract class DitherErrorDiffusion : DitherBase
             LogMan.Trace(sC, sM, $"{Type} : Dithering completed");
             return new ImageData().Create(oDataOut);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException ex)
         {
             LogMan.Exception(sC, sM, $"{Type}", ex);
             return null;

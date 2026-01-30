@@ -22,33 +22,23 @@ public partial class Palette
     /// provided or all are null, the returned palette will be empty.</returns>
     public static Palette MergePalette(IEnumerable<Palette?> sourcePalettes)
     {
-        var sM = nameof(MergePalette);
-        try
+
+        var result = new Palette();
+        if (sourcePalettes == null)
+           throw new ArgumentNullException(nameof(sourcePalettes));
+
+        foreach (var palette in sourcePalettes)
         {
-            var result = new Palette();
-            if (sourcePalettes == null)
-            {
-                LogMan.Error(sC, sM, "invalis source palette list");
-                return result;
-            }
+            if (palette == null)
+                continue;
 
-            foreach (var palette in sourcePalettes)
-            {
-                if (palette == null)
-                    continue;
-
-                foreach (var color in palette.rgbPalette)
-                    result.Add(color);
-            }
-
-            return result;
+            foreach (var color in palette.rgbPalette)
+                result.Add(color);
         }
-        catch (Exception ex)
-        {
-            LogMan.Exception(sC, sM, ex);
-            return new Palette();
-        }
+
+        return result;
     }
+    
 
    /// <summary>
    /// Merges two palettes into a single palette containing the combined colors from both inputs.

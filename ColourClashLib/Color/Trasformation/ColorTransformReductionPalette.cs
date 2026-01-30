@@ -18,7 +18,7 @@ namespace ColourClashNet.Color.Transformation
             Description = "Color palette trasformation";
         }
 
-        protected override ColorTransformResults CreateTransformationMap(CancellationToken oToken = default)
+        protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken = default)
         {
             TransformationMap.Reset();
             var rgbList = SourceData.ColorPalette.ToList();
@@ -30,7 +30,7 @@ namespace ColourClashNet.Color.Transformation
             }//);
             //Ferificed OK
             //var t = TransformationMap.rgbTransformationMap.Values.Distinct().ToList();
-            return ColorTransformResults.CreateValidResult();
+            return ColorTransformResult.CreateValidResult();
         }
     }
 }

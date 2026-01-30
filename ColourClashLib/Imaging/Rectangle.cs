@@ -15,11 +15,6 @@ namespace ColourClashNet.Imaging
         public T Y { get; }        
         public T Width { get ; }
         public T Height { get ; }
-
-        //public T CS => X;
-        //public T RS => Y;
-        //public T CE => X + Width;
-        //public T RE => Y + Height;
         public T XS => X;
         public T YS => Y;
         public T XE => X + Width;

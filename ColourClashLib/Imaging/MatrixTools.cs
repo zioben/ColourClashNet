@@ -108,48 +108,41 @@ public static class MatrixTools
     /// row in the output array is aligned.</param>
     /// <returns>A two-dimensional byte array where each element contains the palette index corresponding to the color value
     /// in the source matrix. Returns null if the input data or palette is null, or if an error occurs.</returns>
-    public static byte[,]? CreateIndexedMatrix(int[,] rgbMatrix, List<int> palette, WidthAlignMode widthAlignMode)
+    public static byte[,] CreateIndexedMatrix(int[,] rgbMatrix, List<int>? paletteList, WidthAlignMode widthAlignMode)
     {
         string sMethod = nameof(CreateIndexedMatrix);
-        try
-        {
-            if (rgbMatrix == null)
-            {
-                LogMan.Error(sClass, sMethod, "Source data matrix is null");
-                return null;
-            }
-            if (palette == null)
-            {
-                LogMan.Error(sClass, sMethod, "Source palette list is null");
-                return null;
-            }
-            int invalidColorIndex = palette.Count < 255 ? 255 : 0;
 
-            int R = rgbMatrix.GetLength(0);
-            int C = rgbMatrix.GetLength(1);
-            int CO = GetNewWidthAlign(C, widthAlignMode);
+        if (rgbMatrix == null)
+            throw new ArgumentNullException(nameof(rgbMatrix));
 
-            var oRet = new byte[R, CO];
-            for (int y = 0; y < R; y++)
-            {
-                for (int x = 0; x < C; x++)
-                {
-                    var col = rgbMatrix[y, x];
-                    var idx = palette.IndexOf(col);
-                    oRet[y, x] = (byte)(idx >= 0 && idx < 256 ? idx : invalidColorIndex);
-                }
-                // for (int x = C; x < CO; x++)
-                // {
-                //     oRet[y, x] = (Byte)invalidColorIndex;
-                // }
-            }
-            return oRet;
-        }
-        catch (Exception ex)
+        if (paletteList == null)
         {
-            LogMan.Exception(sClass, sMethod, ex);
-            return null;
+            LogMan.Warning(sClass, sMethod, "Performace issue, no palette provided, rebuild from matrix");
+            var palette = new Palette().Create(rgbMatrix);
+            return CreateIndexedMatrix(rgbMatrix, palette.ToList(), widthAlignMode);
         }
+
+        int invalidColorIndex = paletteList.Count < 255 ? 255 : 0;
+
+        int R = rgbMatrix.GetLength(0);
+        int C = rgbMatrix.GetLength(1);
+        int CO = GetNewWidthAlign(C, widthAlignMode);
+
+        var oRet = new byte[R, CO];
+        for (int y = 0; y < R; y++)
+        {
+            for (int x = 0; x < C; x++)
+            {
+                var col = rgbMatrix[y, x];
+                var idx = paletteList.IndexOf(col);
+                oRet[y, x] = (byte)(idx >= 0 && idx < 256 ? idx : invalidColorIndex);
+            }
+            //for (int x = C; x < CO; x++)
+            //{
+            //     oRet[y, x] = (Byte)invalidColorIndex;
+            //}
+        }
+        return oRet;
     }
 
     /// <summary>
@@ -162,7 +155,7 @@ public static class MatrixTools
     /// <returns>A two-dimensional byte array containing the indexed image data, where each value corresponds to a palette
     /// index.</returns>
     public static byte[,]? CreateIndexedMatrix(int[,] rgbMatrix, Palette palette, WidthAlignMode ePixelWidthAlign)
-        => CreateIndexedMatrix(rgbMatrix, palette.ToList(), ePixelWidthAlign);
+        => CreateIndexedMatrix(rgbMatrix, palette?.ToList(), ePixelWidthAlign);
 
     /// <summary>
     /// Converts a two-dimensional array of color values to an indexed byte array using the specified palette.

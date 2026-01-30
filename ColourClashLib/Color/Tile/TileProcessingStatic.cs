@@ -20,16 +20,12 @@ public partial class TileProcessing
     /// <param name="oTileA"></param>
     /// <param name="oTileB"></param>
     /// <returns>true if data</returns>
-    public static bool MergeData(int[,]? oDestinationData, TileProcessing oTileA, TileProcessing oTileB)
+    public static bool MergeData(int[,] oDestinationData, TileProcessing oTileA, TileProcessing oTileB)
     {
         if (oDestinationData == null)
-        {
-            return false;
-        }
+            throw new ArgumentNullException(nameof(oDestinationData));
         if (oTileA == null && oTileB == null)
-        {
-            return false;
-        }
+            throw new ArgumentNullException($"{nameof(oTileA)} or {nameof(oTileB)}");
         if (oTileA != null && oTileB == null)
         {
             return oTileA.MergeData(oDestinationData);
@@ -38,7 +34,6 @@ public partial class TileProcessing
         {
             return oTileB.MergeData(oDestinationData);
         }
-        //double dErrorA=0, dErrorB=0;
         double dErrorA = oTileA.TransformationError;
         double dErrorB = oTileB.TransformationError;
         if (dErrorA <= dErrorB)

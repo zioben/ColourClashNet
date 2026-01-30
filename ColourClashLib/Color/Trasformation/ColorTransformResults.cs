@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformResults
+    public class ColorTransformResult
     {
-        static string sClass = nameof(ColorTransformResults);
+        static string sClass = nameof(ColorTransformResult);
 
         static string sValidMessage = "Ok";
 
@@ -24,7 +24,7 @@ namespace ColourClashNet.Color.Transformation
         public Exception? Exception { get; internal set; }
 
 
-        static public ColorTransformResults CreateValidResult(ImageData? inputData, ImageData? outputData, string sMessage, double processingScore) => new ColorTransformResults()
+        static public ColorTransformResult CreateValidResult(ImageData? inputData, ImageData? outputData, string sMessage, double processingScore) => new ColorTransformResult()
         {
             DataIn = inputData,
             DataOut = outputData,
@@ -34,34 +34,34 @@ namespace ColourClashNet.Color.Transformation
         };
 
 
-        static public ColorTransformResults CreateValidResult(ImageData? inputData, ImageData? outputData, string sMessage)
+        static public ColorTransformResult CreateValidResult(ImageData? inputData, ImageData? outputData, string sMessage)
             => CreateValidResult(inputData, outputData, sMessage, double.NaN);
 
-        static public ColorTransformResults CreateValidResult(ImageData? inputData, ImageData? outputData)
+        static public ColorTransformResult CreateValidResult(ImageData? inputData, ImageData? outputData)
             => CreateValidResult(inputData, outputData, sValidMessage, double.NaN);
-        static public ColorTransformResults CreateValidResult(ImageData? inputData, ImageData? outputData,double dProgressPercent)
+        static public ColorTransformResult CreateValidResult(ImageData? inputData, ImageData? outputData,double dProgressPercent)
             => CreateValidResult(inputData, outputData, sValidMessage, dProgressPercent);
-        static public ColorTransformResults CreateValidResult() 
+        static public ColorTransformResult CreateValidResult() 
             => CreateValidResult(null, null, sValidMessage);
 
-        static public ColorTransformResults CreateErrorResult(ImageData inputData, ImageData outputData, string sMessage, Exception ex) => new ColorTransformResults()
+        static public ColorTransformResult CreateErrorResult(ImageData inputData, ImageData outputData, string sMessage, Exception ex) => new ColorTransformResult()
         {
             DataIn = inputData,
             DataOut = outputData,
             Message = sMessage,    
             Exception = ex
         };
-        static public ColorTransformResults CreateErrorResult(ImageData inputData, ImageData outputData, string sMessage) => CreateErrorResult(inputData,outputData, sMessage, null);
-        static public ColorTransformResults CreateErrorResult(ImageData inputData, ImageData outputData, Exception ex) => CreateErrorResult(inputData, outputData,$"Exception : {ex?.Message ?? "null"}" , ex);
-        static public ColorTransformResults CreateErrorResult(string sMessage, Exception ex) => CreateErrorResult(null,null, sMessage, ex);
-        static public ColorTransformResults CreateErrorResult(Exception ex) => CreateErrorResult($"Exception : {ex?.Message ?? "null"}", ex);
-        static public ColorTransformResults CreateErrorResult(String sMessage) => CreateErrorResult(sMessage, null);
+        static public ColorTransformResult CreateErrorResult(ImageData inputData, ImageData outputData, string sMessage) => CreateErrorResult(inputData,outputData, sMessage, null);
+        static public ColorTransformResult CreateErrorResult(ImageData inputData, ImageData outputData, Exception ex) => CreateErrorResult(inputData, outputData,$"Exception : {ex?.Message ?? "null"}" , ex);
+        static public ColorTransformResult CreateErrorResult(string sMessage, Exception ex) => CreateErrorResult(null,null, sMessage, ex);
+        static public ColorTransformResult CreateErrorResult(Exception ex) => CreateErrorResult($"Exception : {ex?.Message ?? "null"}", ex);
+        static public ColorTransformResult CreateErrorResult(String sMessage) => CreateErrorResult(sMessage, null);
 
     }
 
     public class ColorProcessingEventArgs : EventArgs
     {
-        public ColorTransformResults ProcessingResults { get; init; }
+        public ColorTransformResult ProcessingResults { get; init; }
         public ColorTransformInterface ColorTransformInterface { get; init; }
         public CancellationTokenSource? CancellationTokenSource { get; init; }
 

@@ -19,11 +19,12 @@ namespace ModuleTester
         public ColorTransformInterface? Transformation { get; private set; }
         CancellationTokenSource cts = null;
 
-        public ProcessingForm()
+        public ProcessingForm(CancellationTokenSource cancellationTokenSource)
         {
             InitializeComponent();
             Load += ((s,e)=>Reset());
             FormClosed += ((s,e) => UnregisterEvents());
+            cts = cancellationTokenSource;
         }
 
         void AppendData(ColorProcessingEventArgs oArgs)
@@ -34,10 +35,10 @@ namespace ModuleTester
             }
             Invoke(() =>
             {
-                if (oArgs.CancellationTokenSource != null)
-                {
-                    cts = oArgs.CancellationTokenSource;
-                }
+                //if (oArgs.CancellationTokenSource != null)
+                //{
+                //    cts = oArgs.CancellationTokenSource;
+                //}
                 if (oArgs?.ProcessingResults?.Message != null)
                 {
                     lbHistory.Items.Insert(0, oArgs.ProcessingResults.Message);
@@ -56,13 +57,16 @@ namespace ModuleTester
 
         void Reset()
         {
-            Invoke(() =>
+            try
             {
-                lbHistory.Items.Clear();
-                pbarComplete.Value = 0;
-                picImageTemp.Image = null;
-                lblPerc.Text = "";
-            });
+                Invoke(() =>
+                {
+                    lbHistory.Items.Clear();
+                    pbarComplete.Value = 0;
+                    picImageTemp.Image = null;
+                    lblPerc.Text = "";
+                });
+            } catch { }
         }
 
         private void btnAbort_Click(object sender, EventArgs e)
@@ -109,11 +113,11 @@ namespace ModuleTester
             AppendData(e);
         }
 
-        static public void CreateProcessingForm(ColorTransformInterface oTrasf)
+        static public void CreateProcessingForm(ColorTransformInterface oTrasf, CancellationTokenSource cancellationTokenSource)
         {
             var t = new Thread(() =>
             {
-                var f = new ProcessingForm();
+                var f = new ProcessingForm(cancellationTokenSource);
                 f.RegisterEvents(oTrasf);
                 Application.Run(f); // crea un message loop dedicato
             });

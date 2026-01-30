@@ -43,14 +43,12 @@ public static partial class ImageTools
     /// </summary>
     /// <param name="oImage"></param>
     /// <returns></returns>
-    public static ImageData? DoubleXResolution(ImageData oImage)
+    /// <exception cref="ArgumentNullException"></exception>
+    public static ImageData DoubleXResolution(ImageData oImage)
     {
         string sM = nameof(DoubleXResolution);  
         if (oImage == null)
-        {
-            LogMan.Error(sC,sM, "Input image is null.");
-            return new ImageData();
-        }
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(oImage)} ");
         var matrix = MatrixTools.DoubleColumnResolution(oImage.matrix);
         return new ImageData().Create(matrix);
     }
@@ -60,14 +58,11 @@ public static partial class ImageTools
     /// </summary>
     /// <param name="oImage"></param>
     /// <returns></returns>
-    public static ImageData? HalveXResolution(ImageData oImage)
+    public static ImageData HalveXResolution(ImageData oImage)
     {
         string sM = nameof(DoubleXResolution);
         if (oImage == null)
-        {
-            LogMan.Error(sC, sM, "Input image is null.");
-            return new ImageData();
-        }
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(oImage)} ");
         var matrix = MatrixTools.HalveColumnResolution(oImage.matrix);
         return new ImageData().Create(matrix);
     }

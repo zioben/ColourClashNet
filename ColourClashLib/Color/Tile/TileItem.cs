@@ -77,30 +77,20 @@ public partial class TileItem
     public TileItem Create(ImageData sourceImage, int sourceX, int sourceY, int tileWidth, int tileHeight)
     {
         string sM = nameof(Create);
-        try
+
+        if (sourceImage == null) 
+            throw new ArgumentNullException(nameof(sourceImage));
+        if(!sourceImage.IsValid)
+            throw new InvalidDataException(nameof(sourceImage));
+        if (tileWidth <= 0 || tileHeight <= 0)
+            throw new InvalidDataException($"{nameof(sourceImage)} : {tileWidth}x{tileHeight}");
+
+        lock (locker)
         {
-            lock (locker)
-            {
-                Reset();
-                if (sourceImage == null)
-                {
-                    LogMan.Error(sC, sM, "Source image null");
-                    return this;
-                }
-                if (tileWidth <= 0 || tileHeight <= 0)
-                {
-                    LogMan.Error(sC, sM, "Invalid Tile Dimension");
-                    return this;
-                }
-                OriginX = sourceX;
-                OriginY = sourceY;
-                TileImage = sourceImage.Extract( sourceX, sourceY, tileWidth, tileHeight);
-                return this;
-            }
-        }
-        catch (Exception ex)
-        {
-            LogMan.Exception(sC, sM, ex);
+            Reset();
+            OriginX = sourceX;
+            OriginY = sourceY;
+            TileImage = sourceImage.Extract(sourceX, sourceY, tileWidth, tileHeight);
             return this;
         }
     }

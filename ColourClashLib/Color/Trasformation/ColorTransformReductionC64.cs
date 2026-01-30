@@ -123,7 +123,7 @@ namespace ColourClashNet.Color.Transformation
      
 
 
-        protected override ColorTransformResults CreateTransformationMap(CancellationToken oToken=default)
+        protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken=default)
         {
             switch (VideoMode)
             {
@@ -141,7 +141,7 @@ namespace ColourClashNet.Color.Transformation
 
         TileManager CreateTileManager( int tileHeight, int tileWidth, int maxColors, ImageData image, Palette fixedColorPalette, CancellationToken token=default)
         {
-            tileManager = new TileManager().Create(tileHeight, tileWidth, image, processingType, CreateProcessingParams(maxColors, fixedColorPalette), token);
+            tileManager = new TileManager().Create(tileHeight, tileWidth, image, 1.0, processingType, CreateProcessingParams(maxColors, fixedColorPalette), token);
             tileManager.TileBorderShow = TileBorderShow;
             tileManager.TileBorderColor = TileBorderColor;
             return tileManager;
@@ -166,7 +166,7 @@ namespace ColourClashNet.Color.Transformation
             {
                 ColorTransformInterface = this,
                 CompletedPercent = 0,
-                ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, dithImage, "Dithered Base")
+                ProcessingResults = ColorTransformResult.CreateValidResult(SourceData, dithImage, "Dithered Base")
             });
             return dithImage;
         }
@@ -230,7 +230,7 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
-        protected override ColorTransformResults ExecuteTransform(CancellationToken token = default)
+        protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             ImageData? oPreprocessedData = null;
             BypassDithering = true;
@@ -268,11 +268,11 @@ namespace ColourClashNet.Color.Transformation
             }
             if (oPreprocessedData != null)
             {
-                return ColorTransformResults.CreateValidResult(SourceData, oPreprocessedData);
+                return ColorTransformResult.CreateValidResult(SourceData, oPreprocessedData);
             }
             else
             {
-                return ColorTransformResults.CreateErrorResult("Error during C64 transformation", null);
+                return ColorTransformResult.CreateErrorResult("Error during C64 transformation", null);
             }
         }
     }

@@ -51,7 +51,9 @@ namespace ColourClashNet.Color
         public Histogram Create(ImageData image)
         {
             Reset();
-            return Histogram.CreateHistogramStatic(image?.matrix, this);
+            if( image == null) 
+                throw new ArgumentNullException(nameof(image));
+            return Histogram.CreateHistogramStatic(image.matrix, this);
         }
 
         /// <summary>
@@ -62,6 +64,8 @@ namespace ColourClashNet.Color
         public Histogram Create(Histogram histogram )
         {
             Reset();
+            if( histogram == null)
+                throw new ArgumentNullException( nameof(histogram));
             foreach( var kvp in histogram.rgbHistogram )
             {
                 rgbHistogram[kvp.Key] = kvp.Value;
@@ -76,7 +80,7 @@ namespace ColourClashNet.Color
        /// <param name="count"></param>
         public void AddToHistogram(int rgb, int count)
         {
-            if (rgb < 0 || count <= 0)
+            if (count <= 0)
                 return;
             if (rgb.IsColor())
             {
@@ -186,6 +190,4 @@ namespace ColourClashNet.Color
         public override string ToString()
             => $"Histogram(Colors: {Count})";
     }
-
-
 }

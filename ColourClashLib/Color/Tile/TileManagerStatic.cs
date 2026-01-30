@@ -15,10 +15,7 @@ public partial class TileManager
     {
         string sM = nameof(MergeToMatrix);
         if (oDataOut == null)
-        {
-            LogMan.Error(sC, sM, "output data matrix null");
-            return false;
-        }
+            throw new ArgumentNullException(nameof(oDataOut));
 
         var lTileManFiltered = lTileMan?.Where(X => X != null).ToList() ?? null;
         if (lTileManFiltered == null || lTileManFiltered.Count == 0)
@@ -34,10 +31,10 @@ public partial class TileManager
         {
             for (int c = 0; c < minColumns; c++)
             {
-                var lTileProcessing = new List<TileProcessing>();
-                lTileManFiltered.ForEach(X => lTileProcessing.Add(X.GetTileProcessing(r, c)));
-                var lTileProcessingFiltered = lTileProcessing.Where(X => X != null).ToList();
-                bRet &= TileProcessing.MergeData(oDataOut, lTileProcessingFiltered);
+                var lTileProcessingRC = new List<TileProcessing>();
+                lTileManFiltered.ForEach(X => lTileProcessingRC.Add(X.GetTileProcessing(r, c)));
+                var lTileProcessingFilteredRC = lTileProcessingRC.Where(X => X != null).ToList();
+                bRet &= TileProcessing.MergeData(oDataOut, lTileProcessingFilteredRC);
             }
         }
         return bRet;

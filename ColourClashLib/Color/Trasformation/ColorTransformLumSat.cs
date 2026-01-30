@@ -47,7 +47,7 @@ namespace ColourClashNet.Color.Transformation
         // Not Needed
         //protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
 
-        protected override ColorTransformResults ExecuteTransform(CancellationToken token = default)
+        protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
 
             string sM = nameof(ExecuteTransform);
@@ -74,7 +74,7 @@ namespace ColourClashNet.Color.Transformation
             });
             //}
 
-            return ColorTransformResults.CreateValidResult(SourceData, new ImageData().Create(oProcessed));
+            return ColorTransformResult.CreateValidResult(SourceData, new ImageData().Create(oProcessed));
 
         }
     }

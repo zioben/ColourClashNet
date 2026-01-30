@@ -17,9 +17,9 @@ namespace ColourClashNet.Imaging
 
         object locker = new object();
 
-      /// <summary>
-      /// Gets or sets the name associated with the object.
-      /// </summary>
+        /// <summary>
+        /// Gets or sets the name associated with the object.
+        /// </summary>
         public string Name { get; set; } = "";
 
         /// <summary>
@@ -31,7 +31,8 @@ namespace ColourClashNet.Imaging
         {
             lock (locker)
             {
-                if (matrix == null) return null;
+                if (matrix == null)
+                    throw new NullReferenceException(nameof(matrix));
                 return matrix.Clone() as int[,];
             }
         }
@@ -54,6 +55,9 @@ namespace ColourClashNet.Imaging
             }
         }
 
+        public int Rows => Height;
+        public int Columns => Width;
+
         /// <summary>
         /// gets the Height (number of rows) in the data set as image.
         /// </summary>
@@ -65,16 +69,6 @@ namespace ColourClashNet.Imaging
                 return matrix.GetLength(0);
             }
         }
-
-        /// <summary>
-        /// Gets the number of columns in the data set.
-        /// </summary>
-        public int Columns => Width;
-
-        /// <summary>
-        /// gets the number of rows in the data set.
-        /// </summary>
-        public int Rows =>Height;
 
         /// <summary>
         /// Gets the total number of pixels in the image.
@@ -90,13 +84,7 @@ namespace ColourClashNet.Imaging
         /// <summary>
         /// Gets the number of colors in the current color palette.
         /// </summary>
-        public int Colors
-        {
-            get
-            {
-                return ColorPalette.Count;
-            }
-        }
+        public int Colors => ColorPalette.Count;
 
         /// <summary>
         /// Gets a value indicating whether the current object contains valid data.
@@ -113,20 +101,12 @@ namespace ColourClashNet.Imaging
         public ImageData Reset()
         {
             string sM = nameof(Reset);
-            try
+            lock (locker)
             {
-                lock (locker)
-                {
-                    matrix = null;
-                    ColorPalette = new Palette();
-                }
-                return this;
+                matrix = null;
+                ColorPalette = new Palette();
             }
-            catch (Exception ex)
-            {
-                LogMan.Exception(sC, sM, ex);
-                return this;
-            }
+            return this;
         }
 
 
@@ -140,26 +120,15 @@ namespace ColourClashNet.Imaging
         public ImageData Create(int[,] matrixSrc)
         {
             string sM = nameof(Create);
-            try
+            lock (locker)
             {
-                lock (locker)
-                {
-                    Reset();
-                    if (matrixSrc == null)
-                    {
-                        LogMan.Error(sC, sM, "Source matrix is null, cannot create image data.");
-                        return this;
-                    }
-                    this.matrix = matrixSrc.Clone() as int[,];
-                    ColorPalette = new Palette().Create(this);
-                }
-                return this;
+                Reset();
+                if (matrixSrc == null)
+                    throw new ArgumentNullException(nameof(matrixSrc));
+                this.matrix = matrixSrc.Clone() as int[,];
+                ColorPalette = new Palette().Create(this);
             }
-            catch (Exception ex)
-            {
-                LogMan.Exception(sC, sM, "Error creating from data.", ex);
-                return this;
-            }
+            return this;
         }
 
 
@@ -174,22 +143,13 @@ namespace ColourClashNet.Imaging
         /// <returns>The current instance of <see cref="ImageData"/> with the data initialized to the specified dimensions.</returns>
         public ImageData Create(int width, int height )
         {
-            string sM = nameof(Create);
-            try
+            lock (locker)
             {
-                lock (locker)
-                {
-                    Reset();
-                    matrix = new int[height, width]; 
-                    ColorPalette = new Palette().Create(this);
-                }
-                return this;
+                Reset();
+                matrix = new int[height, width]; 
+                ColorPalette = new Palette().Create(this);
             }
-            catch (Exception ex)
-            {
-                LogMan.Exception(sC, sM, "Error creating from data.", ex);
-                return this;
-            }
+            return this;
         }
 
         /// <summary>
@@ -203,24 +163,14 @@ namespace ColourClashNet.Imaging
         public ImageData Extract(int xStart, int yStart, int width, int height )
         {
             string sM = nameof(Extract);
-            try
+            lock (locker)
             {
-               
-                lock (locker)
-                {
-                    var matrixDst = new int[height, width];
-                    if (!MatrixTools.Blit(matrix, matrixDst, xStart, yStart, 0, 0, width, height))
-                    { 
-                        LogMan.Error(sC, sM, "Error blitting data for crop.");
-                        return new ImageData();
-                    }
-                    return new ImageData().Create(matrixDst);
+                var matrixDst = new int[height, width];
+                if (!MatrixTools.Blit(matrix, matrixDst, xStart, yStart, 0, 0, width, height))
+                { 
+                    LogMan.Warning(sC, sM, "Error blitting data for crop.");
                 }
-            }
-            catch (Exception ex)
-            {
-                LogMan.Exception(sC, sM, "Error creating from data.", ex);
-                return new ImageData();
+                return new ImageData().Create(matrixDst);
             }
         }
 
@@ -231,8 +181,13 @@ namespace ColourClashNet.Imaging
         /// <param name="imageSrc">An <see cref="ImageData"/> object containing the source data for the new image. Can be null.</param>
         /// <returns>An <see cref="ImageData"/> instance representing the newly created image, or null if <paramref
         /// name="imageSrc"/> is null or contains no data.</returns>
-        public ImageData Create(ImageData imageSrc) 
-            => Create(imageSrc?.matrix);
+        public ImageData Create(ImageData imageSrc)
+        {
+            if (imageSrc == null)
+                throw new ArgumentNullException(nameof(imageSrc));
+            Create(imageSrc.matrix);   
+            return this;
+        }
 
 
         /// <summary>

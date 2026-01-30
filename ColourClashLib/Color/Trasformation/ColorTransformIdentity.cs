@@ -22,18 +22,18 @@ namespace ColourClashNet.Color.Transformation
         // Not Needed
         // protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
 
-        protected override ColorTransformResults ExecuteTransform(CancellationToken token = default)
+        protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
               string sM = nameof(ExecuteTransform);
                 try
                 {
-                    var res = ColorTransformResults.CreateValidResult(SourceData, new ImageData().Create(SourceData));
+                    var res = ColorTransformResult.CreateValidResult(SourceData, new ImageData().Create(SourceData));
                     return res;
                 }
                 catch (Exception ex)
                 {
                     LogMan.Exception(sC, sM, $"{Type}", ex);
-                    return new ColorTransformResults()
+                    return new ColorTransformResult()
                     {
                         Exception = ex,
                         Message = ex.Message

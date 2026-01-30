@@ -37,6 +37,7 @@ public partial class TileManager
     public Dictionary<ColorTransformProperties, object> ProcessingParameters { get; private set; } = new Dictionary<ColorTransformProperties, object>();
     public double GlobalTransformationError { get; set; } = double.NaN;
 
+    public double NormalizationError { get; private set; } = 1.0;
     public bool IsValid
     {
         get
@@ -74,36 +75,31 @@ public partial class TileManager
             GlobalTransformationError = double.NaN;
             ProcessingType = ColorTransformType.ColorReductionClustering;
             ProcessingParameters = new Dictionary<ColorTransformProperties, object>();
+            NormalizationError = 1.0;
         }
     }
 
-    public TileManager Create(int tileWidth, int tileHeight, ImageData image, ColorTransformType processingType, Dictionary<ColorTransformProperties, object> processingParameters , CancellationToken oToken=default)
+    public TileManager Create(int tileWidth, int tileHeight, ImageData image, double normalizationError, ColorTransformType processingType, Dictionary<ColorTransformProperties, object> processingParameters , CancellationToken oToken=default)
     {
 
         string sM = nameof(Create);
+        if( image == null )
+            throw new ArgumentNullException(nameof(image));
+        if( !image.IsValid)
+            throw new ArgumentException(nameof(image)); 
+        if (tileWidth <= 0 || tileHeight <= 0)
+            throw new ArgumentOutOfRangeException($"Tile {TileW}x{TileH}");
         lock (locker)
         {
             try
-            {
-
+            { 
                 Reset();
                 TileW = tileWidth;
                 TileH = tileHeight;
-                if (TileW <= 0 || TileH <= 0)
-                {
-                    LogMan.Error(sC, sM, "Tile dimensions or max colors wanted are invalid");
-                    Reset();
-                    return this;
-                }
                 ProcessingType = processingType;
-            
+                NormalizationError = normalizationError;
+
                 ImageSource = new ImageData().Create(image);
-                if (!ImageSource.IsValid)
-                {
-                    LogMan.Error(sC, sM, "Source image data is invalid");
-                    Reset();
-                    return this;
-                }
                 tileProcessingMatrix = new TileProcessing[(ImageSource.Height) / TileH, (ImageSource.Width) / TileW];
 
                 //Parallel.For(0, TileRows, r =>
@@ -120,21 +116,16 @@ public partial class TileManager
                             ys,
                             TileW,
                             TileH,
+                            NormalizationError,
                             ProcessingType,
                             processingParameters);
                     }
                 }//);
                 return this;
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException ex)
             {
-                LogMan.Warning(sC, sM, "Operation cancelled");
-                Reset();
-                return this;
-            }
-            catch (Exception ex)
-            {
-                LogMan.Exception(sC, sM, "Exception creating TileManager", ex);
+                LogMan.Exception(sC, sM, "Operation cancelled", ex);
                 Reset();
                 return this;
             }
@@ -150,10 +141,7 @@ public partial class TileManager
         try
         {
             if (!IsValid)
-            {
-                LogMan.Error(sC, sM, "TileManager is not valid");
-                return false;
-            }
+                throw new InvalidDataException(nameof(ProcessColors));
             //Parallel.For(0, TileRows, r =>
             for (int r = 0; r < TileRows; r++)
             {
@@ -169,78 +157,34 @@ public partial class TileManager
             var dError = RecalcGlobalTransformationError();
             return true;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            LogMan.Warning(sC, sM, "Operation cancelled");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            LogMan.Exception(sC, sM, "Exception processing colors", ex);
+            LogMan.Exception(sC, sM, "Operation cancelled",ex);
             return false;
         }
     }
 
-    public double RecalcGlobalTransformationError()
+
+    public double RecalcGlobalTransformationError(ImageData referenceImage,  CancellationToken token=default)
     {
         string sM = nameof(RecalcGlobalTransformationError);
         try
         {
             lock (locker)
             {
-                GlobalTransformationError = 0;
                 if (!IsValid)
                 {
                     LogMan.Error(sC, sM, "invalid data");
                     GlobalTransformationError = double.NaN;
                     return GlobalTransformationError;
                 }
-                for (int r = 0; r < TileRows; r++)
-                {
-                    for (int c = 0; c < TileColumns; c++)
-                    {
-                        var err = tileProcessingMatrix[r, c].TransformationError;
-                        if (double.IsNaN(err))
-                        {
-                            LogMan.Error(sC, sM, $"invalid transformation error in tile ({r},{c})");
-                            throw new Exception("invalid transformation error");
-                        }
-                        else
-                        {
-                            GlobalTransformationError += err;
-                        }
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            LogMan.Exception(sC, sM, "Exception recalculating global transformation error", ex);
-            GlobalTransformationError = double.NaN;
-        }
-        return GlobalTransformationError;
-    }
-
-    public double RecalcGlobalTransformationError(ImageData referenceImage, CancellationToken token = default)
-    {
-        string sM = nameof(RecalcGlobalTransformationError);
-        try
-        {
-            lock (locker)
-            {
                 GlobalTransformationError = 0;
-                if (!IsValid)
-                {
-                    LogMan.Error(sC, sM, "invalid data");
-                    GlobalTransformationError = double.NaN;
-                    return GlobalTransformationError;
-                }
                 for (int r = 0; r < TileRows; r++)
                 {
                     for (int c = 0; c < TileColumns; c++)
                     {
                         token.ThrowIfCancellationRequested();
-                        var err = tileProcessingMatrix[r, c].RecalculateTransformationError(referenceImage);
+                        var err = tileProcessingMatrix[r, c].RecalculateTransformationError(referenceImage,token);
                         if (double.IsNaN(err))
                         {
                             LogMan.Error(sC, sM, $"invalid transformation error in tile ({r},{c})");
@@ -252,30 +196,31 @@ public partial class TileManager
                         }
                     }
                 }
+                return GlobalTransformationError;
             }
         }
         catch (OperationCanceledException)
         {
             LogMan.Warning(sC, sM, "Operation cancelled");
             GlobalTransformationError = double.NaN;
+            return GlobalTransformationError;
         }
         catch (Exception ex)
         {
             LogMan.Exception(sC, sM, "Exception recalculating global transformation error", ex);
             GlobalTransformationError = double.NaN;
+            return GlobalTransformationError;
         }
-        return GlobalTransformationError;
     }
-       
 
-    public ImageData? CreateImageFromTiles()
+    public double RecalcGlobalTransformationError(CancellationToken token = default) => RecalcGlobalTransformationError(ImageSource, token);
+
+    public ImageData CreateImageFromTiles()
     {
         string sM = nameof(CreateImageFromTiles);
         if (!IsValid)
-        {
-            LogMan.Error(sC, sM, "TileManager is not valid");
-            return null;
-        }
+            throw new InvalidDataException(nameof(IsValid));
+
         var matrix = new int[ImageSource.Rows, ImageSource.Columns];
 
         //Parallel.For(0, TileRows, r =>

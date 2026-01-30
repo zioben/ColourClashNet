@@ -98,10 +98,11 @@ namespace ColourClashNet.Controls
             CreateComboBox(cbC64VideoMode, Enum.GetNames(typeof(ColorTransformReductionC64.C64VideoMode)).ToList());
             CreateComboBox(cbCpcVideoMode, Enum.GetNames(typeof(ColorTransformReductionCPC.CPCVideoMode)).ToList());
             CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode)).ToList());
+            CreateComboBox(cbZxPaletteMode, Enum.GetNames(typeof(ColorTransformReductionZxSpectrum.ZxPaletteMode)).ToList());
             oBitmapRenderSource.ColorAdded += (s, e) => { BuildBkgPalette(); };
             oBitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };
-            oColorManager.OnQuantize += (s, e) => { RefreshData(); };
-            oColorManager.OnProcess += (s, e) => { RefreshData(); RebuildParams(e.Transformation); };
+            oColorManager.OnQuantize += (s, e) => { Invoke( ()=> RefreshData() ); };
+            oColorManager.OnProcess += (s, e) => { Invoke(() => { RefreshData(); RebuildParams(e.Transformation); }); };
             CreateScaleMenuItems();
         }
 
@@ -367,8 +368,9 @@ namespace ColourClashNet.Controls
             oColorManager.Config.ZxEqAutotune = (bool)chkZxAutotune.Checked;
             oColorManager.Config.ZxEqColorLO = (int)nudZxColorLO.Value;
             oColorManager.Config.ZxEqColorHI = (int)nudZxColorHI.Value;
-            oColorManager.Config.ZxEqBlackHI = chkZxBlackHI.Checked;
+            oColorManager.Config.ZxIncludeBlackHI = chkZxBlackHI.Checked;
             oColorManager.Config.ZxEqDitherHI = chkZxDitherHI.Checked;
+            oColorManager.Config.ZxPaletteMode = (ColorTransformReductionZxSpectrum.ZxPaletteMode)Enum.Parse(typeof(ColorTransformReductionZxSpectrum.ZxPaletteMode), cbZxPaletteMode.SelectedItem.ToString());
             oColorManager.Config.AmigaScreenMode = (ColorTransformReductionAmiga.EnumAmigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString());
         }
 

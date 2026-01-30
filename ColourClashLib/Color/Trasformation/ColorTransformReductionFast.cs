@@ -34,7 +34,7 @@ namespace ColourClashNet.Color.Transformation
 
         //        Palette OutputPalette = new Palette();
 
-        protected override ColorTransformResults CreateTransformationMap(CancellationToken oToken = default)
+        protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken = default)
         {
             //OutputPalette = new Palette();
             TransformationMap.Reset();
@@ -65,13 +65,13 @@ namespace ColourClashNet.Color.Transformation
                     TransformationMap.rgbTransformationMap[rgbItem] = rgbBest;
                 });
             }
-            return ColorTransformResults.CreateValidResult();
+            return ColorTransformResult.CreateValidResult();
         }
 
-        protected override ColorTransformResults ExecuteTransform(CancellationToken oToken)
+        protected override ColorTransformResult ExecuteTransform(CancellationToken oToken)
         {
             var oRetData = TransformationMap.Transform(SourceData, oToken);
-            return ColorTransformResults.CreateValidResult(SourceData, oRetData);
+            return ColorTransformResult.CreateValidResult(SourceData, oRetData);
         }
     }
 }

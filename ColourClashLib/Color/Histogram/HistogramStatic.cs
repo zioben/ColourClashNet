@@ -25,6 +25,10 @@ namespace ColourClashNet.Color
         /// <param name="histogram"></param>
         static void CreateHistogramArray(int[,] matrix, Histogram histogram)
         {
+            if (matrix == null)
+                throw new ArgumentNullException(nameof(matrix));
+            if (histogram == null)
+                throw new ArgumentNullException(nameof(histogram));
             lock (oLocker)
             {
                 Array.Clear(oColorArray, 0, oColorArray.Length);
@@ -60,8 +64,10 @@ namespace ColourClashNet.Color
        /// <returns></returns>
         static bool CreateHistogramDirect(int[,] matrix, Histogram histogram)
         {
-            if (matrix == null || histogram == null)
-                return false;
+            if (matrix == null)
+                throw new ArgumentNullException(nameof(matrix));
+            if (histogram == null)
+                throw new ArgumentNullException(nameof(histogram));
             histogram.Reset();
             int R = matrix.GetLength(0);
             int C = matrix.GetLength(1);
@@ -85,33 +91,24 @@ namespace ColourClashNet.Color
         static Histogram CreateHistogramStatic(int[,] matrix, Histogram histogram)
         {
             string sMethod = nameof(CreateHistogramStatic);
-            try
+            if (matrix == null)
+                throw new ArgumentNullException(nameof(matrix));
+            if (histogram == null)
+                throw new ArgumentNullException(nameof(histogram));
+            histogram.Reset();
+            int R = matrix.GetLength(0);
+            int C = matrix.GetLength(1);
+            if (R * C > SizeLimit)
             {
-                if (matrix == null || histogram == null)
-                {
-                    LogMan.Error(sClass, sMethod, "Invalid data source");
-                    return new Histogram();
-                }
-                histogram.Reset();
-                int R = matrix.GetLength(0);
-                int C = matrix.GetLength(1);
-                if (R * C > SizeLimit)
-                {
-                    LogMan.Trace(sClass, sMethod, "Using array method for large image");
-                    CreateHistogramArray(matrix, histogram);
-                }
-                else
-                {
-                    LogMan.Trace(sClass, sMethod, "Using direct method for small image");
-                    CreateHistogramDirect(matrix, histogram);
-                }
-                return histogram;
+                LogMan.Trace(sClass, sMethod, "Using array method for large image");
+                CreateHistogramArray(matrix, histogram);
             }
-            catch (Exception ex)
+            else
             {
-                LogMan.Exception(sClass, sMethod, ex);
-                return new Histogram();
+                LogMan.Trace(sClass, sMethod, "Using direct method for small image");
+                CreateHistogramDirect(matrix, histogram);
             }
+            return histogram;
         }
     }
 }

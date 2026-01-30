@@ -50,15 +50,15 @@ namespace ColourClashNet.Color.Transformation
 
         ColorTransformInterface Create(ImageData image);
       
-        ColorTransformResults ProcessColors(CancellationToken token = default);
-        ColorTransformResults CreateAndProcessColors(ImageData image, CancellationToken token = default);
+        ColorTransformResult ProcessColors(CancellationToken token = default);
+        ColorTransformResult CreateAndProcessColors(ImageData image, CancellationToken token = default);
         void AbortProcessing(CancellationTokenSource token);
 
 
 
        // Task<ColorTransformInterface> CreateAsync(ImageData image);
        // Task<ColorTransformResults> ProcessColorsAsync(CancellationToken token = default);
-        Task<ColorTransformResults> CreateAndProcessColorsAsync(ImageData image, CancellationToken token = default);
+        Task<ColorTransformResult> CreateAndProcessColorsAsync(ImageData image, CancellationToken token = default);
         Task AbortProcessingAsync(CancellationTokenSource token);
 
 

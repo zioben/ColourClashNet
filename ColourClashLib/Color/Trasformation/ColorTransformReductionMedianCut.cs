@@ -139,7 +139,7 @@ namespace ColourClashNet.Color.Transformation
 
         Palette OutputPalette = new Palette();
 
-        protected override ColorTransformResults CreateTransformationMap(CancellationToken oToken=default)
+        protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken=default)
         {
             OutputPalette = new Palette();
             var SourceHistogram = new Histogram().Create(SourceData);
@@ -157,15 +157,15 @@ namespace ColourClashNet.Color.Transformation
                 Partition(SourceHistogram.ToPalette(), iColorsMax / 2);
                 OutputPalette = TransformationMap.GetOutputPalette();
             }
-            return ColorTransformResults.CreateValidResult();
+            return ColorTransformResult.CreateValidResult();
         }
 
-        protected override ColorTransformResults ExecuteTransform(CancellationToken oToken)
+        protected override ColorTransformResult ExecuteTransform(CancellationToken oToken)
         {
             var ret = TransformationMap.Transform(SourceData, oToken);
             if (ret != null)
             {
-                return ColorTransformResults.CreateValidResult(SourceData, ret);
+                return ColorTransformResult.CreateValidResult(SourceData, ret);
             }
             return new();
         }

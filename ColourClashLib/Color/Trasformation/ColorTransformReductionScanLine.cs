@@ -61,7 +61,7 @@ namespace ColourClashNet.Color.Transformation
 
 
 
-        protected override ColorTransformResults ExecuteTransform(CancellationToken oToken=default)
+        protected override ColorTransformResult ExecuteTransform(CancellationToken oToken=default)
         {
 
             BypassDithering = true;
@@ -162,7 +162,7 @@ namespace ColourClashNet.Color.Transformation
             });
             if (oRet != null)
             {
-                return ColorTransformResults.CreateValidResult(SourceData, new ImageData().Create(oRet));
+                return ColorTransformResult.CreateValidResult(SourceData, new ImageData().Create(oRet));
             }
             return new();
 

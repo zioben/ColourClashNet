@@ -72,7 +72,7 @@ namespace ColourClashNet.Color.Transformation
             return map;
         }
 
-        protected override ColorTransformResults CreateTransformationMap(CancellationToken token = default)
+        protected override ColorTransformResult CreateTransformationMap(CancellationToken token = default)
         {
             string sMethod = nameof(CreateTransformationMap);
             // Sort by most used colors
@@ -87,7 +87,7 @@ namespace ColourClashNet.Color.Transformation
                 {
                     TransformationMap.Add(rgb, rgb);
                 }
-                return ColorTransformResults.CreateValidResult();
+                return ColorTransformResult.CreateValidResult();
             }
 
             // Init Clustering Algorithm 
@@ -145,7 +145,7 @@ namespace ColourClashNet.Color.Transformation
                 var oArgs = new ColorProcessingEventArgs()
                     {
                         ColorTransformInterface = this,
-                        ProcessingResults = ColorTransformResults.CreateValidResult(SourceData, null, $"Loop {train}/{TrainingLoop}"),
+                        ProcessingResults = ColorTransformResult.CreateValidResult(SourceData, null, $"Loop {train}/{TrainingLoop}"),
                         CompletedPercent = 100 * (train + 1) / TrainingLoop
                     };
                 if (!FastPreview)
@@ -157,19 +157,19 @@ namespace ColourClashNet.Color.Transformation
             }
 
             TransformationMap = CreateTransformationMap(oTempHistogram, lTupleColorCluster);
-            return ColorTransformResults.CreateValidResult();
+            return ColorTransformResult.CreateValidResult();
 
 
         }
 
 
-        protected override ColorTransformResults ExecuteTransform(CancellationToken token = default)
+        protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             
                 var ret = TransformationMap.Transform(SourceData, token);
                 if (ret != null)
                 {
-                    return ColorTransformResults.CreateValidResult(SourceData, ret);
+                    return ColorTransformResult.CreateValidResult(SourceData, ret);
                 }
                 return new();
         }

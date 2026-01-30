@@ -114,7 +114,7 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        protected override ColorTransformResults CreateTransformationMap(CancellationToken oToken=default)
+        protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken=default)
         {
             string sM = nameof(CreateTransformationMap);
             LogMan.Trace(sC, sM, $"{Type} : Creating trasformation map");
@@ -126,7 +126,7 @@ namespace ColourClashNet.Color.Transformation
                 int rgbQ = QuantizeColor(rgb);
                 TransformationMap.Add(rgb, rgbQ);
             }
-            return ColorTransformResults.CreateValidResult();
+            return ColorTransformResult.CreateValidResult();
         }
 
         // Not needed

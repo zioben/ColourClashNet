@@ -124,7 +124,7 @@ namespace ColourClashNet.Color.Transformation
         //    return await Task.Run(() => { return new int[,]; } );
         //}
 
-        protected  override ColorTransformResults ExecuteTransform(CancellationToken token = default)
+        protected  override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransform);
 
@@ -203,9 +203,9 @@ namespace ColourClashNet.Color.Transformation
             if (oAmigaData == null)
             {
                 LogMan.Error(sC, sM, $"Failed to generate Amiga transformed data");
-                return ColorTransformResults.CreateErrorResult(SourceData,null, $"{sC}.{sM} : Amiga transformed data is null");
+                return ColorTransformResult.CreateErrorResult(SourceData,null, $"{sC}.{sM} : Amiga transformed data is null");
             }
-            return ColorTransformResults.CreateValidResult(SourceData, oAmigaData);
+            return ColorTransformResult.CreateValidResult(SourceData, oAmigaData);
         }
 
     }
