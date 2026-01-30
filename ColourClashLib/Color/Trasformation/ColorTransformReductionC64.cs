@@ -95,12 +95,12 @@ namespace ColourClashNet.Color.Transformation
             var dict = new Dictionary<ColorTransformProperties, object>();
             dict[ColorTransformProperties.ColorDistanceEvaluationMode] = ColorDistanceEvaluationMode;
             dict[ColorTransformProperties.Fixed_Palette] = FixedPalette;
-            dict[ColorTransformProperties.Forced_Palette] = fixedPalette;
+            //dict[ColorTransformProperties.Forced_Palette] = fixedPalette;
             dict[ColorTransformProperties.Dithering_Type] = DitheringType ;
             dict[ColorTransformProperties.Dithering_Strength] = DitheringStrength;
             dict[ColorTransformProperties.MaxColorsWanted] = maxColors;
             dict[ColorTransformProperties.UseColorMean] = false;
-            dict[ColorTransformProperties.ClusterTrainingLoop] = 5;
+            dict[ColorTransformProperties.ClusterTrainingLoop] = 9;
             return dict;
         }
 

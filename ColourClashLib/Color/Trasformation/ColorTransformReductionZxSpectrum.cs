@@ -276,6 +276,7 @@ namespace ColourClashNet.Color.Transformation
             BypassDithering = true;
 
             var bestZxImage = CreateBestZxImage(token);
+            bestZxImage = SourceData;
             if (PaletteMode == ZxPaletteMode.ImageZxReference)
             {
                 return ColorTransformResult.CreateValidResult(SourceData, bestZxImage);
@@ -290,7 +291,7 @@ namespace ColourClashNet.Color.Transformation
             else
             {
                 ZxProcessingResults bestResult = null;
-                int step = 64;
+                int step = 32;
                 int cycle = 0;
                 int start = ZxLowColorInSeed;
                 int endL = 256 + (step / 2);
@@ -322,10 +323,10 @@ namespace ColourClashNet.Color.Transformation
                             }
                         }
                     }
-                    step = 16;
-                    start = (int)( bestResult.ColorSeedInLow - (step/2));
-                    endL = (int)( bestResult.ColorSeedInLow + (step*1.5));
-                    endH = bestResult.ColorSeedInHigh + (step / 2);
+                    step = 8;
+                    start = (int)( bestResult.ColorSeedInLow - 16);
+                    endL = (int)( bestResult.ColorSeedInLow + 16);
+                    endH = bestResult.ColorSeedInHigh + 9;
                     RaiseProcessPartialEvent(new ColorProcessingEventArgs()
                     {
                         ProcessingResults = ColorTransformResult.CreateValidResult(null, null, $"Refine Low palette : Range [{start} - {endL}]")
