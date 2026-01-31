@@ -63,7 +63,7 @@ namespace ColourClashNet.Drawing
 
         public ColorTransformReductionZxSpectrum.ZxPaletteMode ZxPaletteMode { get; set; } = ColorTransformReductionZxSpectrum.ZxPaletteMode.Both;
         public ColorTransformReductionAmiga.EnumAmigaVideoMode AmigaScreenMode { get; set; } = ColorTransformReductionAmiga.EnumAmigaVideoMode.Ham6;
-        public ColorTransformReductionC64.C64VideoMode C64ScreenMode { get; set; } = ColorTransformReductionC64.C64VideoMode.BitmapMulticolor;
+        public ColorTransformReductionC64.C64VideoMode C64ScreenMode { get; set; } = ColorTransformReductionC64.C64VideoMode.BitmapModeMulticolor;
         public ColorTransformReductionCPC.CPCVideoMode CPCScreenMode { get; set; } = ColorTransformReductionCPC.CPCVideoMode.Mode0;
 
         public void SetProperties(ColorTransformInterface oTrasf)

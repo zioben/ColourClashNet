@@ -19,17 +19,17 @@ namespace ColourClashNet.Color.Transformation
         public enum C64VideoMode
         {
             //   Petscii,
-            BitmapMulticolor,
-            BitmapHiRes,
+            BitmapModeMulticolor,
+            BitmapModeHiRes,
             CharsetMulticolor,
             CharsetHiRes,
-            BitmapFLI,
-            BitmapMCI,
+            BitmapModeFLI,
+            BitmapModeMCI,
             DebugBasePalette,
             DebugEnhancedPalette,
         }
 
-        public C64VideoMode VideoMode { get; set; }= C64VideoMode.BitmapMulticolor;
+        public C64VideoMode VideoMode { get; set; }= C64VideoMode.BitmapModeMulticolor;
 
         public bool TileBorderShow { get; set; } = false;
         int TileBorderColor = 0x_00_00_FF_00;
@@ -131,7 +131,7 @@ namespace ColourClashNet.Color.Transformation
         {
             switch (VideoMode)
             {
-                case C64VideoMode.BitmapMCI:
+                case C64VideoMode.BitmapModeMCI:
                 case C64VideoMode.DebugEnhancedPalette:
                     SetProperty(ColorTransformProperties.PriorityPalette, enhancedPalette);
                     break;
@@ -267,22 +267,22 @@ namespace ColourClashNet.Color.Transformation
                     }
                     break;
                 case C64VideoMode.CharsetHiRes:
-                case C64VideoMode.BitmapHiRes:
+                case C64VideoMode.BitmapModeHiRes:
                     {                       
                         oPreprocessedData = ToHires(token);
                     }
                 break;
-                case C64VideoMode.BitmapFLI:
+                case C64VideoMode.BitmapModeFLI:
                     {
                         oPreprocessedData = ToBitmapFli(token);
                     }
                 break;
-                case C64VideoMode.BitmapMulticolor:
+                case C64VideoMode.BitmapModeMulticolor:
                     {
                         oPreprocessedData = ToBitmapMultiColor(token);
                     }
                 break;
-                case C64VideoMode.BitmapMCI:
+                case C64VideoMode.BitmapModeMCI:
                     {
                         oPreprocessedData = ToBitmapMultiColor(token);
                     }
