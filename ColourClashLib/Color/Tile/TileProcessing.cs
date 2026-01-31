@@ -4,6 +4,7 @@ using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -81,7 +82,7 @@ public partial class TileProcessing
         {
             if (!IsValid)
                 throw new InvalidOperationException(sM);
-            var result = transformation?.Create(tileItem.TileImage).ProcessColors(token) ?? ColorTransformResult.CreateErrorResult("Invalid processing");
+            var result = transformation.Create(tileItem.TileImage).ProcessColors(token) ?? ColorTransformResult.CreateErrorResult("Invalid processing");
             if (!result.IsSuccess)
             {
                 LogMan.Error(sC, sM, $"Tile transformation failed: {result.Message}");
@@ -111,6 +112,7 @@ public partial class TileProcessing
                 return false;
             }
             return MatrixTools.Blit(transformation.OutputData.matrix, mergeMatrix, 0, 0, tileItem.OriginX, tileItem.OriginY, tileItem.TileW, tileItem.TileH);
+            //return MatrixTools.Blit(tileItem.TileImage.matrix, mergeMatrix, 0, 0, tileItem.OriginX, tileItem.OriginY, tileItem.TileW, tileItem.TileH);
         }
     }
 

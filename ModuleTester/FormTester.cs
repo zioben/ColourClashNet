@@ -178,7 +178,7 @@ namespace ModuleTester
                 return;
             }
             ColourClashNet.Color.Transformation.ColorTransformReductionC64 oTrasf = new();
-            oTrasf.SetProperty(ColorTransformProperties.C64_VideoMode, ColorTransformReductionC64.C64VideoMode.Multicolor);
+            oTrasf.SetProperty(ColorTransformProperties.C64_VideoMode, ColorTransformReductionC64.C64VideoMode.HiRes);
             Process(oTrasf);
         }
 

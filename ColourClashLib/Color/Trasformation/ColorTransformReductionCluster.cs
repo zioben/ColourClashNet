@@ -25,7 +25,7 @@ namespace ColourClashNet.Color.Transformation
         public ColorTransformReductionCluster()
         {
             Type = ColorTransformType.ColorReductionClustering;
-            Description = "Reduces color bit spectrum";
+            Description = "K-Means color reduction";
         }
 
         internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)

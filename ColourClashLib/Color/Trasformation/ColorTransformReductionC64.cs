@@ -55,6 +55,7 @@ namespace ColourClashNet.Color.Transformation
         List<int> enhancedPalette = new List<int>();
 
         ColorTransformType processingType { get; } = ColorTransformType.ColorReductionClustering;
+        //ColorTransformType processingType { get; } = ColorTransformType.ColorReductionFast;
 
         TileManager tileManager = new TileManager();
 
@@ -90,17 +91,18 @@ namespace ColourClashNet.Color.Transformation
         }
 
      
-        Dictionary<ColorTransformProperties, object> CreateProcessingParams(int maxColors, Palette fixedPalette )
+        Dictionary<ColorTransformProperties, object> CreateProcessingParams(int maxColors, Palette fixedColorPalette )
         {
             var dict = new Dictionary<ColorTransformProperties, object>();
             dict[ColorTransformProperties.ColorDistanceEvaluationMode] = ColorDistanceEvaluationMode;
-            dict[ColorTransformProperties.Fixed_Palette] = FixedPalette;
+            // Passing pre-rendered image, keep the 
+            dict[ColorTransformProperties.Fixed_Palette] = fixedColorPalette;
             //dict[ColorTransformProperties.Forced_Palette] = fixedPalette;
             dict[ColorTransformProperties.Dithering_Type] = DitheringType ;
             dict[ColorTransformProperties.Dithering_Strength] = DitheringStrength;
             dict[ColorTransformProperties.MaxColorsWanted] = maxColors;
             dict[ColorTransformProperties.UseColorMean] = false;
-            dict[ColorTransformProperties.ClusterTrainingLoop] = 9;
+            dict[ColorTransformProperties.ClusterTrainingLoop] = 6;
             return dict;
         }
 
@@ -179,7 +181,7 @@ namespace ColourClashNet.Color.Transformation
         ImageData ToHires(CancellationToken token=default)
         {
             var oTmpData = PreProcess(false, token);
-            var oManager = CreateTileManager(8, 8, 2, oTmpData, null, token);
+            var oManager = CreateTileManager(8, 8, 2, oTmpData, new Palette(), token);
             var tileResul = oManager.ProcessColors(token);
             if (tileResul)
             {
@@ -217,7 +219,7 @@ namespace ColourClashNet.Color.Transformation
 
             // Select the most used color
             var paletteFixedColor = new Histogram().Create(preprocessImage).SortColorsDescending().ToPalette(1);
-            TileManager oManager = CreateTileManager(4, 1, 2, preprocessImage, null, token);
+            TileManager oManager = CreateTileManager(4, 1, 2, preprocessImage, new Palette(), token);
             var tileResul = oManager.ProcessColors(token);
             if (tileResul)
             {
