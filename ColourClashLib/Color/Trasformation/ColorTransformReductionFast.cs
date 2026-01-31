@@ -40,7 +40,7 @@ namespace ColourClashNet.Color.Transformation
             TransformationMap.Reset();
             var SourceHistogram = new Histogram().Create(SourceData);
             var oTempHist = SourceHistogram.SortColorsDescending();
-            var oTempPalette = Palette.MergePalette(FixedPalette, oTempHist.ToPalette());
+            var oTempPalette = Palette.MergePalette(PriorityPalette, oTempHist.ToPalette());
             if (oTempPalette.Count <= ColorsMaxWanted)
             {
                 foreach (var kvp in SourceHistogram.rgbHistogram)

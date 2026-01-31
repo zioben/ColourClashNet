@@ -20,8 +20,8 @@ namespace ColourClashNet.Color.Transformation
         ImageData OutputData { get; }
 
         //------------------------------------------------------------
-        Palette FixedPalette { get; }       
-        Int32 FixedColors { get; }
+        Palette PriorityPalette { get; }       
+        Int32 PriorityColors { get; }
         ColorTransformationMap TransformationMap { get; }
 
         //------------------------------------------------------------

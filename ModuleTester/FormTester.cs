@@ -15,12 +15,12 @@ namespace ModuleTester
         public FormTester()
         {
             InitializeComponent();
-            bitmapRender1.Control = pictureBox1;
-            bitmapRender2.Control = pictureBox2;
+            bitmapRenderIN.Control = pictureBox1;
+            bitmapRenderOUT.Control = pictureBox2;
             CreateCombo();
             LogMan.OnLogMessage += LogMan_OnLogMessage;
 
-          //  TestTransformSpectrum();
+            //  TestTransformSpectrum();
         }
 
         ConcurrentQueue<string> oLogBag = new ConcurrentQueue<string>();
@@ -53,17 +53,16 @@ namespace ModuleTester
             {
                 cbColorMode.Items.Add(item);
             }
-            cbDithering.SelectedIndex = 5;
-
-
             cbPreset.SelectedIndex = 1;
+            cbColorMode.SelectedIndex = 0;
+            cbDithering.SelectedIndex = 9;
         }
 
         ColorTransformInterface oOldTrasf = null;
         void Process(ColorTransformInterface oTrasf)
         {
             oOldTrasf = oTrasf;
-            bitmapRender2.Image = null;
+            bitmapRenderOUT.Image = null;
             var eDither = ColorDithering.None;
             if (!Enum.TryParse<ColorDithering>(cbDithering.SelectedItem?.ToString(), out eDither))
             {
@@ -74,19 +73,20 @@ namespace ModuleTester
             {
                 eColor = ColorDistanceEvaluationMode.RGB;
             }
+            double ditherStrength = (double)numDitheringStrenght.Value / 100.0;
             oTrasf.SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, eColor);
-            oTrasf.SetProperty(ColorTransformProperties.Dithering_Type, eDither);
-            oTrasf.SetProperty(ColorTransformProperties.Dithering_Strength, 1);
-            var oImageData = ImageToolsGDI.GdiImageToImageData(bitmapRender1.Image as Bitmap);
+            oTrasf.SetProperty(ColorTransformProperties.DitheringType, eDither);
+            oTrasf.SetProperty(ColorTransformProperties.DitheringStrength, ditherStrength);
+            var oImageData = ImageToolsGDI.GdiImageToImageData(bitmapRenderIN.Image as Bitmap);
             _ = Task.Run(async () =>
             {
                 var cts = new CancellationTokenSource();
-                ProcessingForm.CreateProcessingForm(oTrasf,cts);
+                ProcessingForm.CreateProcessingForm(oTrasf, cts);
                 oTrasf.Create(oImageData);
                 var ret = oTrasf.ProcessColors(cts.Token);
                 Invoke(() =>
                 {
-                    bitmapRender2.Image = ImageToolsGDI.ImageDataToGdiImage(ret.DataOut);
+                    bitmapRenderOUT.Image = ImageToolsGDI.ImageDataToGdiImage(ret.DataOut);
                     propertyGrid1.SelectedObject = oTrasf;
                     pictureBox1.Refresh();
                     pictureBox2.Refresh();
@@ -103,7 +103,7 @@ namespace ModuleTester
                 return;
             }
             ColourClashNet.Color.Transformation.ColorTransformIdentity oTrasf = new();
-            oTrasf.SetProperty(ColourClashNet.Color.ColorTransformProperties.Dithering_Type, ColorDithering.None);
+            oTrasf.SetProperty(ColourClashNet.Color.ColorTransformProperties.DitheringType, ColorDithering.None);
             oTrasf.SetProperty(ColorTransformProperties.MaxColorsWanted, 16);
             Process(oTrasf);
         }
@@ -151,8 +151,8 @@ namespace ModuleTester
                 return;
             }
             ColourClashNet.Color.Transformation.ColorTransformReductionAmiga oTrasf = new();
-            oTrasf.SetProperty(ColorTransformProperties.Amiga_VideoMode, ColorTransformReductionAmiga.EnumAmigaVideoMode.Ham6);
-            oTrasf.SetProperty(ColorTransformProperties.Amiga_HamColorProcessingMode, ColorTransformReductionAmiga.EnumHamColorProcessingMode.Fast);
+            oTrasf.SetProperty(ColorTransformProperties.AmigaVideoMode, ColorTransformReductionAmiga.EnumAmigaVideoMode.Ham6);
+            oTrasf.SetProperty(ColorTransformProperties.AmigaHamColorProcessingMode, ColorTransformReductionAmiga.EnumHamColorProcessingMode.Fast);
             Process(oTrasf);
         }
 
@@ -178,7 +178,7 @@ namespace ModuleTester
                 return;
             }
             ColourClashNet.Color.Transformation.ColorTransformReductionC64 oTrasf = new();
-            oTrasf.SetProperty(ColorTransformProperties.C64_VideoMode, ColorTransformReductionC64.C64VideoMode.HiRes);
+            oTrasf.SetProperty(ColorTransformProperties.C64VideoMode, ColorTransformReductionC64.C64VideoMode.BitmapHiRes);
             Process(oTrasf);
         }
 
@@ -204,7 +204,7 @@ namespace ModuleTester
                 return;
             }
             ColourClashNet.Color.Transformation.ColorTransformReductionCPC oTrasf = new();
-            oTrasf.SetProperty(ColorTransformProperties.CPC_VideoMode, ColorTransformReductionCPC.CPCVideoMode.Mode0);
+            oTrasf.SetProperty(ColorTransformProperties.CPCVideoMode, ColorTransformReductionCPC.CPCVideoMode.Mode0);
             Process(oTrasf);
         }
 
@@ -251,22 +251,23 @@ namespace ModuleTester
                 Process(oOldTrasf);
                 return;
             }
-            bool bAtuotune = true;
             ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum oTrasf = new();
-            if (bAtuotune)
+
+            var autoTune = ColorTransformReductionZxSpectrum.ZxAutotuneMode.Fast;
+            if (autoTune == ColorTransformReductionZxSpectrum.ZxAutotuneMode.None)
             {
-                oTrasf.SetProperty(ColorTransformProperties.Zx_ColL_Seed, 128);
-                oTrasf.SetProperty(ColorTransformProperties.Zx_ColH_Seed, 256);
+                oTrasf.SetProperty(ColorTransformProperties.ZxColLSeed, 128);
+                oTrasf.SetProperty(ColorTransformProperties.ZxColHSeed, 256);
             }
             else
             {
-                oTrasf.SetProperty(ColorTransformProperties.Zx_ColL_Seed, 0x00C0);
-                oTrasf.SetProperty(ColorTransformProperties.Zx_ColH_Seed, 0x00FF);
+                oTrasf.SetProperty(ColorTransformProperties.ZxColLSeed, 0x00C0);
+                oTrasf.SetProperty(ColorTransformProperties.ZxColHSeed, 0x00FF);
             }
-            oTrasf.SetProperty(ColorTransformProperties.Zx_Autotune, bAtuotune);
-            oTrasf.SetProperty(ColorTransformProperties.Zx_DitherHighColorImage, true);
-            oTrasf.SetProperty(ColorTransformProperties.Zx_IncludeBlackInHighColorImage, true);
-            oTrasf.SetProperty(ColorTransformProperties.Zx_PaletteMode, ColorTransformReductionZxSpectrum.ZxPaletteMode.Both);
+            oTrasf.SetProperty(ColorTransformProperties.ZxAutotuneMode, autoTune);
+            oTrasf.SetProperty(ColorTransformProperties.ZxDitherHighColorImage, true);
+            oTrasf.SetProperty(ColorTransformProperties.ZxIncludeBlackInHighColorImage, true);
+            oTrasf.SetProperty(ColorTransformProperties.ZxPaletteMode, ColorTransformReductionZxSpectrum.ZxPaletteMode.Both);
             Process(oTrasf);
         }
 
@@ -283,7 +284,7 @@ namespace ModuleTester
             {
                 oList.Add(ColorIntExt.FromRGB(i, i, i));
             }
-            oTrasf.SetProperty(ColorTransformProperties.Fixed_Palette, oList);
+            oTrasf.SetProperty(ColorTransformProperties.PriorityPalette, oList);
             Process(oTrasf);
         }
 
@@ -292,7 +293,7 @@ namespace ModuleTester
             var txt = cbPreset.Text.ToString();
             if (oDict.ContainsKey(txt))
             {
-                bitmapRender1.Image = oDict[txt];
+                bitmapRenderIN.Image = oDict[txt];
             }
         }
 
@@ -387,17 +388,37 @@ namespace ModuleTester
             try
             {
                 var oBmp = Bitmap.FromFile(openLoadImage.FileName);
-                bitmapRender1.Image = oBmp;
+                bitmapRenderIN.Image = oBmp;
             }
             catch (Exception ex)
             {
+                MessageBox.Show(ex.Message);
             }
         }
 
-       
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            if (bitmapRenderOUT.Image != null)
+            {
+                if( saveImageDialog.ShowDialog() != DialogResult.OK  )
+                { 
+                    return;
+                }
+                try
+                {
+                    bitmapRenderOUT.Image.Save(saveImageDialog.FileName + ".png", System.Drawing.Imaging.ImageFormat.Png);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+        }
+
+
         private void oTimerLog_Tick(object sender, EventArgs e)
         {
-            while (oLogBag.TryDequeue( out var s ) )
+            while (oLogBag.TryDequeue(out var s))
             {
                 listBox1.Items.Insert(0, s);
             }
@@ -406,5 +427,7 @@ namespace ModuleTester
                 listBox1.Items.RemoveAt(99);
             }
         }
+
+      
     }
 }

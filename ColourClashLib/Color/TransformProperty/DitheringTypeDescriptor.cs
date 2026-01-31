@@ -12,7 +12,7 @@ namespace ColourClashNet.Color;
     : ColorTransformPropertyDescriptor<ColorDithering>
     {
         public DitheringTypeDescriptor()
-            : base(ColorTransformProperties.Dithering_Type) { }
+            : base(ColorTransformProperties.DitheringType) { }
 
         public override string DisplayName => "Dithering Type";
         public override string Description => "Dithering algorithm";

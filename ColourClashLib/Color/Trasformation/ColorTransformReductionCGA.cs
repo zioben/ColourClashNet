@@ -45,7 +45,7 @@ namespace ColourClashNet.Color.Transformation
         void CreatePalette()
         {
             SetProperty(
-               ColorTransformProperties.Fixed_Palette,
+               ColorTransformProperties.PriorityPalette,
                new List<int>
                {
                     0x00000000,
@@ -65,7 +65,7 @@ namespace ColourClashNet.Color.Transformation
                     0x00FFFFFF,
                });
 
-            paletteFull = FixedPalette.ToList();
+            paletteFull = PriorityPalette.ToList();
 
             paletteMode4_0L = new List<int>()
             {

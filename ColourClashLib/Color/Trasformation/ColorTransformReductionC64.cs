@@ -19,15 +19,17 @@ namespace ColourClashNet.Color.Transformation
         public enum C64VideoMode
         {
             //   Petscii,
-            Multicolor,
-            HiRes,
-            FLI,
-            MCI,
+            BitmapMulticolor,
+            BitmapHiRes,
+            CharsetMulticolor,
+            CharsetHiRes,
+            BitmapFLI,
+            BitmapMCI,
             DebugBasePalette,
             DebugEnhancedPalette,
         }
 
-        public C64VideoMode VideoMode { get; set; }= C64VideoMode.Multicolor;
+        public C64VideoMode VideoMode { get; set; }= C64VideoMode.BitmapMulticolor;
 
         public bool TileBorderShow { get; set; } = false;
         int TileBorderColor = 0x_00_00_FF_00;
@@ -96,10 +98,10 @@ namespace ColourClashNet.Color.Transformation
             var dict = new Dictionary<ColorTransformProperties, object>();
             dict[ColorTransformProperties.ColorDistanceEvaluationMode] = ColorDistanceEvaluationMode;
             // Passing pre-rendered image, keep the 
-            dict[ColorTransformProperties.Fixed_Palette] = fixedColorPalette;
+            dict[ColorTransformProperties.PriorityPalette] = fixedColorPalette;
             //dict[ColorTransformProperties.Forced_Palette] = fixedPalette;
-            dict[ColorTransformProperties.Dithering_Type] = DitheringType ;
-            dict[ColorTransformProperties.Dithering_Strength] = DitheringStrength;
+            dict[ColorTransformProperties.DitheringType] = DitheringType ;
+            dict[ColorTransformProperties.DitheringStrength] = DitheringStrength;
             dict[ColorTransformProperties.MaxColorsWanted] = maxColors;
             dict[ColorTransformProperties.UseColorMean] = false;
             dict[ColorTransformProperties.ClusterTrainingLoop] = 6;
@@ -113,7 +115,7 @@ namespace ColourClashNet.Color.Transformation
             base.SetProperty(propertyName, value);
             switch (propertyName)
             {
-                case ColorTransformProperties.C64_VideoMode:
+                case ColorTransformProperties.C64VideoMode:
                         VideoMode = ToEnum< C64VideoMode>(value);
                     break;
                 default:
@@ -129,12 +131,12 @@ namespace ColourClashNet.Color.Transformation
         {
             switch (VideoMode)
             {
-                case C64VideoMode.MCI:
+                case C64VideoMode.BitmapMCI:
                 case C64VideoMode.DebugEnhancedPalette:
-                    SetProperty(ColorTransformProperties.Fixed_Palette, enhancedPalette);
+                    SetProperty(ColorTransformProperties.PriorityPalette, enhancedPalette);
                     break;
                 default:
-                    SetProperty(ColorTransformProperties.Fixed_Palette, basePalette);
+                    SetProperty(ColorTransformProperties.PriorityPalette, basePalette);
                     break;
             }
 
@@ -195,7 +197,7 @@ namespace ColourClashNet.Color.Transformation
 
 
         // Create a Tile Map 8x4 1 fixed color + 3 selectable colors per tile
-        ImageData ToMultiColor(CancellationToken token=default)
+        ImageData ToBitmapMultiColor(CancellationToken token=default)
         {
             var preprocessImage = PreProcess(true, token);
             var paletteFixedColor = new Histogram().Create(preprocessImage).SortColorsDescending().ToPalette(1);
@@ -212,8 +214,27 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
+
+        // Create a Tile Map 8x4 3 fixed color + 1 selectable color per tile
+        ImageData ToCharsetMulticolor(CancellationToken token = default)
+        {
+            var preprocessImage = PreProcess(true, token);
+            var paletteFixedColor = new Histogram().Create(preprocessImage).SortColorsDescending().ToPalette(3);
+            TileManager oManager = CreateTileManager(4, 8, 4, preprocessImage, paletteFixedColor, token);
+            var tileResul = oManager.ProcessColors(token);
+            if (tileResul)
+            {
+                var tileImage = oManager.CreateImageFromTiles();
+                return ImageTools.DoubleXResolution(tileImage);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         // Create a Tile Map 1x4 2 selectable color per tile
-        ImageData? ToFli(CancellationToken token = default)
+        ImageData? ToBitmapFli(CancellationToken token = default)
         {
             var preprocessImage = PreProcess(true, token);
 
@@ -245,26 +266,33 @@ namespace ColourClashNet.Color.Transformation
                         oPreprocessedData = ToBasePalette(token);
                     }
                     break;
-                case C64VideoMode.HiRes:
+                case C64VideoMode.CharsetHiRes:
+                case C64VideoMode.BitmapHiRes:
                     {                       
                         oPreprocessedData = ToHires(token);
                     }
                 break;
-                case C64VideoMode.FLI:
+                case C64VideoMode.BitmapFLI:
                     {
-                        oPreprocessedData = ToFli(token);
+                        oPreprocessedData = ToBitmapFli(token);
                     }
                 break;
-                case C64VideoMode.Multicolor:
+                case C64VideoMode.BitmapMulticolor:
                     {
-                        oPreprocessedData = ToMultiColor(token);
+                        oPreprocessedData = ToBitmapMultiColor(token);
                     }
                 break;
-                case C64VideoMode.MCI:
+                case C64VideoMode.BitmapMCI:
                     {
-                        oPreprocessedData = ToMultiColor(token);
+                        oPreprocessedData = ToBitmapMultiColor(token);
                     }
                     break;
+                case C64VideoMode.CharsetMulticolor:
+                    {
+                        oPreprocessedData = ToCharsetMulticolor(token);
+                    }
+                    break;
+
                 default:
                 break;
             }

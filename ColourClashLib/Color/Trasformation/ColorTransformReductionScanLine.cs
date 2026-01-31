@@ -71,7 +71,7 @@ namespace ColourClashNet.Color.Transformation
             //var oCols = new int[1, C];
             var oSourceNew = new Imaging.ImageData().Create(SourceData);
 
-            var oLineFixedPalette = FixedPalette;
+            var oLineFixedPalette = PriorityPalette;
             // Step 1 : Reducing to target palette colors -> 128 to 16 colors 
             // MainPaletteUsed = false;
             if (CreateSharedPalette)
@@ -91,16 +91,16 @@ namespace ColourClashNet.Color.Transformation
                         .SetProperty(ColorTransformProperties.MaxColorsWanted, ColorsMaxWanted)
                         .SetProperty(ColorTransformProperties.UseColorMean, UseColorMean)
                         .SetProperty(ColorTransformProperties.ClusterTrainingLoop, 30)
-                        .SetProperty(ColorTransformProperties.Fixed_Palette, oLineFixedPalette)
-                        .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType);
+                        .SetProperty(ColorTransformProperties.PriorityPalette, oLineFixedPalette)
+                        .SetProperty(ColorTransformProperties.DitheringType, DitheringType);
                         oLineTrasf = oTrasf2;
                     }
                     else
                     {
                         var oTrasf2 = new ColorTransformReductionFast()
                         .SetProperty(ColorTransformProperties.MaxColorsWanted, ColorsMaxWanted)
-                        .SetProperty(ColorTransformProperties.Fixed_Palette, oLineFixedPalette)
-                        .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType);
+                        .SetProperty(ColorTransformProperties.PriorityPalette, oLineFixedPalette)
+                        .SetProperty(ColorTransformProperties.DitheringType, DitheringType);
                         oLineTrasf = oTrasf2;
                     }
 
@@ -143,9 +143,9 @@ namespace ColourClashNet.Color.Transformation
                 else
                 {
                     var oTras = new ColorTransformReductionPalette()
-                    .SetProperty(ColorTransformProperties.Fixed_Palette, oNewPal)
+                    .SetProperty(ColorTransformProperties.PriorityPalette, oNewPal)
                     .SetProperty(ColorTransformProperties.MaxColorsWanted, oNewPal.Count)
-                    .SetProperty(ColorTransformProperties.Dithering_Type, DitheringType)
+                    .SetProperty(ColorTransformProperties.DitheringType, DitheringType)
                     .Create(new ImageData().Create(oCols));
                     var oColRes = oTras.ProcessColors(oToken);
                     for (int c = 0; c < SourceData.Columns; c++)

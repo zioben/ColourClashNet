@@ -26,7 +26,7 @@ namespace ColourClashNet.Color.Transformation
             //Parallel.ForEach(rgbList, rgb =>
             foreach (var rgb in rgbList)    
             {
-                TransformationMap.Add(rgb, ColorIntExt.GetNearestColor(rgb, FixedPalette, this.ColorDistanceEvaluationMode));
+                TransformationMap.Add(rgb, ColorIntExt.GetNearestColor(rgb, PriorityPalette, this.ColorDistanceEvaluationMode));
             }//);
             //Ferificed OK
             //var t = TransformationMap.rgbTransformationMap.Values.Distinct().ToList();

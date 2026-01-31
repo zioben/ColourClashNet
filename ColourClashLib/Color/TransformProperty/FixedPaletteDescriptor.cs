@@ -13,7 +13,7 @@ public sealed class FixedPaletteDescriptor
     : ColorTransformPropertyDescriptor<Palette>
 {
     public FixedPaletteDescriptor()
-        : base(ColorTransformProperties.Fixed_Palette) { }
+        : base(ColorTransformProperties.PriorityPalette) { }
 
     public override string DisplayName => "Fixed Palette";
     public override string Description => "Custom color palette";
@@ -32,6 +32,6 @@ public sealed class FixedPaletteDescriptor
 
     protected override void ApplyTyped(ColorTransformBase transform, Palette value)
     {
-        transform.FixedPalette = new Palette().Create( value );
+        transform.PriorityPalette = new Palette().Create( value );
     }
 }

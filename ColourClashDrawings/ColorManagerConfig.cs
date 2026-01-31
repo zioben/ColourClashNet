@@ -63,24 +63,24 @@ namespace ColourClashNet.Drawing
 
         public ColorTransformReductionZxSpectrum.ZxPaletteMode ZxPaletteMode { get; set; } = ColorTransformReductionZxSpectrum.ZxPaletteMode.Both;
         public ColorTransformReductionAmiga.EnumAmigaVideoMode AmigaScreenMode { get; set; } = ColorTransformReductionAmiga.EnumAmigaVideoMode.Ham6;
-        public ColorTransformReductionC64.C64VideoMode C64ScreenMode { get; set; } = ColorTransformReductionC64.C64VideoMode.Multicolor;
+        public ColorTransformReductionC64.C64VideoMode C64ScreenMode { get; set; } = ColorTransformReductionC64.C64VideoMode.BitmapMulticolor;
         public ColorTransformReductionCPC.CPCVideoMode CPCScreenMode { get; set; } = ColorTransformReductionCPC.CPCVideoMode.Mode0;
 
         public void SetProperties(ColorTransformInterface oTrasf)
         {
             oTrasf
                 .SetProperty(ColorTransformProperties.ColorBackgroundList, BackgroundColorList)
-                .SetProperty(ColorTransformProperties.Amiga_HamColorProcessingMode, ColorTransformReductionAmiga.EnumHamColorProcessingMode.Fast)
-                .SetProperty(ColorTransformProperties.Amiga_VideoMode, AmigaScreenMode)
-                .SetProperty(ColorTransformProperties.C64_VideoMode, C64ScreenMode)
+                .SetProperty(ColorTransformProperties.AmigaHamColorProcessingMode, ColorTransformReductionAmiga.EnumHamColorProcessingMode.Fast)
+                .SetProperty(ColorTransformProperties.AmigaVideoMode, AmigaScreenMode)
+                .SetProperty(ColorTransformProperties.C64VideoMode, C64ScreenMode)
                 .SetProperty(ColorTransformProperties.ClusterTrainingLoop, ClusteringTrainingLoop)
 
                 .SetProperty(ColorTransformProperties.ColorBackgroundList, BackgroundColorList)
                 .SetProperty(ColorTransformProperties.ColorBackgroundReplacement, BackgroundColorReplacement)
                 .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
-                .SetProperty(ColorTransformProperties.CPC_VideoMode, CPCScreenMode)
-                .SetProperty(ColorTransformProperties.Dithering_Type, DitheringAlgorithm)
-                .SetProperty(ColorTransformProperties.Dithering_Strength, DitheringStrenght)
+                .SetProperty(ColorTransformProperties.CPCVideoMode, CPCScreenMode)
+                .SetProperty(ColorTransformProperties.DitheringType, DitheringAlgorithm)
+                .SetProperty(ColorTransformProperties.DitheringStrength, DitheringStrenght)
 
                 //.SetProperty(ColorTransformProperties.Fixed_Palette, )
                 .SetProperty(ColorTransformProperties.HsvBrightnessMultFactor, BrightnessEnhancement)
@@ -92,13 +92,13 @@ namespace ColourClashNet.Drawing
                 .SetProperty(ColorTransformProperties.UseClustering, ScanlineClustering)
                 //.SetProperty(ColorTransformProperties.UseColorMean, )
                 //.SetProperty(ColorTransformProperties.UseFixedPalette, )
-                .SetProperty(ColorTransformProperties.Zx_ColH_Seed, ZxEqColorHI)
-                .SetProperty(ColorTransformProperties.Zx_ColL_Seed, ZxEqColorLO)
-                .SetProperty(ColorTransformProperties.Zx_DitherHighColorImage, ZxEqDitherHI)
-                .SetProperty(ColorTransformProperties.Zx_DitherLowColorImage, ZxEqDitherLO)
-                .SetProperty(ColorTransformProperties.Zx_IncludeBlackInHighColorImage, ZxIncludeBlackHI)
-                .SetProperty(ColorTransformProperties.Zx_PaletteMode, ZxPaletteMode)
-                .SetProperty(ColorTransformProperties.Zx_Autotune, ZxEqAutotune);
+                .SetProperty(ColorTransformProperties.ZxColHSeed, ZxEqColorHI)
+                .SetProperty(ColorTransformProperties.ZxColLSeed, ZxEqColorLO)
+                .SetProperty(ColorTransformProperties.ZxDitherHighColorImage, ZxEqDitherHI)
+                .SetProperty(ColorTransformProperties.ZxDitherLowColorImage, ZxEqDitherLO)
+                .SetProperty(ColorTransformProperties.ZxIncludeBlackInHighColorImage, ZxIncludeBlackHI)
+                .SetProperty(ColorTransformProperties.ZxPaletteMode, ZxPaletteMode)
+                .SetProperty(ColorTransformProperties.ZxAutotuneMode, ZxEqAutotune);
 
                 //.SetProperty(ColorTransformProperties.Zx_PaletteMode, ZxEqBlackHI)
         }

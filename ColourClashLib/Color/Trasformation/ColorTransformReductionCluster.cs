@@ -78,7 +78,7 @@ namespace ColourClashNet.Color.Transformation
             // Sort by most used colors
             var oTempHistogram = new Histogram().Create(SourceData).SortColorsDescending();
             // Creating a temporary palette with fixed colors and histogram colors
-            var oTempPalette = Palette.MergePalette(FixedPalette, oTempHistogram.ToPalette());
+            var oTempPalette = Palette.MergePalette(PriorityPalette, oTempHistogram.ToPalette());
             // If we have less colors than wanted, just map them directly
             var rgbList = oTempPalette.ToList();
             if (oTempPalette.Count <= MaxColorsWanted)
@@ -111,7 +111,7 @@ namespace ColourClashNet.Color.Transformation
 
             // Clustering training
             // For each loop, assign every color to the nearest cluster, then recalculate the cluster mean
-            var rgbFixedList = FixedPalette.ToList();
+            var rgbFixedList = PriorityPalette.ToList();
             for (int train = 0; train < TrainingLoop; train++)
             {
                 LogMan.Trace(sClass, sMethod, $"{Type} : Training loop {train}");

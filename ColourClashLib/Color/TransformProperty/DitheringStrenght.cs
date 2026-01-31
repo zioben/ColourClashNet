@@ -11,7 +11,7 @@ public sealed class DitheringStrengthDescriptor
     : ColorTransformPropertyDescriptor<double>
 {
     public DitheringStrengthDescriptor()
-        : base(ColorTransformProperties.Dithering_Strength) { }
+        : base(ColorTransformProperties.DitheringStrength) { }
 
     public override string DisplayName => "Dithering Strength";
     public override string Description => "Dithering intensity (0..1)";

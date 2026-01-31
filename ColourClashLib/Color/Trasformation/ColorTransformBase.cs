@@ -49,8 +49,8 @@ namespace ColourClashNet.Color.Transformation
         public ImageData OutputData { get; protected set; } = new ImageData();
 
         //-------------------------------------------------------------------------------------------------------------------------------
-        public Palette FixedPalette { get; internal protected set; } = new Palette();
-        public int FixedColors => FixedPalette?.Count ?? 0;
+        public Palette PriorityPalette { get; internal protected set; } = new Palette();
+        public int PriorityColors => PriorityPalette?.Count ?? 0;
         public bool FastPreview { get; set; }
 
         //-------------------------------------------------------------------------------------------------------------------------------
@@ -199,20 +199,20 @@ namespace ColourClashNet.Color.Transformation
                 case ColorTransformProperties.ColorDistanceEvaluationMode:
                     ColorDistanceEvaluationMode = ToEnum<ColorDistanceEvaluationMode>(value);
                     break;
-                case ColorTransformProperties.Fixed_Palette:
+                case ColorTransformProperties.PriorityPalette:
                     if (value is IEnumerable<int> palette1)
-                        FixedPalette = new Palette().Create(palette1);
+                        PriorityPalette = new Palette().Create(palette1);
                     if (value is List<int> palette2)
-                        FixedPalette = new Palette().Create(palette2);
+                        PriorityPalette = new Palette().Create(palette2);
                     else if (value is Palette palette3)
-                        FixedPalette = new Palette().Create(palette3);
+                        PriorityPalette = new Palette().Create(palette3);
                     else
                         throw new ArgumentException($"{Type} : Invalid value for {propertyName} ");
                     break;
-                case ColorTransformProperties.Dithering_Type:
+                case ColorTransformProperties.DitheringType:
                     DitheringType = ToEnum<ColorDithering>(value);
                     break;
-                case ColorTransformProperties.Dithering_Strength:
+                case ColorTransformProperties.DitheringStrength:
                     DitheringStrength = Clamp(value, 0.0, 1.0);
                     break;
                 default:

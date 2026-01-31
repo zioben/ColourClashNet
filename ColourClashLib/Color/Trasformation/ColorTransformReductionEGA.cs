@@ -17,7 +17,7 @@ namespace ColourClashNet.Color.Transformation
         void CreatePalette()
         {
             SetProperty(
-                ColorTransformProperties.Fixed_Palette,
+                ColorTransformProperties.PriorityPalette,
                 new List<int>
                 {
                     0x00_00_00_00,
