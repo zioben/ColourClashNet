@@ -153,7 +153,7 @@ namespace ColourClashNet.Color.Transformation
                     return null;
             }
 
-            var oResultQuantized = oQuantization.CreateAndProcessColors(SourceData, token);
+            var oResultQuantized = oQuantization.CreateAndProcessColors(ImageSource, token);
 
             switch (HamColorProcessingMode)
             {
@@ -187,10 +187,10 @@ namespace ColourClashNet.Color.Transformation
             switch (AmigaVideoMode)
             {
                 case EnumAmigaVideoMode.Ham6:
-                    oAmigaData = ToHam(SourceData, oDataPreprocessedResult.DataOut, ColorQuantizationMode.RGB444 );
+                    oAmigaData = ToHam(ImageSource, oDataPreprocessedResult.DataOut, ColorQuantizationMode.RGB444 );
                     break;
                 case EnumAmigaVideoMode.Ham8:
-                    oAmigaData = ToHam(SourceData, oDataPreprocessedResult.DataOut, ColorQuantizationMode.RGB666 );
+                    oAmigaData = ToHam(ImageSource, oDataPreprocessedResult.DataOut, ColorQuantizationMode.RGB666 );
                     break;
                 case EnumAmigaVideoMode.ExtraHalfBright:
                     oAmigaData = null;
@@ -203,9 +203,9 @@ namespace ColourClashNet.Color.Transformation
             if (oAmigaData == null)
             {
                 LogMan.Error(sC, sM, $"Failed to generate Amiga transformed data");
-                return ColorTransformResult.CreateErrorResult(SourceData,null, $"{sC}.{sM} : Amiga transformed data is null");
+                return ColorTransformResult.CreateErrorResult(ImageSource,null, $"{sC}.{sM} : Amiga transformed data is null");
             }
-            return ColorTransformResult.CreateValidResult(SourceData, oAmigaData);
+            return ColorTransformResult.CreateValidResult(ImageSource, oAmigaData);
         }
 
     }

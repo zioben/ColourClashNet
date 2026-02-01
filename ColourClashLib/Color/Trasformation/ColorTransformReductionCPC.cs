@@ -90,7 +90,7 @@ namespace ColourClashNet.Color.Transformation
       
         ImageData? PreProcess(bool bHalveRes, CancellationToken oToken=default)
         {           
-            var oTmpData = bHalveRes ? ImageTools.HalveXResolution(SourceData) : SourceData;
+            var oTmpData = bHalveRes ? ImageTools.HalveXResolution(ImageSource) : ImageSource;
             var oTmpDataProc = TransformationMap.Transform(oTmpData, oToken);
             return oTmpDataProc;
         }
@@ -106,10 +106,10 @@ namespace ColourClashNet.Color.Transformation
 
             if (DitheringType != ColorDithering.None)
             {
-                var imageRef = bDoubleRes ? ImageTools.HalveXResolution(SourceData) : SourceData;
-                var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength);
-                var imageDither = oDithering.Dither(imageRef, oRes.DataOut, ColorDistanceEvaluationMode, oToken);
-                return bDoubleRes ? ImageTools.DoubleXResolution(imageDither) : imageDither;
+                var imageRef = bDoubleRes ? ImageTools.HalveXResolution(ImageSource) : ImageSource;
+                var dithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength);
+                var ditherRes = dithering.Dither(imageRef, oRes.DataOut, ColorDistanceEvaluationMode, oToken);
+                return bDoubleRes ? ImageTools.DoubleXResolution(ditherRes.DataOut) : ditherRes.DataOut;
             }
             else
             {
@@ -172,7 +172,7 @@ namespace ColourClashNet.Color.Transformation
             }
             if (ret != null)
             { 
-                return ColorTransformResult.CreateValidResult(SourceData, ret);
+                return ColorTransformResult.CreateValidResult(ImageSource, ret);
             }
             return new ColorTransformResult();
         }

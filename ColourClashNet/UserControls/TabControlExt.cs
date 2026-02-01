@@ -44,6 +44,7 @@ namespace ColourClashNet.Controls
             tpNew.Name = $"{caNew.Name}";
             tpNew.Controls.Add(caNew);
             tpNew.Text = $"Page{TabPages.Count + 1}OOO";
+            tpNew.Tag = caNew;
             TabPages.Add(tpNew);
             oTabPages[caNew.Name] = tpNew;
         }

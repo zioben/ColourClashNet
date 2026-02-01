@@ -52,16 +52,16 @@ namespace ColourClashNet.Color.Transformation
 
             string sM = nameof(ExecuteTransform);
 
-            var oProcessed = new int[SourceData.Rows, SourceData.Columns];
+            var oProcessed = new int[ImageSource.Rows, ImageSource.Columns];
             BypassDithering = true;
 
             // More Performant without Parallel ?
             //for (int r = 0; r < SourceData.Rows; r++ )
-            Parallel.For(0, SourceData.Rows, new ParallelOptions { CancellationToken = token }, r =>
+            Parallel.For(0, ImageSource.Rows, new ParallelOptions { CancellationToken = token }, r =>
             {
-                for (int c = 0; c < SourceData.Columns; c++)
+                for (int c = 0; c < ImageSource.Columns; c++)
                 {
-                    var hsv = HSV.CreateFromIntRGB(SourceData.matrix[r, c]);
+                    var hsv = HSV.CreateFromIntRGB(ImageSource.matrix[r, c]);
                     if (hsv.IsValid)
                     {
                         hsv.H = hsv.H + (float)HueShift;
@@ -74,7 +74,7 @@ namespace ColourClashNet.Color.Transformation
             });
             //}
 
-            return ColorTransformResult.CreateValidResult(SourceData, new ImageData().Create(oProcessed));
+            return ColorTransformResult.CreateValidResult(ImageSource, new ImageData().Create(oProcessed));
 
         }
     }

@@ -2,6 +2,7 @@
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
@@ -14,7 +15,7 @@ namespace ColourClashNet.Imaging;
 
 public static class MatrixTools
 {
-    static string sClass = nameof(MatrixTools);
+    static string sC = nameof(MatrixTools);
 
     #region Width Alignment
 
@@ -68,8 +69,13 @@ public static class MatrixTools
     /// <param name="oImage">The image data for which to calculate the aligned width. If null, a width of 0 is used.</param>
     /// <param name="widthAlignMode">The alignment mode that determines how the image width should be adjusted.</param>
     /// <returns>The width of the image, aligned according to the specified alignment mode.</returns>
-    static int GetNewWidthAlign<T>(T[,] matrix, WidthAlignMode widthAlignMode)
-        => GetNewWidthAlign(matrix?.GetLength(1) ?? 0, widthAlignMode);
+    static int GetNewWidthAlign<T>(T[,] matrixSrc, WidthAlignMode widthAlignMode)
+    {
+        string sM = nameof(GetNewWidthAlign);
+        if (matrixSrc == null)
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixSrc)} is null");
+        return GetNewWidthAlign(matrixSrc.GetLength(1), widthAlignMode);
+    }
 
     /// <summary>
     /// 
@@ -108,34 +114,41 @@ public static class MatrixTools
     /// row in the output array is aligned.</param>
     /// <returns>A two-dimensional byte array where each element contains the palette index corresponding to the color value
     /// in the source matrix. Returns null if the input data or palette is null, or if an error occurs.</returns>
-    public static byte[,] CreateIndexedMatrix(int[,] rgbMatrix, List<int>? paletteList, WidthAlignMode widthAlignMode)
+    public static byte[,] CreateIndexedMatrix(int[,] rgbMatrix, List<int> paletteList, WidthAlignMode widthAlignMode)
     {
-        string sMethod = nameof(CreateIndexedMatrix);
+        string sM = nameof(CreateIndexedMatrix);
 
         if (rgbMatrix == null)
-            throw new ArgumentNullException(nameof(rgbMatrix));
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(rgbMatrix)} is null");
 
         if (paletteList == null)
         {
-            LogMan.Warning(sClass, sMethod, "Performace issue, no palette provided, rebuild from matrix");
+            LogMan.Warning(sC, sM, "Performace issue, no palette provided, rebuild from matrix");
             var palette = new Palette().Create(rgbMatrix);
             return CreateIndexedMatrix(rgbMatrix, palette.ToList(), widthAlignMode);
         }
 
-        int invalidColorIndex = paletteList.Count < 255 ? 255 : 0;
 
         int R = rgbMatrix.GetLength(0);
         int C = rgbMatrix.GetLength(1);
         int CO = GetNewWidthAlign(C, widthAlignMode);
 
+        Dictionary<int, byte> converter = new Dictionary<int, byte>();
+        for (int i = 0; i < Math.Min(paletteList.Count, 256); i++)
+        {
+            converter[paletteList[i]]= (byte)i;
+        }
+        byte invalidColorIndex = (byte)(paletteList.Count < 255 ? 255 : 0);
         var oRet = new byte[R, CO];
         for (int y = 0; y < R; y++)
         {
             for (int x = 0; x < C; x++)
             {
                 var col = rgbMatrix[y, x];
-                var idx = paletteList.IndexOf(col);
-                oRet[y, x] = (byte)(idx >= 0 && idx < 256 ? idx : invalidColorIndex);
+                if( converter.TryGetValue(col, out var paletteIndex))
+                    oRet[y, x] = paletteIndex;
+                else
+                    oRet[y, x] = invalidColorIndex;
             }
             //for (int x = C; x < CO; x++)
             //{
@@ -154,7 +167,7 @@ public static class MatrixTools
     /// <param name="ePixelWidthAlign">Specifies how the width of each image row is aligned in the resulting indexed data.</param>
     /// <returns>A two-dimensional byte array containing the indexed image data, where each value corresponds to a palette
     /// index.</returns>
-    public static byte[,]? CreateIndexedMatrix(int[,] rgbMatrix, Palette palette, WidthAlignMode ePixelWidthAlign)
+    public static byte[,] CreateIndexedMatrix(int[,] rgbMatrix, Palette palette, WidthAlignMode ePixelWidthAlign)
         => CreateIndexedMatrix(rgbMatrix, palette?.ToList(), ePixelWidthAlign);
 
     /// <summary>
@@ -163,7 +176,7 @@ public static class MatrixTools
     /// <param name="rgbMatrix">A two-dimensional array of integers representing color values to be indexed.</param>
     /// <param name="palette">The palette used to map color values to palette indices. Cannot be null.</param>
     /// <returns>A two-dimensional byte array where each element is the index of the corresponding color in the palette.</returns>
-    public static byte[,]? CreateIndexedMatrix(int[,] rgbMatrix, Palette palette)
+    public static byte[,] CreateIndexedMatrix(int[,] rgbMatrix, Palette palette)
         => CreateIndexedMatrix(rgbMatrix, palette?.ToList(), WidthAlignMode.Multiple001);
 
 
@@ -173,7 +186,7 @@ public static class MatrixTools
     /// <remarks>If the specified crop area extends beyond the bounds of the source matrix, the method returns
     /// null. The returned array has the specified height and width, with elements copied from the corresponding region
     /// of the source matrix.</remarks>
-    /// <param name="matrix">The source two-dimensional array from which to crop a submatrix. Cannot be null.</param>
+    /// <param name="matrixSrc">The source two-dimensional array from which to crop a submatrix. Cannot be null.</param>
     /// <param name="xs">The zero-based column index of the upper-left corner of the crop area within the source matrix. Must be within
     /// the bounds of the matrix.</param>
     /// <param name="ys">The zero-based row index of the upper-left corner of the crop area within the source matrix. Must be within the
@@ -184,38 +197,26 @@ public static class MatrixTools
     /// the bounds of the source matrix.</param>
     /// <returns>A new two-dimensional array containing the cropped submatrix, or null if the source matrix is null or the
     /// specified crop area is out of bounds.</returns>
-    static public int[,]? Crop(int[,] matrix, int xs, int ys,  int width, int height)
+    static public int[,] Crop(int[,] matrixSrc, int xs, int ys,  int width, int height)
     {
-        string sMethod = nameof(Crop);
-        try
+        string sM = nameof(Crop);
+        if (matrixSrc == null)
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixSrc)} is null");
+
+        int R = matrixSrc.GetLength(0);
+        int C = matrixSrc.GetLength(1);
+        if (ys < 0 || ys >= R || xs < 0 || xs >= C || width <= 0 || height <= 0 || ys + height > R || xs + width > C)
+            throw new ArgumentOutOfRangeException($"{sC}.{sM} : Crop rectangle out of bounds");
+
+        var oRet = new int[height, width];
+        for (int y = 0; y < height; y++)
         {
-            if (matrix == null)
+            for (int x = 0; x < width; x++)
             {
-                LogMan.Error(sClass, sMethod, "Source data matrix is null");
-                return null;
+                oRet[y, x] = matrixSrc[ys + y, xs + x];
             }
-            int R = matrix.GetLength(0);
-            int C = matrix.GetLength(1);
-            if (ys < 0 || ys >= R || xs < 0 || xs >= C || width <= 0 || height <= 0 || ys + height > R || xs + width > C)
-            {
-                LogMan.Error(sClass, sMethod, "Crop parameters are out of bounds");
-                return null;
-            }
-            var oRet = new int[height, width];
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    oRet[y, x] = matrix[ys + y, xs + x];
-                }
-            }
-            return oRet;
         }
-        catch (Exception ex)
-        {
-            LogMan.Exception(sClass, sMethod, ex);
-            return null;
-        }
+        return oRet;
     }
 
     /// <summary>
@@ -223,71 +224,54 @@ public static class MatrixTools
     /// </summary>
     /// <remarks>If the array is null or an exception occurs during the operation, the method returns false
     /// and does not modify the array.</remarks>
-    /// <param name="matrix">The two-dimensional array of integers to clear. Cannot be null.</param>
+    /// <param name="matrixDst">The two-dimensional array of integers to clear. Cannot be null.</param>
     /// <returns>true if the array was successfully cleared; otherwise, false.</returns>
-    static public bool Clear(int[,] matrix)
+    static public bool Clear(int[,] matrixDst)
     {
-        string sMethod = nameof(Clear);
-        try
-        {
-            if (matrix == null)
-            {
-                LogMan.Error(sClass, sMethod, "Source data matrix is null");
-                return false;
-            }
-            Array.Clear(matrix, 0, matrix.Length);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            LogMan.Exception(sClass, sMethod, ex);
-            return false;
-        }
+        string sM = nameof(Clear);
+        if (matrixDst == null)
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixDst)} is null"); 
+        Array.Clear(matrixDst, 0, matrixDst.Length);
+        return true;
     }
 
-    static Rectangle<int>GetRectangle(int[,] matrix)
-        => new(0, 0, matrix?.GetLength(1)??0, matrix?.GetLength(0)??0);
+    static Rectangle<int> GetRectangle(int[,] matrixSrc)
+    {
+        string sM = nameof (GetRectangle);
+        if (matrixSrc == null)
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixSrc)} is null");
+        return new(0, 0, matrixSrc.GetLength(1), matrixSrc.GetLength(0));
+    }
 
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="matrix"></param>
+    /// <param name="matrixDst"></param>
     /// <param name="xs"></param>
     /// <param name="ys"></param>
     /// <param name="width"></param>
     /// <param name="height"></param>
     /// <param name="fillRGB"></param>
     /// <returns></returns>
-    static public bool Clear(int[,] matrix, int xs, int ys, int width, int height, int fillRGB = 0)
+    static public bool Clear(int[,] matrixDst, int xs, int ys, int width, int height, int fillRGB = 0)
     {
-        string sMethod = nameof(Clear);
-        try
+        string sM = nameof(Clear);
+        if (matrixDst == null)
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixDst)} is null");
+        Rectangle<int> rectClipped = Rectangle<int>.Intersect(new(xs, ys, width, height), GetRectangle(matrixDst));
+        if (rectClipped.IsEmpty)
         {
-            if (matrix == null)
-            {
-                LogMan.Error(sClass, sMethod, "Source data matrix is null");
-                return false;
-            }
-            Rectangle<int> rectClipped = Rectangle<int>.Intersect(new(xs, ys, width, height), GetRectangle(matrix));
-            if (rectClipped.IsEmpty)
-            {
-                LogMan.Error(sClass, sMethod, "Clear rectangle is out of bounds");
-                return false;
-            }
-            for (int r = 0; r < rectClipped.Height; r++)
-            {
-                for (int c = 0; c < rectClipped.Width; c++)
-                {
-                    matrix[rectClipped.X + r, rectClipped.Y + c] = fillRGB;
-                }
-            }
-            return true;
-        }
-        catch (Exception ex)
-        {
-            LogMan.Exception(sClass, sMethod, ex);
+            LogMan.Warning(sC, sM, "Clear rectangle is out of bounds");
             return false;
         }
+        for (int r = 0; r < rectClipped.Height; r++)
+        {
+            for (int c = 0; c < rectClipped.Width; c++)
+            {
+                matrixDst[rectClipped.X + r, rectClipped.Y + c] = fillRGB;
+            }
+        }
+        return true;
     }
 
     /// <summary>
@@ -305,46 +289,39 @@ public static class MatrixTools
     /// <param name="columnLenght">The width, in elements, of the region to copy.</param>
     /// <param name="rowLenght">The height, in elements, of the region to copy.</param>
     /// <returns>true if the region was successfully copied; otherwise, false.</returns>
-    static public bool Blit(int[,] matrixSrc, int[,] matrixDst, int xSrc, int ySrc, int xDst, int yDst,  int width, int height)
+    static public bool Blit(int[,] matrixSrc, int[,] matrixDst, int xSrc, int ySrc, int xDst, int yDst, int width, int height)
     {
-        string sMethod = nameof(Crop);
-        try
+        string sM = nameof(Blit);
+        if (matrixSrc == null)
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixSrc)} is null");
+        if (matrixDst == null)
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixDst)} is null");
+
+        Rectangle<int> rectSrc = Rectangle<int>.Intersect(new(xSrc, ySrc, width, height), GetRectangle(matrixSrc));
+        Rectangle<int> rectDst = Rectangle<int>.Intersect(new(xDst, yDst, width, height), GetRectangle(matrixDst));
+        if (rectSrc.IsEmpty)
         {
-            if (matrixSrc == null || matrixDst == null)
-            {
-                LogMan.Error(sClass, sMethod, "Source data matrix is null");
-                return false;
-            }
-            Rectangle<int> rectSrc = Rectangle<int>.Intersect(new(xSrc, ySrc, width,height),GetRectangle(matrixSrc));
-            Rectangle<int> rectDst = Rectangle<int>.Intersect(new(xDst, yDst, width, height),GetRectangle(matrixDst));
-            if ( rectSrc.IsEmpty)
-            {
-                LogMan.Warning(sClass, sMethod, "Source blit rectangle is out of bounds");
-                return false;
-            }
-            if (rectDst.IsEmpty)
-            {
-                LogMan.Warning(sClass, sMethod, "Destination blit rectangle is out of bounds");
-                return false;
-            }
-            int minHeight = Math.Min(rectSrc.Height, rectDst.Height);
-            int minWidth = Math.Min(rectSrc.Width, rectDst.Width);
-            //var rectSrcClip = new MatrixRectangle<int>(rectSrc.Row, rectSrc.Column, minHeight, minWidth);
-            for (int y = 0; y <minHeight; y++)
-            {
-                for (int x = 0; x < minWidth; x++)
-                {
-                    matrixDst[rectDst.Y + y, rectDst.X + x] = matrixSrc[rectSrc.Y + y, rectSrc.X + x];
-                }
-            }
-            return true;
-        }
-        catch (Exception ex)
-        {
-            LogMan.Exception(sClass, sMethod, ex);
+            LogMan.Warning(sC, sM, "Source blit rectangle is out of bounds");
             return false;
         }
+        if (rectDst.IsEmpty)
+        {
+            LogMan.Warning(sC, sM, "Destination blit rectangle is out of bounds");
+            return false;
+        }
+        int minHeight = Math.Min(rectSrc.Height, rectDst.Height);
+        int minWidth = Math.Min(rectSrc.Width, rectDst.Width);
+        //var rectSrcClip = new MatrixRectangle<int>(rectSrc.Row, rectSrc.Column, minHeight, minWidth);
+        for (int y = 0; y < minHeight; y++)
+        {
+            for (int x = 0; x < minWidth; x++)
+            {
+                matrixDst[rectDst.Y + y, rectDst.X + x] = matrixSrc[rectSrc.Y + y, rectSrc.X + x];
+            }
+        }
+        return true;
     }
+
     #endregion
 
     /// <summary>
@@ -356,59 +333,73 @@ public static class MatrixTools
     /// <param name="rowDest"></param>
     /// <param name="columnDest"></param>
     /// <returns></returns>
-    static public bool Blit(int[,] matrixSrc, int[,] matrixDst, Rectangle<int> rectangleSource, int xDst, int yDst)
+    static public void Blit(int[,] matrixSrc, int[,] matrixDst, Rectangle<int> rectangleSource, int xDst, int yDst)
        => Blit(matrixSrc, matrixDst, rectangleSource.X, rectangleSource.Y, xDst, yDst, rectangleSource.Width,rectangleSource.Height);
 
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="matrix"></param>
+    /// <param name="matrixSrc"></param>
     /// <returns></returns>
-    static public int[,] HalveColumnResolution(int[,]? matrix)
+    static public int[,] HalveColumnResolution(int[,]? matrixSrc)
     {
-        if (matrix == null)
-            return null;
-        var R = matrix.GetLength(0);
-        var C = matrix.GetLength(1);
+        string sM = nameof(HalveColumnResolution);
+        if (matrixSrc == null)
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixSrc)} is null");
+        var R = matrixSrc.GetLength(0);
+        var C = matrixSrc.GetLength(1);
         var CO = (C + 1) / 2;
         var oRet = new int[R, CO];
-        Parallel.For(0, R, r =>
+        //Parallel.For(0, R, r =>
+        for (int r = 0; r < R; r++)
         {
             for (int c = 0, co = 0; c < C; c += 2, co++)
             {
                 if (c < C - 1)
                 {
-                    var a = matrix[r, c];
-                    var b = matrix[r, c + 1];
-                    oRet[r, co] = ColorIntExt.GetColorMean(a, a);
+                    var a = matrixSrc[r, c];
+                    var b = matrixSrc[r, c + 1];
+                    var mean = ColorIntExt.GetColorMean(a, b);
+                    if (ColorIntExt.Distance(a, mean, ColorDistanceEvaluationMode.RGB) <= ColorIntExt.Distance(b, mean, ColorDistanceEvaluationMode.RGB))
+                    {
+                        oRet[r, co] = a;
+                    }
+                    else
+                    {
+                        oRet[r, co] = b;
+                    }
                 }
             }
-        });
+        }//);
         return oRet;
     }
 
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="matrix"></param>
+    /// <param name="matrixSrc"></param>
     /// <returns></returns>
-    public static int[,] DoubleColumnResolution(int[,]? matrix)
+    public static int[,] DoubleColumnResolution(int[,] matrixSrc)
     {
-        if (matrix == null)
-            return null;
-        var R = matrix.GetLength(0);
-        var C = matrix.GetLength(1);
+        string sM = nameof(DoubleColumnResolution);
+
+        if (matrixSrc == null)
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixSrc)} is null");
+
+        var R = matrixSrc.GetLength(0);
+        var C = matrixSrc.GetLength(1);
         var oRet = new int[R, C * 2];
 
-        Parallel.For(0, R, r =>
+        //Parallel.For(0, R, r =>
+        for( int r = 0; r < R; r++ )
         {
             for (int c = 0, co = 0; c < C; c++)
             {
-                var a = matrix[r, c];
+                var a = matrixSrc[r, c];
                 oRet[r, co++] = a;
                 oRet[r, co++] = a;
             }
-        });
+        }//);
         return oRet;
     }
 

@@ -16,7 +16,7 @@ namespace ColourClashNet.Color.Dithering
             Description = "Atkinson quantization error diffusion";
         }
 
-        public override bool Create()
+        public override DitherInterface Create()
         {
             matErrorDiffusion = new double[,] {
                     { 0, 0, 0, 1, 1 },
@@ -24,7 +24,7 @@ namespace ColourClashNet.Color.Dithering
                     { 0, 0, 1, 0, 0 },
                     };
             Normalize(8);
-            return true;
+            return this;
         }
     }
 }

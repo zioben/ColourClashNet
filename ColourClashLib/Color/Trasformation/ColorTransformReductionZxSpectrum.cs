@@ -192,7 +192,7 @@ namespace ColourClashNet.Color.Transformation
                .SetProperty(ColorTransformProperties.PriorityPalette, zxPalette)
                .SetProperty(ColorTransformProperties.DitheringType, DitheringType)
                .SetProperty(ColorTransformProperties.DitheringStrength, DitheringStrength)
-               .Create(SourceData);
+               .Create(ImageSource);
             var zxBaseResult = zxBaseTransform.ProcessColors(token);
             var zxBaseImage = zxBaseResult.DataOut;
             return zxBaseImage;
@@ -208,7 +208,7 @@ namespace ColourClashNet.Color.Transformation
                .SetProperty(ColorTransformProperties.PriorityPalette, transformationMap.GetInputPalette())
                .SetProperty(ColorTransformProperties.DitheringType, DitheringType)
                .SetProperty(ColorTransformProperties.DitheringStrength, DitheringStrength)
-               .Create(SourceData);
+               .Create(ImageSource);
             var zxBaseResult = zxBaseTransform.ProcessColors(token);
             var zxBaseImage = zxBaseResult.DataOut;
 
@@ -268,7 +268,7 @@ namespace ColourClashNet.Color.Transformation
             // Await task completed
             var lTaskListValid = lTaskList.Where(X => X != null).ToList();
             Task.WaitAll(lTaskListValid.ToArray());
-            procResults.Create(lTaskList[0]?.Result, lTaskList[1]?.Result, SourceData, ColorDistanceEvaluationMode, token);
+            procResults.Create(lTaskList[0]?.Result, lTaskList[1]?.Result, ImageSource, ColorDistanceEvaluationMode, token);
             return procResults;
         }
 
@@ -282,17 +282,17 @@ namespace ColourClashNet.Color.Transformation
             BypassDithering = true;
 
             var bestZxImage = CreateBestZxImage(token);
-            bestZxImage = SourceData;
+            bestZxImage = ImageSource;
             if (PaletteMode == ZxPaletteMode.ImageZxReference)
             {
-                return ColorTransformResult.CreateValidResult(SourceData, bestZxImage);
+                return ColorTransformResult.CreateValidResult(ImageSource, bestZxImage);
             }
 
             if (AutotuneMode == ZxAutotuneMode.None)
             {
                 var processingResult = ExecuteTransformZx(bestZxImage, ZxLowColorInSeed, ZxHighColorInSeed, token);
                 TransformationError = processingResult.MergeError;
-                return ColorTransformResult.CreateValidResult(SourceData, processingResult.MergeImage);// oTuple.Item1);
+                return ColorTransformResult.CreateValidResult(ImageSource, processingResult.MergeImage);// oTuple.Item1);
             }
             else
             {
@@ -325,7 +325,7 @@ namespace ColourClashNet.Color.Transformation
                                 {
                                     ColorTransformInterface = this,
                                     CompletedPercent = ((cycle * step * step) / ((256.0 - ZxLowColorInSeed) * (256.0 - ZxLowColorInSeed))) * 100.0,
-                                    ProcessingResults = ColorTransformResult.CreateValidResult(SourceData, processingResult?.MergeImage, $"step {cycle} : Range [{iL} - {iH}] : Error = {processingResult?.MergeError}"),
+                                    ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, processingResult?.MergeImage, $"step {cycle} : Range [{iL} - {iH}] : Error = {processingResult?.MergeError}"),
                                 });
                             }
                         }
@@ -347,7 +347,7 @@ namespace ColourClashNet.Color.Transformation
 
                 if (bestResult?.MergeImage != null)
                 {
-                    return ColorTransformResult.CreateValidResult(SourceData, bestResult?.MergeImage);// oFinalData);
+                    return ColorTransformResult.CreateValidResult(ImageSource, bestResult?.MergeImage);// oFinalData);
                 }
                 else
                 {

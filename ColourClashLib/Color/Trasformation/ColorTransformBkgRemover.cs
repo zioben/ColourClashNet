@@ -64,7 +64,7 @@ namespace ColourClashNet.Color.Transformation
 
                 TransformationMap.Reset();
                 var oBkgList = BackgroundPalette.ToList();
-                var oPalList = SourceData.ColorPalette.ToList();
+                var oPalList = ImageSource.ColorPalette.ToList();
                 foreach (var rgb in oPalList)
                 {
                     TransformationMap.Add(rgb, rgb);

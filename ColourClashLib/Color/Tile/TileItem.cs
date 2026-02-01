@@ -4,6 +4,7 @@ using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
@@ -44,10 +45,10 @@ public partial class TileItem
     public int OriginY { get; private set; } = 0;
 
 
-    /// <summary>
-    /// Gets a value indicating whether the current image source is valid.
-    /// </summary>
-    public bool IsValid => TileImage?.IsValid ?? false;
+    ///// <summary>
+    ///// Gets a value indicating whether the current image source is valid.
+    ///// </summary>
+    //bool IsValid => TileImage?.IsValid ?? false;
 
     /// <summary>
     /// Resets the origin coordinates and image source to their default values.
@@ -78,12 +79,9 @@ public partial class TileItem
     {
         string sM = nameof(Create);
 
-        if (sourceImage == null) 
-            throw new ArgumentNullException(nameof(sourceImage));
-        if(!sourceImage.IsValid)
-            throw new InvalidDataException(nameof(sourceImage));
+        ImageData.AssertValid(sourceImage);
         if (tileWidth <= 0 || tileHeight <= 0)
-            throw new InvalidDataException($"{nameof(sourceImage)} : {tileWidth}x{tileHeight}");
+            throw new InvalidConstraintException($"{sC}.{sM} : tile size {tileWidth}x{tileHeight} invalid");
 
         lock (locker)
         {

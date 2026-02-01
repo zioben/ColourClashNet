@@ -156,21 +156,22 @@ namespace ColourClashNet.Color.Transformation
         ImageData? PreProcess(bool bHalveRes, CancellationToken token=default)
         {
             string sM= nameof(PreProcess);
-            var refImage = bHalveRes ? ImageTools.HalveXResolution(SourceData) : SourceData;
+            var refImage = bHalveRes ? ImageTools.HalveXResolution(ImageSource) : ImageSource;
             // Reduce all to the base 16 C64 colors without restrictions
             var procImage = TransformationMap.Transform(refImage, token);
             var dithImage = procImage;
             if (DitheringType !=  ColorDithering.None )
             {
-                var oDither = Dithering.DitherBase.CreateDitherInterface(DitheringType,DitheringStrength);             
-                dithImage = oDither.Dither(refImage, procImage, ColorDistanceEvaluationMode, token);
+                var dithering = Dithering.DitherBase.CreateDitherInterface(DitheringType,DitheringStrength);             
+                var dithRes = dithering.Dither(refImage, procImage, ColorDistanceEvaluationMode, token);
+                dithImage = dithRes.DataOut;
             }
             // Raise pre processing event
             RaiseProcessPartialEvent(new ColorProcessingEventArgs()
             {
                 ColorTransformInterface = this,
                 CompletedPercent = 0,
-                ProcessingResults = ColorTransformResult.CreateValidResult(SourceData, dithImage, "Dithered Base")
+                ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, dithImage, "Dithered Base")
             });
             return dithImage;
         }
@@ -298,7 +299,7 @@ namespace ColourClashNet.Color.Transformation
             }
             if (oPreprocessedData != null)
             {
-                return ColorTransformResult.CreateValidResult(SourceData, oPreprocessedData);
+                return ColorTransformResult.CreateValidResult(ImageSource, oPreprocessedData);
             }
             else
             {

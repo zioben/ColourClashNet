@@ -26,17 +26,21 @@ public static partial class ImageTools
     /// <param name="ePixelWidthAlign">The pixel width alignment mode to apply when generating the indexed data.</param>
     /// <returns>A two-dimensional byte array containing the indexed pixel data of the image, aligned according to the
     /// specified mode.</returns>
-    static public byte[,]? CreateIndexedMatrix(ImageData oImage, WidthAlignMode ePixelWidthAlign)
-        => MatrixTools.CreateIndexedMatrix(oImage?.matrix, oImage?.ColorPalette, ePixelWidthAlign);
-
+    static public byte[,] CreateIndexedMatrix(ImageData oImage, WidthAlignMode ePixelWidthAlign)
+    {
+        ImageData.AssertValid(oImage);
+        return MatrixTools.CreateIndexedMatrix(oImage.matrix, oImage.ColorPalette, ePixelWidthAlign);
+    }
     /// <summary>
     /// Creates a two-dimensional byte array representing the indexed pixel data of the specified image.
     /// </summary>
     /// <param name="oImage">The image data containing the pixel buffer and palette to convert to indexed format. Cannot be null.</param>
     /// <returns>A two-dimensional byte array containing the indexed pixel data of the image.</returns>
-    static public byte[,]? CreateIndexedMatrix(ImageData oImage)
-        => MatrixTools.CreateIndexedMatrix(oImage?.matrix, oImage?.ColorPalette);
-
+    static public byte[,] CreateIndexedMatrix(ImageData oImage)
+    {
+        ImageData.AssertValid(oImage);
+        return MatrixTools.CreateIndexedMatrix(oImage.matrix, oImage.ColorPalette);
+    }
 
     /// <summary>
     /// 
@@ -46,9 +50,7 @@ public static partial class ImageTools
     /// <exception cref="ArgumentNullException"></exception>
     public static ImageData DoubleXResolution(ImageData oImage)
     {
-        string sM = nameof(DoubleXResolution);  
-        if (oImage == null)
-            throw new ArgumentNullException($"{sC}.{sM} : {nameof(oImage)} ");
+        ImageData.AssertValid(oImage);
         var matrix = MatrixTools.DoubleColumnResolution(oImage.matrix);
         return new ImageData().Create(matrix);
     }
@@ -60,9 +62,7 @@ public static partial class ImageTools
     /// <returns></returns>
     public static ImageData HalveXResolution(ImageData oImage)
     {
-        string sM = nameof(DoubleXResolution);
-        if (oImage == null)
-            throw new ArgumentNullException($"{sC}.{sM} : {nameof(oImage)} ");
+        ImageData.AssertValid(oImage);
         var matrix = MatrixTools.HalveColumnResolution(oImage.matrix);
         return new ImageData().Create(matrix);
     }

@@ -17,21 +17,21 @@ public partial class TileProcessing
 
     object locker = new object();
 
-    public bool IsValid
-    {
-        get
-        {
-            if (!tileItem?.IsValid ?? true)
-            {
-                return false;
-            }
-            if(transformation == null)
-            {
-                return false;
-            }
-            return true;
-        }
-    } 
+    //public bool IsValid
+    //{
+    //    get
+    //    {
+    //        if (!tileItem?.IsValid ?? true)
+    //        {
+    //            return false;
+    //        }
+    //        if(transformation == null)
+    //        {
+    //            return false;
+    //        }
+    //        return true;
+    //    }
+    //} 
 
     protected TileItem? tileItem =  null;
 
@@ -49,7 +49,7 @@ public partial class TileProcessing
 
 
     public ImageData? TileSourceImage => tileItem?.TileImage;
-    public ImageData? TileProcessedImage => transformation?.OutputData;
+    public ImageData? TileProcessedImage => transformation?.ImageOutput;
     public ColorDistanceEvaluationMode ColorDistanceEvaluationMode => transformation?.ColorDistanceEvaluationMode ?? ColorDistanceEvaluationMode.RGB;
 
     public void Reset()
@@ -80,8 +80,7 @@ public partial class TileProcessing
         string sM = nameof(ProcessTile);
         lock (locker)
         {
-            if (!IsValid)
-                throw new InvalidOperationException(sM);
+            AssertValid(this);
             var result = transformation.Create(tileItem.TileImage).ProcessColors(token) ?? ColorTransformResult.CreateErrorResult("Invalid processing");
             if (!result.IsSuccess)
             {
@@ -102,17 +101,11 @@ public partial class TileProcessing
         lock (locker)
         {
             if (mergeMatrix == null)
-            {
-                LogMan.Error(sC, sM, "Merge matrix null");
-                return false;
-            }
-            if (!transformation?.OutputData?.IsValid ?? true)
-            {
-                LogMan.Error(sC, sM, "No tile processed image");
-                return false;
-            }
-            return MatrixTools.Blit(transformation.OutputData.matrix, mergeMatrix, 0, 0, tileItem.OriginX, tileItem.OriginY, tileItem.TileW, tileItem.TileH);
-            //return MatrixTools.Blit(tileItem.TileImage.matrix, mergeMatrix, 0, 0, tileItem.OriginX, tileItem.OriginY, tileItem.TileW, tileItem.TileH);
+                throw new ArgumentNullException($"{sC}.{sM} : {nameof(mergeMatrix)} is null");
+            ColorTransformBase.AssertValid(transformation);
+            ImageData.AssertValid(transformation.ImageOutput);
+
+            return MatrixTools.Blit(transformation.ImageOutput.matrix, mergeMatrix, 0, 0, tileItem.OriginX, tileItem.OriginY, tileItem.TileW, tileItem.TileH);
         }
     }
 
@@ -121,16 +114,9 @@ public partial class TileProcessing
         string sM = nameof(RecalculateTransformationError);
         lock (locker)
         {
-            if (!tileItem?.IsValid ?? true)
-            {
-                LogMan.Error(sC, sM, "No valid tile item");
-                transformationError = double.NaN;
-            }
-            if (!transformation?.OutputData?.IsValid ?? true)
-            {
-                LogMan.Error(sC, sM, "No valid transformed image");
-                transformationError = double.NaN;
-            }
+            AssertValid(this);
+            ColorTransformBase.AssertValid(transformation);
+            ImageData.AssertValid(transformation.ImageOutput);
             var refTile = rferenceImage.Extract( tileItem.OriginX, tileItem.OriginY, tileItem.TileW, tileItem.TileH);
             transformationError = ColorIntExt.EvaluateError(refTile, TileProcessedImage, colorDistanceEvaluationMode, token);
             return transformationError/NormalizationError;
@@ -144,6 +130,5 @@ public partial class TileProcessing
     {
         return $"R={OriginRow}:C={OriginColoumn}:H={TileH}:W={TileW} : TE={TransformationError}";
     }
-
 }
 

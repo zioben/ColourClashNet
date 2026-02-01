@@ -76,7 +76,7 @@ namespace ColourClashNet.Color.Transformation
         {
             string sMethod = nameof(CreateTransformationMap);
             // Sort by most used colors
-            var oTempHistogram = new Histogram().Create(SourceData).SortColorsDescending();
+            var oTempHistogram = new Histogram().Create(ImageSource).SortColorsDescending();
             // Creating a temporary palette with fixed colors and histogram colors
             var oTempPalette = Palette.MergePalette(PriorityPalette, oTempHistogram.ToPalette());
             // If we have less colors than wanted, just map them directly
@@ -145,13 +145,13 @@ namespace ColourClashNet.Color.Transformation
                 var oArgs = new ColorProcessingEventArgs()
                     {
                         ColorTransformInterface = this,
-                        ProcessingResults = ColorTransformResult.CreateValidResult(SourceData, null, $"Loop {train}/{TrainingLoop}"),
+                        ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, null, $"Loop {train}/{TrainingLoop}"),
                         CompletedPercent = 100 * (train + 1) / TrainingLoop
                     };
                 if (!FastPreview)
                 {
                     var map = CreateTransformationMap(oTempHistogram, lTupleColorCluster);
-                    oArgs.ProcessingResults.DataOut = map.Transform(SourceData, token); 
+                    oArgs.ProcessingResults.DataOut = map.Transform(ImageSource, token); 
                 }
                 RaiseProcessPartialEvent(oArgs);
             }
@@ -166,10 +166,10 @@ namespace ColourClashNet.Color.Transformation
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             
-                var ret = TransformationMap.Transform(SourceData, token);
+                var ret = TransformationMap.Transform(ImageSource, token);
                 if (ret != null)
                 {
-                    return ColorTransformResult.CreateValidResult(SourceData, ret);
+                    return ColorTransformResult.CreateValidResult(ImageSource, ret);
                 }
                 return new();
         }

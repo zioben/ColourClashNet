@@ -38,7 +38,7 @@ namespace ColourClashNet.Color.Transformation
         {
             //OutputPalette = new Palette();
             TransformationMap.Reset();
-            var SourceHistogram = new Histogram().Create(SourceData);
+            var SourceHistogram = new Histogram().Create(ImageSource);
             var oTempHist = SourceHistogram.SortColorsDescending();
             var oTempPalette = Palette.MergePalette(PriorityPalette, oTempHist.ToPalette());
             if (oTempPalette.Count <= ColorsMaxWanted)
@@ -70,8 +70,8 @@ namespace ColourClashNet.Color.Transformation
 
         protected override ColorTransformResult ExecuteTransform(CancellationToken oToken)
         {
-            var oRetData = TransformationMap.Transform(SourceData, oToken);
-            return ColorTransformResult.CreateValidResult(SourceData, oRetData);
+            var oRetData = TransformationMap.Transform(ImageSource, oToken);
+            return ColorTransformResult.CreateValidResult(ImageSource, oRetData);
         }
     }
 }

@@ -11,7 +11,12 @@ namespace ColourClashNet.Color.Tile;
 
 public partial class TileProcessing
 {
-
+    public static void AssertValid(TileProcessing tileProc)
+    {
+        if (tileProc == null)
+            throw new ArgumentNullException($"{nameof(tileProc) is null}");
+        TileItem.AssertValid(tileProc.tileItem);
+    }
   
     /// <summary>
     /// Copy the best tile (lower color error) on destination data

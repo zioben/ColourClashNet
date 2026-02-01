@@ -56,33 +56,27 @@ public abstract class DitherErrorDiffusion : DitherBase
         Normalize(dN);
     }
 
+    public override DitherInterface Create() => this;
 
-    public override ImageData Dither(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
+    public override ColorTransformResult Dither(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
     {
 
         string sM = nameof(Dither);
         try
         {
-            if( imageReference == null )
-                throw new ArgumentNullException(nameof(imageReference));
-            if( imageProcessed == null )    
-                throw new ArgumentNullException(nameof(imageProcessed));
+            ImageData.AssertValid(imageReference);
+            ImageData.AssertValid(imageProcessed);
 
-            if ( !imageReference.IsValid )
-                throw new ArgumentException(nameof(imageReference));   
-            if ( !imageProcessed?.IsValid ?? true )
-                throw new ArgumentException(nameof(imageReference));
-            if (!Create())
-                throw new MethodAccessException(nameof(Create));
+            Create();
 
-            var oDataOriginal = imageReference.matrix;
-            var oDataProcessed = imageProcessed.matrix;
-            var oDataProcessedPalette = imageProcessed.ColorPalette;
+            var dataOriginal = imageReference.matrix;
+            var dataProcessed = imageProcessed.matrix;
+            var dataProcessedPalette = imageProcessed.ColorPalette;
 
             LogMan.Trace(sC, sM, $"{Type} : Dithering");
 
-            int R = oDataOriginal.GetLength(0);
-            int C = oDataOriginal.GetLength(1);
+            int R = dataOriginal.GetLength(0);
+            int C = dataOriginal.GetLength(1);
             int RR = matErrorDiffusion.GetLength(0);
             int CC = matErrorDiffusion.GetLength(1);
             int CO = CC / 2;
@@ -100,18 +94,18 @@ public abstract class DitherErrorDiffusion : DitherBase
                 token.ThrowIfCancellationRequested();
                 for (int c = 0; c < C; c++)
                 {
-                    var oDatOrig = oDataOriginal[r, c];
+                    var oDatOrig = dataOriginal[r, c];
                     oRO[r, c] = oDatOrig.ToR();
                     oGO[r, c] = oDatOrig.ToG();
                     oBO[r, c] = oDatOrig.ToB();
-                    var oDataProc = oDataProcessed[r, c];
+                    var oDataProc = dataProcessed[r, c];
                     oRP[r, c] = oDataProc.ToR();
                     oGP[r, c] = oDataProc.ToG();
                     oBP[r, c] = oDataProc.ToB();
                 }
             }//);
 
-            var oDataOut = new int[R, C];
+            var dataOut = new int[R, C];
 
             var dStrenght = DitheringStrenght;// / 100.0;
 
@@ -120,13 +114,15 @@ public abstract class DitherErrorDiffusion : DitherBase
                 token.ThrowIfCancellationRequested();
                 for (int c = 0; c < C; c++)
                 {
+                    token.ThrowIfCancellationRequested();
+
                     var OldPixelR = Math.Max(0, Math.Min(255, oRO[r, c]));
                     var OldPixelG = Math.Max(0, Math.Min(255, oGO[r, c]));
                     var OldPixelB = Math.Max(0, Math.Min(255, oBO[r, c]));
 
                     var OldPixel = ColorIntExt.FromRGB(OldPixelR, OldPixelG, OldPixelB);
-                    var NewPixel = ColorIntExt.GetNearestColor(OldPixel, oDataProcessedPalette, colorEvaluationMode);
-                    oDataOut[r, c] = NewPixel;
+                    var NewPixel = ColorIntExt.GetNearestColor(OldPixel, dataProcessedPalette, colorEvaluationMode);
+                    dataOut[r, c] = NewPixel;
 
                     var NewPixelR = NewPixel.ToR();
                     var NewPixelG = NewPixel.ToG();
@@ -162,20 +158,26 @@ public abstract class DitherErrorDiffusion : DitherBase
                 token.ThrowIfCancellationRequested();
                 for (int c = 0; c < C; c++)
                 {
-                    if (oDataProcessed[r, c] < 0)
+                    if (dataProcessed[r, c] < 0)
                     {
-                        oDataOut[r, c] = oDataProcessed[r, c];
+                        dataOut[r, c] = dataProcessed[r, c];
                     }
                 }
             }
 
             LogMan.Trace(sC, sM, $"{Type} : Dithering completed");
-            return new ImageData().Create(oDataOut);
+            var imageDithered = new ImageData().Create(dataOut);
+            return ColorTransformResult.CreateValidResult( imageReference, imageDithered );
+        }
+        catch (TaskCanceledException et)
+        {
+            LogMan.Exception(sC, sM, $"{Type}", et);
+            return ColorTransformResult.CreateErrorResult(et);
         }
         catch (OperationCanceledException ex)
         {
             LogMan.Exception(sC, sM, $"{Type}", ex);
-            return null;
+            return ColorTransformResult.CreateErrorResult(ex);
         }
     }
 }

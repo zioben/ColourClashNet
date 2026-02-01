@@ -21,7 +21,7 @@ namespace ColourClashNet.Color.Transformation
         protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken = default)
         {
             TransformationMap.Reset();
-            var rgbList = SourceData.ColorPalette.ToList();
+            var rgbList = ImageSource.ColorPalette.ToList();
 
             //Parallel.ForEach(rgbList, rgb =>
             foreach (var rgb in rgbList)    

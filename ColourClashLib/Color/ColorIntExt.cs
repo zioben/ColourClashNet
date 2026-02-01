@@ -379,15 +379,7 @@ namespace ColourClashNet.Color
 
         static public double EvaluateError(ImageData imageA, ImageData imageB, ColorDistanceEvaluationMode evalMode, CancellationToken token = default)
         {
-
-            if ((!imageA?.IsValid ?? true) || (!imageB?.IsValid ?? true))
-            {
-                return double.NaN;
-            }
-            if (imageA.Rows != imageB.Rows || imageA.Columns != imageB.Columns || imageA.Rows == 0 || imageA.Columns == 0)
-            {
-                return double.NaN;
-            }
+            ImageData.AssertValidAndDimension(imageA,imageB);
             double err = 0;
             int count = 0;
             for (int r = 0; r < imageA.Rows; r++)
@@ -400,7 +392,7 @@ namespace ColourClashNet.Color
                     var rgb2 = imageB.matrix[r, c];
                     if (rgb1.IsColor() && rgb2.IsColor())
                     {
-                        err += ColorIntExt.Distance(rgb1, rgb2, evalMode);
+                        err += ColorIntExt.EvaluateError(rgb1, rgb2, evalMode);
                         count++;
                     }
                 }

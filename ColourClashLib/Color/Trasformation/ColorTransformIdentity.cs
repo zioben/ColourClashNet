@@ -27,7 +27,7 @@ namespace ColourClashNet.Color.Transformation
               string sM = nameof(ExecuteTransform);
                 try
                 {
-                    var res = ColorTransformResult.CreateValidResult(SourceData, new ImageData().Create(SourceData));
+                    var res = ColorTransformResult.CreateValidResult(ImageSource, new ImageData().Create(ImageSource));
                     return res;
                 }
                 catch (Exception ex)

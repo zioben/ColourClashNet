@@ -17,13 +17,13 @@ namespace ColourClashNet.Color.Dithering
         }
 
 
-        public override bool Create()
+        public override DitherInterface Create()
         {
             matErrorDiffusion = new double[,] {
                     { 0, 0, 0, 3, 1 }
                     };
             Normalize();
-            return true;
+            return this;
         }
     }
 }

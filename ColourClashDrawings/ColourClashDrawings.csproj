@@ -20,6 +20,9 @@
     <Compile Update="Components\ColorManager.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Update="Controls\ColorAnalyzerOld.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="Controls\ColorAnalyzer.cs">
       <SubType>UserControl</SubType>
     </Compile>

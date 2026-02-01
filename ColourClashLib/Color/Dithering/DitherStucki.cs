@@ -17,7 +17,7 @@ namespace ColourClashNet.Color.Dithering
         }
 
 
-        public override bool Create()
+        public override DitherInterface Create()
         {
             matErrorDiffusion = new double[,] {
                     { 0, 0, 0, 5, 3 },
@@ -25,7 +25,7 @@ namespace ColourClashNet.Color.Dithering
                     { 0, 2, 3, 2, 0 },
                     };
             Normalize();
-            return true;
+            return this;
         }
     }
 }

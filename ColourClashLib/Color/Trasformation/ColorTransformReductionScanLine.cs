@@ -67,16 +67,16 @@ namespace ColourClashNet.Color.Transformation
             BypassDithering = true;
             ColorListRow.Clear();
 
-            var oRet = new int[SourceData.Rows, SourceData.Columns];
+            var oRet = new int[ImageSource.Rows, ImageSource.Columns];
             //var oCols = new int[1, C];
-            var oSourceNew = new Imaging.ImageData().Create(SourceData);
+            var oSourceNew = new Imaging.ImageData().Create(ImageSource);
 
             var oLineFixedPalette = PriorityPalette;
             // Step 1 : Reducing to target palette colors -> 128 to 16 colors 
             // MainPaletteUsed = false;
             if (CreateSharedPalette)
             {
-                var oMainHist = new Histogram().Create(SourceData);
+                var oMainHist = new Histogram().Create(ImageSource);
                 var oMainPalette = oMainHist.ToPalette();
                 if (oMainPalette.Count <= ColorsMaxWanted)
                 {
@@ -104,11 +104,11 @@ namespace ColourClashNet.Color.Transformation
                         oLineTrasf = oTrasf2;
                     }
 
-                    oLineTrasf.Create(SourceData);
+                    oLineTrasf.Create(ImageSource);
 
                     var oMainRet = oLineTrasf.ProcessColors(oToken);
                     oSourceNew = oMainRet.DataOut;
-                    var oHistNew = new Histogram().Create(SourceData);
+                    var oHistNew = new Histogram().Create(ImageSource);
                     oLineFixedPalette = oHistNew.ToPalette();
                 }
             }
@@ -119,11 +119,11 @@ namespace ColourClashNet.Color.Transformation
 
             var oRowColors = new List<int>();
             //Parallel.For(0, SourceData.Rows, r  =>
-            Parallel.For(0, SourceData.Rows, r =>
+            Parallel.For(0, ImageSource.Rows, r =>
             {
                 oToken.ThrowIfCancellationRequested();
-                var oCols = new int[1, SourceData.Columns];
-                for (int c = 0; c < SourceData.Columns; c++)
+                var oCols = new int[1, ImageSource.Columns];
+                for (int c = 0; c < ImageSource.Columns; c++)
                 {
                     oCols[0, c] = oSourceNew.matrix[r, c];
                 }
@@ -135,7 +135,7 @@ namespace ColourClashNet.Color.Transformation
                 //    Trace.WriteLine($"Row - {r}");
                 if (DitheringType == ColorDithering.None)
                 {
-                    for (int c = 0; c < SourceData.Columns; c++)
+                    for (int c = 0; c < ImageSource.Columns; c++)
                     {
                         oRet[r, c] = ColorIntExt.GetNearestColor(oCols[0, c], oNewPal, ColorDistanceEvaluationMode);
                     }
@@ -148,7 +148,7 @@ namespace ColourClashNet.Color.Transformation
                     .SetProperty(ColorTransformProperties.DitheringType, DitheringType)
                     .Create(new ImageData().Create(oCols));
                     var oColRes = oTras.ProcessColors(oToken);
-                    for (int c = 0; c < SourceData.Columns; c++)
+                    for (int c = 0; c < ImageSource.Columns; c++)
                     {
                         oRet[r, c] = oColRes.DataOut.matrix[0, c];
                     }
@@ -162,7 +162,7 @@ namespace ColourClashNet.Color.Transformation
             });
             if (oRet != null)
             {
-                return ColorTransformResult.CreateValidResult(SourceData, new ImageData().Create(oRet));
+                return ColorTransformResult.CreateValidResult(ImageSource, new ImageData().Create(oRet));
             }
             return new();
 

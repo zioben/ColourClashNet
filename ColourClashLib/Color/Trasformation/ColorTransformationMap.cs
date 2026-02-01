@@ -71,10 +71,7 @@ namespace ColourClashNet.Color
         public ImageData Transform(ImageData image, CancellationToken token=default )
         {
             string sM = nameof(Transform);
-            if ((!image?.IsValid ?? true))
-            {
-                return new();
-            }
+            ImageData.AssertValid(image);
             var oDataOut = new int[image.Rows,image.Columns];
             //Parallel.For(0, image.Height, r =>
             for( int r =0; r<image.Rows; r++)

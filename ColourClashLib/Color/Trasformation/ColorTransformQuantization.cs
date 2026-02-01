@@ -120,7 +120,7 @@ namespace ColourClashNet.Color.Transformation
             LogMan.Trace(sC, sM, $"{Type} : Creating trasformation map");
 
             TransformationMap.Reset();
-            var rgbList = SourceData.ColorPalette.ToList();
+            var rgbList = ImageSource.ColorPalette.ToList();
             foreach (var rgb in rgbList)
             {
                 int rgbQ = QuantizeColor(rgb);

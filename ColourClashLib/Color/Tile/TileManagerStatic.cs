@@ -10,6 +10,16 @@ namespace ColourClashNet.Color.Tile;
 
 public partial class TileManager
 {
+    public static void AssertValid(TileManager tileMan)
+    {
+        if (tileMan == null)
+            throw new ArgumentNullException($"{nameof(tileMan) is null}");
+        ImageData.AssertValid(tileMan.ImageSource);
+        if (tileMan.tileProcessingMatrix == null)
+            throw new ArgumentNullException($"{nameof(tileMan.tileProcessingMatrix) is null}");
+        if (tileMan.tileProcessingMatrix.Length == 0)
+            throw new ArgumentOutOfRangeException($"{nameof(tileMan.tileProcessingMatrix)} size is zero");
+    }
 
     static bool MergeToMatrix(int[,] oDataOut, List<TileManager?> lTileMan)
     {

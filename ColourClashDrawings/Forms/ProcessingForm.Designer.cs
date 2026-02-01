@@ -121,15 +121,15 @@
             // tableLayoutPanel3
             // 
             tableLayoutPanel3.ColumnCount = 2;
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37.329155F));
+            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 62.670845F));
             tableLayoutPanel3.Controls.Add(picImageTemp, 1, 0);
             tableLayoutPanel3.Controls.Add(lbHistory, 0, 0);
             tableLayoutPanel3.Dock = DockStyle.Fill;
             tableLayoutPanel3.Location = new Point(3, 3);
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 1;
-            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel3.Size = new Size(509, 239);
             tableLayoutPanel3.TabIndex = 1;
             // 
@@ -137,9 +137,9 @@
             // 
             picImageTemp.BackColor = Color.Black;
             picImageTemp.Dock = DockStyle.Fill;
-            picImageTemp.Location = new Point(257, 3);
+            picImageTemp.Location = new Point(193, 3);
             picImageTemp.Name = "picImageTemp";
-            picImageTemp.Size = new Size(249, 233);
+            picImageTemp.Size = new Size(313, 233);
             picImageTemp.SizeMode = PictureBoxSizeMode.Zoom;
             picImageTemp.TabIndex = 0;
             picImageTemp.TabStop = false;
@@ -151,7 +151,7 @@
             lbHistory.ItemHeight = 15;
             lbHistory.Location = new Point(3, 3);
             lbHistory.Name = "lbHistory";
-            lbHistory.Size = new Size(248, 233);
+            lbHistory.Size = new Size(184, 233);
             lbHistory.TabIndex = 1;
             // 
             // ProcessingForm

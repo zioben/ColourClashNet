@@ -5,6 +5,7 @@ using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Drawing.Imaging;
@@ -38,21 +39,21 @@ public partial class TileManager
     public double GlobalTransformationError { get; set; } = double.NaN;
 
     public double NormalizationError { get; private set; } = 1.0;
-    public bool IsValid
-    {
-        get
-        {
-            lock (locker)
-            {
-                return tileProcessingMatrix != null &&
-                    ImageSource.IsValid &&
-                    TileW > 0 &&
-                    TileH > 0 &&
-                    TileRows > 0 &&
-                    TileColumns > 0;
-            }
-        }
-    }
+    //public bool IsValid
+    //{
+    //    get
+    //    {
+    //        lock (locker)
+    //        {
+    //            return tileProcessingMatrix != null &&
+    //                ImageSource.IsValid &&
+    //                TileW > 0 &&
+    //                TileH > 0 &&
+    //                TileRows > 0 &&
+    //                TileColumns > 0;
+    //        }
+    //    }
+    //}
 
     public TileProcessing? GetTileProcessing(int r, int c)
     {
@@ -83,12 +84,12 @@ public partial class TileManager
     {
 
         string sM = nameof(Create);
-        if( image == null )
-            throw new ArgumentNullException(nameof(image));
-        if( !image.IsValid)
-            throw new ArgumentException(nameof(image)); 
+
+        ImageData.AssertValid(image);
+
         if (tileWidth <= 0 || tileHeight <= 0)
-            throw new ArgumentOutOfRangeException($"Tile {TileW}x{TileH}");
+            throw new InvalidConstraintException($"{sC}.{sM} : tile size {tileWidth}x{tileHeight} invalid");
+
         lock (locker)
         {
             try
@@ -140,8 +141,7 @@ public partial class TileManager
         GlobalTransformationError = double.NaN;
         try
         {
-            if (!IsValid)
-                throw new InvalidDataException(nameof(ProcessColors));
+            TileManager.AssertValid(this);
             //Parallel.For(0, TileRows, r =>
             for (int r = 0; r < TileRows; r++)
             {
@@ -172,12 +172,7 @@ public partial class TileManager
         {
             lock (locker)
             {
-                if (!IsValid)
-                {
-                    LogMan.Error(sC, sM, "invalid data");
-                    GlobalTransformationError = double.NaN;
-                    return GlobalTransformationError;
-                }
+                AssertValid(this);
                 GlobalTransformationError = 0;
                 for (int r = 0; r < TileRows; r++)
                 {
@@ -218,8 +213,8 @@ public partial class TileManager
     public ImageData CreateImageFromTiles()
     {
         string sM = nameof(CreateImageFromTiles);
-        if (!IsValid)
-            throw new InvalidDataException(nameof(IsValid));
+
+        AssertValid(this);
 
         var matrix = new int[ImageSource.Rows, ImageSource.Columns];
 

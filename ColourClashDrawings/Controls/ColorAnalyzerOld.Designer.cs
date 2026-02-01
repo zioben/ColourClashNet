@@ -1,6 +1,6 @@
 ﻿namespace ColourClashNet.Controls
 {
-    partial class ColorAnalyzer
+    partial class ColorAnalyzerOld
     {
         /// <summary> 
         /// Required designer variable.
@@ -29,6 +29,29 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ColorAnalyzer));
+            ofdSelectImage = new OpenFileDialog();
+            menuStripMain = new MenuStrip();
+            fileToolStripMenuItem = new ToolStripMenuItem();
+            newToolStripMenuItem = new ToolStripMenuItem();
+            openToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItemSave = new ToolStripMenuItem();
+            exportToolStripMenuItem = new ToolStripMenuItem();
+            newContainerToolStripMenuItem = new ToolStripMenuItem();
+            bitmapIndexedToolStripMenuItem = new ToolStripMenuItem();
+            indexedPNGToolStripMenuItem = new ToolStripMenuItem();
+            bitmapToolStripMenuItem = new ToolStripMenuItem();
+            pNGToolStripMenuItem = new ToolStripMenuItem();
+            amigaToolStripMenuItem = new ToolStripMenuItem();
+            iFFILBMToolStripMenuItem = new ToolStripMenuItem();
+            bitplaneToolStripMenuItem1 = new ToolStripMenuItem();
+            rawBitplaneAndOCSCopperlistToolStripMenuItem = new ToolStripMenuItem();
+            sourceCodeToolStripMenuItem = new ToolStripMenuItem();
+            colorModeToolStripMenuItem = new ToolStripMenuItem();
+            colorDistanceToolStripMenuItem = new ToolStripMenuItem();
+            ditheringToolStripMenuItem = new ToolStripMenuItem();
+            tsmiResolution = new ToolStripMenuItem();
+            originalToolStripMenuItem = new ToolStripMenuItem();
             splitMain = new SplitContainer();
             tableLayoutPanel1 = new TableLayoutPanel();
             splitProcessing = new SplitContainer();
@@ -78,9 +101,6 @@
             btnReduceColorsScanline = new Button();
             chkScanLineCluster = new CheckBox();
             tpMainSinclair = new TabPage();
-            cbZxPaletteMode = new ComboBox();
-            label10 = new Label();
-            chkZxDitherImageLo = new CheckBox();
             zxBtnReset = new Button();
             chkZxAutotune = new CheckBox();
             chkZxDitherHI = new CheckBox();
@@ -110,6 +130,11 @@
             oBitmapRenderSource = new ColourClashNet.Components.BitmapRender(components);
             oBitmapRenderDest = new ColourClashNet.Components.BitmapRender(components);
             oColorManager = new ColourClashNet.Components.ColorManager(components);
+            sfdExportImage = new SaveFileDialog();
+            chkZxDitherImageLo = new CheckBox();
+            cbZxPaletteMode = new ComboBox();
+            label10 = new Label();
+            menuStripMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitMain).BeginInit();
             splitMain.Panel1.SuspendLayout();
             splitMain.Panel2.SuspendLayout();
@@ -155,10 +180,169 @@
             ((System.ComponentModel.ISupportInitialize)pictureBoxProc).BeginInit();
             SuspendLayout();
             // 
+            // ofdSelectImage
+            // 
+            ofdSelectImage.Filter = "Bmp|*.bmp|Png|*.png|Jpg|*.jpg|All Files|*.*";
+            ofdSelectImage.FilterIndex = 4;
+            ofdSelectImage.Title = "Load Image";
+            // 
+            // menuStripMain
+            // 
+            menuStripMain.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, colorModeToolStripMenuItem, colorDistanceToolStripMenuItem, ditheringToolStripMenuItem, tsmiResolution });
+            menuStripMain.Location = new Point(0, 0);
+            menuStripMain.Name = "menuStripMain";
+            menuStripMain.Size = new Size(1134, 24);
+            menuStripMain.TabIndex = 0;
+            menuStripMain.Text = "menuStrip1";
+            // 
+            // fileToolStripMenuItem
+            // 
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newToolStripMenuItem, openToolStripMenuItem, toolStripMenuItemSave, exportToolStripMenuItem });
+            fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            fileToolStripMenuItem.Size = new Size(37, 20);
+            fileToolStripMenuItem.Text = "&File";
+            // 
+            // newToolStripMenuItem
+            // 
+            newToolStripMenuItem.Image = (Image)resources.GetObject("newToolStripMenuItem.Image");
+            newToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
+            newToolStripMenuItem.Name = "newToolStripMenuItem";
+            newToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.N;
+            newToolStripMenuItem.Size = new Size(180, 22);
+            newToolStripMenuItem.Text = "&New";
+            newToolStripMenuItem.Click += newToolStripMenuItem_Click;
+            // 
+            // openToolStripMenuItem
+            // 
+            openToolStripMenuItem.Image = (Image)resources.GetObject("openToolStripMenuItem.Image");
+            openToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
+            openToolStripMenuItem.Name = "openToolStripMenuItem";
+            openToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.O;
+            openToolStripMenuItem.Size = new Size(180, 22);
+            openToolStripMenuItem.Text = "&Open";
+            openToolStripMenuItem.Click += openToolStripMenuItem_Click;
+            // 
+            // toolStripMenuItemSave
+            // 
+            toolStripMenuItemSave.Image = (Image)resources.GetObject("toolStripMenuItemSave.Image");
+            toolStripMenuItemSave.ImageTransparentColor = System.Drawing.Color.Magenta;
+            toolStripMenuItemSave.Name = "toolStripMenuItemSave";
+            toolStripMenuItemSave.ShortcutKeys = Keys.Control | Keys.S;
+            toolStripMenuItemSave.Size = new Size(180, 22);
+            toolStripMenuItemSave.Text = "&Save";
+            toolStripMenuItemSave.Click += toolStripMenuItemSave_Click;
+            // 
+            // exportToolStripMenuItem
+            // 
+            exportToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newContainerToolStripMenuItem, bitmapIndexedToolStripMenuItem, indexedPNGToolStripMenuItem, bitmapToolStripMenuItem, pNGToolStripMenuItem, amigaToolStripMenuItem });
+            exportToolStripMenuItem.Name = "exportToolStripMenuItem";
+            exportToolStripMenuItem.Size = new Size(180, 22);
+            exportToolStripMenuItem.Text = "Export";
+            // 
+            // newContainerToolStripMenuItem
+            // 
+            newContainerToolStripMenuItem.Name = "newContainerToolStripMenuItem";
+            newContainerToolStripMenuItem.Size = new Size(156, 22);
+            newContainerToolStripMenuItem.Text = "New Container";
+            newContainerToolStripMenuItem.Click += newContainerToolStripMenuItem_Click;
+            // 
+            // bitmapIndexedToolStripMenuItem
+            // 
+            bitmapIndexedToolStripMenuItem.Name = "bitmapIndexedToolStripMenuItem";
+            bitmapIndexedToolStripMenuItem.Size = new Size(156, 22);
+            bitmapIndexedToolStripMenuItem.Text = "Bitmap Indexed";
+            bitmapIndexedToolStripMenuItem.Click += bitmapIndexedToolStripMenuItem_Click;
+            // 
+            // indexedPNGToolStripMenuItem
+            // 
+            indexedPNGToolStripMenuItem.Name = "indexedPNGToolStripMenuItem";
+            indexedPNGToolStripMenuItem.Size = new Size(156, 22);
+            indexedPNGToolStripMenuItem.Text = "PNG Indexed";
+            // 
+            // bitmapToolStripMenuItem
+            // 
+            bitmapToolStripMenuItem.Name = "bitmapToolStripMenuItem";
+            bitmapToolStripMenuItem.Size = new Size(156, 22);
+            bitmapToolStripMenuItem.Text = "Bitmap";
+            bitmapToolStripMenuItem.Click += bitmapToolStripMenuItem_Click;
+            // 
+            // pNGToolStripMenuItem
+            // 
+            pNGToolStripMenuItem.Name = "pNGToolStripMenuItem";
+            pNGToolStripMenuItem.Size = new Size(156, 22);
+            pNGToolStripMenuItem.Text = "PNG";
+            pNGToolStripMenuItem.Click += pNGToolStripMenuItem_Click;
+            // 
+            // amigaToolStripMenuItem
+            // 
+            amigaToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { iFFILBMToolStripMenuItem, bitplaneToolStripMenuItem1, rawBitplaneAndOCSCopperlistToolStripMenuItem, sourceCodeToolStripMenuItem });
+            amigaToolStripMenuItem.Name = "amigaToolStripMenuItem";
+            amigaToolStripMenuItem.Size = new Size(156, 22);
+            amigaToolStripMenuItem.Text = "Amiga";
+            // 
+            // iFFILBMToolStripMenuItem
+            // 
+            iFFILBMToolStripMenuItem.Name = "iFFILBMToolStripMenuItem";
+            iFFILBMToolStripMenuItem.Size = new Size(224, 22);
+            iFFILBMToolStripMenuItem.Text = "IFF-ILBM";
+            // 
+            // bitplaneToolStripMenuItem1
+            // 
+            bitplaneToolStripMenuItem1.Name = "bitplaneToolStripMenuItem1";
+            bitplaneToolStripMenuItem1.Size = new Size(224, 22);
+            bitplaneToolStripMenuItem1.Text = "Raw Bitplane";
+            bitplaneToolStripMenuItem1.Click += bitplaneToolStripMenuItem1_Click;
+            // 
+            // rawBitplaneAndOCSCopperlistToolStripMenuItem
+            // 
+            rawBitplaneAndOCSCopperlistToolStripMenuItem.Name = "rawBitplaneAndOCSCopperlistToolStripMenuItem";
+            rawBitplaneAndOCSCopperlistToolStripMenuItem.Size = new Size(224, 22);
+            rawBitplaneAndOCSCopperlistToolStripMenuItem.Text = "Raw Bitplane And Copperlist";
+            // 
+            // sourceCodeToolStripMenuItem
+            // 
+            sourceCodeToolStripMenuItem.Name = "sourceCodeToolStripMenuItem";
+            sourceCodeToolStripMenuItem.Size = new Size(224, 22);
+            sourceCodeToolStripMenuItem.Text = "SourceCode";
+            // 
+            // colorModeToolStripMenuItem
+            // 
+            colorModeToolStripMenuItem.Name = "colorModeToolStripMenuItem";
+            colorModeToolStripMenuItem.Size = new Size(87, 20);
+            colorModeToolStripMenuItem.Tag = "FullColor";
+            colorModeToolStripMenuItem.Text = "Quantization";
+            // 
+            // colorDistanceToolStripMenuItem
+            // 
+            colorDistanceToolStripMenuItem.Name = "colorDistanceToolStripMenuItem";
+            colorDistanceToolStripMenuItem.Size = new Size(93, 20);
+            colorDistanceToolStripMenuItem.Text = "ColorDistance";
+            // 
+            // ditheringToolStripMenuItem
+            // 
+            ditheringToolStripMenuItem.Name = "ditheringToolStripMenuItem";
+            ditheringToolStripMenuItem.Size = new Size(68, 20);
+            ditheringToolStripMenuItem.Text = "Dithering";
+            // 
+            // tsmiResolution
+            // 
+            tsmiResolution.DropDownItems.AddRange(new ToolStripItem[] { originalToolStripMenuItem });
+            tsmiResolution.Name = "tsmiResolution";
+            tsmiResolution.Size = new Size(75, 20);
+            tsmiResolution.Text = "Resolution";
+            // 
+            // originalToolStripMenuItem
+            // 
+            originalToolStripMenuItem.Checked = true;
+            originalToolStripMenuItem.CheckState = CheckState.Checked;
+            originalToolStripMenuItem.Name = "originalToolStripMenuItem";
+            originalToolStripMenuItem.Size = new Size(203, 22);
+            originalToolStripMenuItem.Text = "Samen as bitmap source";
+            // 
             // splitMain
             // 
             splitMain.Dock = DockStyle.Fill;
-            splitMain.Location = new Point(0, 0);
+            splitMain.Location = new Point(0, 24);
             splitMain.Name = "splitMain";
             // 
             // splitMain.Panel1
@@ -168,7 +352,7 @@
             // splitMain.Panel2
             // 
             splitMain.Panel2.Controls.Add(splitRenderLayout);
-            splitMain.Size = new Size(1134, 815);
+            splitMain.Size = new Size(1134, 791);
             splitMain.SplitterDistance = 363;
             splitMain.TabIndex = 1;
             splitMain.SplitterMoved += scMain_SplitterMoved;
@@ -185,7 +369,7 @@
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 1;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 683F));
-            tableLayoutPanel1.Size = new Size(363, 815);
+            tableLayoutPanel1.Size = new Size(363, 791);
             tableLayoutPanel1.TabIndex = 0;
             // 
             // splitProcessing
@@ -202,8 +386,8 @@
             // splitProcessing.Panel2
             // 
             splitProcessing.Panel2.Controls.Add(tlProcessing);
-            splitProcessing.Size = new Size(357, 809);
-            splitProcessing.SplitterDistance = 528;
+            splitProcessing.Size = new Size(357, 785);
+            splitProcessing.SplitterDistance = 513;
             splitProcessing.TabIndex = 10;
             // 
             // tlConfig
@@ -222,7 +406,7 @@
             tlConfig.RowStyles.Add(new RowStyle(SizeType.Absolute, 69F));
             tlConfig.RowStyles.Add(new RowStyle(SizeType.Absolute, 60F));
             tlConfig.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tlConfig.Size = new Size(357, 528);
+            tlConfig.Size = new Size(357, 513);
             tlConfig.TabIndex = 9;
             // 
             // panelSelectColors
@@ -370,7 +554,7 @@
             tabControlMain.Location = new Point(3, 188);
             tabControlMain.Name = "tabControlMain";
             tabControlMain.SelectedIndex = 0;
-            tabControlMain.Size = new Size(351, 337);
+            tabControlMain.Size = new Size(351, 322);
             tabControlMain.TabIndex = 32;
             // 
             // tpMainGeneric
@@ -389,7 +573,7 @@
             tpMainGeneric.Location = new Point(4, 24);
             tpMainGeneric.Name = "tpMainGeneric";
             tpMainGeneric.Padding = new Padding(3);
-            tpMainGeneric.Size = new Size(343, 309);
+            tpMainGeneric.Size = new Size(343, 294);
             tpMainGeneric.TabIndex = 0;
             tpMainGeneric.Text = "Base";
             tpMainGeneric.UseVisualStyleBackColor = true;
@@ -507,7 +691,7 @@
             tpMainIndexed.Location = new Point(4, 24);
             tpMainIndexed.Name = "tpMainIndexed";
             tpMainIndexed.Padding = new Padding(3);
-            tpMainIndexed.Size = new Size(343, 309);
+            tpMainIndexed.Size = new Size(343, 294);
             tpMainIndexed.TabIndex = 4;
             tpMainIndexed.Text = "Indexed";
             tpMainIndexed.UseVisualStyleBackColor = true;
@@ -529,7 +713,7 @@
             tpMainCbm.Location = new Point(4, 24);
             tpMainCbm.Name = "tpMainCbm";
             tpMainCbm.Padding = new Padding(3);
-            tpMainCbm.Size = new Size(343, 309);
+            tpMainCbm.Size = new Size(343, 294);
             tpMainCbm.TabIndex = 1;
             tpMainCbm.Text = "Cbm";
             tpMainCbm.UseVisualStyleBackColor = true;
@@ -542,7 +726,7 @@
             tabCbm.Location = new Point(3, 3);
             tabCbm.Name = "tabCbm";
             tabCbm.SelectedIndex = 0;
-            tabCbm.Size = new Size(337, 303);
+            tabCbm.Size = new Size(337, 288);
             tabCbm.TabIndex = 0;
             // 
             // tpCbm64
@@ -553,7 +737,7 @@
             tpCbm64.Location = new Point(4, 24);
             tpCbm64.Name = "tpCbm64";
             tpCbm64.Padding = new Padding(3);
-            tpCbm64.Size = new Size(329, 275);
+            tpCbm64.Size = new Size(329, 260);
             tpCbm64.TabIndex = 0;
             tpCbm64.Text = "C= 64";
             tpCbm64.UseVisualStyleBackColor = true;
@@ -719,39 +903,10 @@
             tpMainSinclair.Location = new Point(4, 24);
             tpMainSinclair.Name = "tpMainSinclair";
             tpMainSinclair.Padding = new Padding(3);
-            tpMainSinclair.Size = new Size(343, 309);
+            tpMainSinclair.Size = new Size(343, 294);
             tpMainSinclair.TabIndex = 2;
             tpMainSinclair.Text = "Sinclair";
             tpMainSinclair.UseVisualStyleBackColor = true;
-            // 
-            // cbZxPaletteMode
-            // 
-            cbZxPaletteMode.DropDownStyle = ComboBoxStyle.DropDownList;
-            cbZxPaletteMode.FormattingEnabled = true;
-            cbZxPaletteMode.Location = new Point(109, 9);
-            cbZxPaletteMode.Name = "cbZxPaletteMode";
-            cbZxPaletteMode.Size = new Size(101, 23);
-            cbZxPaletteMode.TabIndex = 25;
-            // 
-            // label10
-            // 
-            label10.Location = new Point(10, 12);
-            label10.Name = "label10";
-            label10.Size = new Size(83, 21);
-            label10.TabIndex = 26;
-            label10.Text = "Palette Mode";
-            // 
-            // chkZxDitherImageLo
-            // 
-            chkZxDitherImageLo.AutoSize = true;
-            chkZxDitherImageLo.Checked = true;
-            chkZxDitherImageLo.CheckState = CheckState.Checked;
-            chkZxDitherImageLo.Location = new Point(10, 148);
-            chkZxDitherImageLo.Name = "chkZxDitherImageLo";
-            chkZxDitherImageLo.Size = new Size(112, 19);
-            chkZxDitherImageLo.TabIndex = 24;
-            chkZxDitherImageLo.Text = "Dither Image LO";
-            chkZxDitherImageLo.UseVisualStyleBackColor = true;
             // 
             // zxBtnReset
             // 
@@ -854,7 +1009,7 @@
             tpMainAmstrad.Location = new Point(4, 24);
             tpMainAmstrad.Name = "tpMainAmstrad";
             tpMainAmstrad.Padding = new Padding(3);
-            tpMainAmstrad.Size = new Size(343, 309);
+            tpMainAmstrad.Size = new Size(343, 294);
             tpMainAmstrad.TabIndex = 3;
             tpMainAmstrad.Text = "Amstrad";
             tpMainAmstrad.UseVisualStyleBackColor = true;
@@ -899,7 +1054,7 @@
             tlProcessing.RowCount = 2;
             tlProcessing.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tlProcessing.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tlProcessing.Size = new Size(357, 277);
+            tlProcessing.Size = new Size(357, 268);
             tlProcessing.TabIndex = 1;
             // 
             // gbColorProcessor
@@ -908,7 +1063,7 @@
             gbColorProcessor.Dock = DockStyle.Fill;
             gbColorProcessor.Location = new Point(3, 3);
             gbColorProcessor.Name = "gbColorProcessor";
-            gbColorProcessor.Size = new Size(351, 251);
+            gbColorProcessor.Size = new Size(351, 242);
             gbColorProcessor.TabIndex = 0;
             gbColorProcessor.TabStop = false;
             gbColorProcessor.Text = "Color Processor Data";
@@ -918,13 +1073,13 @@
             pgColorProcessor.Dock = DockStyle.Fill;
             pgColorProcessor.Location = new Point(3, 19);
             pgColorProcessor.Name = "pgColorProcessor";
-            pgColorProcessor.Size = new Size(345, 229);
+            pgColorProcessor.Size = new Size(345, 220);
             pgColorProcessor.TabIndex = 0;
             // 
             // stImageData
             // 
             stImageData.Items.AddRange(new ToolStripItem[] { tsImageLabel, tsImageCoord, tsMouseLabel, tsMouseCoord, tsColor, tsColorData });
-            stImageData.Location = new Point(0, 257);
+            stImageData.Location = new Point(0, 248);
             stImageData.Name = "stImageData";
             stImageData.Size = new Size(357, 20);
             stImageData.TabIndex = 1;
@@ -982,7 +1137,7 @@
             // splitRenderLayout.Panel2
             // 
             splitRenderLayout.Panel2.Controls.Add(pictureBoxProc);
-            splitRenderLayout.Size = new Size(767, 815);
+            splitRenderLayout.Size = new Size(767, 791);
             splitRenderLayout.SplitterDistance = 395;
             splitRenderLayout.TabIndex = 0;
             // 
@@ -992,7 +1147,7 @@
             pictureBoxSrc.Dock = DockStyle.Fill;
             pictureBoxSrc.Location = new Point(0, 0);
             pictureBoxSrc.Name = "pictureBoxSrc";
-            pictureBoxSrc.Size = new Size(395, 815);
+            pictureBoxSrc.Size = new Size(395, 791);
             pictureBoxSrc.TabIndex = 0;
             pictureBoxSrc.TabStop = false;
             // 
@@ -1002,7 +1157,7 @@
             pictureBoxProc.Dock = DockStyle.Fill;
             pictureBoxProc.Location = new Point(0, 0);
             pictureBoxProc.Name = "pictureBoxProc";
-            pictureBoxProc.Size = new Size(368, 815);
+            pictureBoxProc.Size = new Size(368, 791);
             pictureBoxProc.TabIndex = 0;
             pictureBoxProc.TabStop = false;
             // 
@@ -1039,13 +1194,49 @@
             oColorManager.DataSourceX = null;
             oColorManager.InvalidatePreProcess = true;
             // 
+            // sfdExportImage
+            // 
+            sfdExportImage.AddExtension = false;
+            // 
+            // chkZxDitherImageLo
+            // 
+            chkZxDitherImageLo.AutoSize = true;
+            chkZxDitherImageLo.Checked = true;
+            chkZxDitherImageLo.CheckState = CheckState.Checked;
+            chkZxDitherImageLo.Location = new Point(10, 148);
+            chkZxDitherImageLo.Name = "chkZxDitherImageLo";
+            chkZxDitherImageLo.Size = new Size(112, 19);
+            chkZxDitherImageLo.TabIndex = 24;
+            chkZxDitherImageLo.Text = "Dither Image LO";
+            chkZxDitherImageLo.UseVisualStyleBackColor = true;
+            // 
+            // cbZxPaletteMode
+            // 
+            cbZxPaletteMode.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbZxPaletteMode.FormattingEnabled = true;
+            cbZxPaletteMode.Location = new Point(109, 9);
+            cbZxPaletteMode.Name = "cbZxPaletteMode";
+            cbZxPaletteMode.Size = new Size(101, 23);
+            cbZxPaletteMode.TabIndex = 25;
+            // 
+            // label10
+            // 
+            label10.Location = new Point(10, 12);
+            label10.Name = "label10";
+            label10.Size = new Size(83, 21);
+            label10.TabIndex = 26;
+            label10.Text = "Palette Mode";
+            // 
             // ColorAnalyzer
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             Controls.Add(splitMain);
+            Controls.Add(menuStripMain);
             Name = "ColorAnalyzer";
             Size = new Size(1134, 815);
+            menuStripMain.ResumeLayout(false);
+            menuStripMain.PerformLayout();
             splitMain.Panel1.ResumeLayout(false);
             splitMain.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitMain).EndInit();
@@ -1097,17 +1288,38 @@
             ((System.ComponentModel.ISupportInitialize)pictureBoxSrc).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBoxProc).EndInit();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
+        private OpenFileDialog ofdSelectImage;
+        private MenuStrip menuStripMain;
+        private ToolStripMenuItem fileToolStripMenuItem;
+        private ToolStripMenuItem newToolStripMenuItem;
+        private ToolStripMenuItem openToolStripMenuItem;
         private SplitContainer splitMain;
         private PictureBox pictureBoxSrc;
+        private ToolStripMenuItem exportToolStripMenuItem;
         private TableLayoutPanel tableLayoutPanel1;
         private Components.BitmapRender oBitmapRenderSource;
         private Components.ColorManager oColorManager;
+        private ToolStripMenuItem colorDistanceToolStripMenuItem;
+        private ToolStripMenuItem bitmapIndexedToolStripMenuItem;
+        private ToolStripMenuItem indexedPNGToolStripMenuItem;
+        private ToolStripMenuItem bitmapToolStripMenuItem;
+        private ToolStripMenuItem pNGToolStripMenuItem;
+        private ToolStripMenuItem amigaToolStripMenuItem;
+        private ToolStripMenuItem iFFILBMToolStripMenuItem;
+        private ToolStripMenuItem bitplaneToolStripMenuItem1;
+        private ToolStripMenuItem sourceCodeToolStripMenuItem;
+        private ToolStripMenuItem rawBitplaneAndOCSCopperlistToolStripMenuItem;
+        private ToolStripMenuItem toolStripMenuItemSave;
         private SplitContainer splitRenderLayout;
         private PictureBox pictureBoxProc;
         private Components.BitmapRender oBitmapRenderDest;
+        private SaveFileDialog sfdExportImage;
+        private ToolStripMenuItem ditheringToolStripMenuItem;
+        private ToolStripMenuItem colorModeToolStripMenuItem;
         private PropertyGrid pgColorProcessor;
         private SplitContainer splitProcessing;
         private TableLayoutPanel tlConfig;
@@ -1176,8 +1388,11 @@
         private ToolStripStatusLabel tsMouseCoord;
         private ToolStripStatusLabel tsColor;
         private ToolStripStatusLabel tsColorData;
+        private ToolStripMenuItem tsmiResolution;
+        private ToolStripMenuItem originalToolStripMenuItem;
         private CheckBox chkZxAutotune;
         private Button zxBtnReset;
+        private ToolStripMenuItem newContainerToolStripMenuItem;
         private ComboBox cbZxPaletteMode;
         private Label label10;
         private CheckBox chkZxDitherImageLo;

@@ -16,8 +16,10 @@ namespace ColourClashNet.Color.Transformation
         String Description { get; }
 
         //------------------------------------------------------------
-        ImageData SourceData { get; }
-        ImageData OutputData { get; }
+
+        ImageData ImageReference { get; }   
+        ImageData ImageSource { get; }
+        ImageData ImageOutput { get; }
 
         //------------------------------------------------------------
         Palette PriorityPalette { get; }       
@@ -48,17 +50,19 @@ namespace ColourClashNet.Color.Transformation
 
         //------------------------------------------------------------
 
-        ColorTransformInterface Create(ImageData image);
-      
+        ColorTransformInterface Create(ImageData sourceImage, ImageData referenceImage);
+        ColorTransformInterface Create(ImageData sourceImage);
+
         ColorTransformResult ProcessColors(CancellationToken token = default);
-        ColorTransformResult CreateAndProcessColors(ImageData image, CancellationToken token = default);
+        ColorTransformResult CreateAndProcessColors(ImageData sourceImage, ImageData referenceImage,  CancellationToken token = default);
+        ColorTransformResult CreateAndProcessColors(ImageData sourceImage, CancellationToken token = default);
         void AbortProcessing(CancellationTokenSource token);
 
 
 
        // Task<ColorTransformInterface> CreateAsync(ImageData image);
        // Task<ColorTransformResults> ProcessColorsAsync(CancellationToken token = default);
-        Task<ColorTransformResult> CreateAndProcessColorsAsync(ImageData image, CancellationToken token = default);
+        Task<ColorTransformResult> CreateAndProcessColorsAsync(ImageData image, ImageData referenceImage = null, CancellationToken token = default);
         Task AbortProcessingAsync(CancellationTokenSource token);
 
 

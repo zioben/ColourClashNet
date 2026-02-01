@@ -21,7 +21,7 @@ namespace ColourClashNet.Color.Dithering
         public string Description { get; protected init; }
         public ColorDithering Type { get; protected init; }
         public double DitheringStrenght { get; set; } = 1.0;
-        public abstract bool Create();
-        public abstract ImageData Dither(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token=default);
+        public abstract DitherInterface Create();
+        public abstract ColorTransformResult Dither(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token=default);
     }
 }

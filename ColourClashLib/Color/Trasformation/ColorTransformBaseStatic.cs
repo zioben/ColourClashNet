@@ -3,6 +3,7 @@ using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -12,6 +13,12 @@ namespace ColourClashNet.Color.Transformation
 {
     public abstract partial class ColorTransformBase : ColorTransformInterface
     {
+        public static void AssertValid(ColorTransformInterface transform)
+        {
+            if (transform == null)
+                throw new ArgumentNullException($"{nameof(transform)}");
+        }
+
         public static ColorTransformInterface CreateColorTransformInterface(ColorTransformType transformType, Dictionary<ColorTransformProperties, object> paramList)
         {
             string sMethod = nameof(CreateColorTransformInterface);

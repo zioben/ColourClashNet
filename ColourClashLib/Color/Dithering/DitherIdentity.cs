@@ -1,4 +1,5 @@
 ﻿using ColourClashNet.Color;
+using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
@@ -9,43 +10,42 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Color.Dithering
+namespace ColourClashNet.Color.Dithering;
+
+public class DitherIdentity : DitherBase
 {
-    public class DitherIdentity : DitherBase
+    static string sC = nameof(DitherIdentity);
+
+    public DitherIdentity()
     {
-        static string sClass = nameof(DitherIdentity);
+        Type = ColorDithering.None;
+        Description = "Passthrought";
+    }
 
-        public DitherIdentity()
+    public override DitherInterface Create()
+    {
+        return this;
+    }
+
+    public override ColorTransformResult Dither(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
+    {
+        string sM = nameof(Dither);
+        try
         {
-            Type = ColorDithering.None;
-            Description = "Passthrought";
+            ImageData.AssertValidAndDimension(imageReference, imageProcessed);
+            LogMan.Trace(sC, sM, $"{Type} : Dithering is a simple clone");
+            var imageDithered = new ImageData().Create(imageProcessed);
+            return ColorTransformResult.CreateValidResult(imageReference, imageDithered);
         }
-
-        public override bool Create()
+        catch (TaskCanceledException et)
         {
-            return true;
+            LogMan.Exception(sC, sM, $"{Type}", et);
+            return ColorTransformResult.CreateErrorResult(et);
         }
-
-        public override ImageData? Dither(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
+        catch (OperationCanceledException ex)
         {
-
-            string sMethod = nameof(Dither);
-            try
-            {
-                if (imageProcessed == null)
-                {
-                    LogMan.Error(sClass, sMethod, "Invalid input data");
-                    return null;
-                }
-                LogMan.Trace(sClass, sMethod, $"{Type} : Dithering is a simple clone");
-                return new ImageData().Create(imageProcessed);
-
-            }
-            catch (Exception ex)
-            {
-                LogMan.Exception(sClass, sMethod, ex);
-                return null;
-            }
+            LogMan.Exception(sC, sM, $"{Type}", ex);
+            return ColorTransformResult.CreateErrorResult(ex);
         }
     }
 }
