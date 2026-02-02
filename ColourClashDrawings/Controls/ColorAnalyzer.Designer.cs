@@ -78,11 +78,12 @@
             btnReduceColorsScanline = new Button();
             chkScanLineCluster = new CheckBox();
             tpMainSinclair = new TabPage();
+            label11 = new Label();
+            cbZxAutotuneMode = new ComboBox();
             cbZxPaletteMode = new ComboBox();
             label10 = new Label();
             chkZxDitherImageLo = new CheckBox();
             zxBtnReset = new Button();
-            chkZxAutotune = new CheckBox();
             chkZxDitherHI = new CheckBox();
             btnReduceColorsZx = new Button();
             chkZxBlackHI = new CheckBox();
@@ -473,11 +474,11 @@
             // 
             nudClusterLoop.Location = new Point(145, 79);
             nudClusterLoop.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
-            nudClusterLoop.Minimum = new decimal(new int[] { 30, 0, 0, 0 });
+            nudClusterLoop.Minimum = new decimal(new int[] { 2, 0, 0, 0 });
             nudClusterLoop.Name = "nudClusterLoop";
             nudClusterLoop.Size = new Size(78, 23);
             nudClusterLoop.TabIndex = 6;
-            nudClusterLoop.Value = new decimal(new int[] { 100, 0, 0, 0 });
+            nudClusterLoop.Value = new decimal(new int[] { 10, 0, 0, 0 });
             // 
             // btnReduceColors
             // 
@@ -564,7 +565,7 @@
             cbC64VideoMode.FormattingEnabled = true;
             cbC64VideoMode.Location = new Point(98, 22);
             cbC64VideoMode.Name = "cbC64VideoMode";
-            cbC64VideoMode.Size = new Size(101, 23);
+            cbC64VideoMode.Size = new Size(225, 23);
             cbC64VideoMode.TabIndex = 19;
             // 
             // lblC64VideoMode
@@ -601,7 +602,7 @@
             tpCbmAmiga.Location = new Point(4, 24);
             tpCbmAmiga.Name = "tpCbmAmiga";
             tpCbmAmiga.Padding = new Padding(3);
-            tpCbmAmiga.Size = new Size(329, 260);
+            tpCbmAmiga.Size = new Size(329, 275);
             tpCbmAmiga.TabIndex = 1;
             tpCbmAmiga.Text = "Amiga";
             tpCbmAmiga.UseVisualStyleBackColor = true;
@@ -646,11 +647,11 @@
             nudScanlineTrainEpochs.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             nudScanlineTrainEpochs.Location = new Point(125, 100);
             nudScanlineTrainEpochs.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
-            nudScanlineTrainEpochs.Minimum = new decimal(new int[] { 30, 0, 0, 0 });
+            nudScanlineTrainEpochs.Minimum = new decimal(new int[] { 2, 0, 0, 0 });
             nudScanlineTrainEpochs.Name = "nudScanlineTrainEpochs";
             nudScanlineTrainEpochs.Size = new Size(65, 23);
             nudScanlineTrainEpochs.TabIndex = 21;
-            nudScanlineTrainEpochs.Value = new decimal(new int[] { 100, 0, 0, 0 });
+            nudScanlineTrainEpochs.Value = new decimal(new int[] { 10, 0, 0, 0 });
             // 
             // nudScanlineLineColors
             // 
@@ -677,9 +678,9 @@
             chkScanlineSharedPal.CheckState = CheckState.Checked;
             chkScanlineSharedPal.Location = new Point(6, 18);
             chkScanlineSharedPal.Name = "chkScanlineSharedPal";
-            chkScanlineSharedPal.Size = new Size(83, 21);
+            chkScanlineSharedPal.Size = new Size(320, 21);
             chkScanlineSharedPal.TabIndex = 24;
-            chkScanlineSharedPal.Text = "Use global palette";
+            chkScanlineSharedPal.Text = "Use share palette";
             chkScanlineSharedPal.UseVisualStyleBackColor = true;
             // 
             // btnReduceColorsScanline
@@ -704,11 +705,12 @@
             // 
             // tpMainSinclair
             // 
+            tpMainSinclair.Controls.Add(label11);
+            tpMainSinclair.Controls.Add(cbZxAutotuneMode);
             tpMainSinclair.Controls.Add(cbZxPaletteMode);
             tpMainSinclair.Controls.Add(label10);
             tpMainSinclair.Controls.Add(chkZxDitherImageLo);
             tpMainSinclair.Controls.Add(zxBtnReset);
-            tpMainSinclair.Controls.Add(chkZxAutotune);
             tpMainSinclair.Controls.Add(chkZxDitherHI);
             tpMainSinclair.Controls.Add(btnReduceColorsZx);
             tpMainSinclair.Controls.Add(chkZxBlackHI);
@@ -724,13 +726,30 @@
             tpMainSinclair.Text = "Sinclair";
             tpMainSinclair.UseVisualStyleBackColor = true;
             // 
+            // label11
+            // 
+            label11.Location = new Point(13, 151);
+            label11.Name = "label11";
+            label11.Size = new Size(106, 21);
+            label11.TabIndex = 28;
+            label11.Text = "Autotune Mode";
+            // 
+            // cbZxAutotuneMode
+            // 
+            cbZxAutotuneMode.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbZxAutotuneMode.FormattingEnabled = true;
+            cbZxAutotuneMode.Location = new Point(125, 148);
+            cbZxAutotuneMode.Name = "cbZxAutotuneMode";
+            cbZxAutotuneMode.Size = new Size(201, 23);
+            cbZxAutotuneMode.TabIndex = 27;
+            // 
             // cbZxPaletteMode
             // 
             cbZxPaletteMode.DropDownStyle = ComboBoxStyle.DropDownList;
             cbZxPaletteMode.FormattingEnabled = true;
-            cbZxPaletteMode.Location = new Point(109, 9);
+            cbZxPaletteMode.Location = new Point(125, 9);
             cbZxPaletteMode.Name = "cbZxPaletteMode";
-            cbZxPaletteMode.Size = new Size(101, 23);
+            cbZxPaletteMode.Size = new Size(201, 23);
             cbZxPaletteMode.TabIndex = 25;
             // 
             // label10
@@ -746,7 +765,7 @@
             chkZxDitherImageLo.AutoSize = true;
             chkZxDitherImageLo.Checked = true;
             chkZxDitherImageLo.CheckState = CheckState.Checked;
-            chkZxDitherImageLo.Location = new Point(10, 148);
+            chkZxDitherImageLo.Location = new Point(13, 182);
             chkZxDitherImageLo.Name = "chkZxDitherImageLo";
             chkZxDitherImageLo.Size = new Size(112, 19);
             chkZxDitherImageLo.TabIndex = 24;
@@ -757,30 +776,18 @@
             // 
             zxBtnReset.Location = new Point(13, 97);
             zxBtnReset.Name = "zxBtnReset";
-            zxBtnReset.Size = new Size(197, 23);
+            zxBtnReset.Size = new Size(313, 34);
             zxBtnReset.TabIndex = 23;
             zxBtnReset.Text = "Reset Seed Color";
             zxBtnReset.UseVisualStyleBackColor = true;
             zxBtnReset.Click += zxBtnReset_Click;
-            // 
-            // chkZxAutotune
-            // 
-            chkZxAutotune.AutoSize = true;
-            chkZxAutotune.Checked = true;
-            chkZxAutotune.CheckState = CheckState.Checked;
-            chkZxAutotune.Location = new Point(174, 148);
-            chkZxAutotune.Name = "chkZxAutotune";
-            chkZxAutotune.Size = new Size(148, 19);
-            chkZxAutotune.TabIndex = 22;
-            chkZxAutotune.Text = "Autotune Colors (slow)";
-            chkZxAutotune.UseVisualStyleBackColor = true;
             // 
             // chkZxDitherHI
             // 
             chkZxDitherHI.AutoSize = true;
             chkZxDitherHI.Checked = true;
             chkZxDitherHI.CheckState = CheckState.Checked;
-            chkZxDitherHI.Location = new Point(10, 182);
+            chkZxDitherHI.Location = new Point(13, 220);
             chkZxDitherHI.Name = "chkZxDitherHI";
             chkZxDitherHI.Size = new Size(109, 19);
             chkZxDitherHI.TabIndex = 21;
@@ -790,9 +797,9 @@
             // btnReduceColorsZx
             // 
             btnReduceColorsZx.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            btnReduceColorsZx.Location = new Point(10, 219);
+            btnReduceColorsZx.Location = new Point(13, 255);
             btnReduceColorsZx.Name = "btnReduceColorsZx";
-            btnReduceColorsZx.Size = new Size(330, 48);
+            btnReduceColorsZx.Size = new Size(313, 48);
             btnReduceColorsZx.TabIndex = 14;
             btnReduceColorsZx.Text = "To ZX";
             btnReduceColorsZx.UseVisualStyleBackColor = true;
@@ -803,11 +810,11 @@
             chkZxBlackHI.AutoSize = true;
             chkZxBlackHI.Checked = true;
             chkZxBlackHI.CheckState = CheckState.Checked;
-            chkZxBlackHI.Location = new Point(174, 182);
+            chkZxBlackHI.Location = new Point(156, 220);
             chkZxBlackHI.Name = "chkZxBlackHI";
-            chkZxBlackHI.Size = new Size(94, 19);
+            chkZxBlackHI.Size = new Size(143, 19);
             chkZxBlackHI.TabIndex = 20;
-            chkZxBlackHI.Text = "Use Black HI ";
+            chkZxBlackHI.Text = "Use Black in HI palette";
             chkZxBlackHI.UseVisualStyleBackColor = true;
             // 
             // label1
@@ -821,7 +828,7 @@
             // 
             // nudZxColorHI
             // 
-            nudZxColorHI.Location = new Point(109, 68);
+            nudZxColorHI.Location = new Point(125, 67);
             nudZxColorHI.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
             nudZxColorHI.Name = "nudZxColorHI";
             nudZxColorHI.Size = new Size(101, 23);
@@ -839,12 +846,12 @@
             // 
             // nudZxColorLO
             // 
-            nudZxColorLO.Location = new Point(110, 38);
+            nudZxColorLO.Location = new Point(125, 38);
             nudZxColorLO.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
             nudZxColorLO.Name = "nudZxColorLO";
             nudZxColorLO.Size = new Size(100, 23);
             nudZxColorLO.TabIndex = 16;
-            nudZxColorLO.Value = new decimal(new int[] { 190, 0, 0, 0 });
+            nudZxColorLO.Value = new decimal(new int[] { 160, 0, 0, 0 });
             // 
             // tpMainAmstrad
             // 
@@ -1176,10 +1183,11 @@
         private ToolStripStatusLabel tsMouseCoord;
         private ToolStripStatusLabel tsColor;
         private ToolStripStatusLabel tsColorData;
-        private CheckBox chkZxAutotune;
         private Button zxBtnReset;
         private ComboBox cbZxPaletteMode;
         private Label label10;
         private CheckBox chkZxDitherImageLo;
+        private ComboBox cbZxAutotuneMode;
+        private Label label11;
     }
 }

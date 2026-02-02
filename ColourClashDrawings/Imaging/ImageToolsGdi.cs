@@ -375,6 +375,7 @@ public static partial class ImageToolsGDI
             bool bCanConvert =
               oImage.PixelFormat == PixelFormat.Format8bppIndexed ||
               oImage.PixelFormat == PixelFormat.Format24bppRgb ||
+              oImage.PixelFormat == PixelFormat.Format32bppRgb ||
               oImage.PixelFormat == PixelFormat.Format32bppArgb;
 
             if (!bCanConvert)
@@ -391,6 +392,7 @@ public static partial class ImageToolsGDI
                     return ConvertFromBmp8BppIndex(oImage);
                 case PixelFormat.Format24bppRgb:
                     return ConvertFromBmp24Bpp(oImage);
+                case PixelFormat.Format32bppRgb:
                 case PixelFormat.Format32bppArgb:
                     return ConvertFromBmp32Bpp(oImage);
                 default:

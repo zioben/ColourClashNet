@@ -53,7 +53,7 @@ namespace ColourClashNet
         List<ToolStripMenuItem> lTsItemsSetup = new List<ToolStripMenuItem>();
         List<ToolStripMenuItem> lTsItemsResolution = new List<ToolStripMenuItem>();
 
-        ColorAnalyzer selectedColorAnalyzer { get; set; }
+        ColorAnalyzer? selectedColorAnalyzer => oTabManager?.SelectedTab?.Tag as ColorAnalyzer;
 
         public FormCClash()
         {
@@ -84,23 +84,20 @@ namespace ColourClashNet
             toolStripContainer1.ContentPanel.Controls.Add(oTabManager);
 
             oTabManager.TabPages.Clear();
-            oTabManager.ControlAdded += ((s, e) => RefreahWorkingTab());
-            oTabManager.TabIndexChanged += ((s, e) => RefreahWorkingTab());
-            oTabManager.TabClosed += ((s, e) => RefreahWorkingTab());
+            oTabManager.ControlAdded += ((s, e)
+                => MenuRebuildSetChecks());
+            oTabManager.SelectedIndexChanged += ((s, e)
+                => MenuRebuildSetChecks());
+//            oTabManager.TabIndexChanged += ((s, e) 
+  //              => MenuRebuildSetChecks());
+     //       oTabManager.TabClosed += ((s, e) 
+       //         => MenuRebuildSetChecks());
             oTabManager.ResumeLayout();
 
             CreateTab();
         }
 
-        void RefreahWorkingTab()
-        {
-            var tp = oTabManager.SelectedTab;
-            if (tp == null)
-                selectedColorAnalyzer = null;
-            else
-                selectedColorAnalyzer = tp.Tag as ColorAnalyzer;
-            // RebuildMenu();
-        }
+      
 
         ColorAnalyzer CreateTab()
         {
@@ -111,7 +108,8 @@ namespace ColourClashNet
             caNew.Size = caTemplate.Size;
             caNew.ImageCopied += ((s, e) => CreateTab(e.DestBitmap, e.Name));
             caNew.ImageCreated += ((s, e) => oTabManager.SetPageText(caNew, e.Name.Substring(Math.Max(0, e.Name.Length - 12))));
-            oTabManager.CreatePage(caNew);
+            var tp = oTabManager.CreatePage(caNew);
+            oTabManager.SelectedTab= tp;    
             return caNew;
         }
 
@@ -279,6 +277,12 @@ namespace ColourClashNet
 
         private void newContainerToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            var image = selectedColorAnalyzer?.ColorManager?.ImageProcessed?.Clone() as Bitmap;
+            var name = selectedColorAnalyzer.Name;
+            if (image == null)
+                return;
+            CreateTab();
+            selectedColorAnalyzer?.Create(image, name + "_out");
 
         }
 

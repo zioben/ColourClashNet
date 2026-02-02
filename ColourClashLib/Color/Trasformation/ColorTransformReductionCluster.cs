@@ -64,8 +64,13 @@ namespace ColourClashNet.Color.Transformation
                 }
                 else
                 {
-                    var Max = oItem?.Item2.Max(X => X.Value);
-                    iCol = oItem?.Item2.FirstOrDefault(X => X.Value == Max).Key ?? ColorDefaults.DefaultInvalidColorInt; ;
+                    if (oItem?.Item2.Count > 0)
+                    {
+                        var Max = oItem?.Item2.Max(X => X.Value);
+                        iCol = oItem?.Item2.FirstOrDefault(X => X.Value == Max).Key ?? ColorDefaults.DefaultInvalidColorInt; ;
+                    }
+                    else
+                        iCol = ColorDefaults.DefaultInvalidColorInt;
                 }
                 map.Add(kvp.Key, iCol);
             }

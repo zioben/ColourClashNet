@@ -38,7 +38,7 @@ namespace ColourClashNet.Controls
             MouseDown += TabManager_MouseDown_1;
         }
 
-        public void CreatePage(Control caNew)
+        public TabPage CreatePage(Control caNew)
         {
             var tpNew = new TabPage();
             tpNew.Name = $"{caNew.Name}";
@@ -46,7 +46,8 @@ namespace ColourClashNet.Controls
             tpNew.Text = $"Page{TabPages.Count + 1}OOO";
             tpNew.Tag = caNew;
             TabPages.Add(tpNew);
-            oTabPages[caNew.Name] = tpNew;
+            oTabPages[caNew.Name] = tpNew;   
+            return tpNew;   
         }
         public void RemovePage(Control oControl)
         {
@@ -60,7 +61,6 @@ namespace ColourClashNet.Controls
                 }
                 oTabPages.Remove(sTableID);
             }
-
         }
 
         public void SetPageText(Control oControl, string sText)

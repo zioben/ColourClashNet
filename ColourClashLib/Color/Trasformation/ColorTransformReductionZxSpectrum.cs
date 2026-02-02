@@ -208,7 +208,7 @@ namespace ColourClashNet.Color.Transformation
                .SetProperty(ColorTransformProperties.PriorityPalette, transformationMap.GetInputPalette())
                .SetProperty(ColorTransformProperties.DitheringType, DitheringType)
                .SetProperty(ColorTransformProperties.DitheringStrength, DitheringStrength)
-               .Create(ImageSource);
+               .Create(ImageSource,ImageReference);
             var zxBaseResult = zxBaseTransform.ProcessColors(token);
             var zxBaseImage = zxBaseResult.DataOut;
 
@@ -282,7 +282,7 @@ namespace ColourClashNet.Color.Transformation
             BypassDithering = true;
 
             var bestZxImage = CreateBestZxImage(token);
-            bestZxImage = ImageSource;
+            //bestZxImage = ImageSource;
             if (PaletteMode == ZxPaletteMode.ImageZxReference)
             {
                 return ColorTransformResult.CreateValidResult(ImageSource, bestZxImage);

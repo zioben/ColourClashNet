@@ -66,6 +66,7 @@ namespace ColourClashNet.Controls
             CreateComboBox(cbCpcVideoMode, Enum.GetNames(typeof(ColorTransformReductionCPC.CPCVideoMode)).ToList());
             CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode)).ToList());
             CreateComboBox(cbZxPaletteMode, Enum.GetNames(typeof(ColorTransformReductionZxSpectrum.ZxPaletteMode)).ToList());
+            CreateComboBox(cbZxAutotuneMode, Enum.GetNames(typeof(ColorTransformReductionZxSpectrum.ZxAutotuneMode)).ToList());
             oBitmapRenderSource.ColorAdded += (s, e) => { BuildBkgPalette(); };
             oBitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };
             oColorManager.OnQuantize += (s, e) => { Invoke( ()=> RefreshData() ); };
@@ -221,7 +222,7 @@ namespace ColourClashNet.Controls
             oColorManager.Config.HsvHueOffset = (double)nudHue.Value;
             oColorManager.Config.C64ScreenMode = (ColorTransformReductionC64.C64VideoMode)Enum.Parse(typeof(ColorTransformReductionC64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString());
             oColorManager.Config.CPCScreenMode = (ColorTransformReductionCPC.CPCVideoMode)Enum.Parse(typeof(ColorTransformReductionCPC.CPCVideoMode), cbCpcVideoMode.SelectedItem.ToString());
-            oColorManager.Config.ZxEqAutotune = (bool)chkZxAutotune.Checked;
+            oColorManager.Config.ZxEqAutotuneMode = (ColorTransformReductionZxSpectrum.ZxAutotuneMode)Enum.Parse(typeof(ColorTransformReductionZxSpectrum.ZxAutotuneMode), cbZxAutotuneMode.SelectedItem.ToString());
             oColorManager.Config.ZxEqColorLO = (int)nudZxColorLO.Value;
             oColorManager.Config.ZxEqColorHI = (int)nudZxColorHI.Value;
             oColorManager.Config.ZxIncludeBlackHI = chkZxBlackHI.Checked;

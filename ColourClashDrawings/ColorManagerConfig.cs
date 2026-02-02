@@ -54,7 +54,7 @@ namespace ColourClashNet.Drawing
         public double DitheringStrenght { get; set; } = 1.0;
         public List<int> BackgroundColorList { get; set; } = new List<int>();
         public int BackgroundColorReplacement { get; set; } = 0;
-        public bool ZxEqAutotune { get; set; } = false;
+        public ColorTransformReductionZxSpectrum.ZxAutotuneMode ZxEqAutotuneMode { get; set; } =  ColorTransformReductionZxSpectrum.ZxAutotuneMode.Fast;
         public int ZxEqColorLO { get; set; } = 0x80;
         public int ZxEqColorHI { get; set; } = 0xFF;
         public bool ZxIncludeBlackHI { get; set; } = true;
@@ -98,7 +98,7 @@ namespace ColourClashNet.Drawing
                 .SetProperty(ColorTransformProperties.ZxDitherLowColorImage, ZxEqDitherLO)
                 .SetProperty(ColorTransformProperties.ZxIncludeBlackInHighColorImage, ZxIncludeBlackHI)
                 .SetProperty(ColorTransformProperties.ZxPaletteMode, ZxPaletteMode)
-                .SetProperty(ColorTransformProperties.ZxAutotuneMode, ZxEqAutotune);
+                .SetProperty(ColorTransformProperties.ZxAutotuneMode, ZxEqAutotuneMode);
 
                 //.SetProperty(ColorTransformProperties.Zx_PaletteMode, ZxEqBlackHI)
         }
