@@ -15,31 +15,31 @@ namespace ColourClashNet.Color
     /// Color Histogram evaluation.<BR/>
     /// Represent Histogram RGB Color with its occurrences.
     /// </summary>
-    public partial class Histogram
+    public partial class HistogramRGB
     {
-        static string sClass = nameof(Histogram);
+        static string sClass = nameof(HistogramRGB);
 
         /// <summary>
         /// Dictionary that contains RGB color as key and its occurrences as value.
         /// </summary>
-        public Dictionary<int, int> rgbHistogram { get; private init; } = new Dictionary<int, int>();
+        public Dictionary<int, int> HistogramDictionary { get; private init; } = new Dictionary<int, int>();
 
         /// <summary>
         /// Gets the number of elements in the RGB histogram.
         /// </summary>
-        public int Count => rgbHistogram.Count;
+        public int Count => HistogramDictionary.Count;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool IsValid => Count > 0;    
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        //public bool IsValid => Count > 0;    
 
         /// <summary>
         /// Reset the histogram
         /// </summary>
         public void Reset()
         {
-            rgbHistogram.Clear();
+            HistogramDictionary.Clear();
         }
 
 
@@ -48,12 +48,11 @@ namespace ColourClashNet.Color
         /// </summary>
         /// <param name="image"></param>
         /// <returns></returns>
-        public Histogram Create(ImageData image)
+        public HistogramRGB Create(ImageData image)
         {
             Reset();
-            if( image == null) 
-                throw new ArgumentNullException(nameof(image));
-            return Histogram.CreateHistogramStatic(image.matrix, this);
+            ImageData.AssertValid(image);   
+            return HistogramRGB.CreateHistogramStatic(image.matrix, this);
         }
 
         /// <summary>
@@ -61,14 +60,13 @@ namespace ColourClashNet.Color
         /// </summary>
         /// <param name="histogram"></param>
         /// <returns></returns>
-        public Histogram Create(Histogram histogram )
+        public HistogramRGB Create(HistogramRGB histogram )
         {
+            AssertValid(histogram);
             Reset();
-            if( histogram == null)
-                throw new ArgumentNullException( nameof(histogram));
-            foreach( var kvp in histogram.rgbHistogram )
+            foreach( var kvp in histogram.HistogramDictionary )
             {
-                rgbHistogram[kvp.Key] = kvp.Value;
+                this.HistogramDictionary[kvp.Key] = kvp.Value;
             }
             return this;
         }
@@ -84,13 +82,13 @@ namespace ColourClashNet.Color
                 return;
             if (rgb.IsColor())
             {
-                if( rgbHistogram.ContainsKey(rgb))
+                if( HistogramDictionary.ContainsKey(rgb))
                 {
-                    rgbHistogram[rgb] += count;
+                    HistogramDictionary[rgb] += count;
                 }
                 else
                 {
-                    rgbHistogram[rgb] = count;
+                    HistogramDictionary[rgb] = count;
                 }
             }
         }
@@ -110,15 +108,8 @@ namespace ColourClashNet.Color
        /// if no valid RGB values are found.</returns>
         public Palette ToPalette()
         {
-            var oCP = new Palette();
-            foreach (var rgb in rgbHistogram.Keys)
-            {
-                if (rgb >= 0)
-                {
-                    oCP.Add(rgb);
-                }
-            }
-            return oCP; 
+            var list = HistogramDictionary.Select(X => X.Key);
+            return new Palette().Create(list);  
         }
         
        /// <summary>
@@ -130,19 +121,8 @@ namespace ColourClashNet.Color
        /// palette will contain all available colors.</returns>
         public Palette ToPalette(int maxColorWanted)
         {
-            var oCP = new Palette();
-            foreach (var rgb in rgbHistogram.Keys)
-            {
-                if (rgb >= 0)
-                {
-                    oCP.Add(rgb);
-                }
-                if (oCP.Count >= maxColorWanted)
-                {
-                    return oCP;
-                }
-            }
-            return oCP;
+            var list = HistogramDictionary.Select(X => X.Key).ToList().Take(maxColorWanted);
+            return new Palette().Create(list);
         }
 
        /// <summary>
@@ -150,14 +130,14 @@ namespace ColourClashNet.Color
        /// </summary>
        /// <remarks>The returned histogram is independent of the original and modifications to it do not
        /// affect the source histogram.</remarks>
-       /// <returns>A new <see cref="Histogram"/> instance containing the same color-frequency pairs as the original, ordered
+       /// <returns>A new <see cref="HistogramRGB"/> instance containing the same color-frequency pairs as the original, ordered
        /// from most to least frequent.</returns>
-        public Histogram SortColorsDescending()
+        public HistogramRGB SortColorsDescending()
         {
-            var lSorted = rgbHistogram
+            var lSorted = HistogramDictionary
                 .OrderByDescending(kvp => kvp.Value)
                 .ToList();
-            var oRet = new Histogram();
+            var oRet = new HistogramRGB();
             foreach (var kvp in lSorted)
             {
                 oRet.AddToHistogram(kvp.Key, kvp.Value);
@@ -168,14 +148,14 @@ namespace ColourClashNet.Color
        /// <summary>
        /// Returns a new histogram with its colors sorted in ascending order by their frequency.
        /// </summary>
-       /// <returns>A new <see cref="Histogram"/> instance containing the same color-frequency pairs as the original, ordered
+       /// <returns>A new <see cref="HistogramRGB"/> instance containing the same color-frequency pairs as the original, ordered
        /// from least to most frequent. Returns <see langword="null"/> if the histogram is empty.</returns>
-        public Histogram? SortColorsAscending()
+        public HistogramRGB? SortColorsAscending()
         {
-            var lSorted = rgbHistogram
+            var lSorted = HistogramDictionary
                 .OrderBy(kvp => kvp.Value)
                 .ToList();
-            var oRet = new Histogram();
+            var oRet = new HistogramRGB();
             foreach (var kvp in lSorted)
             {
                 oRet.AddToHistogram(kvp.Key, kvp.Value);

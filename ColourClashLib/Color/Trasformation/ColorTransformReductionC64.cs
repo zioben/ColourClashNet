@@ -201,7 +201,7 @@ namespace ColourClashNet.Color.Transformation
         ImageData ToBitmapMultiColor(CancellationToken token=default)
         {
             var preprocessImage = PreProcess(true, token);
-            var paletteFixedColor = new Histogram().Create(preprocessImage).SortColorsDescending().ToPalette(1);
+            var paletteFixedColor = new HistogramRGB().Create(preprocessImage).SortColorsDescending().ToPalette(1);
             TileManager oManager = CreateTileManager(4, 8, 4, preprocessImage, paletteFixedColor, token);
             var tileResul = oManager.ProcessColors(token);
             if (tileResul)
@@ -220,7 +220,7 @@ namespace ColourClashNet.Color.Transformation
         ImageData ToCharsetMulticolor(CancellationToken token = default)
         {
             var preprocessImage = PreProcess(true, token);
-            var paletteFixedColor = new Histogram().Create(preprocessImage).SortColorsDescending().ToPalette(3);
+            var paletteFixedColor = new HistogramRGB().Create(preprocessImage).SortColorsDescending().ToPalette(3);
             TileManager oManager = CreateTileManager(4, 8, 4, preprocessImage, paletteFixedColor, token);
             var tileResul = oManager.ProcessColors(token);
             if (tileResul)
@@ -240,7 +240,7 @@ namespace ColourClashNet.Color.Transformation
             var preprocessImage = PreProcess(true, token);
 
             // Select the most used color
-            var paletteFixedColor = new Histogram().Create(preprocessImage).SortColorsDescending().ToPalette(1);
+            var paletteFixedColor = new HistogramRGB().Create(preprocessImage).SortColorsDescending().ToPalette(1);
             TileManager oManager = CreateTileManager(4, 1, 2, preprocessImage, new Palette(), token);
             var tileResul = oManager.ProcessColors(token);
             if (tileResul)

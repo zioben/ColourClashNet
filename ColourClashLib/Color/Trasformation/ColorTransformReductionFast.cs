@@ -38,12 +38,12 @@ namespace ColourClashNet.Color.Transformation
         {
             //OutputPalette = new Palette();
             TransformationMap.Reset();
-            var SourceHistogram = new Histogram().Create(ImageSource);
+            var SourceHistogram = new HistogramRGB().Create(ImageSource);
             var oTempHist = SourceHistogram.SortColorsDescending();
             var oTempPalette = Palette.MergePalette(PriorityPalette, oTempHist.ToPalette());
             if (oTempPalette.Count <= ColorsMaxWanted)
             {
-                foreach (var kvp in SourceHistogram.rgbHistogram)
+                foreach (var kvp in SourceHistogram.HistogramDictionary)
                 {
                     //OutputPalette.Add(kvp.Key);
                     TransformationMap.Add(kvp.Key, kvp.Key);

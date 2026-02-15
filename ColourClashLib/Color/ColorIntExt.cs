@@ -424,7 +424,7 @@ namespace ColourClashNet.Color
             return GetMaxColorDistance(colorPalette.ToList(), evalMode, CancellationToken.None);
         }
 
-        public static double GetMaxColorDistance(Histogram hist, ColorDistanceEvaluationMode evalMode, CancellationToken token = default)
+        public static double GetMaxColorDistance(HistogramRGB hist, ColorDistanceEvaluationMode evalMode, CancellationToken token = default)
         {
             if (hist == null)
                 throw new ArgumentNullException(nameof(hist));

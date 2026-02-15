@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color
 {
-    public partial class Histogram
+    public partial class HistogramRGB
     {
         static readonly int[] oColorArray = new int[256 * 256 * 256];
 
@@ -18,12 +18,20 @@ namespace ColourClashNet.Color
 
         static object oLocker = new object();
 
+        public static void AssertValid(HistogramRGB hitogram)
+        {
+            if (hitogram == null)
+                throw new ArgumentNullException($"{nameof(hitogram)} is null");
+        }
+
+
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="matrix"></param>
         /// <param name="histogram"></param>
-        static void CreateHistogramArray(int[,] matrix, Histogram histogram)
+        static void CreateHistogramArray(int[,] matrix, HistogramRGB histogram)
         {
             if (matrix == null)
                 throw new ArgumentNullException(nameof(matrix));
@@ -62,7 +70,7 @@ namespace ColourClashNet.Color
        /// <param name="matrix"></param>
        /// <param name="histogram"></param>
        /// <returns></returns>
-        static bool CreateHistogramDirect(int[,] matrix, Histogram histogram)
+        static bool CreateHistogramDirect(int[,] matrix, HistogramRGB histogram)
         {
             if (matrix == null)
                 throw new ArgumentNullException(nameof(matrix));
@@ -88,7 +96,7 @@ namespace ColourClashNet.Color
         /// <param name="matrix"></param>
         /// <param name="histogram"></param>
         /// <returns></returns>
-        static Histogram CreateHistogramStatic(int[,] matrix, Histogram histogram)
+        static HistogramRGB CreateHistogramStatic(int[,] matrix, HistogramRGB histogram)
         {
             string sMethod = nameof(CreateHistogramStatic);
             if (matrix == null)

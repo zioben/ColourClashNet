@@ -50,10 +50,10 @@ namespace ColourClashNet.Color.Transformation
 
      
 
-        ColorTransformationMap CreateTransformationMap( Histogram oTempHistogram, List<Tuple<List<int>, Dictionary<int, int>>> lTupleColorCluster)
+        ColorTransformationMap CreateTransformationMap( HistogramRGB oTempHistogram, List<Tuple<List<int>, Dictionary<int, int>>> lTupleColorCluster)
         {
             ColorTransformationMap map = new ColorTransformationMap();
-            foreach (var kvp in oTempHistogram.rgbHistogram)
+            foreach (var kvp in oTempHistogram.HistogramDictionary)
             {
                 var dMin = lTupleColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
                 var oItem = lTupleColorCluster.FirstOrDefault(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == dMin);
@@ -81,7 +81,7 @@ namespace ColourClashNet.Color.Transformation
         {
             string sMethod = nameof(CreateTransformationMap);
             // Sort by most used colors
-            var oTempHistogram = new Histogram().Create(ImageSource).SortColorsDescending();
+            var oTempHistogram = new HistogramRGB().Create(ImageSource).SortColorsDescending();
             // Creating a temporary palette with fixed colors and histogram colors
             var oTempPalette = Palette.MergePalette(PriorityPalette, oTempHistogram.ToPalette());
             // If we have less colors than wanted, just map them directly
@@ -123,7 +123,7 @@ namespace ColourClashNet.Color.Transformation
                 // Clear previous cluster assignment
                 lTupleColorCluster.ForEach(X => X.Item2.Clear());
                 // Aggregate part : Assign every color to the cluster of appartenence 
-                foreach (var kvp in oTempHistogram.rgbHistogram)
+                foreach (var kvp in oTempHistogram.HistogramDictionary)
                 {
                     // For each color int the cluster
                     var dMin = lTupleColorCluster.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));

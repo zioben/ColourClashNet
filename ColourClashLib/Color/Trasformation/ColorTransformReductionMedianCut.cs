@@ -142,10 +142,10 @@ namespace ColourClashNet.Color.Transformation
         protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken=default)
         {
             OutputPalette = new Palette();
-            var SourceHistogram = new Histogram().Create(ImageSource);
+            var SourceHistogram = new HistogramRGB().Create(ImageSource);
             if (SourceHistogram.ToPalette().Count < ColorsMaxWanted)
             {
-                foreach (var kvp in SourceHistogram.rgbHistogram)
+                foreach (var kvp in SourceHistogram.HistogramDictionary)
                 {
                     TransformationMap.rgbTransformationMap[kvp.Key] = kvp.Key;
                 }
