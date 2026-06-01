@@ -11,7 +11,7 @@ namespace ColourClashNet.Color.Dithering
 {
     public abstract partial class DitherBase 
     {
-        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, double ditheringStrength, int kernelSize)
+        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, double ditheringStrength, int kernelSize, ColorDitheringFx extraFxMode )
         {
             switch (ditheringModel)
             {
@@ -46,8 +46,8 @@ namespace ColourClashNet.Color.Dithering
             }
         }
 
-        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, int kernelSize) => CreateDitherInterface(ditheringModel, 100, kernelSize);
-        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, double ditheringStrength) => CreateDitherInterface(ditheringModel, ditheringStrength, ColorDefaults.DefaultDitherKernelSize);      
-        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel) => CreateDitherInterface(ditheringModel, 100, ColorDefaults.DefaultDitherKernelSize);
+        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, int kernelSize) => CreateDitherInterface(ditheringModel, 100, kernelSize, ColorDitheringFx.None);
+        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, double ditheringStrength) => CreateDitherInterface(ditheringModel, ditheringStrength, ColorDefaults.DefaultDitherKernelSize, ColorDitheringFx.None);      
+        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel) => CreateDitherInterface(ditheringModel, 100, ColorDefaults.DefaultDitherKernelSize, ColorDitheringFx.None);
     }
 }

@@ -88,6 +88,15 @@ namespace ColourClashNet.Color
         ScanLine
     }
 
+    public enum ColorDitheringFx
+    {
+        None = 0,
+        ScanlineOdd,
+        ScanlineEven,
+        ColumnOdd,
+        ColumnEven
+    }
+
     /// <summary>
     /// Enums to select how to calculate the mean color of a cluster 
     /// </summary>
