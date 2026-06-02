@@ -87,12 +87,11 @@ namespace ColourClashNet.Color
         Sierra,
         Stucki,
         ScanLine,
-        ScanLineOdd,
     }
 
     public enum ColorDitheringFx
     {
-        None = 0,
+        Full = 0,
         ScanlineOdd,
         ScanlineEven,
         ColumnOdd,
@@ -155,7 +154,8 @@ namespace ColourClashNet.Color
         PriorityPalette,
 //        Forced_Palette,
         DitheringType,
-        DitheringStrength
+        DitheringStrength,
+        DitheringFx,
     }
 
     /// <summary>

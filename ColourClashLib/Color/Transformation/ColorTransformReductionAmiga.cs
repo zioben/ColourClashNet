@@ -131,7 +131,10 @@ namespace ColourClashNet.Color.Transformation
             ColorTransformInterface oColorReduction;
             var oQuantization = new ColorTransformQuantization()
                 .SetProperty(ColorTransformProperties.PriorityPalette, PriorityPalette)
-                .SetProperty(ColorTransformProperties.DitheringType, DitheringType);
+                .SetProperty(ColorTransformProperties.DitheringType, DitheringType)
+                .SetProperty(ColorTransformProperties.DitheringStrength, DitheringStrength)
+                .SetProperty(ColorTransformProperties.DitheringFx, DitheringFx)
+               ;
 
             int iMaxColors = 0;
 
@@ -164,7 +167,9 @@ namespace ColourClashNet.Color.Transformation
                             .SetProperty(ColorTransformProperties.UseColorMean, true)
                             .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
                             .SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors)
-                            .SetProperty(ColorTransformProperties.DitheringType, DitheringType);
+                            .SetProperty(ColorTransformProperties.DitheringType, DitheringType)
+                            .SetProperty(ColorTransformProperties.DitheringStrength, DitheringStrength)
+                            .SetProperty(ColorTransformProperties.DitheringFx, DitheringFx);
                     }
                     break;
                 case EnumHamColorProcessingMode.Detailed:
@@ -174,6 +179,8 @@ namespace ColourClashNet.Color.Transformation
                             .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
                             .SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors)
                             .SetProperty(ColorTransformProperties.DitheringType, DitheringType)
+                            .SetProperty(ColorTransformProperties.DitheringStrength, DitheringStrength)
+                            .SetProperty(ColorTransformProperties.DitheringFx, DitheringFx)
                             .SetProperty(ColorTransformProperties.ClusterTrainingLoop, 10);
                     }
                     break;

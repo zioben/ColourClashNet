@@ -57,15 +57,12 @@ namespace ColourClashNet
             tsmiResolution = new ToolStripMenuItem();
             originalToolStripMenuItem = new ToolStripMenuItem();
             toolStripContainer1 = new ToolStripContainer();
-            
             sfdExportImage = new SaveFileDialog();
             ofdSelectImage = new OpenFileDialog();
-            
+            ditherFXToolStripMenuItem = new ToolStripMenuItem();
             menuStripMain.SuspendLayout();
-            toolStripContainer1.ContentPanel.SuspendLayout();
             toolStripContainer1.TopToolStripPanel.SuspendLayout();
             toolStripContainer1.SuspendLayout();
-           
             SuspendLayout();
             // 
             // caTemplate
@@ -100,7 +97,7 @@ namespace ColourClashNet
             // menuStripMain
             // 
             menuStripMain.Dock = DockStyle.None;
-            menuStripMain.Items.AddRange(new ToolStripItem[] { toolStripMenuItem1, colorModeToolStripMenuItem, colorDistanceToolStripMenuItem, ditheringToolStripMenuItem, tsmiResolution });
+            menuStripMain.Items.AddRange(new ToolStripItem[] { toolStripMenuItem1, colorModeToolStripMenuItem, colorDistanceToolStripMenuItem, ditheringToolStripMenuItem, ditherFXToolStripMenuItem, tsmiResolution });
             menuStripMain.Location = new Point(0, 0);
             menuStripMain.Name = "menuStripMain";
             menuStripMain.Size = new Size(1184, 24);
@@ -120,7 +117,7 @@ namespace ColourClashNet
             toolStripMenuItem2.ImageTransparentColor = System.Drawing.Color.Magenta;
             toolStripMenuItem2.Name = "toolStripMenuItem2";
             toolStripMenuItem2.ShortcutKeys = Keys.Control | Keys.N;
-            toolStripMenuItem2.Size = new Size(180, 22);
+            toolStripMenuItem2.Size = new Size(146, 22);
             toolStripMenuItem2.Text = "&New";
             toolStripMenuItem2.Click += toolStripMenuItemNew_Click;
             // 
@@ -130,7 +127,7 @@ namespace ColourClashNet
             toolStripMenuItem3.ImageTransparentColor = System.Drawing.Color.Magenta;
             toolStripMenuItem3.Name = "toolStripMenuItem3";
             toolStripMenuItem3.ShortcutKeys = Keys.Control | Keys.O;
-            toolStripMenuItem3.Size = new Size(180, 22);
+            toolStripMenuItem3.Size = new Size(146, 22);
             toolStripMenuItem3.Text = "&Open";
             toolStripMenuItem3.Click += toolStripMenuItemOpen_Click;
             // 
@@ -140,7 +137,7 @@ namespace ColourClashNet
             toolStripMenuItemSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             toolStripMenuItemSave.Name = "toolStripMenuItemSave";
             toolStripMenuItemSave.ShortcutKeys = Keys.Control | Keys.S;
-            toolStripMenuItemSave.Size = new Size(180, 22);
+            toolStripMenuItemSave.Size = new Size(146, 22);
             toolStripMenuItemSave.Text = "&Save";
             toolStripMenuItemSave.Click += toolStripMenuItemSave_Click;
             // 
@@ -148,41 +145,41 @@ namespace ColourClashNet
             // 
             exportToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newContainerToolStripMenuItem, bitmapIndexedToolStripMenuItem, indexedPNGToolStripMenuItem, bitmapToolStripMenuItem, pNGToolStripMenuItem, amigaToolStripMenuItem });
             exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            exportToolStripMenuItem.Size = new Size(180, 22);
+            exportToolStripMenuItem.Size = new Size(146, 22);
             exportToolStripMenuItem.Text = "Export";
             // 
             // newContainerToolStripMenuItem
             // 
             newContainerToolStripMenuItem.Name = "newContainerToolStripMenuItem";
-            newContainerToolStripMenuItem.Size = new Size(180, 22);
+            newContainerToolStripMenuItem.Size = new Size(156, 22);
             newContainerToolStripMenuItem.Text = "New Container";
             newContainerToolStripMenuItem.Click += newContainerToolStripMenuItem_Click;
             // 
             // bitmapIndexedToolStripMenuItem
             // 
             bitmapIndexedToolStripMenuItem.Name = "bitmapIndexedToolStripMenuItem";
-            bitmapIndexedToolStripMenuItem.Size = new Size(180, 22);
+            bitmapIndexedToolStripMenuItem.Size = new Size(156, 22);
             bitmapIndexedToolStripMenuItem.Text = "Bitmap Indexed";
             bitmapIndexedToolStripMenuItem.Click += bitmapIndexedToolStripMenuItem_Click;
             // 
             // indexedPNGToolStripMenuItem
             // 
             indexedPNGToolStripMenuItem.Name = "indexedPNGToolStripMenuItem";
-            indexedPNGToolStripMenuItem.Size = new Size(180, 22);
+            indexedPNGToolStripMenuItem.Size = new Size(156, 22);
             indexedPNGToolStripMenuItem.Text = "PNG Indexed";
             indexedPNGToolStripMenuItem.Click += indexedPNGToolStripMenuItem_Click;
             // 
             // bitmapToolStripMenuItem
             // 
             bitmapToolStripMenuItem.Name = "bitmapToolStripMenuItem";
-            bitmapToolStripMenuItem.Size = new Size(180, 22);
+            bitmapToolStripMenuItem.Size = new Size(156, 22);
             bitmapToolStripMenuItem.Text = "Bitmap";
             bitmapToolStripMenuItem.Click += bitmapToolStripMenuItem_Click;
             // 
             // pNGToolStripMenuItem
             // 
             pNGToolStripMenuItem.Name = "pNGToolStripMenuItem";
-            pNGToolStripMenuItem.Size = new Size(180, 22);
+            pNGToolStripMenuItem.Size = new Size(156, 22);
             pNGToolStripMenuItem.Text = "PNG";
             pNGToolStripMenuItem.Click += pNGToolStripMenuItem_Click;
             // 
@@ -190,7 +187,7 @@ namespace ColourClashNet
             // 
             amigaToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { iFFILBMToolStripMenuItem, bitplaneToolStripMenuItem1, rawBitplaneAndOCSCopperlistToolStripMenuItem, sourceCodeToolStripMenuItem });
             amigaToolStripMenuItem.Name = "amigaToolStripMenuItem";
-            amigaToolStripMenuItem.Size = new Size(180, 22);
+            amigaToolStripMenuItem.Size = new Size(156, 22);
             amigaToolStripMenuItem.Text = "Amiga";
             // 
             // iFFILBMToolStripMenuItem
@@ -267,7 +264,6 @@ namespace ColourClashNet
             // toolStripContainer1.TopToolStripPanel
             // 
             toolStripContainer1.TopToolStripPanel.Controls.Add(menuStripMain);
-           
             // 
             // sfdExportImage
             // 
@@ -279,12 +275,11 @@ namespace ColourClashNet
             ofdSelectImage.FilterIndex = 4;
             ofdSelectImage.Title = "Load Image";
             // 
-            // tabControl1
+            // ditherFXToolStripMenuItem
             // 
-            // 
-            // tabPage3
-            // 
-           
+            ditherFXToolStripMenuItem.Name = "ditherFXToolStripMenuItem";
+            ditherFXToolStripMenuItem.Size = new Size(67, 20);
+            ditherFXToolStripMenuItem.Text = "Dither FX";
             // 
             // FormCClash
             // 
@@ -299,12 +294,10 @@ namespace ColourClashNet
             Load += FormCClash_Load;
             menuStripMain.ResumeLayout(false);
             menuStripMain.PerformLayout();
-            toolStripContainer1.ContentPanel.ResumeLayout(false);
             toolStripContainer1.TopToolStripPanel.ResumeLayout(false);
             toolStripContainer1.TopToolStripPanel.PerformLayout();
             toolStripContainer1.ResumeLayout(false);
             toolStripContainer1.PerformLayout();
-            
             ResumeLayout(false);
         }
 
@@ -338,7 +331,6 @@ namespace ColourClashNet
         private ToolStripContainer toolStripContainer1;       
         private SaveFileDialog sfdExportImage;
         private OpenFileDialog ofdSelectImage;
-      
-        
+        private ToolStripMenuItem ditherFXToolStripMenuItem;
     }
 }

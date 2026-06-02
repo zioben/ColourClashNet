@@ -102,6 +102,7 @@ namespace ColourClashNet.Color.Transformation
             //dict[ColorTransformProperties.Forced_Palette] = fixedPalette;
             dict[ColorTransformProperties.DitheringType] = DitheringType ;
             dict[ColorTransformProperties.DitheringStrength] = DitheringStrength;
+            dict[ColorTransformProperties.DitheringFx] = DitheringFx;
             dict[ColorTransformProperties.MaxColorsWanted] = maxColors;
             dict[ColorTransformProperties.UseColorMean] = false;
             dict[ColorTransformProperties.ClusterTrainingLoop] = 6;
@@ -162,7 +163,7 @@ namespace ColourClashNet.Color.Transformation
             var dithImage = procImage;
             if (DitheringType !=  ColorDithering.None )
             {
-                var dithering = Dithering.DitherBase.CreateDitherInterface(DitheringType,DitheringStrength);             
+                var dithering = Dithering.DitherBase.CreateDitherInterface(DitheringType,DitheringStrength,DitheringFx);             
                 var dithRes = dithering.Dither(refImage, procImage, ColorDistanceEvaluationMode, token);
                 dithImage = dithRes.DataOut;
             }

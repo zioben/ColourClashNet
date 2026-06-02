@@ -107,7 +107,7 @@ namespace ColourClashNet.Color.Transformation
             if (DitheringType != ColorDithering.None)
             {
                 var imageRef = bDoubleRes ? ImageTools.HalveXResolution(ImageSource) : ImageSource;
-                var dithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength);
+                var dithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength,DitheringFx);
                 var ditherRes = dithering.Dither(imageRef, oRes.DataOut, ColorDistanceEvaluationMode, oToken);
                 return bDoubleRes ? ImageTools.DoubleXResolution(ditherRes.DataOut) : ditherRes.DataOut;
             }

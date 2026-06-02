@@ -194,6 +194,7 @@ namespace ColourClashNet.Color.Transformation
                .SetProperty(ColorTransformProperties.DitheringType, DitheringType)
                //.SetProperty(ColorTransformProperties.DitheringType, ColorDithering.None)
                .SetProperty(ColorTransformProperties.DitheringStrength, DitheringStrength)
+               .SetProperty(ColorTransformProperties.DitheringFx, DitheringFx)
                .Create(ImageSource);
             var zxBaseResult = zxBaseTransform.ProcessColors(token);
             var zxBaseImage = zxBaseResult.DataOut;
@@ -210,6 +211,7 @@ namespace ColourClashNet.Color.Transformation
                .SetProperty(ColorTransformProperties.PriorityPalette, transformationMap.GetInputPalette())
                .SetProperty(ColorTransformProperties.DitheringType, DitheringType)
                .SetProperty(ColorTransformProperties.DitheringStrength, DitheringStrength)
+               .SetProperty(ColorTransformProperties.DitheringFx, DitheringFx)
                .Create(ImageSource,ImageReference);
             var zxBaseResult = zxBaseTransform.ProcessColors(token);
             var zxBaseImage = zxBaseResult.DataOut;

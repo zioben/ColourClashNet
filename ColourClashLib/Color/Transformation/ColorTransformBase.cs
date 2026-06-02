@@ -65,6 +65,9 @@ namespace ColourClashNet.Color.Transformation
 
         public double DitheringStrength { get; set; } = 1.0;
 
+        public ColorDitheringFx DitheringFx { get; set; }
+
+
 
 
         #endregion
@@ -221,6 +224,9 @@ namespace ColourClashNet.Color.Transformation
                     break;
                 case ColorTransformProperties.DitheringStrength:
                     DitheringStrength = Clamp(value, 0.0, 1.0);
+                    break;
+                case ColorTransformProperties.DitheringFx:
+                    DitheringFx = ToEnum<ColorDitheringFx>(value);
                     break;
                 default:
                     break;
@@ -383,7 +389,7 @@ namespace ColourClashNet.Color.Transformation
                         }
                         else
                         {
-                            var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength);
+                            var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength, DitheringFx);
                             var oImageDataDither = oDithering.Dither(ImageReference, processedImage, ColorDistanceEvaluationMode, token);
                             if (oImageDataDither.IsSuccess)
                             {

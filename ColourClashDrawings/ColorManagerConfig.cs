@@ -51,6 +51,7 @@ namespace ColourClashNet.Drawing
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
         public ColorQuantizationMode ColorQuantizationMode { get; set; } = ColorQuantizationMode.RGB888;
         public ColorDithering DitheringAlgorithm { get; set; } = ColorDithering.FloydSteinberg;
+        public ColorDitheringFx DitheringFx { get; set; } = ColorDitheringFx.Full;
         public double DitheringStrenght { get; set; } = 1.0;
         public List<int> BackgroundColorList { get; set; } = new List<int>();
         public int BackgroundColorReplacement { get; set; } = 0;
@@ -81,6 +82,7 @@ namespace ColourClashNet.Drawing
                 .SetProperty(ColorTransformProperties.CPCVideoMode, CPCScreenMode)
                 .SetProperty(ColorTransformProperties.DitheringType, DitheringAlgorithm)
                 .SetProperty(ColorTransformProperties.DitheringStrength, DitheringStrenght)
+                .SetProperty(ColorTransformProperties.DitheringFx, DitheringFx)
 
                 //.SetProperty(ColorTransformProperties.Fixed_Palette, )
                 .SetProperty(ColorTransformProperties.HsvBrightnessMultFactor, BrightnessEnhancement)
