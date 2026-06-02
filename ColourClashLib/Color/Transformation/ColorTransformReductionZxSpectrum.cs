@@ -187,10 +187,12 @@ namespace ColourClashNet.Color.Transformation
             zxPalette.Add(ColorIntExt.FromRGB(l, l, 0));
             zxPalette.Add(ColorIntExt.FromRGB(l, l, l));
 
-            var zxBaseTransform = new ColorTransformReductionPalette()
-               .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
+            // var zxBaseTransform = new ColorTransformReductionPalette()
+                var zxBaseTransform = new ColorTransformEnhancePalette()
+             .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
                .SetProperty(ColorTransformProperties.PriorityPalette, zxPalette)
                .SetProperty(ColorTransformProperties.DitheringType, DitheringType)
+               //.SetProperty(ColorTransformProperties.DitheringType, ColorDithering.None)
                .SetProperty(ColorTransformProperties.DitheringStrength, DitheringStrength)
                .Create(ImageSource);
             var zxBaseResult = zxBaseTransform.ProcessColors(token);

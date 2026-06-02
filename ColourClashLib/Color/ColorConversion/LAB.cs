@@ -1,5 +1,4 @@
-﻿using ColourClashLib.Color;
-using ColourClashNet.Color;
+﻿using ColourClashNet.Color;
 using System;
 
 namespace ColourClashNet.Color 

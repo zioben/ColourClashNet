@@ -66,6 +66,7 @@ namespace ColourClashNet.Color
         ColorReductionMedianCut,
         ColorReductionSaturation,
         ColorReductionTileBase,
+        ColorReductionEnhancePalette,
     }
 
     /// <summary>
@@ -85,7 +86,8 @@ namespace ColourClashNet.Color
         JarvisJudiceNinke,
         Sierra,
         Stucki,
-        ScanLine
+        ScanLine,
+        ScanLineOdd,
     }
 
     /// <summary>
