@@ -58,10 +58,10 @@ public abstract class DitherErrorDiffusion : DitherBase
 
     public override DitherInterface Create() => this;
 
-    public override ColorTransformResult Dither(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
+    protected override ColorTransformResult DitherImplementation(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
     {
 
-        string sM = nameof(Dither);
+        string sM = nameof(DitherImplementation);
         try
         {
             ImageData.AssertValid(imageReference);
