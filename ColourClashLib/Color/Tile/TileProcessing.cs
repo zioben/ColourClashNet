@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color.Tile;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Color.Tile;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
@@ -63,7 +64,7 @@ public partial class TileProcessing
         }
     }
 
-    public TileProcessing Create(ImageData sourceImage, int sourceX, int sourceY, int tileWidth, int tileHeight, double normalizationError, ColorTransformType colorTransformType, Dictionary<ColorTransformProperties, object> colorTransformParams)
+    public TileProcessing Create(ImageData sourceImage, int sourceX, int sourceY, int tileWidth, int tileHeight, double normalizationError, ColorTransformType colorTransformType, ColorTransformConfig colorTransformParams)
     {
         lock (locker)
         {

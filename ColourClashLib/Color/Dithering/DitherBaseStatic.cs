@@ -1,6 +1,5 @@
 ﻿using ColourClashNet.Color;
 using ColourClashNet.Color.Dithering;
-using ColourClashNet.Defaults;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color.Dithering;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Color.Dithering;
 using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;
@@ -30,8 +31,7 @@ namespace ColourClashNet.Color.Transformation
         }
         void CreatePalette()
         {
-            SetProperty(
-                ColorTransformProperties.PriorityPalette,
+            WithPalette(
                 new List<int>
                 {
                    0x00_00_00_00,
@@ -73,22 +73,37 @@ namespace ColourClashNet.Color.Transformation
             );
         }
 
-        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
-        {
-            base.SetProperty(propertyName, value);
-            switch (propertyName)
-            {
-                case ColorTransformProperties.CPCVideoMode:
-                        VideoMode = ToEnum<CPCVideoMode>(value);
-                    break;
-                default:
-                    break;
-            }
+        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        //{
+        //    base.SetProperty(propertyName, value);
+        //    switch (propertyName)
+        //    {
+        //        case ColorTransformProperties.CPCVideoMode:
+        //                VideoMode = ToEnum<CPCVideoMode>(value);
+        //            break;
+        //        default:
+        //            break;
+        //    }
+        //    return this;
+        //}
+
+        public ColorTransformReductionCPC WithCpcVideoMode(CPCVideoMode videoMode)
+        { 
+            this.VideoMode = videoMode;
             return this;
         }
 
-      
-        ImageData? PreProcess(bool bHalveRes, CancellationToken oToken=default)
+        public ColorTransformReductionCPC WithCpcVideoMode(ColorTransformConfig cfg) => WithCpcVideoMode(cfg);
+
+        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
+        {
+            base.SetProperties(cfg);
+            return WithCpcVideoMode(cfg);
+        }
+       
+
+
+            ImageData? PreProcess(bool bHalveRes, CancellationToken oToken=default)
         {           
             var oTmpData = bHalveRes ? ImageTools.HalveXResolution(ImageSource) : ImageSource;
             var oTmpDataProc = TransformationMap.Transform(oTmpData, oToken);
@@ -98,8 +113,8 @@ namespace ColourClashNet.Color.Transformation
         ImageData? PostProcess(ImageData image, int iMaxColors, bool bDoubleRes, CancellationToken oToken)
         {
             var oRes = new ColorTransformReductionFast()
-                .SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors)
-                .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
+                .WithProcessingParams(iMaxColors)
+                .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
                 .CreateAndProcessColors(image, oToken);
 
             BypassDithering = true;

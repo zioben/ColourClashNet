@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Imaging;
+﻿using ColourClashLib;
+using ColourClashNet.Imaging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -81,7 +82,7 @@ namespace ColourClashNet.Color
                 {
                     if (!rgbTransformationMap.TryGetValue(image.matrix[r, c], out oDataOut[r, c]))
                     {
-                        oDataOut[r, c] = Defaults.ColorDefaults.DefaultInvalidColorInt;
+                        oDataOut[r, c] = ColorDefaults.DefaultInvalidColorInt;
                     }
                 }
             }//);

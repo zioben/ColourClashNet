@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ColourClashLib.Color;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,24 +16,38 @@ namespace ColourClashNet.Color.Transformation
             Description = "Quantitative color reduction";
         }
 
-        public int ColorsMaxWanted { get; set; } = -1;
+        public int MaxColorWanted { get; set; } = -1;
 
-        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
-        {
-            base.SetProperty(propertyName, value);
+        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        //{
+        //    base.SetProperty(propertyName, value);
 
-            switch (propertyName)
-            {
-                case ColorTransformProperties.MaxColorsWanted:
-                        ColorsMaxWanted = ToInt(value);
-                    break;
-                default:
-                    break;
-            }
-            return this;
-        }
+        //    switch (propertyName)
+        //    {
+        //        case ColorTransformProperties.MaxColorsWanted:
+        //                ColorsMaxWanted = ToInt(value);
+        //            break;
+        //        default:
+        //            break;
+        //    }
+        //    return this;
+        //}
 
         //        Palette OutputPalette = new Palette();
+
+        public ColorTransformReductionFast WithProcessingParams(int maxColors)
+        {
+             MaxColorWanted = maxColors;
+            return this;
+        }
+        public ColorTransformReductionFast WithProcessingParams(ColorTransformConfig cfg) => WithProcessingParams(cfg.MaxColorsWanted);
+
+        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
+        {
+            base.SetProperties(cfg);
+            return WithProcessingParams(cfg);
+        }
+
 
         protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken = default)
         {
@@ -41,7 +56,7 @@ namespace ColourClashNet.Color.Transformation
             var SourceHistogram = new HistogramRGB().Create(ImageSource);
             var oTempHist = SourceHistogram.SortColorsDescending();
             var oTempPalette = Palette.MergePalette(PriorityPalette, oTempHist.ToPalette());
-            if (oTempPalette.Count <= ColorsMaxWanted)
+            if (oTempPalette.Count <= MaxColorWanted)
             {
                 foreach (var kvp in SourceHistogram.HistogramDictionary)
                 {
@@ -52,7 +67,7 @@ namespace ColourClashNet.Color.Transformation
             else
             {
                 var listAll = oTempPalette.ToList();
-                var listMax = listAll.Take(ColorsMaxWanted).ToList();
+                var listMax = listAll.Take(MaxColorWanted).ToList();
                 var oPalette = new Palette().Create(listMax);
                 listAll.ForEach(rgbItem =>
                 {

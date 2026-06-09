@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Defaults;
+﻿using ColourClashLib;
+using ColourClashLib.Color;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
@@ -26,27 +27,42 @@ namespace ColourClashNet.Color.Transformation
             Description = "K-Means color reduction";
         }
 
-        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        //{
+        //    base.SetProperty(propertyName, value);
+        //    switch (propertyName)
+        //    {
+        //        case ColorTransformProperties.MaxColorsWanted:
+        //                MaxColorsWanted = ToInt(value);
+        //            break;
+        //        case ColorTransformProperties.ClusterTrainingLoop:
+        //                TrainingLoop = ToInt(value);
+        //            break;
+        //        case ColorTransformProperties.UseColorMean:
+        //                UseClusterColorMean = ToBool(value);
+        //            break;
+        //        default:
+        //            break;
+        //    }
+        //    return this;
+        //}
+
+        public ColorTransformReductionCluster WithProcessingParams(int maxColorsWanted, int trainingLoop, bool useClusterColorMean)
         {
-            base.SetProperty(propertyName, value);
-            switch (propertyName)
-            {
-                case ColorTransformProperties.MaxColorsWanted:
-                        MaxColorsWanted = ToInt(value);
-                    break;
-                case ColorTransformProperties.ClusterTrainingLoop:
-                        TrainingLoop = ToInt(value);
-                    break;
-                case ColorTransformProperties.UseColorMean:
-                        UseClusterColorMean = ToBool(value);
-                    break;
-                default:
-                    break;
-            }
+            MaxColorsWanted = maxColorsWanted;
+            TrainingLoop = trainingLoop;
+            UseClusterColorMean = useClusterColorMean;
             return this;
         }
 
-     
+        public ColorTransformReductionCluster WithClustering(ColorTransformConfig cfg) =>
+         WithProcessingParams(cfg.MaxColorsWanted, cfg.ClusterTrainingLoop, cfg.UseColorMean);
+
+        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
+        {
+            base.SetProperties(cfg);
+            return WithClustering(cfg);
+        }
 
         ColorTransformationMap CreateTransformationMap( HistogramRGB oTempHistogram, List<Tuple<List<int>, Dictionary<int, int>>> lTupleColorCluster)
         {

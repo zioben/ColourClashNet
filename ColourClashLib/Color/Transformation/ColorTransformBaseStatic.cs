@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color.Tile;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Color.Tile;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ namespace ColourClashNet.Color.Transformation
                 throw new ArgumentNullException($"{nameof(transform)}");
         }
 
-        public static ColorTransformInterface CreateColorTransformInterface(ColorTransformType transformType, Dictionary<ColorTransformProperties, object> paramList)
+        public static ColorTransformInterface CreateColorTransformInterface(ColorTransformType transformType, ColorTransformConfig paramList)
         {
             string sMethod = nameof(CreateColorTransformInterface);
             ColorTransformInterface trans = null;
@@ -71,12 +72,7 @@ namespace ColourClashNet.Color.Transformation
                     throw new ArgumentOutOfRangeException(sMethod, $"Transform type {transformType} not recognised");
             }
 
-            if (trans is ColorTransformBase transBase)
-            {
-                foreach (var kvp in paramList)
-                    transBase.SetProperty(kvp.Key, kvp.Value);
-            }
-            return trans;
+            return trans.SetProperties(paramList);
         }
     }
 }

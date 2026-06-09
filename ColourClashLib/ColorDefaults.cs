@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Defaults
+namespace ColourClashLib
 {
     public static class ColorDefaults
     {

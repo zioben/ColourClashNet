@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Imaging;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,19 +35,22 @@ namespace ColourClashNet.Color.Transformation
         //------------------------------------------------------------
 
         //------------------------------------------------------------
+
+        ColorTransformInterface SetProperties(ColorTransformConfig cfg);
+
         //ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue);
 
-        ColorTransformInterface SetProperty(ColorTransformProperties propertyName, int value);
-        ColorTransformInterface SetProperty(ColorTransformProperties propertyName, double value);
-        ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Palette value);
-        ColorTransformInterface SetProperty(ColorTransformProperties propertyName, List<int> value);
-        ColorTransformInterface SetProperty(ColorTransformProperties propertyName, IEnumerable<int> value);
-        ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorDistanceEvaluationMode value);
-        ColorTransformInterface SetProperty(ColorTransformProperties propertyName, string value);
-        ColorTransformInterface SetProperty(ColorTransformProperties propertyName, decimal value);
-        ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorDithering value);
-        ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Boolean value);
-        ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Enum value);
+        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, int value);
+        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, double value);
+        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Palette value);
+        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, List<int> value);
+        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, IEnumerable<int> value);
+        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorDistanceEvaluationMode value);
+        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, string value);
+        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, decimal value);
+        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorDithering value);
+        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Boolean value);
+        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Enum value);
 
         //------------------------------------------------------------
 

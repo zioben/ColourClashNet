@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Color;
 using ColourClashNet.Color.Dithering;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Drawing;
@@ -41,7 +42,7 @@ namespace ColourClashNet.Components
        
 //        public Dictionary<string, object> DataParameters = new Dictionary<string, object>();
 
-        public ColorManagerConfig Config { get; private set; }
+        public ColorTransformConfig Config { get; private set; }
 
         ColorTransformInterface oTrasformSource;
         ColorTransformInterface oTrasformBkgRemover;
@@ -92,7 +93,7 @@ namespace ColourClashNet.Components
             string sMethod = nameof(Reset);
             try
             {
-                Config = new ColorManagerConfig();
+                Config = new ColorTransformConfig();
                 //DataParameters = new Dictionary<string, object>();
                 oTrasformSource = new ColorTransformIdentity();
                 oTrasformBkgRemover = new ColorTransformBkgRemover();
@@ -186,17 +187,16 @@ namespace ColourClashNet.Components
 
                 LogMan.Trace(sClass, sMethod, "Process Bkg Remover");
                 oTrasformBkgRemover
-                    .Create(DataSourceX)
-                    .SetProperty(ColorTransformProperties.ColorBackgroundReplacement, Config.BackgroundColorReplacement)
-                    .SetProperty(ColorTransformProperties.ColorBackgroundList, Config.BackgroundColorList);                
+                    .SetProperties(Config)
+                    .Create(DataSourceX);
                 var DataBkgRemovedRes = oTrasformBkgRemover.ProcessColors(cts.Token);
                 DataBkgRemoved = DataBkgRemovedRes.DataOut;
                 ImageBkgRemoved = ImageToolsGDI.ImageDataToGdiImage(DataBkgRemoved);
 
                 LogMan.Trace(sClass, sMethod, "Process Quantizer");
                 oTrasformQuantizer
-                    .Create(DataBkgRemoved)
-                    .SetProperty(ColorTransformProperties.QuantizationMode, Config.ColorQuantizationMode);
+                    .SetProperties(Config)
+                    .Create(DataBkgRemoved);
                 var DataQuantizedRes = oTrasformQuantizer.ProcessColors(cts.Token);
                 DataQuantized = DataQuantizedRes.DataOut;
                 ImageQuantized = ImageToolsGDI.ImageDataToGdiImage(DataQuantized);
@@ -244,87 +244,49 @@ namespace ColourClashNet.Components
                 {
                     case ColorTransformType.ColorReductionFast:
                         {
-                            var oTrasf = new ColorTransformReductionFast();
-                            //oTrasf.ColorsMaxWanted = Config.ColorsMax;
-                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
-                            oTrasformProcessing = oTrasf;
+                            oTrasformProcessing = new ColorTransformReductionFast();
                         }
                         break;
                     case ColorTransformType.ColorReductionClustering:
                         {
-                            var oTrasf = new ColorTransformReductionCluster();
-                            //oTrasf.ColorsMaxWanted = Config.ColorsMax;
-                            //oTrasf.TrainingLoop = Config.ClusteringTrainingLoop;
-                            //oTrasf.UseClusterColorMean = Config.ClusteringUseMeanColor;
-                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
-                            oTrasformProcessing = oTrasf;
+                            oTrasformProcessing = new ColorTransformReductionCluster();
                         }
                         break;
                     case ColorTransformType.ColorReductionScanline:
                         {
-                            var oTrasf = new ColorTransformReductionScanLine();
-                            //oTrasf.ColorsMaxWanted = Config.ColorsMax;
-                            //oTrasf.LineReductionMaxColors = Config.ScanlineColorsMax;
-                            //oTrasf.LineReductionClustering = Config.ScanlineClustering;
-                            //oTrasf.CreateSharedPalette = Config.ScanlineSharedPalette;
-                            //oTrasf.UseColorMean = Config.ClusteringUseMeanColor;
-                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
-                            oTrasformProcessing = oTrasf;
+                            oTrasformProcessing = new ColorTransformReductionScanLine();
                         }
                         break;
                     case ColorTransformType.ColorReductionZxSpectrum:
                         {
-                            var oTrasf = new ColorTransformReductionZxSpectrum();
-                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
-                            //oTrasf.ColL = Config.ZxEqColorLO;
-                            //oTrasf.ColH = Config.ZxEqColorHI;
-                            //oTrasf.AutoTune = Config.ZxEqAutotune;
-                            //oTrasf.DitherHighColor = Config.ZxEqDitherHI;
-                            //oTrasf.IncludeBlackInHighColor = Config.ZxEqBlackHI;
-                            oTrasformProcessing = oTrasf;
+                            oTrasformProcessing = new ColorTransformReductionZxSpectrum();
                         }
                         break;
                     case ColorTransformType.ColorReductionEga:
                         {
-                            var oTrasf = new ColorTransformReductionEGA();
-                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
-                            oTrasformProcessing = oTrasf;
+                            oTrasformProcessing = new ColorTransformReductionEGA();
                         }
                         break;
                     case ColorTransformType.ColorReductionCBM64:
                         {
-                            var oTrasf = new ColorTransformReductionC64();
-                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
-                            //oTrasf.VideoMode = Config.C64ScreenMode;
-                            oTrasformProcessing = oTrasf;
+                            oTrasformProcessing = new ColorTransformReductionC64();
                         }
                         break;
 
                     case ColorTransformType.ColorReductionCPC:
                         {
-                            var oTrasf = new ColorTransformReductionCPC();
-                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
-                            //oTrasf.VideoMode = Config.CPCScreenMode;
-                            oTrasformProcessing = oTrasf;
+                            oTrasformProcessing = new ColorTransformReductionCPC();
                         }
                         break;
 
                     case ColorTransformType.ColorReductionMedianCut:
                         {
-                            var oTrasf = new ColorTransformReductionMedianCut();
-                            //oTrasf.ColorsMaxWanted = Config.ColorsMax;
-                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
-                            oTrasformProcessing = oTrasf;
+                            oTrasformProcessing = new ColorTransformReductionMedianCut();
                         }
                         break;
                     case ColorTransformType.ColorReductionSaturation:
                         {
-                            var oTrasf = new ColorTransformLumSat();
-                            //oTrasf.SaturationMultFactor = Config.SaturationEnhancement;
-                            //oTrasf.BrightnessMultFactor = Config.BrightnessEnhancement;
-                            //oTrasf.HueShift = Config.HsvHueOffset;
-                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
-                            oTrasformProcessing = oTrasf;
+                            oTrasformProcessing = new ColorTransformLumSat();
                         }
                         break;
                     case ColorTransformType.ColorReductionHam:
@@ -340,7 +302,8 @@ namespace ColourClashNet.Components
                         oTrasformProcessing = null;
                         return null;
                 }
-                Config.SetProperties(oTrasformProcessing);
+                oTrasformProcessing.SetProperties(Config);
+//                Config.SetProperties(oTrasformProcessing);
                 if (InvalidatePreProcess)
                 {
                     PreProcess();

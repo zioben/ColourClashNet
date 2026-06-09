@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Color;
 using ColourClashNet.Color.Dithering;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
@@ -79,7 +80,7 @@ public partial class TileManager
         }
     }
 
-    public TileManager Create(int tileWidth, int tileHeight, ImageData image, double normalizationError, ColorTransformType processingType, Dictionary<ColorTransformProperties, object> processingParameters , CancellationToken oToken=default)
+    public TileManager Create(int tileWidth, int tileHeight, ImageData image, double normalizationError, ColorTransformType processingType, ColorTransformConfig processingParameters , CancellationToken oToken=default)
     {
 
         string sM = nameof(Create);

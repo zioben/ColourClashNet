@@ -1,8 +1,10 @@
-﻿using ColourClashNet.Log;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Log;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -23,36 +25,51 @@ namespace ColourClashNet.Color.Transformation
         public int ColorBackgroundReplacement { get; set; } = 0;
 
 
-        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        //{
+        //    base.SetProperty(propertyName, value);
+        //    switch (propertyName)
+        //    {
+        //        case ColorTransformProperties.ColorBackgroundList:
+        //            {
+        //                BackgroundPalette = new Palette();
+        //                if (value is IEnumerable<int> palette1)
+        //                    BackgroundPalette = new Palette().Create(palette1);
+        //                else if (value is IEnumerable<int> palette2)
+        //                    BackgroundPalette = new Palette().Create(palette2);
+        //                else if (value is Palette palette3)
+        //                    BackgroundPalette = new Palette().Create(palette3);
+        //                else
+        //                    throw new ArgumentException($"Invalid value type for {propertyName}: {value.GetType().Name}");
+        //            }
+        //            break;
+        //        case ColorTransformProperties.ColorBackgroundReplacement:
+        //            if (value is int rgb)
+        //                ColorBackgroundReplacement = rgb;
+        //            else if (value is ColorConverterInterface col)
+        //                ColorBackgroundReplacement = col.ToIntRGB();
+        //            else
+        //                throw new ArgumentException($"Invalid value type for {propertyName}: {value.GetType().Name}");
+        //            break;
+        //        default:
+        //            break;
+        //    }
+        //    return this;
+        //}
+
+        public ColorTransformInterface WithColorReplacement( Palette colorPalette, int replacementColor)
         {
-            base.SetProperty(propertyName, value);
-            switch (propertyName)
-            {
-                case ColorTransformProperties.ColorBackgroundList:
-                    {
-                        BackgroundPalette = new Palette();
-                        if (value is IEnumerable<int> palette1)
-                            BackgroundPalette = new Palette().Create(palette1);
-                        else if (value is IEnumerable<int> palette2)
-                            BackgroundPalette = new Palette().Create(palette2);
-                        else if (value is Palette palette3)
-                            BackgroundPalette = new Palette().Create(palette3);
-                        else
-                            throw new ArgumentException($"Invalid value type for {propertyName}: {value.GetType().Name}");
-                    }
-                    break;
-                case ColorTransformProperties.ColorBackgroundReplacement:
-                    if (value is int rgb)
-                        ColorBackgroundReplacement = rgb;
-                    else if (value is ColorConverterInterface col)
-                        ColorBackgroundReplacement = col.ToIntRGB();
-                    else
-                        throw new ArgumentException($"Invalid value type for {propertyName}: {value.GetType().Name}");
-                    break;
-                default:
-                    break;
-            }
+            BackgroundPalette = new Palette().Create(colorPalette);
+            ColorBackgroundReplacement = replacementColor;
             return this;
+        }
+
+        public ColorTransformInterface WithColorReplacement(ColorTransformConfig cfg) => WithColorReplacement(cfg.ColorBackgroundList, cfg.ColorBackgroundReplacement);
+
+        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
+        {
+            base.SetProperties(cfg);
+            return WithColorReplacement(cfg);
         }
 
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)

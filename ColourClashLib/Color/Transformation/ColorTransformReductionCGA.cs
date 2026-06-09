@@ -44,8 +44,7 @@ namespace ColourClashNet.Color.Transformation
 
         void CreatePalette()
         {
-            SetProperty(
-               ColorTransformProperties.PriorityPalette,
+            WithPalette(
                new List<int>
                {
                     0x00000000,

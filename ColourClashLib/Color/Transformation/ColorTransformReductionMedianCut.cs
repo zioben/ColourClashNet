@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ColourClashLib.Color;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -16,27 +17,44 @@ namespace ColourClashNet.Color.Transformation
             Description = "Median partition color reduction";
         }
 
-        public int ColorsMaxWanted { get; set; } = -1;
+        public int MaxColorsWanted { get; set; } = -1;
         public bool UseColorMean { get; set; } = true;
 
-        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
-        {
-            base.SetProperty(propertyName, value);
+        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        //{
+        //    base.SetProperty(propertyName, value);
 
-            switch (propertyName)
-            {
-                case ColorTransformProperties.MaxColorsWanted:                 
-                        ColorsMaxWanted = ToInt(value);
-                    break;
+        //    switch (propertyName)
+        //    {
+        //        case ColorTransformProperties.MaxColorsWanted:                 
+        //                ColorsMaxWanted = ToInt(value);
+        //            break;
                
-                case ColorTransformProperties.UseColorMean:
-                        UseColorMean = ToBool(value);
-                    break;
-                default:
-                    break;
-            }
+        //        case ColorTransformProperties.UseColorMean:
+        //                UseColorMean = ToBool(value);
+        //            break;
+        //        default:
+        //            break;
+        //    }
+        //    return this;
+        //}
+
+        public ColorTransformReductionMedianCut WithProcessingParams(int maxColors, bool useColorMean)
+        {
+            MaxColorsWanted = maxColors;
+            UseColorMean = useColorMean;
             return this;
         }
+
+        public ColorTransformReductionMedianCut WithProcessingParams(ColorTransformConfig cfg) => WithProcessingParams(cfg.MaxColorsWanted, cfg.UseColorMean);
+
+
+        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
+        {
+            base.SetProperties(cfg);
+            return WithProcessingParams(cfg);
+        }
+
 
 
         int GetMedian(List<int> lList)
@@ -143,7 +161,7 @@ namespace ColourClashNet.Color.Transformation
         {
             OutputPalette = new Palette();
             var SourceHistogram = new HistogramRGB().Create(ImageSource);
-            if (SourceHistogram.ToPalette().Count < ColorsMaxWanted)
+            if (SourceHistogram.ToPalette().Count < MaxColorsWanted)
             {
                 foreach (var kvp in SourceHistogram.HistogramDictionary)
                 {
@@ -153,7 +171,7 @@ namespace ColourClashNet.Color.Transformation
             }
             else
             {
-                int iColorsMax = Math.Min(256, Math.Max(2, ColorsMaxWanted));
+                int iColorsMax = Math.Min(256, Math.Max(2, MaxColorsWanted));
                 Partition(SourceHistogram.ToPalette(), iColorsMax / 2);
                 OutputPalette = TransformationMap.GetOutputPalette();
             }

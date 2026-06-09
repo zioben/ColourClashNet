@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color.Dithering;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Color.Dithering;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
@@ -151,11 +152,12 @@ namespace ColourClashNet.Color.Transformation
                     semaphore.Release();
             }
         }
+        public ColorTransformInterface Create(ImageData sourceImage)
+           => Create(sourceImage, null);
 
         #endregion
 
-        public ColorTransformInterface Create(ImageData sourceImage)
-            => Create(sourceImage, null);
+        #region math/conversion
 
         protected T Clamp<T>(T value, T min, T max) where T : IComparable<T>
         {
@@ -163,6 +165,11 @@ namespace ColourClashNet.Color.Transformation
             else if (value.CompareTo(max) > 0) return max;
             else return value;
         }
+        protected double Clamp(object value, double min, double max)
+        {
+            return Math.Min(Math.Max(ToDouble(value), min), max);
+        }
+
 
         protected double ToDouble(object value)
         {
@@ -195,79 +202,126 @@ namespace ColourClashNet.Color.Transformation
             throw new ArgumentException($"Invalid value for enum conversion to {typeof(T).Name}: {value}", nameof(value));
         }
 
-        protected double Clamp(object value, double min, double max)
-        {
-            return Math.Min(Math.Max(ToDouble(value), min), max);
-        }
+        #endregion
 
-        protected internal virtual ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        #region property
+
+        //protected internal virtual ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        //{
+        //    string sM = nameof(SetProperty);
+        //    switch (propertyName)
+        //    {
+        //        case ColorTransformProperties.ColorDistanceEvaluationMode:
+        //            ColorDistanceEvaluationMode = ToEnum<ColorDistanceEvaluationMode>(value);
+        //            break;
+        //        case ColorTransformProperties.PriorityPalette:
+        //            if (value is IEnumerable<int> palette1)
+        //                PriorityPalette = new Palette().Create(palette1);
+        //            if (value is List<int> palette2)
+        //                PriorityPalette = new Palette().Create(palette2);
+        //            else if (value is Palette palette3)
+        //                PriorityPalette = new Palette().Create(palette3);
+        //            else
+        //                throw new ArgumentException($"{Type} : Invalid value for {propertyName} ");
+        //            break;
+        //        case ColorTransformProperties.DitheringType:
+        //            DitheringType = ToEnum<ColorDithering>(value);
+        //            break;
+        //        case ColorTransformProperties.DitheringStrength:
+        //            DitheringStrength = Clamp(value, 0.0, 1.0);
+        //            break;
+        //        case ColorTransformProperties.DitheringFx:
+        //            DitheringFx = ToEnum<ColorDitheringFx>(value);
+        //            break;
+        //        default:
+        //            break;
+        //    }
+        //    return this;
+        //}
+
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, int value)
+        //    => SetProperty(propertyName, (object)value);
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, double value)
+        //    => SetProperty(propertyName, (object)value);
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Palette value)
+        //    => SetProperty(propertyName, (object)value);
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, List<int> value)
+        //    => SetProperty(propertyName, (object)value);
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, IEnumerable<int> value)
+        //    => SetProperty(propertyName, (object)value);
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorDistanceEvaluationMode value)
+        //    => SetProperty(propertyName, (object)value);
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, string value)
+        //    => SetProperty(propertyName, (object)value);
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, decimal value)
+        //    => SetProperty(propertyName, (object)value);
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorDithering value)
+        //    => SetProperty(propertyName, (object)value);
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Boolean value)
+        //    => SetProperty(propertyName, (object)value);
+
+        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Enum value)
+        //    => SetProperty(propertyName, (object)value);
+
+        #endregion
+
+        #region with helpers
+        public ColorTransformBase WithDithering(ColorDithering ditheringType, double strength = 1.0, ColorDitheringFx fx = ColorDitheringFx.Full)
         {
-            string sM = nameof(SetProperty);
-            switch (propertyName)
-            {
-                case ColorTransformProperties.ColorDistanceEvaluationMode:
-                    ColorDistanceEvaluationMode = ToEnum<ColorDistanceEvaluationMode>(value);
-                    break;
-                case ColorTransformProperties.PriorityPalette:
-                    if (value is IEnumerable<int> palette1)
-                        PriorityPalette = new Palette().Create(palette1);
-                    if (value is List<int> palette2)
-                        PriorityPalette = new Palette().Create(palette2);
-                    else if (value is Palette palette3)
-                        PriorityPalette = new Palette().Create(palette3);
-                    else
-                        throw new ArgumentException($"{Type} : Invalid value for {propertyName} ");
-                    break;
-                case ColorTransformProperties.DitheringType:
-                    DitheringType = ToEnum<ColorDithering>(value);
-                    break;
-                case ColorTransformProperties.DitheringStrength:
-                    DitheringStrength = Clamp(value, 0.0, 1.0);
-                    break;
-                case ColorTransformProperties.DitheringFx:
-                    DitheringFx = ToEnum<ColorDitheringFx>(value);
-                    break;
-                default:
-                    break;
-            }
+            DitheringType = ditheringType;
+            DitheringStrength = Clamp(strength, 0.0, 1.0);
+            DitheringFx = fx;
             return this;
         }
 
-        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, int value)
-            => SetProperty(propertyName, (object)value);
-        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, double value)
-            => SetProperty(propertyName, (object)value);
-        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Palette value)
-            => SetProperty(propertyName, (object)value);
-        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, List<int> value)
-            => SetProperty(propertyName, (object)value);
-        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, IEnumerable<int> value)
-            => SetProperty(propertyName, (object)value);
-        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorDistanceEvaluationMode value)
-            => SetProperty(propertyName, (object)value);
-        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, string value)
-            => SetProperty(propertyName, (object)value);
-        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, decimal value)
-            => SetProperty(propertyName, (object)value);
-        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorDithering value)
-            => SetProperty(propertyName, (object)value);
-        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Boolean value)
-            => SetProperty(propertyName, (object)value);
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorQuantizationMode value)
-        //    => SetProperty(propertyName, (object)value);
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, EnumAmigaVideoMode value)
-        //    => SetProperty(propertyName, (object)value);
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, EnumHamColorProcessingMode value)
-        //    => SetProperty(propertyName, (object)value);
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, C64VideoMode value)
-        //    => SetProperty(propertyName, (object)value);
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, CPCVideoMode value)
-        //    => SetProperty(propertyName, (object)value);
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ZxPaletteMode value)
-        //    => SetProperty(propertyName, (object)value);
-        public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Enum value)
-            => SetProperty(propertyName, (object)value);
+        public ColorTransformBase WithDithering(ColorTransformConfig cfg) => WithDithering(cfg.DitheringType, cfg.DitheringStrength, cfg.DitheringFx);
 
+        public ColorTransformBase WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode mode)
+        {
+            ColorDistanceEvaluationMode = mode;
+            return this;
+        }
+
+        public ColorTransformBase WithColorDistanceEvaluationMode(ColorTransformConfig cfg) => WithColorDistanceEvaluationMode(cfg.ColorDistanceEvaluationMode);
+
+
+        public ColorTransformBase WithPalette(Palette palette)
+        {
+            PriorityPalette = new Palette().Create(palette);
+            return this;
+        }
+
+        public ColorTransformBase WithPalette(IEnumerable<int> palette)
+        {
+            PriorityPalette = new Palette().Create(palette);
+            return this;
+        }
+
+        public ColorTransformBase WithPalette(List<int> palette)
+        {
+            PriorityPalette = new Palette().Create(palette);
+            return this;
+        }
+
+        public ColorTransformBase WithPalette(params int[] palette)
+        {
+            PriorityPalette = new Palette().Create(palette);
+            return this;
+        }
+
+        public ColorTransformBase WithPalette(ColorTransformConfig cfg) => WithPalette(cfg.PriorityPalette);
+
+        public virtual ColorTransformInterface SetProperties(ColorTransformConfig cfg)
+        {
+            WithDithering(cfg);
+            WithColorDistanceEvaluationMode(cfg);
+            WithPalette(cfg);
+            return this;           
+        }
+
+
+
+        #endregion
         internal ColorProcessingEventArgs CreateTransformEventArgs(CancellationTokenSource tokenSource, ColorTransformResult result)
             => new ColorProcessingEventArgs()
             {

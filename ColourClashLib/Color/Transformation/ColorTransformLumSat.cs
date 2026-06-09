@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Imaging;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
@@ -23,24 +24,40 @@ namespace ColourClashNet.Color.Transformation
         public double BrightnessMultFactor { get; set; } = 1.0;
 
 
-        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
+        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue)
+        //{
+        //    base.SetProperty(eProperty, oValue);
+        //    switch (eProperty)
+        //    {
+        //        case ColorTransformProperties.HsvHueShift:
+        //            HueShift = Clamp(oValue, -180, 180);
+        //            break;
+        //        case ColorTransformProperties.HsvBrightnessMultFactor:
+        //            BrightnessMultFactor = ToDouble(oValue);
+        //            break;
+        //        case ColorTransformProperties.HsvSaturationMultFactor:
+        //            SaturationMultFactor = ToDouble(oValue);
+        //            break;
+        //        default:
+        //            break;
+        //    }
+        //    return this;
+        //}
+
+        public ColorTransformLumSat WithHueShiftValue(double hueShift, double saturationMultFactor, double brightnessMultFactor)
         {
-            base.SetProperty(eProperty, oValue);
-            switch (eProperty)
-            {
-                case ColorTransformProperties.HsvHueShift:
-                    HueShift = Clamp(oValue, -180, 180);
-                    break;
-                case ColorTransformProperties.HsvBrightnessMultFactor:
-                    BrightnessMultFactor = ToDouble(oValue);
-                    break;
-                case ColorTransformProperties.HsvSaturationMultFactor:
-                    SaturationMultFactor = ToDouble(oValue);
-                    break;
-                default:
-                    break;
-            }
+            HueShift = Clamp(hueShift, -180, 180);
+            SaturationMultFactor = saturationMultFactor;
+            BrightnessMultFactor = brightnessMultFactor;
             return this;
+        }
+    
+        public ColorTransformLumSat WithHueShiftValue(ColorTransformConfig cfg) => WithHueShiftValue(cfg.HsvHueShift, cfg.HsvSaturationMultFactor, cfg.HsvBrightnessMultFactor);
+
+        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
+        {
+            base.SetProperties(cfg);
+            return WithHueShiftValue(cfg);
         }
 
         // Not Needed

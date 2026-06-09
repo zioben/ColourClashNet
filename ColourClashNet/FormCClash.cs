@@ -144,9 +144,9 @@ namespace ColourClashNet
         void MenuRebuildSetChecks()
         {
             lTsItemsSetup.ForEach(X => X.Checked = false);
-            MenuRebulidSetCheck(selectedColorAnalyzer?.Config.ColorQuantizationMode.ToString());
+            MenuRebulidSetCheck(selectedColorAnalyzer?.Config.QuantizationMode.ToString());
             MenuRebulidSetCheck(selectedColorAnalyzer?.Config.ColorDistanceEvaluationMode.ToString());
-            MenuRebulidSetCheck(selectedColorAnalyzer?.Config.DitheringAlgorithm.ToString());
+            MenuRebulidSetCheck(selectedColorAnalyzer?.Config.DitheringType.ToString());
             MenuRebulidSetCheck(selectedColorAnalyzer?.Config.DitheringFx.ToString());
             lTsItemsResolution.ForEach(X => X.Checked = false);
             MenuRebulidSetCheck(selectedColorAnalyzer?.WantedRes);
@@ -158,7 +158,7 @@ namespace ColourClashNet
             var oTag = oTS.Tag;
             if (oTag is ColorQuantizationMode)
             {
-                selectedColorAnalyzer.Config.ColorQuantizationMode = (ColorQuantizationMode)oTag;
+                selectedColorAnalyzer.Config.QuantizationMode = (ColorQuantizationMode)oTag;
                 selectedColorAnalyzer.Preprocess();
             }
             else if (oTag is ColorDistanceEvaluationMode)
@@ -167,7 +167,7 @@ namespace ColourClashNet
             }
             else if (oTag is ColorDithering)
             {
-                selectedColorAnalyzer.Config.DitheringAlgorithm = (ColorDithering)oTag;
+                selectedColorAnalyzer.Config.DitheringType = (ColorDithering)oTag;
             }
             else if (oTag is ColorDitheringFx)
             {

@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Defaults;
+﻿using ColourClashLib;
+using ColourClashLib.Color;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
@@ -41,31 +42,47 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        //{
+        //    base.SetProperty(propertyName, value);
+        //    switch (propertyName)
+        //    {
+        //        case ColorTransformProperties.AmigaVideoMode:
+        //                AmigaVideoMode = ToEnum<EnumAmigaVideoMode>(value);
+        //            break;
+        //        case ColorTransformProperties.AmigaHamColorProcessingMode:
+        //                HamColorProcessingMode = ToEnum<EnumHamColorProcessingMode>(value);
+        //            break;
+        //        default:
+        //            break;
+        //    }
+        //    return this;
+        //}
+
+        public ColorTransformReductionAmiga WithAmigaProperties(EnumAmigaVideoMode mode, EnumHamColorProcessingMode hamModeProcessing )
         {
-            base.SetProperty(propertyName, value);
-            switch (propertyName)
-            {
-                case ColorTransformProperties.AmigaVideoMode:
-                        AmigaVideoMode = ToEnum<EnumAmigaVideoMode>(value);
-                    break;
-                case ColorTransformProperties.AmigaHamColorProcessingMode:
-                        HamColorProcessingMode = ToEnum<EnumHamColorProcessingMode>(value);
-                    break;
-                default:
-                    break;
-            }
+            AmigaVideoMode = mode;
+            HamColorProcessingMode = hamModeProcessing;
             return this;
         }
 
-      
+        public ColorTransformReductionAmiga WithAmigaProperties(ColorTransformConfig cfg) => WithAmigaProperties(cfg.AmigaVideoMode, cfg.AmigaHamColorProcessingMode);
 
 
-        // Not Needed
-        // protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
+
+        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
+        {
+            base.SetProperties(cfg);
+            return WithAmigaProperties(cfg);
+        }
 
 
-        ImageData ToHam(ImageData oDataSource, ImageData oDataPreProcessed, ColorQuantizationMode eQuantization)
+
+            // Not Needed
+            // protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
+
+
+            ImageData ToHam(ImageData oDataSource, ImageData oDataPreProcessed, ColorQuantizationMode eQuantization)
         {
 
             var oQuantization = new ColorTransformQuantization();
@@ -128,12 +145,10 @@ namespace ColourClashNet.Color.Transformation
             string sM = nameof(ExecuteTransform);
 
             ColorTransformInterface oColorReduction;
-            var oQuantization = new ColorTransformQuantization()
-                .SetProperty(ColorTransformProperties.PriorityPalette, PriorityPalette)
-                .SetProperty(ColorTransformProperties.DitheringType, DitheringType)
-                .SetProperty(ColorTransformProperties.DitheringStrength, DitheringStrength)
-                .SetProperty(ColorTransformProperties.DitheringFx, DitheringFx)
-               ;
+            var oQuantization = new ColorTransformQuantization();
+            oQuantization.WithQuantization(ColorQuantizationMode.RGB444)
+                         .WithPalette(PriorityPalette)
+                         .WithDithering(DitheringType, DitheringStrength, DitheringFx);
 
             int iMaxColors = 0;
 
@@ -141,15 +156,15 @@ namespace ColourClashNet.Color.Transformation
             {
                 case EnumAmigaVideoMode.ExtraHalfBright:
                     iMaxColors = 64;
-                    oQuantization.SetProperty(ColorTransformProperties.QuantizationMode, ColorQuantizationMode.RGB444);
+                    oQuantization.WithQuantization(ColorQuantizationMode.RGB444);
                     break;
                 case EnumAmigaVideoMode.Ham6:
                     iMaxColors = 16;
-                    oQuantization.SetProperty(ColorTransformProperties.QuantizationMode, ColorQuantizationMode.RGB444);
+                    oQuantization.WithQuantization(ColorQuantizationMode.RGB444);
                     break;
                 case EnumAmigaVideoMode.Ham8:
                     iMaxColors = 64;
-                    oQuantization.SetProperty(ColorTransformProperties.QuantizationMode, ColorQuantizationMode.RGB666);
+                    oQuantization.WithQuantization(ColorQuantizationMode.RGB666);
                     break;
                 default:
                     return null;
@@ -163,24 +178,17 @@ namespace ColourClashNet.Color.Transformation
                 case  EnumHamColorProcessingMode.Fast:
                     {
                         oColorReduction = new ColorTransformReductionMedianCut()
-                            .SetProperty(ColorTransformProperties.UseColorMean, true)
-                            .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
-                            .SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors)
-                            .SetProperty(ColorTransformProperties.DitheringType, DitheringType)
-                            .SetProperty(ColorTransformProperties.DitheringStrength, DitheringStrength)
-                            .SetProperty(ColorTransformProperties.DitheringFx, DitheringFx);
+                            .WithProcessingParams(iMaxColors, true)
+                            .WithDithering(DitheringType, DitheringStrength, DitheringFx)
+                            .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
                     }
                     break;
                 case EnumHamColorProcessingMode.Detailed:
                     {
                         oColorReduction = new ColorTransformReductionCluster()
-                            .SetProperty(ColorTransformProperties.UseColorMean, true)
-                            .SetProperty(ColorTransformProperties.ColorDistanceEvaluationMode, ColorDistanceEvaluationMode)
-                            .SetProperty(ColorTransformProperties.MaxColorsWanted, iMaxColors)
-                            .SetProperty(ColorTransformProperties.DitheringType, DitheringType)
-                            .SetProperty(ColorTransformProperties.DitheringStrength, DitheringStrength)
-                            .SetProperty(ColorTransformProperties.DitheringFx, DitheringFx)
-                            .SetProperty(ColorTransformProperties.ClusterTrainingLoop, 10);
+                            .WithProcessingParams(iMaxColors, 10, true)
+                            .WithDithering(DitheringType, DitheringStrength, DitheringFx)
+                            .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
                     }
                     break;
             }

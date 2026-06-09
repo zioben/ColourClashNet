@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
 using System;
@@ -26,40 +27,57 @@ namespace ColourClashNet.Color.Transformation
         public List<UInt16> ColorListMask { get; private set; } = new List<UInt16>();
         public bool UseColorMean { get; set; } = true;
 
-        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        //{
+        //    base.SetProperty(propertyName, value);
+
+        //    switch (propertyName)
+        //    {
+        //        case ColorTransformProperties.UseFixedPalette:
+        //            CreateSharedPalette=ToBool(value);
+        //            break;
+
+        //        case ColorTransformProperties.MaxColorsWanted:
+        //            ColorsMaxWanted = ToInt(value);
+        //            break;
+
+        //        case ColorTransformProperties.UseClustering:
+        //            LineReductionClustering = ToBool(value);
+        //            break;
+        //        case ColorTransformProperties.UseColorMean:
+        //                UseColorMean = ToBool(value);
+        //            break;
+        //        case ColorTransformProperties.MaxColorChangePerLine:
+        //            LineReductionMaxColors = ToInt(value);
+        //            break;
+        //        case ColorTransformProperties.UseSharedPalette:
+        //            CreateSharedPalette = ToBool(value);
+        //            break;
+        //        default:
+        //            break;
+        //    }
+        //    return this;
+        //}
+
+        public ColorTransformReductionScanLine WithProcessingParams(bool createSharedPalette, int colorsMaxWanted, int lineReductionMaxColors, bool lineReductionClustering, bool useColorMean)
         {
-            base.SetProperty(propertyName, value);
-
-            switch (propertyName)
-            {
-                case ColorTransformProperties.UseFixedPalette:
-                    CreateSharedPalette=ToBool(value);
-                    break;
-
-                case ColorTransformProperties.MaxColorsWanted:
-                    ColorsMaxWanted = ToInt(value);
-                    break;
-
-                case ColorTransformProperties.UseClustering:
-                    LineReductionClustering = ToBool(value);
-                    break;
-                case ColorTransformProperties.UseColorMean:
-                        UseColorMean = ToBool(value);
-                    break;
-                case ColorTransformProperties.MaxColorChangePerLine:
-                    LineReductionMaxColors = ToInt(value);
-                    break;
-                case ColorTransformProperties.UseSharedPalette:
-                    CreateSharedPalette = ToBool(value);
-                    break;
-                default:
-                    break;
-            }
+            CreateSharedPalette = createSharedPalette;
+            ColorsMaxWanted = colorsMaxWanted;
+            LineReductionMaxColors = lineReductionMaxColors;
+            LineReductionClustering = lineReductionClustering;
+            UseColorMean = useColorMean;
             return this;
         }
 
 
+        public ColorTransformReductionScanLine WithReductionScanLine(ColorTransformConfig cfg) 
+            => WithProcessingParams(cfg.UseSharedPalette, cfg.MaxColorsWanted, cfg.MaxColorChangePerLine, cfg.UseClustering, cfg.UseColorMean);
 
+        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
+        {
+            base.SetProperties(cfg);
+            return WithReductionScanLine(cfg);
+        }
 
         protected override ColorTransformResult ExecuteTransform(CancellationToken oToken=default)
         {
@@ -88,19 +106,17 @@ namespace ColourClashNet.Color.Transformation
                     if (LineReductionClustering)
                     {
                         var oTrasf2 = new ColorTransformReductionCluster()
-                        .SetProperty(ColorTransformProperties.MaxColorsWanted, ColorsMaxWanted)
-                        .SetProperty(ColorTransformProperties.UseColorMean, UseColorMean)
-                        .SetProperty(ColorTransformProperties.ClusterTrainingLoop, 30)
-                        .SetProperty(ColorTransformProperties.PriorityPalette, oLineFixedPalette)
-                        .SetProperty(ColorTransformProperties.DitheringType, DitheringType);
+                        .WithProcessingParams(ColorsMaxWanted, 30, UseColorMean)
+                        .WithPalette(oLineFixedPalette)
+                        .WithDithering(DitheringType);
                         oLineTrasf = oTrasf2;
                     }
                     else
                     {
                         var oTrasf2 = new ColorTransformReductionFast()
-                        .SetProperty(ColorTransformProperties.MaxColorsWanted, ColorsMaxWanted)
-                        .SetProperty(ColorTransformProperties.PriorityPalette, oLineFixedPalette)
-                        .SetProperty(ColorTransformProperties.DitheringType, DitheringType);
+                        .WithProcessingParams(ColorsMaxWanted)
+                        .WithPalette(oLineFixedPalette)
+                        .WithDithering(DitheringType);
                         oLineTrasf = oTrasf2;
                     }
 
@@ -143,9 +159,8 @@ namespace ColourClashNet.Color.Transformation
                 else
                 {
                     var oTras = new ColorTransformReductionPalette()
-                    .SetProperty(ColorTransformProperties.PriorityPalette, oNewPal)
-                    .SetProperty(ColorTransformProperties.MaxColorsWanted, oNewPal.Count)
-                    .SetProperty(ColorTransformProperties.DitheringType, DitheringType)
+                    .WithPalette(oNewPal)
+                    .WithDithering(DitheringType, DitheringStrength, DitheringFx)   
                     .Create(new ImageData().Create(oCols));
                     var oColRes = oTras.ProcessColors(oToken);
                     for (int c = 0; c < ImageSource.Columns; c++)

@@ -1,6 +1,7 @@
-﻿using ColourClashNet.Color;
+﻿using ColourClashLib;
+using ColourClashLib.Color;
+using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
-using ColourClashNet.Defaults;
 using ColourClashNet.Drawing;
 using ColourClashNet.Imaging;
 using System;
@@ -51,17 +52,17 @@ namespace ColourClashNet.Controls
 
         public GraphicsResolution WantedRes { get; set; } = null;
 
-        public ColorManagerConfig Config => oColorManager.Config;
+        public ColorTransformConfig Config => oColorManager.Config;
 
         public Components.ColorManager ColorManager => oColorManager;
 
         public ColorAnalyzer()
         {
             InitializeComponent();
-            oColorManager.Config.BackgroundColorList = GetBkgColors();
-            oColorManager.Config.ColorQuantizationMode = ColorQuantizationMode.RGB888;//GetQuantizationMode();
-            oColorManager.Config.DitheringAlgorithm = ColorDithering.FloydSteinberg;
-            pbBkColor.BackColor = ColorDefaults.DefaultBkgColorInt.ToDrawingColor();
+            oColorManager.Config
+                .WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt)
+                .WithQuantizationMode(ColorQuantizationMode.RGB888)
+                .WithDithering(ColorDithering.FloydSteinberg, 1.0, ColorDitheringFx.Full);
             CreateComboBox(cbC64VideoMode, Enum.GetNames(typeof(ColorTransformReductionC64.C64VideoMode)).ToList());
             CreateComboBox(cbCpcVideoMode, Enum.GetNames(typeof(ColorTransformReductionCPC.CPCVideoMode)).ToList());
             CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode)).ToList());
@@ -119,8 +120,7 @@ namespace ColourClashNet.Controls
                 pbBkColor.SizeMode = PictureBoxSizeMode.StretchImage;
                 pbBkColor.Image = oBmp;
             }
-            oColorManager.Config.BackgroundColorList = GetBkgColors();
-            oColorManager.Config.BackgroundColorReplacement = ColorIntExtGdi.FromDrawingColor(ColorDefaults.DefaultBkgColorInt.ToDrawingColor());
+            oColorManager.Config.WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt);
             oColorManager.PreProcess();
         }
 
@@ -168,8 +168,7 @@ namespace ColourClashNet.Controls
             oBitmapRenderSource.ResetMouseSelectedColors();
             oBitmapRenderSource.OriginZero();
             //
-            oColorManager.Config.BackgroundColorList = GetBkgColors();
-            oColorManager.Config.BackgroundColorReplacement = ColorIntExtGdi.FromDrawingColor(ColorDefaults.DefaultBkgColorInt.ToDrawingColor());
+            oColorManager.Config.WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt);
             oColorManager.Create(ResizeBitmap(oLoadedBmp));
             ImageCreated?.Invoke(this, new DataSourceEventArgs()
             {
@@ -193,12 +192,12 @@ namespace ColourClashNet.Controls
 
 
 
-            List<int> GetBkgColors()
+        Palette GetBkgColors()
         {
             var oRet = new List<int>();
             foreach (var item in oBitmapRenderSource.SelectedColors)
                 oRet.Add(ColorIntExtGdi.FromDrawingColor(item));
-            return oRet;
+            return new Palette().Create(oRet);
         }
 
 
@@ -206,29 +205,35 @@ namespace ColourClashNet.Controls
 
         private void SetToControl()
         {
-            oColorManager.Config.BackgroundColorList = GetBkgColors();
-            oColorManager.Config.BackgroundColorReplacement = ColorIntExtGdi.FromDrawingColor(ColorDefaults.DefaultBkgColorInt.ToDrawingColor());
-
-            oColorManager.Config.ColorsMax = (int)nudColorsWanted.Value;
-            oColorManager.Config.ScanlineClustering = chkScanLineCluster.Checked;
-            oColorManager.Config.ScanlineColorsMax = (int)nudScanlineLineColors.Value;
-            oColorManager.Config.ScanlineSharedPalette = chkScanlineSharedPal.Checked;
-
-            oColorManager.Config.ClusteringTrainingLoop = (int)nudClusterLoop.Value;
-            oColorManager.Config.ClusteringUseMeanColor = true;
-            oColorManager.Config.DitheringStrenght = (double)nudDitheringStrenght.Value;
-            oColorManager.Config.SaturationEnhancement = (double)nudSat.Value;
-            oColorManager.Config.BrightnessEnhancement = (double)nudBright.Value;
-            oColorManager.Config.HsvHueOffset = (double)nudHue.Value;
-            oColorManager.Config.C64ScreenMode = (ColorTransformReductionC64.C64VideoMode)Enum.Parse(typeof(ColorTransformReductionC64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString());
-            oColorManager.Config.CPCScreenMode = (ColorTransformReductionCPC.CPCVideoMode)Enum.Parse(typeof(ColorTransformReductionCPC.CPCVideoMode), cbCpcVideoMode.SelectedItem.ToString());
-            oColorManager.Config.ZxEqAutotuneMode = (ColorTransformReductionZxSpectrum.ZxAutotuneMode)Enum.Parse(typeof(ColorTransformReductionZxSpectrum.ZxAutotuneMode), cbZxAutotuneMode.SelectedItem.ToString());
-            oColorManager.Config.ZxEqColorLO = (int)nudZxColorLO.Value;
-            oColorManager.Config.ZxEqColorHI = (int)nudZxColorHI.Value;
-            oColorManager.Config.ZxIncludeBlackHI = chkZxBlackHI.Checked;
-            oColorManager.Config.ZxEqDitherHI = chkZxDitherHI.Checked;
-            oColorManager.Config.ZxPaletteMode = (ColorTransformReductionZxSpectrum.ZxPaletteMode)Enum.Parse(typeof(ColorTransformReductionZxSpectrum.ZxPaletteMode), cbZxPaletteMode.SelectedItem.ToString());
-            oColorManager.Config.AmigaScreenMode = (ColorTransformReductionAmiga.EnumAmigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString());
+            //oColorManager.Config.WithBackgroundColorReplacement( 
+            //    GetBkgColors(), 
+            //    ColorDefaults.DefaultBkgColorInt );
+            //oColorManager.Config.WithScanline(
+            //    chkScanlineSharedPal.Checked, 
+            //    (int)nudColorsWanted.Value, 
+            //    (int)nudScanlineLineColors.Value, 
+            //    chkScanLineCluster.Checked, true);
+            //oColorManager.Config.WithClustering(
+            //    (int)nudColorsWanted.Value, 
+            //    (int)nudClusterLoop.Value, true);
+            //oColorManager.Config.WithDithering(
+            //    ColorDithering.Sierra, 
+            //    (double)nudDitheringStrenght.Value,
+            //    cb
+                
+            //    oColorManager.Config.DitheringStrenght = (double)nudDitheringStrenght.Value;
+            //oColorManager.Config.SaturationEnhancement = (double)nudSat.Value;
+            //oColorManager.Config.BrightnessEnhancement = (double)nudBright.Value;
+            //oColorManager.Config.HsvHueOffset = (double)nudHue.Value;
+            //oColorManager.Config.C64ScreenMode = (ColorTransformReductionC64.C64VideoMode)Enum.Parse(typeof(ColorTransformReductionC64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString());
+            //oColorManager.Config.CPCScreenMode = (ColorTransformReductionCPC.CPCVideoMode)Enum.Parse(typeof(ColorTransformReductionCPC.CPCVideoMode), cbCpcVideoMode.SelectedItem.ToString());
+            //oColorManager.Config.ZxEqAutotuneMode = (ColorTransformReductionZxSpectrum.ZxAutotuneMode)Enum.Parse(typeof(ColorTransformReductionZxSpectrum.ZxAutotuneMode), cbZxAutotuneMode.SelectedItem.ToString());
+            //oColorManager.Config.ZxEqColorLO = (int)nudZxColorLO.Value;
+            //oColorManager.Config.ZxEqColorHI = (int)nudZxColorHI.Value;
+            //oColorManager.Config.ZxIncludeBlackHI = chkZxBlackHI.Checked;
+            //oColorManager.Config.ZxEqDitherHI = chkZxDitherHI.Checked;
+            //oColorManager.Config.ZxPaletteMode = (ColorTransformReductionZxSpectrum.ZxPaletteMode)Enum.Parse(typeof(ColorTransformReductionZxSpectrum.ZxPaletteMode), cbZxPaletteMode.SelectedItem.ToString());
+            //oColorManager.Config.AmigaScreenMode = (ColorTransformReductionAmiga.EnumAmigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString());
         }
 
         private async void btnReduceColors_Click(object sender, EventArgs e)

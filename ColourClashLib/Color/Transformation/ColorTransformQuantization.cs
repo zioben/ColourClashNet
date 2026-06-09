@@ -5,7 +5,8 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashNet.Defaults;
+using ColourClashLib;
+using ColourClashLib.Color;
 using ColourClashNet.Log;
 
 
@@ -23,18 +24,32 @@ namespace ColourClashNet.Color.Transformation
 
         public ColorQuantizationMode QuantizationMode { get; set; }
 
-        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        //{
+        //    base.SetProperty(propertyName, value);
+        //    switch (propertyName)
+        //    {
+        //        case ColorTransformProperties.QuantizationMode:
+        //                QuantizationMode = ToEnum<ColorQuantizationMode>(value);
+        //            break;
+        //        default:
+        //            break;
+        //    }
+        //    return this;
+        //}
+
+        public ColorTransformQuantization WithQuantization(ColorQuantizationMode mode)
         {
-            base.SetProperty(propertyName, value);
-            switch (propertyName)
-            {
-                case ColorTransformProperties.QuantizationMode:
-                        QuantizationMode = ToEnum<ColorQuantizationMode>(value);
-                    break;
-                default:
-                    break;
-            }
+            QuantizationMode = mode;
             return this;
+        }
+
+        public ColorTransformQuantization WithQuantization(ColorTransformConfig cfg) => WithQuantization(cfg.QuantizationMode);
+
+        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
+        {
+            base.SetProperties(cfg);
+            return WithQuantization(cfg);
         }
 
         public int QuantizeColor(int iRGB)

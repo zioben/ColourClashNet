@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color.Tile;
+﻿using ColourClashLib.Color;
+using ColourClashNet.Color.Tile;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using NLog;
@@ -28,7 +29,14 @@ namespace ColourClashNet.Color.Transformation
             DebugEnhancedPalette,
         }
 
+        public enum C64DitheringMode
+        {
+            PostDitherTile,
+            PreDitherImage,
+        }
+
         public C64VideoMode VideoMode { get; set; }= C64VideoMode.BitmapModeMulticolor;
+        public C64DitheringMode VideoDithering { get; private set; }
 
         public bool TileBorderShow { get; set; } = false;
         int TileBorderColor = 0x_00_00_FF_00;
@@ -54,10 +62,9 @@ namespace ColourClashNet.Color.Transformation
                 };
 
         List<int> enhancedPalette = new List<int>();
+        ColorTransformType ColorTransformationModel { get; } = ColorTransformType.ColorReductionClustering;
 
-        //ColorTransformType processingType { get; } = ColorTransformType.ColorReductionMedianCut;
-        ColorTransformType processingType { get; } = ColorTransformType.ColorReductionClustering;
-        //ColorTransformType processingType { get; } = ColorTransformType.ColorReductionFast;
+        C64DitheringMode DitheringProcessing { get; set; } = C64DitheringMode.PreDitherImage;
 
         TileManager tileManager = new TileManager();
 
@@ -92,63 +99,90 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
-     
-        Dictionary<ColorTransformProperties, object> CreateProcessingParams(int maxColors, Palette fixedColorPalette )
+
+        //ColorTransformConfig CreateProcessingParams(int maxColors, Palette fixedColorPalette )
+        //{
+        //    var cfg = new ColorTransformConfig();
+        //    cfg
+        //    dict[ColorTransformProperties.ColorDistanceEvaluationMode] = ColorDistanceEvaluationMode;
+        //    // Passing pre-rendered image, keep the 
+        //    dict[ColorTransformProperties.PriorityPalette] = fixedColorPalette;
+        //    dict[ColorTransformProperties.DitheringType] = DitheringType ;
+        //    dict[ColorTransformProperties.DitheringStrength] = DitheringStrength;
+        //    dict[ColorTransformProperties.DitheringFx] = DitheringFx;
+        //    dict[ColorTransformProperties.MaxColorsWanted] = maxColors;
+        //    dict[ColorTransformProperties.UseColorMean] = false;
+        //    dict[ColorTransformProperties.ClusterTrainingLoop] = 6;
+        //    return dict;
+        //}
+
+        ColorTransformConfig CreateConfig(int maxColors, Palette fixedColorPalette)
         {
-            var dict = new Dictionary<ColorTransformProperties, object>();
-            dict[ColorTransformProperties.ColorDistanceEvaluationMode] = ColorDistanceEvaluationMode;
-            // Passing pre-rendered image, keep the 
-            dict[ColorTransformProperties.PriorityPalette] = fixedColorPalette;
-            dict[ColorTransformProperties.DitheringType] = DitheringType ;
-            dict[ColorTransformProperties.DitheringStrength] = DitheringStrength;
-            dict[ColorTransformProperties.DitheringFx] = DitheringFx;
-            dict[ColorTransformProperties.MaxColorsWanted] = maxColors;
-            dict[ColorTransformProperties.UseColorMean] = false;
-            dict[ColorTransformProperties.ClusterTrainingLoop] = 6;
-            return dict;
+            return new ColorTransformConfig()
+                .WithPalette(fixedColorPalette)
+                .WithDithering(DitheringType, DitheringStrength, DitheringFx)
+                .WithClustering(maxColors, 6, false);
         }
 
-       
 
-        internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+
+
+        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
+        //{
+        //    base.SetProperty(propertyName, value);
+        //    switch (propertyName)
+        //    {
+        //        case ColorTransformProperties.C64VideoMode:
+        //                VideoMode = ToEnum< C64VideoMode>(value);
+        //            break;
+        //        default:
+        //            break;
+        //    }
+        //    return this;
+        //}
+
+
+
+
+
+
+        //protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken=default)
+        //{
+        //    switch (VideoMode)
+        //    {
+        //        case C64VideoMode.BitmapModeMCI:
+        //        case C64VideoMode.DebugEnhancedPalette:
+        //            SetProperty(ColorTransformProperties.PriorityPalette, enhancedPalette);
+        //            break;
+        //        default:
+        //            SetProperty(ColorTransformProperties.PriorityPalette, basePalette);
+        //            break;
+        //    }
+
+        //    return base.CreateTransformationMap(oToken);
+        //}
+
+        public ColorTransformReductionC64 WithC64ScreenMode(C64VideoMode mode, C64DitheringMode ditheringMode)
         {
-            base.SetProperty(propertyName, value);
-            switch (propertyName)
-            {
-                case ColorTransformProperties.C64VideoMode:
-                        VideoMode = ToEnum< C64VideoMode>(value);
-                    break;
-                default:
-                    break;
-            }
+            VideoMode = mode;
+            VideoDithering = ditheringMode;
             return this;
         }
 
-     
-
-
-        protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken=default)
-        {
-            switch (VideoMode)
-            {
-                case C64VideoMode.BitmapModeMCI:
-                case C64VideoMode.DebugEnhancedPalette:
-                    SetProperty(ColorTransformProperties.PriorityPalette, enhancedPalette);
-                    break;
-                default:
-                    SetProperty(ColorTransformProperties.PriorityPalette, basePalette);
-                    break;
-            }
-
-            return base.CreateTransformationMap(oToken);
-        }
+        public ColorTransformReductionC64 WithC64ScreenMode(ColorTransformConfig cfg) => WithC64ScreenMode(cfg.C64VideoMode, cfg.C64DitheringMode);
 
         TileManager CreateTileManager( int tileHeight, int tileWidth, int maxColors, ImageData image, Palette fixedColorPalette, CancellationToken token=default)
         {
-            tileManager = new TileManager().Create(tileHeight, tileWidth, image, 1.0, processingType, CreateProcessingParams(maxColors, fixedColorPalette), token);
+            tileManager = new TileManager().Create(tileHeight, tileWidth, image, 1.0, ColorTransformationModel, CreateConfig(maxColors, fixedColorPalette), token);  
             tileManager.TileBorderShow = TileBorderShow;
             tileManager.TileBorderColor = TileBorderColor;
             return tileManager;
+        }
+
+        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
+        {
+            base.SetProperties(cfg);
+            return WithC64ScreenMode(cfg);
         }
 
         // Not Needed
