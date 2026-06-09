@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Dithering
 {
-    public abstract partial class DitherBase 
+    public abstract partial class DitherBase
     {
-        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, double ditheringStrength, int kernelSize, ColorDitheringFx extraFxMode )
+        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, double ditheringStrength, ColorDitheringFx extraFxMode)
         {
             switch (ditheringModel)
             {
                 case ColorDithering.Atkinson:
-                    return new DitherAtkinson() { DitheringStrenght = ditheringStrength, DitheringFx= extraFxMode };
+                    return new DitherAtkinson() { DitheringStrenght = ditheringStrength, DitheringFx = extraFxMode };
                 case ColorDithering.Burkes:
                     return new DitherBurkes() { DitheringStrenght = ditheringStrength, DitheringFx = extraFxMode };
                 case ColorDithering.FloydSteinberg:
@@ -25,8 +25,6 @@ namespace ColourClashNet.Color.Dithering
                     return new DitherIdentity() { DitheringStrenght = ditheringStrength, DitheringFx = extraFxMode };
                 case ColorDithering.JarvisJudiceNinke:
                     return new DitherJarvisJudiceNinke() { DitheringStrenght = ditheringStrength, DitheringFx = extraFxMode };
-                case ColorDithering.Ordered:
-                    return new DitherOrdered() { DitheringStrenght = ditheringStrength, Size = Math.Min(2,kernelSize), DitheringFx = extraFxMode };
                 case ColorDithering.Ordered_2x2:
                     return new DitherOrdered() { DitheringStrenght = ditheringStrength, Size = 2, DitheringFx = extraFxMode };
                 case ColorDithering.Ordered_4x4:
@@ -46,10 +44,21 @@ namespace ColourClashNet.Color.Dithering
             }
         }
 
-        //public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, int kernelSize) => CreateDitherInterface(ditheringModel, 100, kernelSize, ColorDitheringFx.Full);
-        //public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, double ditheringStrength) => CreateDitherInterface(ditheringModel, ditheringStrength, ColorDefaults.DefaultDitherKernelSize, ColorDitheringFx.Full);      
-        //public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel) => CreateDitherInterface(ditheringModel, 100, ColorDefaults.DefaultDitherKernelSize, ColorDitheringFx.Full);
-        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, double ditheringStrength, ColorDitheringFx ditheringFx) => CreateDitherInterface(ditheringModel, ditheringStrength, ColorDefaults.DefaultDitherKernelSize, ditheringFx);
-
+        public static DitherInterface CreateDitherInterface( Dictionary<ColorTransformProperties,object> properties )
+        {
+            if( properties == null ) 
+                throw new ArgumentNullException(nameof(properties));
+            if (properties.ContainsKey(ColorTransformProperties.DitheringType))
+            {
+                var ditheringType = (ColorDithering)properties[ColorTransformProperties.DitheringType];
+                var ditheringStrength = properties.ContainsKey(ColorTransformProperties.DitheringStrength) ? (double)properties[ColorTransformProperties.DitheringStrength] : 100;
+                var ditheringFx = properties.ContainsKey(ColorTransformProperties.DitheringFx) ? (ColorDitheringFx)properties[ColorTransformProperties.DitheringFx] : ColorDitheringFx.Full;
+                return CreateDitherInterface(ditheringType, ditheringStrength, ditheringFx);
+            }
+            else
+            {   
+                return CreateDitherInterface(ColorDithering.None, 100, ColorDitheringFx.Full);
+            }
+        }
     }
 }

@@ -5,7 +5,6 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -56,6 +55,7 @@ namespace ColourClashNet.Color.Transformation
 
         List<int> enhancedPalette = new List<int>();
 
+        //ColorTransformType processingType { get; } = ColorTransformType.ColorReductionMedianCut;
         ColorTransformType processingType { get; } = ColorTransformType.ColorReductionClustering;
         //ColorTransformType processingType { get; } = ColorTransformType.ColorReductionFast;
 
@@ -99,7 +99,6 @@ namespace ColourClashNet.Color.Transformation
             dict[ColorTransformProperties.ColorDistanceEvaluationMode] = ColorDistanceEvaluationMode;
             // Passing pre-rendered image, keep the 
             dict[ColorTransformProperties.PriorityPalette] = fixedColorPalette;
-            //dict[ColorTransformProperties.Forced_Palette] = fixedPalette;
             dict[ColorTransformProperties.DitheringType] = DitheringType ;
             dict[ColorTransformProperties.DitheringStrength] = DitheringStrength;
             dict[ColorTransformProperties.DitheringFx] = DitheringFx;
@@ -161,9 +160,9 @@ namespace ColourClashNet.Color.Transformation
             // Reduce all to the base 16 C64 colors without restrictions
             var procImage = TransformationMap.Transform(refImage, token);
             var dithImage = procImage;
-            if (DitheringType !=  ColorDithering.None )
+            if (DitheringType != ColorDithering.None)
             {
-                var dithering = Dithering.DitherBase.CreateDitherInterface(DitheringType,DitheringStrength,DitheringFx);             
+                var dithering = Dithering.DitherBase.CreateDitherInterface(DitheringType, DitheringStrength, DitheringFx);
                 var dithRes = dithering.Dither(refImage, procImage, ColorDistanceEvaluationMode, token);
                 dithImage = dithRes.DataOut;
             }

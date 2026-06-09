@@ -19,7 +19,7 @@ namespace ColourClashNet.Color.Dithering
     /// </summary>
     public abstract partial class DitherBase : DitherInterface
     {
-        static string sClass = nameof(DitherBase);
+        static string sC = nameof(DitherBase);
         public string Description { get; protected init; }
         public ColorDithering Type { get; protected init; }
         public ColorDitheringFx DitheringFx { get; set; } = ColorDitheringFx.Full;
@@ -27,6 +27,14 @@ namespace ColourClashNet.Color.Dithering
         public abstract DitherInterface Create();
         protected abstract ColorTransformResult DitherImplementation(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token=default);
 
+        /// <summary>
+        /// Dither the imageProcessed using the imageReference as reference for the colors to be dithered, and the colorEvaluationMode to evaluate the color distance between the original and the dithered colors.
+        /// </summary>
+        /// <param name="imageReference">The original image to be used as a reference for dithering</param>
+        /// <param name="imageProcessed">The image to be dithered</param>
+        /// <param name="colorEvaluationMode">The mode for evaluating color distance</param>
+        /// <param name="token">The cancellation token</param>
+        /// <returns>The result of the dithering operation</returns>
         public ColorTransformResult Dither(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
         {
             string sM = nameof(Dither);
@@ -58,54 +66,54 @@ namespace ColourClashNet.Color.Dithering
             {
                 var mi = imageProcessed.GetMatrix();
                 var mo = ditheredResult.DataOut.GetMatrix();
+                int rs = 0;
+                int stepr = 1;
+                int cs = 0;
+                int stepc = 1;
 
                 switch (DitheringFx)
                 {
                     case ColorDitheringFx.ScanlineEven:
-                        for (var r = 1; r < mi.GetLength(0); r+=2)
-                        {
-                            for (int c = 0; c < mi.GetLength(1); c++)
-                            {
-                                mo[r, c] = mi[r, c];
-                            }
-                        }
+                        rs = 1; 
+                        stepr=2;
                         break;
                     case ColorDitheringFx.ScanlineOdd:
-                        for (var r = 0; r < mi.GetLength(0); r += 2)
-                        {
-                            for (int c = 0; c < mi.GetLength(1); c++)
-                            {
-                                mo[r, c] = mi[r, c];
-                            }
-                        }
+                        rs = 0;
+                        stepr = 2;
                         break;
                     case ColorDitheringFx.ColumnEven:
-                        for (var r = 0; r < mi.GetLength(0); r ++)
-                        {
-                            for (int c = 1; c < mi.GetLength(1); c+=2)
-                            {
-                                mo[r, c] = mi[r, c];
-                            }
-                        }
+                        cs = 1;
+                        stepc=2;
                         break;
                     case ColorDitheringFx.ColumnOdd:
-                        for (var r = 0; r < mi.GetLength(0); r ++)
-                        {
-                            for (int c = 0; c < mi.GetLength(1); c+=2)
-                            {
-                                mo[r, c] = mi[r, c];
-                            }
-                        }
+                        cs = 0;
+                        stepc = 2;
                         break;
                     default:
                         return ColorTransformResult.CreateErrorResult($"unsupported dither fx : {DitheringFx}");
                 }
+
+               
+                for (var r = rs; r < mi.GetLength(0); r += stepr)
+                {
+                    for (int c = cs; c < mi.GetLength(1); c+=stepc)
+                    {
+                        mo[r, c] = mi[r, c];
+                    }
+                    token.ThrowIfCancellationRequested();
+                }
+
                 var imageFX = new ImageData().Create(mo);
                 return ColorTransformResult.CreateValidResult(ditheredResult.DataOut, imageFX);
             }
-            catch (Exception ex)
+            catch (TaskCanceledException et)
             {
-                LogMan.Exception(sClass, sM, ex);
+                LogMan.Exception(sC, sM, $"{Type}", et);
+                return ColorTransformResult.CreateErrorResult(et);
+            }
+            catch (OperationCanceledException ex)
+            {
+                LogMan.Exception(sC, sM, $"{Type}", ex);
                 return ColorTransformResult.CreateErrorResult(ex);
             }
 

@@ -4,7 +4,6 @@ using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Drawing.Imaging;
 using System.Globalization;
 using System.Threading.Tasks;
 using static ColourClashNet.Color.Transformation.ColorTransformReductionAmiga;

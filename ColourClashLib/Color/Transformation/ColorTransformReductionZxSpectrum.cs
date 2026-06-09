@@ -7,8 +7,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.Design.Serialization;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;

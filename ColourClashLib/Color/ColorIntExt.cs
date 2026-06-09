@@ -5,7 +5,6 @@ using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
-using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -48,7 +47,7 @@ namespace ColourClashNet.Color
         /// </summary>
         /// <param name="rgb"></param>
         /// <returns></returns>
-        static ColorInfo GetColorInfo(this int rgb)
+        public static ColorInfo GetColorInfo(this int rgb)
         {
             int val = (rgb >> 24) & 0x00_00_00_FF;
             // Reserved old value for invalid color
@@ -64,41 +63,6 @@ namespace ColourClashNet.Color
         //  public static bool IsTagged(this int rgb) => GetColorInfo(rgb) == ;
         public static bool IsInvalid(this int rgb) => GetColorInfo(rgb) == ColorInfo.Invalid;
 
-
-        /// <summary>
-        /// Converts an integer representation of a color to a <see cref="System.Drawing.Color"/>. 
-        /// </summary>
-        /// <param name="rgb"></param>
-        /// <returns></returns>
-        public static System.Drawing.Color ToDrawingColor(this int rgb)
-        {
-            switch (GetColorInfo(rgb))
-            {
-                case ColorInfo.IsColor:
-                    {
-                        unchecked
-                        {
-                            return System.Drawing.Color.FromArgb(rgb | (int)0xFF_00_00_00);
-                        }
-                    }
-                //case ColorIntType.IsBkg:
-                //    {
-                //        return DefaultBkgColor;
-                //    }
-                case ColorInfo.IsMask:
-                    {
-                        return ColorDefaults.DefaultMaskColor;
-                    }
-                case ColorInfo.IsTile:
-                    {
-                        return ColorDefaults.DefaultTileColor;
-                    }
-                default:
-                    {
-                        return System.Drawing.Color.Transparent;
-                    }
-            }
-        }
 
         /// <summary>
         /// Extracts the Red component from an integer representation of a color.
@@ -239,19 +203,6 @@ namespace ColourClashNet.Color
         /// <returns></returns>
         public static int FromRGB(double dr, double dg, double db) => FromRGB((int)dr, (int)dg, (int)db);
 
-
-        /// <summary>
-        /// Converts a <see cref="System.Drawing.Color"/> to its integer representation.
-        /// </summary>
-        /// <param name="oColor"></param>
-        /// <returns></returns>
-        public static int FromDrawingColor(System.Drawing.Color oColor)
-        {
-            if (oColor == System.Drawing.Color.Transparent)
-                return ColorDefaults.DefaultInvalidColorInt;
-
-            return FromRGB(oColor.R, oColor.G, oColor.B);
-        }
 
         /// <summary>
         /// Finds the nearest color in the provided color palette to the specified color, based on the given color distance evaluation mode.

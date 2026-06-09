@@ -233,7 +233,7 @@ public static partial class ImageToolsGDI
             List<int> rgbList = new();
             foreach( var rgb in oBmp.Palette.Entries)
             {
-                rgbList.Add(ColorIntExt.FromDrawingColor(rgb));
+                rgbList.Add(ColorIntExtGdi.FromDrawingColor(rgb));
             }
 
             var m = new int[oBmp.Height, oBmp.Width];
@@ -604,7 +604,7 @@ public static partial class ImageToolsGDI
         }
         for (int i = 0; i < Math.Min(oBmp.Palette.Entries.Length, lPaletteSrc.Count); i++)
         {
-            oPalette.Entries[i] = ColorIntExt.ToDrawingColor(lPaletteSrc[i]);
+            oPalette.Entries[i] = ColorIntExtGdi.ToDrawingColor(lPaletteSrc[i]);
         }
         oBmp.Palette = oPalette;
         return true;
@@ -628,7 +628,7 @@ public static partial class ImageToolsGDI
             }
             for (int i = loop; i < oBmp.Palette.Entries.Length; i++)
             {
-                oBmp.Palette.Entries[i] = ColorDefaults.DefaultBkgColor;
+                oBmp.Palette.Entries[i] = ColorDefaults.DefaultBkgColorInt.ToDrawingColor();
             }
             return oBmp.Palette;
         }

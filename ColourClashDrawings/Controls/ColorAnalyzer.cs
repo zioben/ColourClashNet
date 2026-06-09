@@ -61,7 +61,7 @@ namespace ColourClashNet.Controls
             oColorManager.Config.BackgroundColorList = GetBkgColors();
             oColorManager.Config.ColorQuantizationMode = ColorQuantizationMode.RGB888;//GetQuantizationMode();
             oColorManager.Config.DitheringAlgorithm = ColorDithering.FloydSteinberg;
-            pbBkColor.BackColor = ColorDefaults.DefaultBkgColor;
+            pbBkColor.BackColor = ColorDefaults.DefaultBkgColorInt.ToDrawingColor();
             CreateComboBox(cbC64VideoMode, Enum.GetNames(typeof(ColorTransformReductionC64.C64VideoMode)).ToList());
             CreateComboBox(cbCpcVideoMode, Enum.GetNames(typeof(ColorTransformReductionCPC.CPCVideoMode)).ToList());
             CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode)).ToList());
@@ -120,7 +120,7 @@ namespace ColourClashNet.Controls
                 pbBkColor.Image = oBmp;
             }
             oColorManager.Config.BackgroundColorList = GetBkgColors();
-            oColorManager.Config.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
+            oColorManager.Config.BackgroundColorReplacement = ColorIntExtGdi.FromDrawingColor(ColorDefaults.DefaultBkgColorInt.ToDrawingColor());
             oColorManager.PreProcess();
         }
 
@@ -169,7 +169,7 @@ namespace ColourClashNet.Controls
             oBitmapRenderSource.OriginZero();
             //
             oColorManager.Config.BackgroundColorList = GetBkgColors();
-            oColorManager.Config.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
+            oColorManager.Config.BackgroundColorReplacement = ColorIntExtGdi.FromDrawingColor(ColorDefaults.DefaultBkgColorInt.ToDrawingColor());
             oColorManager.Create(ResizeBitmap(oLoadedBmp));
             ImageCreated?.Invoke(this, new DataSourceEventArgs()
             {
@@ -197,7 +197,7 @@ namespace ColourClashNet.Controls
         {
             var oRet = new List<int>();
             foreach (var item in oBitmapRenderSource.SelectedColors)
-                oRet.Add(ColorIntExt.FromDrawingColor(item));
+                oRet.Add(ColorIntExtGdi.FromDrawingColor(item));
             return oRet;
         }
 
@@ -207,7 +207,7 @@ namespace ColourClashNet.Controls
         private void SetToControl()
         {
             oColorManager.Config.BackgroundColorList = GetBkgColors();
-            oColorManager.Config.BackgroundColorReplacement = ColorIntExt.FromDrawingColor(ColorDefaults.DefaultBkgColor);
+            oColorManager.Config.BackgroundColorReplacement = ColorIntExtGdi.FromDrawingColor(ColorDefaults.DefaultBkgColorInt.ToDrawingColor());
 
             oColorManager.Config.ColorsMax = (int)nudColorsWanted.Value;
             oColorManager.Config.ScanlineClustering = chkScanLineCluster.Checked;

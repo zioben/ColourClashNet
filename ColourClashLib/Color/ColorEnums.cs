@@ -79,7 +79,6 @@ namespace ColourClashNet.Color
         Ordered_4x4,
         Ordered_6x6,
         Ordered_8x8,
-        Ordered,
         FloydSteinberg,
         Atkinson,
         Burkes,
