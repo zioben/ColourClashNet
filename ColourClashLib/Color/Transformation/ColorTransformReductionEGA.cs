@@ -16,7 +16,7 @@ namespace ColourClashNet.Color.Transformation
         }
         void CreatePalette()
         {
-            WithPalette(
+            OverwriteReferencePalette(
                 new List<int>
                 {
                     0x00_00_00_00,

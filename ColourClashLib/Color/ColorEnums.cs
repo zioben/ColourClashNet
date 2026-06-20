@@ -90,7 +90,7 @@ namespace ColourClashNet.Color
 
     public enum ColorDitheringFx
     {
-        Full = 0,
+        None = 0,
         ScanlineOdd,
         ScanlineEven,
         ColumnOdd,

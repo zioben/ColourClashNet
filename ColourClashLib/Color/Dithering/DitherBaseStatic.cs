@@ -51,12 +51,12 @@ namespace ColourClashNet.Color.Dithering
             {
                 var ditheringType = (ColorDithering)properties[ColorTransformProperties.DitheringType];
                 var ditheringStrength = properties.ContainsKey(ColorTransformProperties.DitheringStrength) ? (double)properties[ColorTransformProperties.DitheringStrength] : 100;
-                var ditheringFx = properties.ContainsKey(ColorTransformProperties.DitheringFx) ? (ColorDitheringFx)properties[ColorTransformProperties.DitheringFx] : ColorDitheringFx.Full;
+                var ditheringFx = properties.ContainsKey(ColorTransformProperties.DitheringFx) ? (ColorDitheringFx)properties[ColorTransformProperties.DitheringFx] : ColorDitheringFx.None;
                 return CreateDitherInterface(ditheringType, ditheringStrength, ditheringFx);
             }
             else
             {   
-                return CreateDitherInterface(ColorDithering.None, 100, ColorDitheringFx.Full);
+                return CreateDitherInterface(ColorDithering.None, 100, ColorDitheringFx.None);
             }
         }
     }

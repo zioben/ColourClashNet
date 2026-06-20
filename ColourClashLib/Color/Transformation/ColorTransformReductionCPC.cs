@@ -31,7 +31,7 @@ namespace ColourClashNet.Color.Transformation
         }
         void CreatePalette()
         {
-            WithPalette(
+            OverwriteReferencePalette(
                 new List<int>
                 {
                    0x00_00_00_00,
@@ -93,7 +93,7 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        public ColorTransformReductionCPC WithCpcVideoMode(ColorTransformConfig cfg) => WithCpcVideoMode(cfg);
+        public ColorTransformReductionCPC WithCpcVideoMode(ColorTransformConfig cfg) => WithCpcVideoMode(cfg.CPCVideoMode);
 
         public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
         {

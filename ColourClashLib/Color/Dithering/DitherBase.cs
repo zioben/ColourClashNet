@@ -22,7 +22,7 @@ namespace ColourClashNet.Color.Dithering
         static string sC = nameof(DitherBase);
         public string Description { get; protected init; }
         public ColorDithering Type { get; protected init; }
-        public ColorDitheringFx DitheringFx { get; set; } = ColorDitheringFx.Full;
+        public ColorDitheringFx DitheringFx { get; set; } = ColorDitheringFx.None;
         public double DitheringStrenght { get; set; } = 1.0;
         public abstract DitherInterface Create();
         protected abstract ColorTransformResult DitherImplementation(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token=default);
@@ -50,7 +50,7 @@ namespace ColourClashNet.Color.Dithering
         protected ColorTransformResult ApplyDitherFx(ImageData imageProcessed, ColorTransformResult ditheredResult, CancellationToken token = default)
         {
             string sM = nameof(ApplyDitherFx);
-            if (DitheringFx == ColorDitheringFx.Full)
+            if (DitheringFx == ColorDitheringFx.None)
             {
                 return ditheredResult;
             }            

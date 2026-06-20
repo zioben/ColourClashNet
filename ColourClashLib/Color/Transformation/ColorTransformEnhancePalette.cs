@@ -23,10 +23,10 @@ namespace ColourClashNet.Color.Transformation
 
             var rgbList = ImageSource.ColorPalette.ToList();
             ColourClashNet.Color.Palette paletteEnhance = new ();
-            paletteEnhance.Create(PriorityPalette);
-            for (int i = 0; i < PriorityPalette.Count; i++)
+            paletteEnhance.Create(ReferencePalette);
+            for (int i = 0; i < ReferencePalette.Count; i++)
             {
-                for (int j = i + 1; j < PriorityPalette.Count; j++)
+                for (int j = i + 1; j < ReferencePalette.Count; j++)
                 {
                     paletteEnhance.Add(ColorIntExt.GetColorMean(rgbList[i], rgbList[j]));
                 }

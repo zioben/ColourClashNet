@@ -44,7 +44,7 @@ namespace ColourClashNet.Color.Transformation
 
         void CreatePalette()
         {
-            WithPalette(
+            OverwriteReferencePalette(
                new List<int>
                {
                     0x00000000,
@@ -64,7 +64,7 @@ namespace ColourClashNet.Color.Transformation
                     0x00FFFFFF,
                });
 
-            paletteFull = PriorityPalette.ToList();
+            paletteFull = ReferencePalette.ToList();
 
             paletteMode4_0L = new List<int>()
             {

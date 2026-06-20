@@ -63,6 +63,7 @@
             openLoadImage = new OpenFileDialog();
             timerLog = new System.Windows.Forms.Timer(components);
             saveImageDialog = new SaveFileDialog();
+            propertyGrid2 = new PropertyGrid();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -111,13 +112,15 @@
             // 
             // tableLayoutPanel2
             // 
-            tableLayoutPanel2.ColumnCount = 3;
+            tableLayoutPanel2.ColumnCount = 4;
             tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 300F));
             tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 300F));
             tableLayoutPanel2.Controls.Add(pictureBox1, 0, 0);
             tableLayoutPanel2.Controls.Add(pictureBox2, 1, 0);
             tableLayoutPanel2.Controls.Add(propertyGrid1, 2, 0);
+            tableLayoutPanel2.Controls.Add(propertyGrid2, 3, 0);
             tableLayoutPanel2.Dock = DockStyle.Fill;
             tableLayoutPanel2.Location = new Point(3, 67);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
@@ -132,7 +135,7 @@
             pictureBox1.Dock = DockStyle.Fill;
             pictureBox1.Location = new Point(3, 3);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(423, 342);
+            pictureBox1.Size = new Size(273, 342);
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
             // 
@@ -140,16 +143,16 @@
             // 
             pictureBox2.BackColor = Color.Black;
             pictureBox2.Dock = DockStyle.Fill;
-            pictureBox2.Location = new Point(432, 3);
+            pictureBox2.Location = new Point(282, 3);
             pictureBox2.Name = "pictureBox2";
-            pictureBox2.Size = new Size(423, 342);
+            pictureBox2.Size = new Size(273, 342);
             pictureBox2.TabIndex = 1;
             pictureBox2.TabStop = false;
             // 
             // propertyGrid1
             // 
             propertyGrid1.Dock = DockStyle.Fill;
-            propertyGrid1.Location = new Point(861, 3);
+            propertyGrid1.Location = new Point(561, 3);
             propertyGrid1.Name = "propertyGrid1";
             propertyGrid1.Size = new Size(294, 342);
             propertyGrid1.TabIndex = 2;
@@ -465,6 +468,14 @@
             timerLog.Interval = 500;
             timerLog.Tick += oTimerLog_Tick;
             // 
+            // propertyGrid2
+            // 
+            propertyGrid2.Dock = DockStyle.Fill;
+            propertyGrid2.Location = new Point(861, 3);
+            propertyGrid2.Name = "propertyGrid2";
+            propertyGrid2.Size = new Size(294, 342);
+            propertyGrid2.TabIndex = 3;
+            // 
             // FormTester
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -522,5 +533,6 @@
         private NumericUpDown numDitheringStrenght;
         private Button btnSave;
         private SaveFileDialog saveImageDialog;
+        private PropertyGrid propertyGrid2;
     }
 }

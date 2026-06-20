@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet
 {
-    public class Chrono
+    public class StopWatch
     {
         public DateTime? TimeStart { get; private set; } = null;
         public DateTime? TimeStop { get; private set; } = null;

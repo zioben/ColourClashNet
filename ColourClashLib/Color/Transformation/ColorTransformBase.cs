@@ -49,9 +49,14 @@ namespace ColourClashNet.Color.Transformation
         public ImageData ImageOutput { get; protected set; } = new ImageData();
 
         //-------------------------------------------------------------------------------------------------------------------------------
-        public Palette PriorityPalette { get; internal protected set; } = new Palette();
-        public int PriorityColors => PriorityPalette?.Count ?? 0;
-        public bool FastPreview { get; set; }
+        public Palette ReferencePalette { get; internal protected set; } = new Palette();
+
+        /// <summary>
+        /// Lock reference palette for further lock - will be used on derived classes to avoid palette rewriting
+        /// </summary>
+        public bool ReferencePaletteWriteLock { get; protected set; } = false;
+        public int ReferenceColors => ReferencePalette?.Count ?? 0;
+        public bool EnablePreviewEvents { get; set; }
 
         //-------------------------------------------------------------------------------------------------------------------------------
         public ColorTransformationMap TransformationMap { get; protected set; } = new ColorTransformationMap();
@@ -86,7 +91,7 @@ namespace ColourClashNet.Color.Transformation
 
         #region Create/Destroy
 
-        Chrono m_chrono = new Chrono();
+        StopWatch m_chrono = new StopWatch();
         public double ProcessingTimeMilliseconds => m_chrono.ElapsedMilliseconds;
 
         public virtual void Reset()
@@ -266,7 +271,8 @@ namespace ColourClashNet.Color.Transformation
         #endregion
 
         #region with helpers
-        public ColorTransformBase WithDithering(ColorDithering ditheringType, double strength = 1.0, ColorDitheringFx fx = ColorDitheringFx.Full)
+
+        public ColorTransformBase WithDithering(ColorDithering ditheringType, double strength = 1.0, ColorDitheringFx fx = ColorDitheringFx.None)
         {
             DitheringType = ditheringType;
             DitheringStrength = Clamp(strength, 0.0, 1.0);
@@ -284,38 +290,48 @@ namespace ColourClashNet.Color.Transformation
 
         public ColorTransformBase WithColorDistanceEvaluationMode(ColorTransformConfig cfg) => WithColorDistanceEvaluationMode(cfg.ColorDistanceEvaluationMode);
 
-
-        public ColorTransformBase WithPalette(Palette palette)
+        protected ColorTransformBase OverwriteReferencePalette(Palette palette)
         {
-            PriorityPalette = new Palette().Create(palette);
+            if (palette == null)
+                throw new ArgumentNullException(nameof(palette));
+            ReferencePalette = new Palette().Create(palette);
+            return this;
+        }
+        protected ColorTransformBase OverwriteReferencePalette(IEnumerable<int> palette)
+        {
+            if (palette == null)
+                throw new ArgumentNullException(nameof(palette));
+            ReferencePalette = new Palette().Create(palette);
+            return this;
+        }
+        protected ColorTransformBase OverwriteReferencePalette(List<int> palette)
+        {
+            if (palette == null)
+                throw new ArgumentNullException(nameof(palette));
+            ReferencePalette = new Palette().Create(palette);
             return this;
         }
 
-        public ColorTransformBase WithPalette(IEnumerable<int> palette)
+        protected ColorTransformBase WithReferencePalette(IEnumerable<int> palette, bool forcePaletteOverwrite)
         {
-            PriorityPalette = new Palette().Create(palette);
+            if (!ReferencePaletteWriteLock || forcePaletteOverwrite)
+            {
+                ReferencePalette = new Palette().Create(palette);
+            }
             return this;
         }
 
-        public ColorTransformBase WithPalette(List<int> palette)
-        {
-            PriorityPalette = new Palette().Create(palette);
-            return this;
-        }
-
-        public ColorTransformBase WithPalette(params int[] palette)
-        {
-            PriorityPalette = new Palette().Create(palette);
-            return this;
-        }
-
-        public ColorTransformBase WithPalette(ColorTransformConfig cfg) => WithPalette(cfg.PriorityPalette);
+        public ColorTransformBase WithReferencePalette(Palette palette) => WithReferencePalette(palette, false);
+        public ColorTransformBase WithReferencePalette(IEnumerable<int> palette)=> WithReferencePalette(new Palette().Create(palette));
+        public ColorTransformBase WithReferencePalette(List<int> palette) => WithReferencePalette(new Palette().Create(palette));
+        public ColorTransformBase WithReferencePalette(params int[] palette) => WithReferencePalette(new Palette().Create(palette));
+        public ColorTransformBase WithReferencePalette(ColorTransformConfig cfg) => WithReferencePalette(cfg.ReferencePalette);
 
         public virtual ColorTransformInterface SetProperties(ColorTransformConfig cfg)
         {
             WithDithering(cfg);
             WithColorDistanceEvaluationMode(cfg);
-            WithPalette(cfg);
+            WithReferencePalette(cfg);
             return this;           
         }
 

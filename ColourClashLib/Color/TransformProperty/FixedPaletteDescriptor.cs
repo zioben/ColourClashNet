@@ -32,6 +32,6 @@ public sealed class FixedPaletteDescriptor
 
     protected override void ApplyTyped(ColorTransformBase transform, Palette value)
     {
-        transform.PriorityPalette = new Palette().Create( value );
+        transform.ReferencePalette = new Palette().Create( value );
     }
 }

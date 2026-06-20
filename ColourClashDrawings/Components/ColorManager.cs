@@ -44,10 +44,10 @@ namespace ColourClashNet.Components
 
         public ColorTransformConfig Config { get; private set; }
 
-        ColorTransformInterface oTrasformSource;
-        ColorTransformInterface oTrasformBkgRemover;
-        ColorTransformInterface oTrasformQuantizer;
-        ColorTransformInterface oTrasformProcessing;
+        ColorTransformInterface transformSource;
+        ColorTransformInterface transformBkgRemover;
+        ColorTransformInterface transformQuantizer;
+        ColorTransformInterface transformProcessing;
 
         [Browsable(false)]
         public ImageData DataSourceX { get; set; }
@@ -66,10 +66,10 @@ namespace ColourClashNet.Components
         public Image ImageQuantized { get; protected set; }
         public Image ImageProcessed { get; protected set; }
 
-        public int ImageSourceColors => oTrasformSource?.ImageOutput?.Colors ?? 0;
-        public int ImageBkgRemovedColors => oTrasformBkgRemover?.ImageOutput?.Colors ?? 0;
-        public int ImageQuantizedColors => oTrasformQuantizer?.ImageOutput?.Colors ?? 0;
-        public int ImageProcessedColors => oTrasformProcessing?.ImageOutput?.Colors ?? 0;
+        public int ImageSourceColors => transformSource?.ImageOutput?.Colors ?? 0;
+        public int ImageBkgRemovedColors => transformBkgRemover?.ImageOutput?.Colors ?? 0;
+        public int ImageQuantizedColors => transformQuantizer?.ImageOutput?.Colors ?? 0;
+        public int ImageProcessedColors => transformProcessing?.ImageOutput?.Colors ?? 0;
 
         [Browsable(false)]
         public bool InvalidatePreProcess { get; set; } = true;
@@ -95,10 +95,10 @@ namespace ColourClashNet.Components
             {
                 Config = new ColorTransformConfig();
                 //DataParameters = new Dictionary<string, object>();
-                oTrasformSource = new ColorTransformIdentity();
-                oTrasformBkgRemover = new ColorTransformBkgRemover();
-                oTrasformQuantizer = new ColorTransformQuantization();
-                oTrasformProcessing = null;
+                transformSource = new ColorTransformIdentity();
+                transformBkgRemover = new ColorTransformBkgRemover();
+                transformQuantizer = new ColorTransformQuantization();
+                transformProcessing = null;
                 //
                 DataSourceX = null;
                 ImageSource?.Dispose();
@@ -181,30 +181,30 @@ namespace ColourClashNet.Components
                 ResetProcessingData();
                 LogMan.Message(sClass, sMethod, "Starting Processing");
                 LogMan.Trace(sClass, sMethod, "Process Identity Transformation");
-                oTrasformSource.CreateAndProcessColors(DataSourceX);
+                transformSource.CreateAndProcessColors(DataSourceX);
 
                 CancellationTokenSource cts = new CancellationTokenSource();
 
                 LogMan.Trace(sClass, sMethod, "Process Bkg Remover");
-                oTrasformBkgRemover
+                transformBkgRemover
                     .SetProperties(Config)
                     .Create(DataSourceX);
-                var DataBkgRemovedRes = oTrasformBkgRemover.ProcessColors(cts.Token);
+                var DataBkgRemovedRes = transformBkgRemover.ProcessColors(cts.Token);
                 DataBkgRemoved = DataBkgRemovedRes.DataOut;
                 ImageBkgRemoved = ImageToolsGDI.ImageDataToGdiImage(DataBkgRemoved);
 
                 LogMan.Trace(sClass, sMethod, "Process Quantizer");
-                oTrasformQuantizer
+                transformQuantizer
                     .SetProperties(Config)
                     .Create(DataBkgRemoved);
-                var DataQuantizedRes = oTrasformQuantizer.ProcessColors(cts.Token);
+                var DataQuantizedRes = transformQuantizer.ProcessColors(cts.Token);
                 DataQuantized = DataQuantizedRes.DataOut;
                 ImageQuantized = ImageToolsGDI.ImageDataToGdiImage(DataQuantized);
 
                 LogMan.Trace(sClass, sMethod, "Cloning Quantizer Output");
                 DataProcessed = new ImageData().Create(DataQuantized);
                 ImageProcessed = ImageToolsGDI.ImageDataToGdiImage(DataProcessed);
-                oTrasformProcessing = oTrasformQuantizer;
+                transformProcessing = transformQuantizer;
                         
                 LogMan.Trace(sClass, sMethod, "Calling Event");
                 if (bRaiseEvent)
@@ -213,7 +213,7 @@ namespace ColourClashNet.Components
                     {
                         DataDest = DataProcessed,
                         DataSource = DataSourceX,
-                        Transformation = oTrasformQuantizer
+                        Transformation = transformQuantizer
                     });
                 }
                 LogMan.Message(sClass, sMethod, "Process End");
@@ -231,95 +231,95 @@ namespace ColourClashNet.Components
         public ImageData ProcessColors(ColorTransformType eTrasformType)
         {
             string sMethod = nameof(ProcessColors);
-            oTrasformProcessing = null;
+            transformProcessing = null;
             try
             {
                 OnPreProcess?.Invoke(this, new ColorManagerProcessEventArgs
                 {
                     DataDest = DataProcessed,
                     DataSource = DataSourceX,
-                    Transformation = oTrasformSource
+                    Transformation = transformSource
                 });
                 switch (eTrasformType)
                 {
                     case ColorTransformType.ColorReductionFast:
                         {
-                            oTrasformProcessing = new ColorTransformReductionFast();
+                            transformProcessing = new ColorTransformReductionFast();
                         }
                         break;
                     case ColorTransformType.ColorReductionClustering:
                         {
-                            oTrasformProcessing = new ColorTransformReductionCluster();
+                            transformProcessing = new ColorTransformReductionCluster();
                         }
                         break;
                     case ColorTransformType.ColorReductionScanline:
                         {
-                            oTrasformProcessing = new ColorTransformReductionScanLine();
+                            transformProcessing = new ColorTransformReductionScanLine();
                         }
                         break;
                     case ColorTransformType.ColorReductionZxSpectrum:
                         {
-                            oTrasformProcessing = new ColorTransformReductionZxSpectrum();
+                            transformProcessing = new ColorTransformReductionZxSpectrum();
                         }
                         break;
                     case ColorTransformType.ColorReductionEga:
                         {
-                            oTrasformProcessing = new ColorTransformReductionEGA();
+                            transformProcessing = new ColorTransformReductionEGA();
                         }
                         break;
                     case ColorTransformType.ColorReductionCBM64:
                         {
-                            oTrasformProcessing = new ColorTransformReductionC64();
+                            transformProcessing = new ColorTransformReductionC64();
                         }
                         break;
 
                     case ColorTransformType.ColorReductionCPC:
                         {
-                            oTrasformProcessing = new ColorTransformReductionCPC();
+                            transformProcessing = new ColorTransformReductionCPC();
                         }
                         break;
 
                     case ColorTransformType.ColorReductionMedianCut:
                         {
-                            oTrasformProcessing = new ColorTransformReductionMedianCut();
+                            transformProcessing = new ColorTransformReductionMedianCut();
                         }
                         break;
                     case ColorTransformType.ColorReductionSaturation:
                         {
-                            oTrasformProcessing = new ColorTransformLumSat();
+                            transformProcessing = new ColorTransformLumSat();
                         }
                         break;
                     case ColorTransformType.ColorReductionHam:
                         {
-                            var oTrasf = new ColorTransformReductionAmiga();
-                            //oTrasf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
-                            //oTrasf.AmigaVideoMode = Config.AmigaScreenMode;
-                            oTrasformProcessing = oTrasf;
+                            var transf = new ColorTransformReductionAmiga();
+                            //transf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
+                            //transf.AmigaVideoMode = Config.AmigaScreenMode;
+                            transformProcessing = transf;
                         }
                         break;
                     default:
                         LogMan.Error(sClass, sMethod, $"Transformation {eTrasformType} not implemented");
-                        oTrasformProcessing = null;
+                        transformProcessing = null;
                         return null;
                 }
-                oTrasformProcessing.SetProperties(Config);
-//                Config.SetProperties(oTrasformProcessing);
+                transformProcessing.SetProperties(Config);
+//                Config.SetProperties(transformProcessing);
                 if (InvalidatePreProcess)
                 {
                     PreProcess();
                 }
                 CancellationTokenSource cts = new CancellationTokenSource();
-                ProcessingForm.CreateProcessingForm(oTrasformProcessing, cts);
-                oTrasformProcessing.Create(DataQuantized);
-                //oTrasformProcessing.SetDithering(DitherBase.CreateDitherInterface(Config.DitheringAlgorithm, Config.DitheringStrenght));
-                var DataProcessedRes = oTrasformProcessing.ProcessColors(cts.Token);
+                ProcessingForm.CreateProcessingForm(transformProcessing, cts);
+                transformProcessing.Create(DataQuantized);
+                //transformProcessing.SetDithering(DitherBase.CreateDitherInterface(Config.DitheringAlgorithm, Config.DitheringStrenght));
+                var DataProcessedRes = transformProcessing.ProcessColors(cts.Token);
                 DataProcessed = DataProcessedRes.DataOut;
                 ImageProcessed = ImageToolsGDI.ImageDataToGdiImage(DataProcessed);
                 OnProcess?.Invoke(this, new ColorManagerProcessEventArgs
                 {
                     DataDest = DataProcessed,
                     DataSource = DataSourceX,
-                    Transformation = oTrasformProcessing,
+                    Transformation = transformProcessing,
                 });
             }
             catch (Exception ex)

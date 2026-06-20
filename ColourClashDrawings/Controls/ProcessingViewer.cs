@@ -67,33 +67,33 @@ namespace ColourClashNet.Controls
             Hide();
         }
 
-        void UnregisterEvents(ColorTransformInterface oTrasf)
+        void UnregisterEvents(ColorTransformInterface transf)
         {
-            oTrasf.Processing -= OTrasf_Processing;
-            oTrasf.ProcessPartial -= OTrasf_ProcessPartial;
-            oTrasf.Processed -= OTrasf_Processed;
+            transf.Processing -= transf_Processing;
+            transf.ProcessPartial -= transf_ProcessPartial;
+            transf.Processed -= transf_Processed;
         }
 
-        public void RegisterEvents(ColorTransformInterface oTrasf)
+        public void RegisterEvents(ColorTransformInterface transf)
         {
-            UnregisterEvents(oTrasf);
-            oTrasf.Processing += OTrasf_Processing;
-            oTrasf.ProcessPartial += OTrasf_ProcessPartial;
-            oTrasf.Processed += OTrasf_Processed;
+            UnregisterEvents(transf);
+            transf.Processing += transf_Processing;
+            transf.ProcessPartial += transf_ProcessPartial;
+            transf.Processed += transf_Processed;
         }
 
-        private void OTrasf_Processed(object? sender, ColorProcessingEventArgs e)
+        private void transf_Processed(object? sender, ColorProcessingEventArgs e)
         {
             //AppendData(e);
             Hide();
         }
 
-        private void OTrasf_ProcessPartial(object? sender, ColorProcessingEventArgs e)
+        private void transf_ProcessPartial(object? sender, ColorProcessingEventArgs e)
         {
             AppendData(e);
         }
 
-        private void OTrasf_Processing(object? sender, ColorProcessingEventArgs e)
+        private void transf_Processing(object? sender, ColorProcessingEventArgs e)
         {
             Show();
             cts = e.CancellationTokenSource;

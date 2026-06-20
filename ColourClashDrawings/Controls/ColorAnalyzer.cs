@@ -62,7 +62,7 @@ namespace ColourClashNet.Controls
             oColorManager.Config
                 .WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt)
                 .WithQuantizationMode(ColorQuantizationMode.RGB888)
-                .WithDithering(ColorDithering.FloydSteinberg, 1.0, ColorDitheringFx.Full);
+                .WithDithering(ColorDithering.FloydSteinberg, 1.0, ColorDitheringFx.None);
             CreateComboBox(cbC64VideoMode, Enum.GetNames(typeof(ColorTransformReductionC64.C64VideoMode)).ToList());
             CreateComboBox(cbCpcVideoMode, Enum.GetNames(typeof(ColorTransformReductionCPC.CPCVideoMode)).ToList());
             CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode)).ToList());
@@ -203,53 +203,69 @@ namespace ColourClashNet.Controls
 
 
 
-        private void SetToControl()
+        private void SetControlToConfig()
         {
-            //oColorManager.Config.WithBackgroundColorReplacement( 
-            //    GetBkgColors(), 
-            //    ColorDefaults.DefaultBkgColorInt );
-            //oColorManager.Config.WithScanline(
-            //    chkScanlineSharedPal.Checked, 
-            //    (int)nudColorsWanted.Value, 
-            //    (int)nudScanlineLineColors.Value, 
-            //    chkScanLineCluster.Checked, true);
-            //oColorManager.Config.WithClustering(
-            //    (int)nudColorsWanted.Value, 
-            //    (int)nudClusterLoop.Value, true);
-            //oColorManager.Config.WithDithering(
-            //    ColorDithering.Sierra, 
-            //    (double)nudDitheringStrenght.Value,
-            //    cb
-                
-            //    oColorManager.Config.DitheringStrenght = (double)nudDitheringStrenght.Value;
-            //oColorManager.Config.SaturationEnhancement = (double)nudSat.Value;
-            //oColorManager.Config.BrightnessEnhancement = (double)nudBright.Value;
-            //oColorManager.Config.HsvHueOffset = (double)nudHue.Value;
-            //oColorManager.Config.C64ScreenMode = (ColorTransformReductionC64.C64VideoMode)Enum.Parse(typeof(ColorTransformReductionC64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString());
-            //oColorManager.Config.CPCScreenMode = (ColorTransformReductionCPC.CPCVideoMode)Enum.Parse(typeof(ColorTransformReductionCPC.CPCVideoMode), cbCpcVideoMode.SelectedItem.ToString());
-            //oColorManager.Config.ZxEqAutotuneMode = (ColorTransformReductionZxSpectrum.ZxAutotuneMode)Enum.Parse(typeof(ColorTransformReductionZxSpectrum.ZxAutotuneMode), cbZxAutotuneMode.SelectedItem.ToString());
-            //oColorManager.Config.ZxEqColorLO = (int)nudZxColorLO.Value;
-            //oColorManager.Config.ZxEqColorHI = (int)nudZxColorHI.Value;
-            //oColorManager.Config.ZxIncludeBlackHI = chkZxBlackHI.Checked;
-            //oColorManager.Config.ZxEqDitherHI = chkZxDitherHI.Checked;
-            //oColorManager.Config.ZxPaletteMode = (ColorTransformReductionZxSpectrum.ZxPaletteMode)Enum.Parse(typeof(ColorTransformReductionZxSpectrum.ZxPaletteMode), cbZxPaletteMode.SelectedItem.ToString());
-            //oColorManager.Config.AmigaScreenMode = (ColorTransformReductionAmiga.EnumAmigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString());
+            oColorManager.Config.WithBackgroundColorReplacement(
+                GetBkgColors(),
+                ColorDefaults.DefaultBkgColorInt);
+            //
+            oColorManager.Config.WithScanline(
+                chkScanlineSharedPal.Checked,
+                (int)nudColorsWanted.Value,
+                (int)nudScanlineLineColors.Value,
+                chkScanLineCluster.Checked, true);
+            //
+            oColorManager.Config.WithClustering(
+                (int)nudColorsWanted.Value,
+                (int)nudClusterLoop.Value, true);
+            // Dithering viene settato dalla form
+            oColorManager.Config.WithDithering(
+                Config.DitheringType,
+                (double)nudDitheringStrenght.Value,
+                Config.DitheringFx);
+            //
+            oColorManager.Config.WithHSV(
+                (double)nudSat.Value,
+                (double)nudBright.Value,
+                (double)nudHue.Value);
+            //
+            oColorManager.Config.WithC64ScreenMode(
+               (ColorTransformReductionC64.C64VideoMode)Enum.Parse(typeof(ColorTransformReductionC64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString()), 
+               ColorTransformReductionC64.C64DitheringMode.PreDitherImage);
+            //
+            oColorManager.Config.WithCpcVideoMode(
+                (ColorTransformReductionCPC.CPCVideoMode)Enum.Parse(typeof(ColorTransformReductionCPC.CPCVideoMode), cbCpcVideoMode.SelectedItem.ToString()));
+            //
+            oColorManager.Config.WithZxScreenMode(
+                 (ColorTransformReductionZxSpectrum.ZxPaletteMode)Enum.Parse(typeof(ColorTransformReductionZxSpectrum.ZxPaletteMode), cbZxPaletteMode.SelectedItem.ToString()),
+                 (int)nudZxColorLO.Value,
+                 (int)nudZxColorHI.Value);
+            //
+            oColorManager.Config.WithZxProcessing(
+                 (ColorTransformReductionZxSpectrum.ZxAutotuneMode)Enum.Parse(typeof(ColorTransformReductionZxSpectrum.ZxAutotuneMode), cbZxAutotuneMode.SelectedItem.ToString()),
+                 chkZxBlackHI.Checked,
+                 chkZxDitherHI.Checked,
+                 chkZxBlackHI.Checked);
+            //
+            oColorManager.Config.WithAmigaScreenMode(
+                (ColorTransformReductionAmiga.EnumAmigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString()),
+                ColorTransformReductionAmiga.EnumHamColorProcessingMode.Detailed);
         }
 
         private async void btnReduceColors_Click(object sender, EventArgs e)
         {
-            SetToControl();
+            SetControlToConfig();
             await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionMedianCut);
         }
         private async void btnReduceColorsScanline_Click(object sender, EventArgs e)
         {
-            SetToControl();
+            SetControlToConfig();
             await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionScanline);
         }
 
         private async void btnReduceColorCluster_Click(object sender, EventArgs e)
         {
-            SetToControl();
+            SetControlToConfig();
             await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionClustering);
         }
 
@@ -275,38 +291,38 @@ namespace ColourClashNet.Controls
 
         private async void btnReduceColorsZx_Click(object sender, EventArgs e)
         {
-            SetToControl();
+            SetControlToConfig();
             await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionZxSpectrum);
         }
 
 
         private async void btnReduceColorsEga_Click(object sender, EventArgs e)
         {
-            SetToControl();
+            SetControlToConfig();
             await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionEga);
         }
 
         private async void BtnReduceColorsC64v1_Click(object sender, EventArgs e)
         {
-            SetToControl();
+            SetControlToConfig();
             await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionCBM64);
         }
 
         private async void btnReduceColorCPC_Click(object sender, EventArgs e)
         {
-            SetToControl();
+            SetControlToConfig();
             await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionCPC);
         }
 
         private async void btnChromaAdapt_Click(object sender, EventArgs e)
         {
-            SetToControl();
+            SetControlToConfig();
             await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionSaturation);
         }
 
         private async void btnReduceHam_Click(object sender, EventArgs e)
         {
-            SetToControl();
+            SetControlToConfig();
             await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionHam);
         }
 

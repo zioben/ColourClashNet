@@ -6,26 +6,54 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using static ColourClashNet.Color.Transformation.ColorTransformReductionC64;
 
 namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformReductionC64 : ColorTransformReductionPalette
     {
         static readonly string sC = nameof(ColorTransformReductionC64);
+
+        #region enums
         public enum C64VideoMode
         {
             //   Petscii,
-            BitmapModeMulticolor,
-            BitmapModeHiRes,
+            /// <summary>
+            /// 8x4 tile with 4 indipendent colors
+            /// </summary>
+            Multicolor,
+            /// <summary>
+            /// 8x8 tile with 2 indipendent colors
+            /// </summary>
+            HiRes,
+            /// <summary>
+            /// 8x8 refedined-charset with 1 bkg color, 2 fixed colors, and 1 indipendent color
+            /// </summary>
             CharsetMulticolor,
-            CharsetHiRes,
-            BitmapModeFLI,
-            BitmapModeMCI,
+            /// <summary>
+            /// 8x8 refedined-charset with 1 bkg color and 1 indipendent color
+            /// </summary>
+            Charset,
+            /// <summary>
+            /// 8x4 tile with 4 indipendent colors per line
+            /// </summary>
+            FlexibleLineInterpretation,
+            /// <summary>
+            /// 8x8 tile with 2 indipendent colors per line
+            /// </summary>
+            HiResFlexibleLineInterpretation,
+            /// <summary>
+            /// Debug with c64 palette colors
+            /// </summary>
             DebugBasePalette,
+            /// <summary>
+            /// Debug with c64 enhanced palette colors
+            /// </summary>
             DebugEnhancedPalette,
         }
 
@@ -35,8 +63,13 @@ namespace ColourClashNet.Color.Transformation
             PreDitherImage,
         }
 
-        public C64VideoMode VideoMode { get; set; }= C64VideoMode.BitmapModeMulticolor;
+        #endregion
+
+        #region properties
+
+        public C64VideoMode VideoMode { get; set; }= C64VideoMode.Multicolor;
         public C64DitheringMode VideoDithering { get; private set; }
+        public bool EnableColorSwitching { get; set; } = false;
 
         public bool TileBorderShow { get; set; } = false;
         int TileBorderColor = 0x_00_00_FF_00;
@@ -68,17 +101,37 @@ namespace ColourClashNet.Color.Transformation
 
         TileManager tileManager = new TileManager();
 
+        #endregion
+
         public ColorTransformReductionC64()
         {
             Type = ColorTransformType.ColorReductionCBM64;
             Description = "Reduce color to C64 palette";
-            CreatePalette();
+            CreateEnhancedPalette();
         }
 
+        #region fluent with - set
 
-        void CreatePalette()
+        public ColorTransformReductionC64 WithC64ScreenMode(C64VideoMode mode, C64DitheringMode ditheringMode)
         {
-            var sM = nameof(CreatePalette);
+            VideoMode = mode;
+            VideoDithering = ditheringMode;
+            return this;
+        }
+
+        public ColorTransformReductionC64 WithC64ScreenMode(ColorTransformConfig cfg) => WithC64ScreenMode(cfg.C64VideoMode, cfg.C64DitheringMode);
+
+        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
+        {
+            base.SetProperties(cfg);
+            return WithC64ScreenMode(cfg);
+        }
+
+        #endregion
+
+        void CreateEnhancedPalette()
+        {
+            var sM = nameof(CreateEnhancedPalette);
             enhancedPalette = new List<int>();
             enhancedPalette.AddRange(basePalette);
             for (int i = 0; i < basePalette.Count-1; i++)
@@ -99,115 +152,64 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
-
-        //ColorTransformConfig CreateProcessingParams(int maxColors, Palette fixedColorPalette )
-        //{
-        //    var cfg = new ColorTransformConfig();
-        //    cfg
-        //    dict[ColorTransformProperties.ColorDistanceEvaluationMode] = ColorDistanceEvaluationMode;
-        //    // Passing pre-rendered image, keep the 
-        //    dict[ColorTransformProperties.PriorityPalette] = fixedColorPalette;
-        //    dict[ColorTransformProperties.DitheringType] = DitheringType ;
-        //    dict[ColorTransformProperties.DitheringStrength] = DitheringStrength;
-        //    dict[ColorTransformProperties.DitheringFx] = DitheringFx;
-        //    dict[ColorTransformProperties.MaxColorsWanted] = maxColors;
-        //    dict[ColorTransformProperties.UseColorMean] = false;
-        //    dict[ColorTransformProperties.ClusterTrainingLoop] = 6;
-        //    return dict;
-        //}
-
-        ColorTransformConfig CreateConfig(int maxColors, Palette fixedColorPalette)
+        ColorTransformConfig CreateConfig(int maxColors, Palette referencePalette)
         {
+            ReferencePaletteWriteLock = false;
             return new ColorTransformConfig()
-                .WithPalette(fixedColorPalette)
+                .WithReferencePalette(referencePalette)
                 .WithDithering(DitheringType, DitheringStrength, DitheringFx)
                 .WithClustering(maxColors, 6, false);
         }
 
-
-
-
-        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
-        //{
-        //    base.SetProperty(propertyName, value);
-        //    switch (propertyName)
-        //    {
-        //        case ColorTransformProperties.C64VideoMode:
-        //                VideoMode = ToEnum< C64VideoMode>(value);
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //    return this;
-        //}
-
-
-
-
-
-
-        //protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken=default)
-        //{
-        //    switch (VideoMode)
-        //    {
-        //        case C64VideoMode.BitmapModeMCI:
-        //        case C64VideoMode.DebugEnhancedPalette:
-        //            SetProperty(ColorTransformProperties.PriorityPalette, enhancedPalette);
-        //            break;
-        //        default:
-        //            SetProperty(ColorTransformProperties.PriorityPalette, basePalette);
-        //            break;
-        //    }
-
-        //    return base.CreateTransformationMap(oToken);
-        //}
-
-        public ColorTransformReductionC64 WithC64ScreenMode(C64VideoMode mode, C64DitheringMode ditheringMode)
+        TileManager CreateTileManager(int tileHeight, int tileWidth, int maxColors, ImageData image, Palette referencePalette, CancellationToken token = default)
         {
-            VideoMode = mode;
-            VideoDithering = ditheringMode;
-            return this;
-        }
-
-        public ColorTransformReductionC64 WithC64ScreenMode(ColorTransformConfig cfg) => WithC64ScreenMode(cfg.C64VideoMode, cfg.C64DitheringMode);
-
-        TileManager CreateTileManager( int tileHeight, int tileWidth, int maxColors, ImageData image, Palette fixedColorPalette, CancellationToken token=default)
-        {
-            tileManager = new TileManager().Create(tileHeight, tileWidth, image, 1.0, ColorTransformationModel, CreateConfig(maxColors, fixedColorPalette), token);  
+            tileManager = new TileManager().Create(tileHeight, tileWidth, image, 1.0, ColorTransformationModel, CreateConfig(maxColors, referencePalette), token);
             tileManager.TileBorderShow = TileBorderShow;
             tileManager.TileBorderColor = TileBorderColor;
             return tileManager;
         }
 
-        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
+        Palette GetPalette()
         {
-            base.SetProperties(cfg);
-            return WithC64ScreenMode(cfg);
+            if (!EnableColorSwitching)
+            {
+                
+            }
+            var palB = new Palette().Create(basePalette);
+            var palE = new Palette().Create(enhancedPalette);
+            switch (VideoMode)
+            {
+                case C64VideoMode.FlexibleLineInterpretation: return palB;
+                case C64VideoMode.HiRes: return palB;
+                case C64VideoMode.HiResFlexibleLineInterpretation: return palB;
+                case C64VideoMode.Multicolor: return palB;
+                case C64VideoMode.Charset: return palB;
+                case C64VideoMode.CharsetMulticolor: return palB;
+                case C64VideoMode.DebugBasePalette: return palB;
+                case C64VideoMode.DebugEnhancedPalette: return palE;
+
+                default:
+                    return palB;
+            }
         }
 
-        // Not Needed
-        // protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
-        ImageData? PreProcess(bool bHalveRes, CancellationToken token=default)
+ImageData? PreProcess(bool bHalveRes, CancellationToken token=default)
         {
             string sM= nameof(PreProcess);
             var refImage = bHalveRes ? ImageTools.HalveXResolution(ImageSource) : ImageSource;
             // Reduce all to the base 16 C64 colors without restrictions
-            var procImage = TransformationMap.Transform(refImage, token);
-            var dithImage = procImage;
-            if (DitheringType != ColorDithering.None)
-            {
-                var dithering = Dithering.DitherBase.CreateDitherInterface(DitheringType, DitheringStrength, DitheringFx);
-                var dithRes = dithering.Dither(refImage, procImage, ColorDistanceEvaluationMode, token);
-                dithImage = dithRes.DataOut;
-            }
+            var colorTrans = new ColorTransformReductionPalette()
+                .SetReferencePalette(new Palette().Create(GetPalette()))
+                .WithDithering(DitheringType, DitheringStrength, DitheringFx);
+            var res = colorTrans.CreateAndProcessColors(refImage, token);
             // Raise pre processing event
             RaiseProcessPartialEvent(new ColorProcessingEventArgs()
             {
                 ColorTransformInterface = this,
                 CompletedPercent = 0,
-                ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, dithImage, "Dithered Base")
+                ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, res.DataOut, "Dithered Base")
             });
-            return dithImage;
+            return res.DataOut;
         }
 
         // Only to debug purpose, this is the best image obtainable using C64 palette
@@ -301,23 +303,23 @@ namespace ColourClashNet.Color.Transformation
                         oPreprocessedData = ToBasePalette(token);
                     }
                     break;
-                case C64VideoMode.CharsetHiRes:
-                case C64VideoMode.BitmapModeHiRes:
+                case C64VideoMode.Charset:
+                case C64VideoMode.HiRes:
                     {                       
                         oPreprocessedData = ToHires(token);
                     }
                 break;
-                case C64VideoMode.BitmapModeFLI:
+                case C64VideoMode.FlexibleLineInterpretation:
                     {
                         oPreprocessedData = ToBitmapFli(token);
                     }
                 break;
-                case C64VideoMode.BitmapModeMulticolor:
+                case C64VideoMode.Multicolor:
                     {
                         oPreprocessedData = ToBitmapMultiColor(token);
                     }
                 break;
-                case C64VideoMode.BitmapModeMCI:
+                case C64VideoMode.HiResFlexibleLineInterpretation:
                     {
                         oPreprocessedData = ToBitmapMultiColor(token);
                     }

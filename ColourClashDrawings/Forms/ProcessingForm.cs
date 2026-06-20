@@ -79,46 +79,46 @@ namespace ModuleTester
         {
             if (Transformation != null)
             {
-                Transformation.Processing -= OTrasf_Processing;
-                Transformation.ProcessPartial -= OTrasf_ProcessPartial;
-                Transformation.Processed -= OTrasf_Processed;
+                Transformation.Processing -= transf_Processing;
+                Transformation.ProcessPartial -= transf_ProcessPartial;
+                Transformation.Processed -= transf_Processed;
             }
             Transformation = null;
         }
 
-        public void RegisterEvents(ColorTransformInterface oTrasf)
+        public void RegisterEvents(ColorTransformInterface transf)
         {
             UnregisterEvents();
-            Transformation = oTrasf;
-            Transformation.Processing += OTrasf_Processing;
-            Transformation.ProcessPartial += OTrasf_ProcessPartial;
-            Transformation.Processed += OTrasf_Processed;
+            Transformation = transf;
+            Transformation.Processing += transf_Processing;
+            Transformation.ProcessPartial += transf_ProcessPartial;
+            Transformation.Processed += transf_Processed;
         }
 
-        private void OTrasf_Processed(object? sender, ColorProcessingEventArgs e)
+        private void transf_Processed(object? sender, ColorProcessingEventArgs e)
         {
             //AppendData(e);
             Invoke(()=> Close());
         }
 
-        private void OTrasf_ProcessPartial(object? sender, ColorProcessingEventArgs e)
+        private void transf_ProcessPartial(object? sender, ColorProcessingEventArgs e)
         {
             AppendData(e);
         }
 
-        private void OTrasf_Processing(object? sender, ColorProcessingEventArgs e)
+        private void transf_Processing(object? sender, ColorProcessingEventArgs e)
         {
             Invoke(()=>Show());
             cts = e.CancellationTokenSource;
             AppendData(e);
         }
 
-        static public void CreateProcessingForm(ColorTransformInterface oTrasf, CancellationTokenSource cancellationTokenSource)
+        static public void CreateProcessingForm(ColorTransformInterface transf, CancellationTokenSource cancellationTokenSource)
         {
             var t = new Thread(() =>
             {
                 var f = new ProcessingForm(cancellationTokenSource);
-                f.RegisterEvents(oTrasf);
+                f.RegisterEvents(transf);
                 Application.Run(f); // crea un message loop dedicato
             });
             t.SetApartmentState(ApartmentState.STA);

@@ -147,7 +147,7 @@ namespace ColourClashNet.Color.Transformation
             ColorTransformInterface oColorReduction;
             var oQuantization = new ColorTransformQuantization();
             oQuantization.WithQuantization(ColorQuantizationMode.RGB444)
-                         .WithPalette(PriorityPalette)
+                         .WithReferencePalette(ReferencePalette)
                          .WithDithering(DitheringType, DitheringStrength, DitheringFx);
 
             int iMaxColors = 0;

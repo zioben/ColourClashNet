@@ -89,7 +89,7 @@ namespace ColourClashNet.Color.Transformation
             //var oCols = new int[1, C];
             var oSourceNew = new Imaging.ImageData().Create(ImageSource);
 
-            var oLineFixedPalette = PriorityPalette;
+            var oLineFixedPalette = ReferencePalette;
             // Step 1 : Reducing to target palette colors -> 128 to 16 colors 
             // MainPaletteUsed = false;
             if (CreateSharedPalette)
@@ -105,19 +105,19 @@ namespace ColourClashNet.Color.Transformation
                     ColorTransformInterface oLineTrasf;
                     if (LineReductionClustering)
                     {
-                        var oTrasf2 = new ColorTransformReductionCluster()
+                        var transf2 = new ColorTransformReductionCluster()
                         .WithProcessingParams(ColorsMaxWanted, 30, UseColorMean)
-                        .WithPalette(oLineFixedPalette)
+                        .WithReferencePalette(oLineFixedPalette)
                         .WithDithering(DitheringType);
-                        oLineTrasf = oTrasf2;
+                        oLineTrasf = transf2;
                     }
                     else
                     {
-                        var oTrasf2 = new ColorTransformReductionFast()
+                        var transf2 = new ColorTransformReductionFast()
                         .WithProcessingParams(ColorsMaxWanted)
-                        .WithPalette(oLineFixedPalette)
+                        .WithReferencePalette(oLineFixedPalette)
                         .WithDithering(DitheringType);
-                        oLineTrasf = oTrasf2;
+                        oLineTrasf = transf2;
                     }
 
                     oLineTrasf.Create(ImageSource);
@@ -159,7 +159,7 @@ namespace ColourClashNet.Color.Transformation
                 else
                 {
                     var oTras = new ColorTransformReductionPalette()
-                    .WithPalette(oNewPal)
+                    .WithReferencePalette(oNewPal)
                     .WithDithering(DitheringType, DitheringStrength, DitheringFx)   
                     .Create(new ImageData().Create(oCols));
                     var oColRes = oTras.ProcessColors(oToken);

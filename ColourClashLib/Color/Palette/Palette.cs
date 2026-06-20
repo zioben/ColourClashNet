@@ -2,6 +2,7 @@
 using ColourClashNet.Color;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
+using System.Collections;
 
 namespace ColourClashNet.Color
 {
@@ -9,7 +10,7 @@ namespace ColourClashNet.Color
     /// Represents a collection of distinct RGB colors.
     /// Only valid colors (ColorIntType.IsColor) are stored.
     /// </summary>
-    public partial class Palette
+    public partial class Palette : IEnumerable<int>
     {
         /// <summary>
         /// Internal storage for unique colors.
@@ -119,8 +120,16 @@ namespace ColourClashNet.Color
         /// </summary>
         /// <returns>A string in the format "Palette Colors: {Count}", where {Count} is the number of colors in the palette.</returns>
         public override string ToString()
-            => $"Palette(Colors: {Count})";  
+            => $"Palette(Colors: {Count})";
 
+        public IEnumerator<int> GetEnumerator()
+        {
+            return ((IEnumerable<int>)rgbPalette).GetEnumerator();
+        }
 
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IEnumerable)rgbPalette).GetEnumerator();
+        }
     }
 }

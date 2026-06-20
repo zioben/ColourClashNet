@@ -1,5 +1,6 @@
 ﻿using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
+using System.ComponentModel;
 using static ColourClashNet.Color.Transformation.ColorTransformReductionAmiga;
 using static ColourClashNet.Color.Transformation.ColorTransformReductionC64;
 using static ColourClashNet.Color.Transformation.ColorTransformReductionCPC;
@@ -7,6 +8,8 @@ using static ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectr
 
 namespace ColourClashLib.Color
 {
+    [Serializable]
+    [TypeConverter(typeof(ExpandableObjectConverter))]
     /// <summary>
     /// Typed configuration for ColorTransformBase and derived classes.
     /// Replaces the previous Dictionary-based property bag.
@@ -24,7 +27,7 @@ namespace ColourClashLib.Color
         public int MaxColorChangePerLine { get; set; } = 0;
 
         // ── Palette ─────────────────────────────────────────────────────────
-        public Palette PriorityPalette { get; set; } = new Palette();
+        public Palette ReferencePalette { get; set; } = new Palette();
         public Palette ColorBackgroundList { get; set; } = new Palette();
         public int ColorBackgroundReplacement { get; set; } = ColorIntExt.FromRGB(0, 0, 0);
 
@@ -38,7 +41,7 @@ namespace ColourClashLib.Color
         // ── Dithering ────────────────────────────────────────────────────────
         public ColorDithering DitheringType { get; set; } = ColorDithering.None;
         public double DitheringStrength { get; set; } = 1.0;
-        public ColorDitheringFx DitheringFx { get; set; } = ColorDitheringFx.Full;
+        public ColorDitheringFx DitheringFx { get; set; } = ColorDitheringFx.None;
 
         // ── HSV adjustments ──────────────────────────────────────────────────
         public int HsvHueShift { get; set; } = 0;
@@ -47,7 +50,7 @@ namespace ColourClashLib.Color
 
         // ── Platform-specific: C64 ───────────────────────────────────────────
         public ColorTransformReductionC64.C64VideoMode C64VideoMode { get; set; }
-            = ColorTransformReductionC64.C64VideoMode.BitmapModeMulticolor;
+            = ColorTransformReductionC64.C64VideoMode.Multicolor;
         public ColorTransformReductionC64.C64DitheringMode C64DitheringMode { get; set; }
             = ColorTransformReductionC64.C64DitheringMode.PreDitherImage;
 
@@ -73,9 +76,9 @@ namespace ColourClashLib.Color
         public bool ZxDitherHighColorImage { get; set; } = false;
         public ColorTransformReductionZxSpectrum.ZxAutotuneMode ZxAutotuneMode { get; set; } = ColorTransformReductionZxSpectrum.ZxAutotuneMode.None;
 
-        public ColorTransformConfig WithPalette(Palette palette)
+        public ColorTransformConfig WithReferencePalette(Palette palette)
         {
-            PriorityPalette = palette;
+            ReferencePalette = palette;
             return this;
         }
 
@@ -98,7 +101,7 @@ namespace ColourClashLib.Color
             return this;
         }
 
-        public ColorTransformConfig WithDithering(ColorDithering ditheringType, double strength = 1.0, ColorDitheringFx fx = ColorDitheringFx.Full)
+        public ColorTransformConfig WithDithering(ColorDithering ditheringType, double strength, ColorDitheringFx fx)
         {
             DitheringType = ditheringType;
             DitheringStrength = strength;
@@ -106,7 +109,7 @@ namespace ColourClashLib.Color
             return this;
         }
 
-        public ColorTransformConfig WithAmigaProperties(EnumAmigaVideoMode mode, EnumHamColorProcessingMode processingMode)
+        public ColorTransformConfig WithAmigaScreenMode(EnumAmigaVideoMode mode, EnumHamColorProcessingMode processingMode)
         {
             AmigaVideoMode = mode;
             AmigaProcessingMode = processingMode;
@@ -155,15 +158,26 @@ namespace ColourClashLib.Color
             return this;
         }
 
-        public ColorTransformConfig WithZxSpectrum(int lowColorInSeed, int highColorInSeed, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor, ZxPaletteMode paletteMode, ZxAutotuneMode autotuneMode)
+        public ColorTransformConfig WithZxScreenMode(ZxPaletteMode paletteMode, int lowColorInSeed, int highColorInSeed )
         {
+            this.ZxPaletteMode = paletteMode;
             this.ZxColLSeed = lowColorInSeed;
             this.ZxColHSeed = highColorInSeed;
+            return this;
+        }
+        public ColorTransformConfig WithZxProcessing(ZxAutotuneMode autotuneMode, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor)
+        {
             this.ZxDitherLowColorImage = ditherLowColorImage;
-            this.ZxDitherHighColorImage= ditherHighColorImage;
+            this.ZxDitherHighColorImage = ditherHighColorImage;
             this.ZxIncludeBlackInHighColorImage = includeBlackInHighColor;
-            this.ZxPaletteMode = paletteMode;
             this.ZxAutotuneMode = autotuneMode;
+            return this;
+        }
+        public ColorTransformConfig WithHSV(double hueShift, double saturationMultFactor, double brightnessMultFactor)
+        {
+            HsvHueShift = (int)hueShift;
+            HsvSaturationMultFactor = saturationMultFactor;
+            HsvBrightnessMultFactor = brightnessMultFactor;
             return this;
         }
     }

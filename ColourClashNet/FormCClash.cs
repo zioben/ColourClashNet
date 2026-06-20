@@ -120,14 +120,62 @@ namespace ColourClashNet
 
         #region Populating Menu
 
-        void MenuRebulidSetCheck(string sItem)
+        void CreateMenuItem(ToolStripMenuItem oTsBase, string text, object? tag)
         {
-            var ts = lTsItemsSetup.FirstOrDefault(X => X.Tag?.ToString() == sItem);
-            if (ts != null)
-                ts.Checked = true;
+            if( tag == null)
+                return; 
+            if (tag.ToString().ToLower().EndsWith(".unknown"))
+                return;
+            var tsItem = new System.Windows.Forms.ToolStripMenuItem();
+            tsItem.Name = $"Menu.{tag}";
+            tsItem.Size = new System.Drawing.Size(180, 22);
+            tsItem.Text = text;
+            tsItem.CheckOnClick = true;
+            tsItem.Tag = tag;
+            tsItem.Click += TsItem_ClickSetup;
+            oTsBase.DropDownItems.Add(tsItem);
+            lTsItemsSetup.Add(tsItem);
         }
 
-        void MenuRebulidSetCheck(GraphicsResolution oRes)
+        //string ToTag<T>(string value)
+        //{
+        //    return $"{typeof(T).Name}.{value}";
+        //}
+
+        void InitMenu<T>(ToolStripMenuItem oTsBase) where T : System.Enum
+        {
+            var lColorMode = Enum.GetValues(typeof(T));
+            foreach (var X in lColorMode)
+            {
+                var s = X.ToString() ?? "null";
+                CreateMenuItem(oTsBase, s, X);
+            };
+        }
+
+        void InitMenu()
+        {
+            InitMenu<ColorQuantizationMode>(colorModeToolStripMenuItem);
+            InitMenu<ColorDistanceEvaluationMode>(colorDistanceToolStripMenuItem);
+            InitMenu<ColorDithering>(ditheringToolStripMenuItem);
+            InitMenu<ColorDitheringFx>(ditherFXToolStripMenuItem);
+            MenuRebuildSetChecks();
+        }
+
+        void MenuRebulidSetCheck<T>(string? value)
+        {
+            if (string.IsNullOrEmpty( value))
+                return;
+            //var sTag = ToTag<T>(value ?? "null");
+            var tagList = lTsItemsSetup.Where(X => X.Tag != null).ToList();
+            var typeList = tagList.Where(X => typeof(T) == X.Tag.GetType()).ToList();
+            var tsSelected = typeList.Where(X => X.Tag.ToString()==value).ToList();
+            foreach (var ts in tsSelected)
+            {
+                ts.Checked = true;
+            }
+        }
+
+        void MenuRebulidSetCheck(GraphicsResolution? oRes)
         {
             if (oRes == null)
             {
@@ -144,13 +192,14 @@ namespace ColourClashNet
         void MenuRebuildSetChecks()
         {
             lTsItemsSetup.ForEach(X => X.Checked = false);
-            MenuRebulidSetCheck(selectedColorAnalyzer?.Config.QuantizationMode.ToString());
-            MenuRebulidSetCheck(selectedColorAnalyzer?.Config.ColorDistanceEvaluationMode.ToString());
-            MenuRebulidSetCheck(selectedColorAnalyzer?.Config.DitheringType.ToString());
-            MenuRebulidSetCheck(selectedColorAnalyzer?.Config.DitheringFx.ToString());
+            MenuRebulidSetCheck<ColorQuantizationMode>(selectedColorAnalyzer?.Config.QuantizationMode.ToString());
+            MenuRebulidSetCheck<ColorDistanceEvaluationMode>(selectedColorAnalyzer?.Config.ColorDistanceEvaluationMode.ToString());
+            MenuRebulidSetCheck<ColorDithering>(selectedColorAnalyzer?.Config.DitheringType.ToString());
+            MenuRebulidSetCheck<ColorDitheringFx>(selectedColorAnalyzer?.Config.DitheringFx.ToString());
             lTsItemsResolution.ForEach(X => X.Checked = false);
             MenuRebulidSetCheck(selectedColorAnalyzer?.WantedRes);
         }
+        
 
         private void TsItem_ClickSetup(object? sender, EventArgs e)
         {
@@ -207,39 +256,10 @@ namespace ColourClashNet
             }
         }
 
-        void CreateMenuItem(ToolStripMenuItem oTsBase, object oItem)
-        {
-            if (oItem.ToString() == "Unknown")
-                return;
-            var tsItem = new System.Windows.Forms.ToolStripMenuItem();
-            tsItem.Name = oItem.ToString();
-            tsItem.Size = new System.Drawing.Size(180, 22);
-            tsItem.Text = oItem.ToString();
-            tsItem.CheckOnClick = true;
-            tsItem.Tag = oItem;
-            tsItem.Click += TsItem_ClickSetup;
-            oTsBase.DropDownItems.Add(tsItem);
-            lTsItemsSetup.Add(tsItem);
-        }
+       
 
 
-        void InitMenu<T>(ToolStripMenuItem oTsBase) where T : System.Enum
-        {
-            var lColorMode = Enum.GetValues(typeof(T));
-            foreach (var X in lColorMode)
-            {
-                CreateMenuItem(oTsBase, X);
-            };
-        }
 
-        void InitMenu()
-        {
-            InitMenu<ColorQuantizationMode>(colorModeToolStripMenuItem);
-            InitMenu<ColorDistanceEvaluationMode>(colorDistanceToolStripMenuItem);
-            InitMenu<ColorDithering>(ditheringToolStripMenuItem);
-            InitMenu<ColorDitheringFx>(ditherFXToolStripMenuItem);
-            MenuRebuildSetChecks();
-        }
 
 
         #endregion
