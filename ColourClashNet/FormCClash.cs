@@ -294,11 +294,13 @@ namespace ColourClashNet
             }
         }
 
+        ImageData GetProcessedImageData() => ImageToolsGDI.GdiImageToImageData(selectedColorAnalyzer?.ColorManager?.ImageProcessed);
+
         private void toolStripMenuItemSave_Click(object sender, EventArgs e)
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {
-                ImageToolsGDI.GdiImageToFile(selectedColorAnalyzer?.ColorManager?.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageExportFormat.Png);
+                ImageTools.SaveImage(GetProcessedImageData(), sfdExportImage.FileName, ImageSaveFormat.Png);
             }
         }
 
@@ -327,7 +329,7 @@ namespace ColourClashNet
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {
-                ImageToolsGDI.GdiImageToFile(selectedColorAnalyzer?.ColorManager?.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageExportFormat.Bmp);
+                ImageTools.SaveImage(GetProcessedImageData(), sfdExportImage.FileName, ImageSaveFormat.Bmp);
             }
         }
 
@@ -335,7 +337,7 @@ namespace ColourClashNet
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {
-                ImageToolsGDI.GdiImageToFile(selectedColorAnalyzer?.ColorManager?.ImageProcessed as Bitmap, sfdExportImage.FileName, ImageExportFormat.Png);
+                ImageTools.SaveImage(GetProcessedImageData(), sfdExportImage.FileName, ImageSaveFormat.Png);
             }
         }
 

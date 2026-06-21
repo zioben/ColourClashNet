@@ -107,114 +107,114 @@ public static partial class ImageToolsGDI
 
     #region Bitmap Export
 
-    static string GetfileExt(ImageExportFormat eFormat)
-    {
-        switch (eFormat)
-        {
-            case ImageExportFormat.BmpIndexed:
-            case ImageExportFormat.Bmp:
-                return ".bmp";
-            case ImageExportFormat.PngIndexed:
-            case ImageExportFormat.Png:
-                return ".png";
-            case ImageExportFormat.Jpg:
-                return ".jpg";  
-            case ImageExportFormat.CbmAmigaRawBitplane:
-                return ".amibpl";
-            case ImageExportFormat.CbmAmigaRawBitplaneCopperlist:
-                return ".amicoplist";
-            case ImageExportFormat.CbmAmigaRawBitplaneInterleaved:
-                return ".amibpli";
-            case ImageExportFormat.CbmAmigaRawBitplaneInterleavedCopperlist:
-                return ".amicoplisti";
-            default:
-                return ".bin";
-        }
-    }
+    //static string GetfileExt(ImageExportFormat eFormat)
+    //{
+    //    switch (eFormat)
+    //    {
+    //        case ImageExportFormat.BmpIndexed:
+    //        case ImageExportFormat.Bmp:
+    //            return ".bmp";
+    //        case ImageExportFormat.PngIndexed:
+    //        case ImageExportFormat.Png:
+    //            return ".png";
+    //        case ImageExportFormat.Jpg:
+    //            return ".jpg";  
+    //        case ImageExportFormat.CbmAmigaRawBitplane:
+    //            return ".amibpl";
+    //        case ImageExportFormat.CbmAmigaRawBitplaneCopperlist:
+    //            return ".amicoplist";
+    //        case ImageExportFormat.CbmAmigaRawBitplaneInterleaved:
+    //            return ".amibpli";
+    //        case ImageExportFormat.CbmAmigaRawBitplaneInterleavedCopperlist:
+    //            return ".amicoplisti";
+    //        default:
+    //            return ".bin";
+    //    }
+    //}
 
     
-    public static Stream? GdiImageToStream(System.Drawing.Image oImage, ImageExportFormat eFormat, int iQuality = 100)
-    {
-        string sMethod = nameof(GdiImageToStream);
-        try
-        {
-            if (oImage == null)
-            {
-                LogMan.Error(sClass, sMethod, "oImage is null");
-                return null;
-            }
-            switch (eFormat)
-            {
-                case ImageExportFormat.Bmp:
-                case ImageExportFormat.Png:
-                case ImageExportFormat.Jpg:
-                    {
-                        using (var oImage2 = new Bitmap(oImage.Width, oImage.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb))
-                        using (Graphics g = Graphics.FromImage(oImage2))
-                        {
-                            g.DrawImage(oImage, 0, 0, oImage.Width, oImage.Height);
-                            MemoryStream stream = new MemoryStream();
-                            switch (eFormat)
-                            {
-                                case ImageExportFormat.Bmp:
-                                    oImage2.Save(stream, ImageFormat.Bmp);
-                                    return stream;
-                                case ImageExportFormat.Png:
-                                    oImage2.Save(stream, ImageFormat.Png);
-                                    return stream;
-                                case ImageExportFormat.Jpg:
-                                    oImage2.Save(stream, ImageFormat.Jpeg);
-                                    return stream;
-                                default:
-                                    return null;
-                            }
-                        }
-                    }
-                // TODO - Future support for indexed formats
-                //case ImageExportFormat.PngIndexed:
-                //case ImageExportFormat.BmpIndexed:
-                //    {
-                //        if (oImage.PixelFormat != PixelFormat.Format8bppIndexed)
-                //        { 
-                //        }
-                //        return null;
-                //    }
-                default:
-                    LogMan.Error(sClass, sMethod, $"{eFormat} not yet supported!");
-                    return null;
-            }
-        }
-        catch (Exception ex)
-        {
-            LogMan.Exception(sClass, sMethod, ex);  
-            return null;
-        }
-    }
+    //public static Stream? GdiImageToStream(System.Drawing.Image oImage, ImageExportFormat eFormat, int iQuality = 100)
+    //{
+    //    string sMethod = nameof(GdiImageToStream);
+    //    try
+    //    {
+    //        if (oImage == null)
+    //        {
+    //            LogMan.Error(sClass, sMethod, "oImage is null");
+    //            return null;
+    //        }
+    //        switch (eFormat)
+    //        {
+    //            case ImageExportFormat.Bmp:
+    //            case ImageExportFormat.Png:
+    //            case ImageExportFormat.Jpg:
+    //                {
+    //                    using (var oImage2 = new Bitmap(oImage.Width, oImage.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb))
+    //                    using (Graphics g = Graphics.FromImage(oImage2))
+    //                    {
+    //                        g.DrawImage(oImage, 0, 0, oImage.Width, oImage.Height);
+    //                        MemoryStream stream = new MemoryStream();
+    //                        switch (eFormat)
+    //                        {
+    //                            case ImageExportFormat.Bmp:
+    //                                oImage2.Save(stream, ImageFormat.Bmp);
+    //                                return stream;
+    //                            case ImageExportFormat.Png:
+    //                                oImage2.Save(stream, ImageFormat.Png);
+    //                                return stream;
+    //                            case ImageExportFormat.Jpg:
+    //                                oImage2.Save(stream, ImageFormat.Jpeg);
+    //                                return stream;
+    //                            default:
+    //                                return null;
+    //                        }
+    //                    }
+    //                }
+    //            // TODO - Future support for indexed formats
+    //            //case ImageExportFormat.PngIndexed:
+    //            //case ImageExportFormat.BmpIndexed:
+    //            //    {
+    //            //        if (oImage.PixelFormat != PixelFormat.Format8bppIndexed)
+    //            //        { 
+    //            //        }
+    //            //        return null;
+    //            //    }
+    //            default:
+    //                LogMan.Error(sClass, sMethod, $"{eFormat} not yet supported!");
+    //                return null;
+    //        }
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        LogMan.Exception(sClass, sMethod, ex);  
+    //        return null;
+    //    }
+    //}
 
-    public static bool GdiImageToFile(System.Drawing.Image oImage, string sFileName, ImageExportFormat eFormat)
-    {
-        string sMethod = nameof(GdiImageToFile);  
-        try
-        {
-            var ms = GdiImageToStream(oImage, eFormat);   
-            if (ms == null)
-            {
-                LogMan.Error(sClass, sMethod, $"{nameof(GdiImageToStream)} returned null");
-                return false;
-            }
-            using (var fs = File.Create(sFileName + GetfileExt(eFormat)))
-            {
-                ms.Seek(0, SeekOrigin.Begin);
-                ms.CopyTo(fs);
-                return true;
-            }
-        }
-        catch (Exception ex)
-        {
-            LogMan.Exception(sClass, sMethod, ex);
-            return false;
-        }
-    }
+    //public static bool GdiImageToFile(System.Drawing.Image oImage, string sFileName, ImageExportFormat eFormat)
+    //{
+    //    string sMethod = nameof(GdiImageToFile);  
+    //    try
+    //    {
+    //        var ms = GdiImageToStream(oImage, eFormat);   
+    //        if (ms == null)
+    //        {
+    //            LogMan.Error(sClass, sMethod, $"{nameof(GdiImageToStream)} returned null");
+    //            return false;
+    //        }
+    //        using (var fs = File.Create(sFileName + GetfileExt(eFormat)))
+    //        {
+    //            ms.Seek(0, SeekOrigin.Begin);
+    //            ms.CopyTo(fs);
+    //            return true;
+    //        }
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        LogMan.Exception(sClass, sMethod, ex);
+    //        return false;
+    //    }
+    //}
 
     #endregion
 

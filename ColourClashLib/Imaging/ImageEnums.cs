@@ -6,16 +6,27 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Imaging
 {
-    public enum ImageExportFormat
+    public enum ImageSaveFormat
     {
         Unknown = 0,
         //
         Bmp,
-        BmpIndexed,
+       // BmpIndexed,
         Png,
-        PngIndexed,
+       // PngIndexed,
         Jpg,
         //
+     //   CbmAmigaRawBitplane,
+     //   CbmAmigaRawBitplaneInterleaved,
+     //   CbmAmigaRawBitplaneCopperlist,
+     //   CbmAmigaRawBitplaneInterleavedCopperlist,
+    }
+    public enum DataExportMode
+    {
+        Unknown = 0,
+        //
+        Bmp,
+        Png,
         CbmAmigaRawBitplane,
         CbmAmigaRawBitplaneInterleaved,
         CbmAmigaRawBitplaneCopperlist,
