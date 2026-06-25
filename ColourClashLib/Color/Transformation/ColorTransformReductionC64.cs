@@ -1,8 +1,7 @@
-﻿using ColourClashLib.Color;
+﻿using ColourClashNet.Color.Conversion;
 using ColourClashNet.Color.Tile;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
-using NLog;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -11,7 +10,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionC64;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -24,13 +22,21 @@ namespace ColourClashNet.Color.Transformation
         {
             //   Petscii,
             /// <summary>
-            /// 8x4 tile with 4 indipendent colors
+            /// 4x8 tile with 4 indipendent colors
             /// </summary>
             Multicolor,
+            /// <summary>
+            /// 4x8 tile with 4 indipendent colors - enachanced palette
+            /// </summary>
+            MulticolorEnhanced,
             /// <summary>
             /// 8x8 tile with 2 indipendent colors
             /// </summary>
             HiRes,
+            /// <summary>
+            /// 8x8 tile with 2 indipendent colors - enachanced palette
+            /// </summary>
+            HiResEnhanced,
             /// <summary>
             /// 8x8 refedined-charset with 1 bkg color, 2 fixed colors, and 1 indipendent color
             /// </summary>
@@ -40,7 +46,7 @@ namespace ColourClashNet.Color.Transformation
             /// </summary>
             Charset,
             /// <summary>
-            /// 8x4 tile with 4 indipendent colors per line
+            /// 4x8 tile with 4 indipendent colors per line
             /// </summary>
             FlexibleLineInterpretation,
             /// <summary>
@@ -154,7 +160,6 @@ namespace ColourClashNet.Color.Transformation
 
         ColorTransformConfig CreateConfig(int maxColors, Palette referencePalette)
         {
-            ReferencePaletteWriteLock = false;
             return new ColorTransformConfig()
                 .WithReferencePalette(referencePalette)
                 .WithDithering(DitheringType, DitheringStrength, DitheringFx)
@@ -181,8 +186,10 @@ namespace ColourClashNet.Color.Transformation
             {
                 case C64VideoMode.FlexibleLineInterpretation: return palB;
                 case C64VideoMode.HiRes: return palB;
+                case C64VideoMode.HiResEnhanced: return palE;
                 case C64VideoMode.HiResFlexibleLineInterpretation: return palB;
                 case C64VideoMode.Multicolor: return palB;
+                case C64VideoMode.MulticolorEnhanced: return palE;
                 case C64VideoMode.Charset: return palB;
                 case C64VideoMode.CharsetMulticolor: return palB;
                 case C64VideoMode.DebugBasePalette: return palB;
@@ -196,11 +203,12 @@ namespace ColourClashNet.Color.Transformation
 ImageData? PreProcess(bool bHalveRes, CancellationToken token=default)
         {
             string sM= nameof(PreProcess);
-            var refImage = bHalveRes ? ImageTools.HalveXResolution(ImageSource) : ImageSource;
+            var refImage = bHalveRes ? ImageTools.HalveXResolution(ImageSource,true) : ImageSource;
             // Reduce all to the base 16 C64 colors without restrictions
             var colorTrans = new ColorTransformReductionPalette()
-                .SetReferencePalette(new Palette().Create(GetPalette()))
-                .WithDithering(DitheringType, DitheringStrength, DitheringFx);
+                .WithReferencePalette(new Palette().Create(GetPalette()))
+                .WithDithering(DitheringType, DitheringStrength, DitheringFx)
+                .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
             var res = colorTrans.CreateAndProcessColors(refImage, token);
             // Raise pre processing event
             RaiseProcessPartialEvent(new ColorProcessingEventArgs()
@@ -304,6 +312,7 @@ ImageData? PreProcess(bool bHalveRes, CancellationToken token=default)
                     }
                     break;
                 case C64VideoMode.Charset:
+                case C64VideoMode.HiResEnhanced:
                 case C64VideoMode.HiRes:
                     {                       
                         oPreprocessedData = ToHires(token);
@@ -314,6 +323,7 @@ ImageData? PreProcess(bool bHalveRes, CancellationToken token=default)
                         oPreprocessedData = ToBitmapFli(token);
                     }
                 break;
+                case C64VideoMode.MulticolorEnhanced:
                 case C64VideoMode.Multicolor:
                     {
                         oPreprocessedData = ToBitmapMultiColor(token);

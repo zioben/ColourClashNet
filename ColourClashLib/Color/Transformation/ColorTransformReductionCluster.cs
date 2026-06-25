@@ -1,5 +1,5 @@
 ﻿using ColourClashLib;
-using ColourClashLib.Color;
+using ColourClashNet.Color.Transformation;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
@@ -27,26 +27,6 @@ namespace ColourClashNet.Color.Transformation
             Type = ColorTransformType.ColorReductionClustering;
             Description = "K-Means color reduction";
         }
-
-        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
-        //{
-        //    base.SetProperty(propertyName, value);
-        //    switch (propertyName)
-        //    {
-        //        case ColorTransformProperties.MaxColorsWanted:
-        //                MaxColorsWanted = ToInt(value);
-        //            break;
-        //        case ColorTransformProperties.ClusterTrainingLoop:
-        //                TrainingLoop = ToInt(value);
-        //            break;
-        //        case ColorTransformProperties.UseColorMean:
-        //                UseClusterColorMean = ToBool(value);
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //    return this;
-        //}
 
         public ColorTransformReductionCluster WithProcessingParams(int maxColorsWanted, int trainingLoop, bool useClusterColorMean)
         {

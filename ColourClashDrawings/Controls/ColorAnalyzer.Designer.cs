@@ -640,7 +640,7 @@
             label9.Name = "label9";
             label9.Size = new Size(113, 18);
             label9.TabIndex = 25;
-            label9.Text = "Max colors per line";
+            label9.Text = "Max Colors per line";
             // 
             // nudScanlineTrainEpochs
             // 

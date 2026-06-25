@@ -1,4 +1,4 @@
-﻿using ColourClashLib;
+﻿using ColourClashNet.Color;
 using ColourClashNet.Imaging;
 using System;
 using System.Collections.Concurrent;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ColourClashNet.Color
+namespace ColourClashNet.Color.Transformation
 {
     /// <summary>
     /// Class to transform palette colors.

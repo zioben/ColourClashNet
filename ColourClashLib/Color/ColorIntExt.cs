@@ -1,5 +1,4 @@
-﻿using ColourClashLib;
-using ColourClashNet.Color;
+﻿using ColourClashNet.Color.Conversion;
 using ColourClashNet.Imaging;
 using Microsoft.Win32.SafeHandles;
 using System;

@@ -17,19 +17,19 @@ namespace ColourClashNet.Color
 
 
     /// <summary>
-    /// Provides extension methods and default values for working with integer-based color representations.
+    /// Provides extension methods and default values for working with integer-based Color representations.
     /// </summary>
-    /// <remarks>This static class includes methods for converting integers to and from color representations,
-    /// manipulating color components, and calculating color distances and means. It also defines default  colors for
-    /// specific use cases, such as background, mask, and transparency.  The integer-based color representation assumes
+    /// <remarks>This static class includes methods for converting integers to and from Color representations,
+    /// manipulating Color components, and calculating Color distances and means. It also defines default  Colors for
+    /// specific use cases, such as background, mask, and transparency.  The integer-based Color representation assumes
     /// a 32-bit structure where the lower 24 bits represent  the RGB components, and the upper 8 bits may encode
-    /// additional metadata (e.g., color type).</remarks>
+    /// additional metadata (e.g., Color type).</remarks>
     public static class ColorIntExtGdi
     {
 
 
         /// <summary>
-        /// Converts an integer representation of a color to a <see cref="System.Drawing.Color"/>. 
+        /// Converts an integer representation of a Color to a <see cref="System.Drawing.Color"/>. 
         /// </summary>
         /// <param name="rgb"></param>
         /// <returns></returns>

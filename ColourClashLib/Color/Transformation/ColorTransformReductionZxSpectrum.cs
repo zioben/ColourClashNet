@@ -1,8 +1,5 @@
-﻿using ColourClashLib.Color;
-using ColourClashNet.Color.Dithering;
-using ColourClashNet.Color.Tile;
+﻿using ColourClashNet.Color.Tile;
 using ColourClashNet.Imaging;
-using ColourClashNet.Log;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -15,8 +12,6 @@ using System.Reflection.Emit;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionAmiga;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -42,7 +37,7 @@ namespace ColourClashNet.Color.Transformation
         public ColorTransformReductionZxSpectrum()
         {
             Type = ColorTransformType.ColorReductionZxSpectrum;
-            Description = "Reduce color to ZX Spectrum color map and apply Colourclash reduction";
+            Description = "Reduce color to ZX Spectrum color map and apply ColourClash reduction";
         }
 
         public class ZxProcessingResults
@@ -96,23 +91,7 @@ namespace ColourClashNet.Color.Transformation
         public bool DitherHighColorImage { get; set; } = true;
         public int ZxColorSeedOutLow { get; init; } = 0x00D8;
         public int ZxColorSeedOutHigh { get; init; } = 0x00FF;
-
-        // ColorTransformType processingType { get; set; } = ColorTransformType.ColorReductionClustering;
-        ColorTransformType processingType { get; set; } = ColorTransformType.ColorReductionFast;
-
-        //Dictionary<ColorTransformProperties, object> CreateTileProcessingParams(Palette palette, ColorDithering ditheringType)
-        //{
-        //    var dict = new Dictionary<ColorTransformProperties, object>();
-        //    dict[ColorTransformProperties.ColorDistanceEvaluationMode] = ColorDistanceEvaluationMode;
-        //    dict[ColorTransformProperties.PriorityPalette] = palette;
-        //    dict[ColorTransformProperties.DitheringType] = ditheringType;
-        //    dict[ColorTransformProperties.DitheringStrength] = DitheringStrength;
-        //    dict[ColorTransformProperties.MaxColorsWanted] = 2;
-        //    dict[ColorTransformProperties.UseColorMean] = false;
-        //    dict[ColorTransformProperties.ClusterTrainingLoop] = 5;
-        //    return dict;
-        //}
-
+        ColorTransformType transformType { get; set; } = ColorTransformType.ColorReductionClustering;
         ColorTransformConfig CreateConfig(Palette palette, ColorDithering ditheringType)
         {
             return new ColorTransformConfig()
@@ -121,38 +100,6 @@ namespace ColourClashNet.Color.Transformation
                 .WithClustering(2, 6, false);                
         }
 
-        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
-        //{
-        //    base.SetProperty(propertyName, value);
-
-        //    switch (propertyName)
-        //    {
-        //        case ColorTransformProperties.ZxColLSeed:
-        //            ZxLowColorInSeed = ToInt(value);
-        //            break;
-        //        case ColorTransformProperties.ZxColHSeed:
-        //            ZxHighColorInSeed = ToInt(value);
-        //            break;
-        //        case ColorTransformProperties.ZxDitherLowColorImage:
-        //            DitherLowColorImage = ToBool(value);
-        //            break;
-        //        case ColorTransformProperties.ZxDitherHighColorImage:
-        //            DitherHighColorImage = ToBool(value);
-        //            break;
-        //        case ColorTransformProperties.ZxIncludeBlackInHighColorImage:
-        //            IncludeBlackInHighColor = ToBool(value);
-        //            break;
-        //        case ColorTransformProperties.ZxPaletteMode:
-        //            PaletteMode = ToEnum<ZxPaletteMode>(value);
-        //            break;
-        //        case ColorTransformProperties.ZxAutotuneMode:
-        //            AutotuneMode = ToEnum<ZxAutotuneMode>(value);
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //    return this;
-        //}
 
         public ColorTransformReductionZxSpectrum WithZxScreenMode(ZxPaletteMode paletteMode, int lowColorInSeed, int highColorInSeed)
         {
@@ -238,8 +185,8 @@ namespace ColourClashNet.Color.Transformation
 
             //Create best input image on input seed palette
             var zxBaseTransform = new ColorTransformReductionPalette()
-               .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
                .WithReferencePalette(transformationMap.GetInputPalette())
+               .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
                .WithDithering(DitheringType, DitheringStrength, DitheringFx)
                .Create(ImageSource,ImageReference);
             var zxBaseResult = zxBaseTransform.ProcessColors(token);
@@ -248,7 +195,7 @@ namespace ColourClashNet.Color.Transformation
             // transform to real ZX colors
             var zxRealImage = transformationMap.Transform(zxBaseImage, token);
             // evaluate tiles 8x8 - 2 colors per tile
-            TileManager oTileManager = new TileManager().Create(8, 8, zxRealImage, loPalette ? 1.0 : 2.0, processingType, CreateConfig(new Palette(), dithering), token); // ColorDithering.None);, token);//  ithering), token);
+            TileManager oTileManager = new TileManager().Create(8, 8, zxRealImage, loPalette ? 1.0 : 2.0, transformType, CreateConfig(new Palette(), dithering), token); // ColorDithering.None);, token);//  ithering), token);
             var tileProcRes = oTileManager.ProcessColors(token);
             var normalization = ColorIntExt.GetMaxColorDistance(transformationMap.GetOutputPalette(), ColorDistanceEvaluationMode, token);
             var dError = oTileManager.RecalcGlobalTransformationError(zxBestImage, token);

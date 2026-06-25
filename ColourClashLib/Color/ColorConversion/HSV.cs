@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace ColourClashNet.Color
+namespace ColourClashNet.Color.Conversion
 {
     /// <summary>
     /// Represents a color in HSV (Hue, Saturation, Value) color space.

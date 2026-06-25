@@ -1,13 +1,11 @@
-﻿using System;
+﻿using ColourClashNet.Log;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using ColourClashLib;
-using ColourClashLib.Color;
-using ColourClashNet.Log;
 
 
 namespace ColourClashNet.Color.Transformation
@@ -22,21 +20,7 @@ namespace ColourClashNet.Color.Transformation
             Description = "Reduces color bit spectrum";
         }
 
-        public ColorQuantizationMode QuantizationMode { get; set; }
-
-        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
-        //{
-        //    base.SetProperty(propertyName, value);
-        //    switch (propertyName)
-        //    {
-        //        case ColorTransformProperties.QuantizationMode:
-        //                QuantizationMode = ToEnum<ColorQuantizationMode>(value);
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //    return this;
-        //}
+        public ColorQuantizationMode QuantizationMode { get; set; }  
 
         public ColorTransformQuantization WithQuantization(ColorQuantizationMode mode)
         {

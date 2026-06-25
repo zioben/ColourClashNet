@@ -5,7 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
-using ColourClashLib;
+using ColourClashNet;
+
 
 namespace ColourClashNet.Defaults
 {

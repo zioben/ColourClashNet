@@ -1,12 +1,10 @@
-﻿using ColourClashLib.Color;
-using ColourClashNet.Color.Dithering;
+﻿using ColourClashNet.Color.Dithering;
 using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionC64;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -31,7 +29,7 @@ namespace ColourClashNet.Color.Transformation
         }
         void CreatePalette()
         {
-            OverwriteReferencePalette(
+            WithReferencePalette(
                 new List<int>
                 {
                    0x00_00_00_00,
@@ -73,19 +71,6 @@ namespace ColourClashNet.Color.Transformation
             );
         }
 
-        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
-        //{
-        //    base.SetProperty(propertyName, value);
-        //    switch (propertyName)
-        //    {
-        //        case ColorTransformProperties.CPCVideoMode:
-        //                VideoMode = ToEnum<CPCVideoMode>(value);
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //    return this;
-        //}
 
         public ColorTransformReductionCPC WithCpcVideoMode(CPCVideoMode videoMode)
         { 
@@ -105,7 +90,7 @@ namespace ColourClashNet.Color.Transformation
 
             ImageData? PreProcess(bool bHalveRes, CancellationToken oToken=default)
         {           
-            var oTmpData = bHalveRes ? ImageTools.HalveXResolution(ImageSource) : ImageSource;
+            var oTmpData = bHalveRes ? ImageTools.HalveXResolution(ImageSource,true) : ImageSource;
             var oTmpDataProc = TransformationMap.Transform(oTmpData, oToken);
             return oTmpDataProc;
         }
@@ -121,7 +106,7 @@ namespace ColourClashNet.Color.Transformation
 
             if (DitheringType != ColorDithering.None)
             {
-                var imageRef = bDoubleRes ? ImageTools.HalveXResolution(ImageSource) : ImageSource;
+                var imageRef = bDoubleRes ? ImageTools.HalveXResolution(ImageSource,true) : ImageSource;
                 var dithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength,DitheringFx);
                 var ditherRes = dithering.Dither(imageRef, oRes.DataOut, ColorDistanceEvaluationMode, oToken);
                 return bDoubleRes ? ImageTools.DoubleXResolution(ditherRes.DataOut) : ditherRes.DataOut;

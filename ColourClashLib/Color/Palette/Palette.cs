@@ -1,7 +1,5 @@
 ﻿using ColourClashNet.Color;
-using ColourClashNet.Color;
 using ColourClashNet.Imaging;
-using ColourClashNet.Log;
 using System.Collections;
 
 namespace ColourClashNet.Color

@@ -1,6 +1,5 @@
-﻿using ColourClashLib.Color;
+﻿using ColourClashNet.Color.Transformation;
 using ColourClashNet.Color;
-using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;

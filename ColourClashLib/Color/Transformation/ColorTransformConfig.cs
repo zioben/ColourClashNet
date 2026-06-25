@@ -1,12 +1,11 @@
 ﻿using ColourClashNet.Color;
-using ColourClashNet.Color.Transformation;
 using System.ComponentModel;
 using static ColourClashNet.Color.Transformation.ColorTransformReductionAmiga;
 using static ColourClashNet.Color.Transformation.ColorTransformReductionC64;
 using static ColourClashNet.Color.Transformation.ColorTransformReductionCPC;
 using static ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum;
 
-namespace ColourClashLib.Color
+namespace ColourClashNet.Color.Transformation
 {
     [Serializable]
     [TypeConverter(typeof(ExpandableObjectConverter))]
@@ -108,6 +107,21 @@ namespace ColourClashLib.Color
             DitheringFx = fx;
             return this;
         }
+        public ColorTransformConfig WithDitheringType(ColorDithering ditheringType)
+        {
+            DitheringType = ditheringType;
+            return this;
+        }
+        public ColorTransformConfig WithDitheringStrength(double strength)
+        {
+            DitheringStrength = strength;
+            return this;
+        }
+        public ColorTransformConfig WithDitheringFx(ColorDitheringFx fx)
+        {
+            DitheringFx = fx;
+            return this;
+        }
 
         public ColorTransformConfig WithAmigaScreenMode(EnumAmigaVideoMode mode, EnumHamColorProcessingMode processingMode)
         {
@@ -180,5 +194,8 @@ namespace ColourClashLib.Color
             HsvBrightnessMultFactor = brightnessMultFactor;
             return this;
         }
+
+        public ColorTransformConfig Clone()
+            => base.MemberwiseClone() as ColorTransformConfig;
     }
 }

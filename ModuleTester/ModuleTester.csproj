@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ColourClashLib\ColourClashLib.csproj" />
-    <ProjectReference Include="..\ColourClashNet\ColourClashNet.csproj" />
     <ProjectReference Include="..\ColourClashSupport\ColourClashSupport.csproj" />
   </ItemGroup>
 

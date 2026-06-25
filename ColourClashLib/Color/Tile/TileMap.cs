@@ -1,6 +1,7 @@
 ﻿using ColourClashNet.Color;
 using ColourClashNet.Color.Dithering;
 using ColourClashNet.Color.Transformation;
+using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace ColourClashNet.Color.Tile
     {
         internal int r { get; set; }
         internal int c { get; set; }
-        internal int[,]? Tile { get; set; }
+        internal ImageData TileImage { get; set; }
         internal double Error { get; private set; }
 
         internal ColorTransformReductionCluster oReduction = new ColorTransformReductionCluster()
@@ -30,11 +31,11 @@ namespace ColourClashNet.Color.Tile
             TrainingLoop = 3,
         };
 
-        internal async Task<ColorTransformResults> ProcessColorAsync(ColorDithering eDitherModel, CancellationToken oToken=default )
+        internal async Task<ColorTransformResult> ProcessColorAsync(ColorDithering eDitherModel, CancellationToken oToken=default )
         {
             oReduction
-                .Create(Tile)
-                .SetProperty(ColorTransformProperties.Dithering_Type, eDitherModel);
+                .Create(TileImage)
+                .SetProperty(ColorTransformProperties.DitheringType, eDitherModel);
             var oRet = await oReduction.ProcessColorsAsync(oToken);
             Error = await ColorIntExt.EvaluateErrorAsync(oRet.DataOut, Tile, oReduction.ColorDistanceEvaluationMode,oToken);
             return oRet;

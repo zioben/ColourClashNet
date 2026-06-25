@@ -160,7 +160,7 @@ namespace ColourClashNet.Color
     /// <summary>
     /// Enums to decorate ColorIntExt Class
     /// <para>
-    /// 24 bit space is neede to codigy RGB8 colour space data. Remaining 8 bit data can be used to identify a property of the color.<br/>
+    /// 24 bit space is neede to codigy RGB8 Color space data. Remaining 8 bit data can be used to identify a property of the color.<br/>
     /// Everything tha in nor "real" color is maked with 1 on MSB, so resulting in always a negative number. This Helps on filtering operations.
     /// </para>
     /// </summary>

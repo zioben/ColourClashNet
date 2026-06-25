@@ -1,4 +1,4 @@
-﻿using ColourClashLib.Color;
+﻿using ColourClashNet.Color.Transformation;
 using ColourClashNet.Log;
 using System;
 using System.Collections;
@@ -23,39 +23,6 @@ namespace ColourClashNet.Color.Transformation
 
         public Palette BackgroundPalette { get; set; } = new Palette();
         public int ColorBackgroundReplacement { get; set; } = 0;
-
-
-        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
-        //{
-        //    base.SetProperty(propertyName, value);
-        //    switch (propertyName)
-        //    {
-        //        case ColorTransformProperties.ColorBackgroundList:
-        //            {
-        //                BackgroundPalette = new Palette();
-        //                if (value is IEnumerable<int> palette1)
-        //                    BackgroundPalette = new Palette().Create(palette1);
-        //                else if (value is IEnumerable<int> palette2)
-        //                    BackgroundPalette = new Palette().Create(palette2);
-        //                else if (value is Palette palette3)
-        //                    BackgroundPalette = new Palette().Create(palette3);
-        //                else
-        //                    throw new ArgumentException($"Invalid value type for {propertyName}: {value.GetType().Name}");
-        //            }
-        //            break;
-        //        case ColorTransformProperties.ColorBackgroundReplacement:
-        //            if (value is int rgb)
-        //                ColorBackgroundReplacement = rgb;
-        //            else if (value is ColorConverterInterface col)
-        //                ColorBackgroundReplacement = col.ToIntRGB();
-        //            else
-        //                throw new ArgumentException($"Invalid value type for {propertyName}: {value.GetType().Name}");
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //    return this;
-        //}
 
         public ColorTransformInterface WithColorReplacement( Palette colorPalette, int replacementColor)
         {

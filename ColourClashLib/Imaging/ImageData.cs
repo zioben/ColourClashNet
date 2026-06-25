@@ -1,5 +1,6 @@
 ﻿using ColourClashNet.Color;
 using ColourClashNet.Log;
+using ColourClashNet.Color;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +27,7 @@ public partial class ImageData
     internal protected int[,]? matrix;
 
     /// <summary>
-    /// Gets the color palette used for rendering visual elements.
+    /// Gets the Color palette used for rendering visual elements.
     /// </summary>
     public Palette ColorPalette { get; private set; } = new Palette();
 
@@ -70,7 +71,7 @@ public partial class ImageData
     }
 
     /// <summary>
-    /// Gets the number of colors in the current color palette.
+    /// Gets the number of Colors in the current Color palette.
     /// </summary>
     public int Colors => ColorPalette.Count;
 
@@ -91,11 +92,11 @@ public partial class ImageData
 
 
     /// <summary>
-    /// Resets the object's data and color palette to their default states.
+    /// Resets the object's data and Color palette to their default states.
     /// </summary>
     /// <remarks>This method is thread-safe. If an error occurs during the reset process, the method
     /// logs the exception and returns false.</remarks>
-    /// <returns>The current <see cref="ImageData"/> instance with updated data and color palette if <paramref name="oData"/>
+    /// <returns>The current <see cref="ImageData"/> instance with updated data and Color palette if <paramref name="oData"/>
     /// is not null; otherwise, the instance remains unchanged.</returns>
     public ImageData Reset()
     {
@@ -110,11 +111,11 @@ public partial class ImageData
 
 
    /// <summary>
-   /// Initializes the image data and color palette using the specified two-dimensional array of pixel values.
+   /// Initializes the image data and Color palette using the specified two-dimensional array of pixel values.
    /// </summary>
    /// <param name="matrixSrc">A two-dimensional array of integers representing pixel data. If null, the existing image data is not
    /// modified.</param>
-   /// <returns>The current <see cref="ImageData"/> instance with updated data and color palette if <paramref name="matrixSrc"/>
+   /// <returns>The current <see cref="ImageData"/> instance with updated data and Color palette if <paramref name="matrixSrc"/>
    /// is not null; otherwise, the instance remains unchanged.</returns>
     public ImageData Create(int[,] matrixSrc)
     {
@@ -135,7 +136,7 @@ public partial class ImageData
     /// Initializes the image data with the specified width and height, resetting any existing data.
     /// </summary>
     /// <remarks>This method resets any existing image data before initializing the new data. The
-    /// color palette is also regenerated based on the new dimensions. This method is not thread-safe; external
+    /// Color palette is also regenerated based on the new dimensions. This method is not thread-safe; external
     /// synchronization is required if accessed concurrently.</remarks>
     /// <param name="width">The number of columns for the image data. Must be greater than zero.</param>
     /// <param name="height">The number of rows for the image data. Must be greater than zero.</param>
@@ -189,9 +190,9 @@ public partial class ImageData
 
 
     /// <summary>
-    /// Returns a string that represents the current image, including its name, dimensions, and color count.
+    /// Returns a string that represents the current image, including its name, dimensions, and Color count.
     /// </summary>
-    /// <returns>A string containing the image name, width, height, and number of colors in the format: "ImageData: {Name},
+    /// <returns>A string containing the image name, width, height, and number of Colors in the format: "ImageData: {Name},
     /// {Width}x{Height}, Colors: {Colors}".</returns>
     public override string ToString()
     {

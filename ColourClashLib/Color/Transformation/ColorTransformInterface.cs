@@ -1,5 +1,4 @@
-﻿using ColourClashLib.Color;
-using ColourClashNet.Imaging;
+﻿using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,20 +37,6 @@ namespace ColourClashNet.Color.Transformation
 
         ColorTransformInterface SetProperties(ColorTransformConfig cfg);
 
-        //ColorTransformInterface SetProperty(ColorTransformProperties eProperty, object oValue);
-
-        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, int value);
-        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, double value);
-        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Palette value);
-        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, List<int> value);
-        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, IEnumerable<int> value);
-        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorDistanceEvaluationMode value);
-        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, string value);
-        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, decimal value);
-        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorDithering value);
-        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Boolean value);
-        //ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Enum value);
-
         //------------------------------------------------------------
 
         ColorTransformInterface Create(ImageData sourceImage, ImageData referenceImage);
@@ -62,10 +47,6 @@ namespace ColourClashNet.Color.Transformation
         ColorTransformResult CreateAndProcessColors(ImageData sourceImage, CancellationToken token = default);
         void AbortProcessing(CancellationTokenSource token);
 
-
-
-       // Task<ColorTransformInterface> CreateAsync(ImageData image);
-       // Task<ColorTransformResults> ProcessColorsAsync(CancellationToken token = default);
         Task<ColorTransformResult> CreateAndProcessColorsAsync(ImageData image, ImageData referenceImage = null, CancellationToken token = default);
         Task AbortProcessingAsync(CancellationTokenSource token);
 

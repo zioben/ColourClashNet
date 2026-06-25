@@ -1,7 +1,7 @@
 ﻿using ColourClashNet.Color;
 using System;
 
-namespace ColourClashNet.Color 
+namespace ColourClashNet.Color.Conversion
 {
     /// <summary>
     /// Represents a color in CIELAB color space.

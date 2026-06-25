@@ -1,5 +1,4 @@
-﻿using ColourClashLib.Color;
-using ColourClashNet.Color;
+﻿using ColourClashNet.Color;
 using ColourClashNet.Color.Dithering;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
@@ -34,26 +33,10 @@ public partial class TileManager
 
     public ImageData ImageSource { get; private set; } = new ImageData();
 
-    public ColorTransformType ProcessingType { get; private set; } = ColorTransformType.ColorReductionClustering;
-    public Dictionary<ColorTransformProperties, object> ProcessingParameters { get; private set; } = new Dictionary<ColorTransformProperties, object>();
+    public ColorTransformType TransformationType { get; private set; } = ColorTransformType.ColorReductionClustering;
+    public ColorTransformConfig TransformationConfig { get; private set; } = new ();
     public double GlobalTransformationError { get; set; } = double.NaN;
-
     public double NormalizationError { get; private set; } = 1.0;
-    //public bool IsValid
-    //{
-    //    get
-    //    {
-    //        lock (locker)
-    //        {
-    //            return tileProcessingMatrix != null &&
-    //                ImageSource.IsValid &&
-    //                TileW > 0 &&
-    //                TileH > 0 &&
-    //                TileRows > 0 &&
-    //                TileColumns > 0;
-    //        }
-    //    }
-    //}
 
     public TileProcessing? GetTileProcessing(int r, int c)
     {
@@ -74,13 +57,13 @@ public partial class TileManager
             tileProcessingMatrix = null;
             ImageSource = new ImageData();
             GlobalTransformationError = double.NaN;
-            ProcessingType = ColorTransformType.ColorReductionClustering;
-            ProcessingParameters = new Dictionary<ColorTransformProperties, object>();
+            TransformationType = ColorTransformType.ColorReductionClustering;
+            TransformationConfig = new ();
             NormalizationError = 1.0;
         }
     }
 
-    public TileManager Create(int tileWidth, int tileHeight, ImageData image, double normalizationError, ColorTransformType processingType, ColorTransformConfig processingParameters , CancellationToken oToken=default)
+    public TileManager Create(int tileWidth, int tileHeight, ImageData image, double normalizationError, ColorTransformType colorTransformType, ColorTransformConfig colorTransformConfig , CancellationToken oToken=default)
     {
 
         string sM = nameof(Create);
@@ -97,7 +80,7 @@ public partial class TileManager
                 Reset();
                 TileW = tileWidth;
                 TileH = tileHeight;
-                ProcessingType = processingType;
+                TransformationType = colorTransformType;
                 NormalizationError = normalizationError;
 
                 ImageSource = new ImageData().Create(image);
@@ -118,8 +101,8 @@ public partial class TileManager
                             TileW,
                             TileH,
                             NormalizationError,
-                            ProcessingType,
-                            processingParameters);
+                            colorTransformType,
+                            colorTransformConfig);
                     }
                 }//);
                 return this;

@@ -1,5 +1,4 @@
-﻿using ColourClashLib.Color;
-using ColourClashNet.Color.Dithering;
+﻿using ColourClashNet.Color.Dithering;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
@@ -7,10 +6,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Globalization;
 using System.Threading.Tasks;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionAmiga;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionC64;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionCPC;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum;
+
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -20,6 +16,8 @@ namespace ColourClashNet.Color.Transformation
     public abstract partial class ColorTransformBase : ColorTransformInterface
     {
         static string sC = nameof(ColorTransformBase);
+
+        object locker = new object();
 
         #region events
 
@@ -49,12 +47,12 @@ namespace ColourClashNet.Color.Transformation
         public ImageData ImageOutput { get; protected set; } = new ImageData();
 
         //-------------------------------------------------------------------------------------------------------------------------------
-        public Palette ReferencePalette { get; internal protected set; } = new Palette();
+        public Palette ReferencePalette { get; private set; } = new Palette();
 
         /// <summary>
         /// Lock reference palette for further lock - will be used on derived classes to avoid palette rewriting
         /// </summary>
-        public bool ReferencePaletteWriteLock { get; protected set; } = false;
+        public bool ReferencePaletteWriteLock { get; private set; } = false;
         public int ReferenceColors => ReferencePalette?.Count ?? 0;
         public bool EnablePreviewEvents { get; set; }
 
@@ -211,62 +209,7 @@ namespace ColourClashNet.Color.Transformation
 
         #region property
 
-        //protected internal virtual ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
-        //{
-        //    string sM = nameof(SetProperty);
-        //    switch (propertyName)
-        //    {
-        //        case ColorTransformProperties.ColorDistanceEvaluationMode:
-        //            ColorDistanceEvaluationMode = ToEnum<ColorDistanceEvaluationMode>(value);
-        //            break;
-        //        case ColorTransformProperties.PriorityPalette:
-        //            if (value is IEnumerable<int> palette1)
-        //                PriorityPalette = new Palette().Create(palette1);
-        //            if (value is List<int> palette2)
-        //                PriorityPalette = new Palette().Create(palette2);
-        //            else if (value is Palette palette3)
-        //                PriorityPalette = new Palette().Create(palette3);
-        //            else
-        //                throw new ArgumentException($"{Type} : Invalid value for {propertyName} ");
-        //            break;
-        //        case ColorTransformProperties.DitheringType:
-        //            DitheringType = ToEnum<ColorDithering>(value);
-        //            break;
-        //        case ColorTransformProperties.DitheringStrength:
-        //            DitheringStrength = Clamp(value, 0.0, 1.0);
-        //            break;
-        //        case ColorTransformProperties.DitheringFx:
-        //            DitheringFx = ToEnum<ColorDitheringFx>(value);
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //    return this;
-        //}
-
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, int value)
-        //    => SetProperty(propertyName, (object)value);
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, double value)
-        //    => SetProperty(propertyName, (object)value);
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Palette value)
-        //    => SetProperty(propertyName, (object)value);
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, List<int> value)
-        //    => SetProperty(propertyName, (object)value);
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, IEnumerable<int> value)
-        //    => SetProperty(propertyName, (object)value);
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorDistanceEvaluationMode value)
-        //    => SetProperty(propertyName, (object)value);
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, string value)
-        //    => SetProperty(propertyName, (object)value);
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, decimal value)
-        //    => SetProperty(propertyName, (object)value);
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, ColorDithering value)
-        //    => SetProperty(propertyName, (object)value);
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Boolean value)
-        //    => SetProperty(propertyName, (object)value);
-
-        //public ColorTransformInterface SetProperty(ColorTransformProperties propertyName, Enum value)
-        //    => SetProperty(propertyName, (object)value);
+       
 
         #endregion
 
@@ -290,33 +233,16 @@ namespace ColourClashNet.Color.Transformation
 
         public ColorTransformBase WithColorDistanceEvaluationMode(ColorTransformConfig cfg) => WithColorDistanceEvaluationMode(cfg.ColorDistanceEvaluationMode);
 
-        protected ColorTransformBase OverwriteReferencePalette(Palette palette)
-        {
-            if (palette == null)
-                throw new ArgumentNullException(nameof(palette));
-            ReferencePalette = new Palette().Create(palette);
-            return this;
-        }
-        protected ColorTransformBase OverwriteReferencePalette(IEnumerable<int> palette)
-        {
-            if (palette == null)
-                throw new ArgumentNullException(nameof(palette));
-            ReferencePalette = new Palette().Create(palette);
-            return this;
-        }
-        protected ColorTransformBase OverwriteReferencePalette(List<int> palette)
-        {
-            if (palette == null)
-                throw new ArgumentNullException(nameof(palette));
-            ReferencePalette = new Palette().Create(palette);
-            return this;
-        }
-
         protected ColorTransformBase WithReferencePalette(IEnumerable<int> palette, bool forcePaletteOverwrite)
         {
-            if (!ReferencePaletteWriteLock || forcePaletteOverwrite)
+            string sM = nameof(ColorTransformBase);
+            lock (locker)
             {
-                ReferencePalette = new Palette().Create(palette);
+                if (!ReferencePaletteWriteLock || forcePaletteOverwrite)
+                {
+                    ReferencePalette = new Palette().Create(palette);
+                    ReferencePaletteWriteLock = true;
+                }
             }
             return this;
         }

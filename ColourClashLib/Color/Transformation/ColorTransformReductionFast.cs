@@ -1,5 +1,4 @@
-﻿using ColourClashLib.Color;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,23 +16,6 @@ namespace ColourClashNet.Color.Transformation
         }
 
         public int MaxColorWanted { get; set; } = -1;
-
-        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
-        //{
-        //    base.SetProperty(propertyName, value);
-
-        //    switch (propertyName)
-        //    {
-        //        case ColorTransformProperties.MaxColorsWanted:
-        //                ColorsMaxWanted = ToInt(value);
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //    return this;
-        //}
-
-        //        Palette OutputPalette = new Palette();
 
         public ColorTransformReductionFast WithProcessingParams(int maxColors)
         {

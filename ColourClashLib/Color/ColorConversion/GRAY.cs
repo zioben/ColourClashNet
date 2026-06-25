@@ -3,7 +3,7 @@ using ColourClashNet.Color;
 using System;
 using System.Linq.Expressions;
 
-namespace ColourClashNet.Color
+namespace ColourClashNet.Color.Conversion
 {
     /// <summary>
     /// Represents a color in CIELAB color space.

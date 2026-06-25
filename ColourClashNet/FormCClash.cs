@@ -110,6 +110,7 @@ namespace ColourClashNet
             caNew.ImageCreated += ((s, e) => oTabManager.SetPageText(caNew, e.Name.Substring(Math.Max(0, e.Name.Length - 12))));
             var tp = oTabManager.CreatePage(caNew);
             oTabManager.SelectedTab= tp;    
+
             return caNew;
         }
 
@@ -154,8 +155,8 @@ namespace ColourClashNet
 
         void InitMenu()
         {
-            InitMenu<ColorQuantizationMode>(colorModeToolStripMenuItem);
-            InitMenu<ColorDistanceEvaluationMode>(colorDistanceToolStripMenuItem);
+            InitMenu<ColorQuantizationMode>(ColorModeToolStripMenuItem);
+            InitMenu<ColorDistanceEvaluationMode>(ColorDistanceToolStripMenuItem);
             InitMenu<ColorDithering>(ditheringToolStripMenuItem);
             InitMenu<ColorDitheringFx>(ditherFXToolStripMenuItem);
             MenuRebuildSetChecks();
@@ -192,10 +193,10 @@ namespace ColourClashNet
         void MenuRebuildSetChecks()
         {
             lTsItemsSetup.ForEach(X => X.Checked = false);
-            MenuRebulidSetCheck<ColorQuantizationMode>(selectedColorAnalyzer?.Config.QuantizationMode.ToString());
-            MenuRebulidSetCheck<ColorDistanceEvaluationMode>(selectedColorAnalyzer?.Config.ColorDistanceEvaluationMode.ToString());
-            MenuRebulidSetCheck<ColorDithering>(selectedColorAnalyzer?.Config.DitheringType.ToString());
-            MenuRebulidSetCheck<ColorDitheringFx>(selectedColorAnalyzer?.Config.DitheringFx.ToString());
+            MenuRebulidSetCheck<ColorQuantizationMode>(selectedColorAnalyzer?.QuantizationMode.ToString());
+            MenuRebulidSetCheck<ColorDistanceEvaluationMode>(selectedColorAnalyzer?.ColorDistanceEvaluationMode.ToString());
+            MenuRebulidSetCheck<ColorDithering>(selectedColorAnalyzer?.DitheringType.ToString());
+            MenuRebulidSetCheck<ColorDitheringFx>(selectedColorAnalyzer?.DitheringFx.ToString());
             lTsItemsResolution.ForEach(X => X.Checked = false);
             MenuRebulidSetCheck(selectedColorAnalyzer?.WantedRes);
         }
@@ -207,20 +208,20 @@ namespace ColourClashNet
             var oTag = oTS.Tag;
             if (oTag is ColorQuantizationMode)
             {
-                selectedColorAnalyzer.Config.QuantizationMode = (ColorQuantizationMode)oTag;
+                selectedColorAnalyzer.QuantizationMode = (ColorQuantizationMode)oTag;
                 selectedColorAnalyzer.Preprocess();
             }
             else if (oTag is ColorDistanceEvaluationMode)
             {
-                selectedColorAnalyzer.Config.ColorDistanceEvaluationMode = (ColorDistanceEvaluationMode)oTag;
+                selectedColorAnalyzer.ColorDistanceEvaluationMode = (ColorDistanceEvaluationMode)oTag;
             }
             else if (oTag is ColorDithering)
             {
-                selectedColorAnalyzer.Config.DitheringType = (ColorDithering)oTag;
+                selectedColorAnalyzer.DitheringType = (ColorDithering)oTag;
             }
             else if (oTag is ColorDitheringFx)
             {
-                selectedColorAnalyzer.Config.DitheringFx = (ColorDitheringFx)oTag;
+                selectedColorAnalyzer.DitheringFx = (ColorDitheringFx)oTag;
             }
 
             MenuRebuildSetChecks();
@@ -317,7 +318,11 @@ namespace ColourClashNet
 
         private void bitmapIndexedToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            var image = selectedColorAnalyzer?.ColorManager?.ImageProcessed?.Clone() as Bitmap;
+            if (sfdExportImage.ShowDialog() == DialogResult.OK)
+            {
+                ImageTools.SaveImageAsIndexedBitmap(GetProcessedImageData(), sfdExportImage.FileName);
+            }
         }
 
         private void indexedPNGToolStripMenuItem_Click(object sender, EventArgs e)

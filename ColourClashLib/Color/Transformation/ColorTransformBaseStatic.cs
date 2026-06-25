@@ -1,4 +1,4 @@
-﻿using ColourClashLib.Color;
+﻿using ColourClashNet.Color.Transformation;
 using ColourClashNet.Color.Tile;
 using ColourClashNet.Log;
 using System;

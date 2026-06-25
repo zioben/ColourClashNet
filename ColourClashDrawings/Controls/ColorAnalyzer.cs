@@ -1,5 +1,5 @@
 ﻿using ColourClashLib;
-using ColourClashLib.Color;
+using ColourClashNet.Color;
 using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Drawing;
@@ -52,17 +52,26 @@ namespace ColourClashNet.Controls
 
         public GraphicsResolution WantedRes { get; set; } = null;
 
-        public ColorTransformConfig Config => oColorManager.Config;
+        public ColorQuantizationMode QuantizationMode { get; set; } = ColorQuantizationMode.RGB888;
+
+        public ColorDithering DitheringType { get; set; } = ColorDithering.FloydSteinberg;
+
+        public ColorDitheringFx DitheringFx { get; set; } = ColorDitheringFx.None;
+
+        public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
+
+        //public ColorTransformConfig Config => oColorManager.Config;
 
         public Components.ColorManager ColorManager => oColorManager;
 
         public ColorAnalyzer()
         {
             InitializeComponent();
-            oColorManager.Config
+            oColorManager.transformConfig
                 .WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt)
-                .WithQuantizationMode(ColorQuantizationMode.RGB888)
-                .WithDithering(ColorDithering.FloydSteinberg, 1.0, ColorDitheringFx.None);
+                .WithQuantizationMode(QuantizationMode)
+                .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
+                .WithDithering(DitheringType, 1.0, DitheringFx);
             CreateComboBox(cbC64VideoMode, Enum.GetNames(typeof(ColorTransformReductionC64.C64VideoMode)).ToList());
             CreateComboBox(cbCpcVideoMode, Enum.GetNames(typeof(ColorTransformReductionCPC.CPCVideoMode)).ToList());
             CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode)).ToList());
@@ -74,7 +83,11 @@ namespace ColourClashNet.Controls
             oColorManager.OnProcess += (s, e) => { Invoke(() => { RefreshData(); RebuildParams(e.Transformation); }); };
         }
 
-        public void Preprocess() => oColorManager.PreProcess();
+        public void Preprocess()
+        {
+            SetControlToConfig();
+            oColorManager.PreProcess();
+        }
 
         void CreateComboBox(ComboBox ocb, List<string> lItems)
         {
@@ -120,7 +133,7 @@ namespace ColourClashNet.Controls
                 pbBkColor.SizeMode = PictureBoxSizeMode.StretchImage;
                 pbBkColor.Image = oBmp;
             }
-            oColorManager.Config.WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt);
+            oColorManager.transformConfig.WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt);
             oColorManager.PreProcess();
         }
 
@@ -168,7 +181,7 @@ namespace ColourClashNet.Controls
             oBitmapRenderSource.ResetMouseSelectedColors();
             oBitmapRenderSource.OriginZero();
             //
-            oColorManager.Config.WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt);
+            oColorManager.transformConfig.WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt);
             oColorManager.Create(ResizeBitmap(oLoadedBmp));
             ImageCreated?.Invoke(this, new DataSourceEventArgs()
             {
@@ -205,49 +218,53 @@ namespace ColourClashNet.Controls
 
         private void SetControlToConfig()
         {
-            oColorManager.Config.WithBackgroundColorReplacement(
+            oColorManager.transformConfig.WithBackgroundColorReplacement(
                 GetBkgColors(),
                 ColorDefaults.DefaultBkgColorInt);
             //
-            oColorManager.Config.WithScanline(
+            oColorManager.transformConfig.WithQuantizationMode(QuantizationMode);
+            //
+            oColorManager.transformConfig.WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
+            //
+            oColorManager.transformConfig.WithScanline(
                 chkScanlineSharedPal.Checked,
                 (int)nudColorsWanted.Value,
                 (int)nudScanlineLineColors.Value,
                 chkScanLineCluster.Checked, true);
             //
-            oColorManager.Config.WithClustering(
+            oColorManager.transformConfig.WithClustering(
                 (int)nudColorsWanted.Value,
                 (int)nudClusterLoop.Value, true);
             // Dithering viene settato dalla form
-            oColorManager.Config.WithDithering(
-                Config.DitheringType,
+            oColorManager.transformConfig.WithDithering(
+                DitheringType,
                 (double)nudDitheringStrenght.Value,
-                Config.DitheringFx);
+                DitheringFx);
             //
-            oColorManager.Config.WithHSV(
+            oColorManager.transformConfig.WithHSV(
                 (double)nudSat.Value,
                 (double)nudBright.Value,
                 (double)nudHue.Value);
             //
-            oColorManager.Config.WithC64ScreenMode(
+            oColorManager.transformConfig.WithC64ScreenMode(
                (ColorTransformReductionC64.C64VideoMode)Enum.Parse(typeof(ColorTransformReductionC64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString()), 
                ColorTransformReductionC64.C64DitheringMode.PreDitherImage);
             //
-            oColorManager.Config.WithCpcVideoMode(
+            oColorManager.transformConfig.WithCpcVideoMode(
                 (ColorTransformReductionCPC.CPCVideoMode)Enum.Parse(typeof(ColorTransformReductionCPC.CPCVideoMode), cbCpcVideoMode.SelectedItem.ToString()));
             //
-            oColorManager.Config.WithZxScreenMode(
+            oColorManager.transformConfig.WithZxScreenMode(
                  (ColorTransformReductionZxSpectrum.ZxPaletteMode)Enum.Parse(typeof(ColorTransformReductionZxSpectrum.ZxPaletteMode), cbZxPaletteMode.SelectedItem.ToString()),
                  (int)nudZxColorLO.Value,
                  (int)nudZxColorHI.Value);
             //
-            oColorManager.Config.WithZxProcessing(
+            oColorManager.transformConfig.WithZxProcessing(
                  (ColorTransformReductionZxSpectrum.ZxAutotuneMode)Enum.Parse(typeof(ColorTransformReductionZxSpectrum.ZxAutotuneMode), cbZxAutotuneMode.SelectedItem.ToString()),
                  chkZxBlackHI.Checked,
                  chkZxDitherHI.Checked,
                  chkZxBlackHI.Checked);
             //
-            oColorManager.Config.WithAmigaScreenMode(
+            oColorManager.transformConfig.WithAmigaScreenMode(
                 (ColorTransformReductionAmiga.EnumAmigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString()),
                 ColorTransformReductionAmiga.EnumHamColorProcessingMode.Detailed);
         }

@@ -119,7 +119,7 @@
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="BMP_1MColors" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\1mcolors.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    <value>..\Resources\1mColors.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
     <comment>1 Million Color Test Image</comment>
   </data>
   <data name="BMP_FadeTest" type="System.Resources.ResXFileRef, System.Windows.Forms">
@@ -130,7 +130,7 @@
     <comment>Granger Chart</comment>
   </data>
   <data name="BMP_RGB_Palette" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\RGB_24bits_palette_color_test_chart.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    <value>..\Resources\RGB_24bits_palette_Color_test_chart.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
     <comment>Palette Test</comment>
   </data>
 </root>

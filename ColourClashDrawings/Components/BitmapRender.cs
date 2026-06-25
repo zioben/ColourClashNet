@@ -81,19 +81,19 @@ namespace ColourClashNet.Components
         public event MouseEventHandler MouseMove;
 
         [Browsable(true), Category("Color")]
-        [Description("Raised when a color is selected by operation")]
+        [Description("Raised when a Color is selected by operation")]
         public event EventHandler<ColorEventArgs> ColorSelected;
 
         [Browsable(true), Category("Color")]
-        [Description("Raised when a color is added on ColorList")]
+        [Description("Raised when a Color is added on ColorList")]
         public event EventHandler<ColorEventArgs> ColorAdded;
 
         [Browsable(true), Category("Color")]
-        [Description("Raised when a color is removed from ColorList")]
+        [Description("Raised when a Color is removed from ColorList")]
         public event EventHandler<ColorEventArgs> ColorRemoved;
 
         [Browsable(true), Category("Color")]
-        [Description("Raised when a color list is cleared()")]
+        [Description("Raised when a Color list is cleared()")]
         public event EventHandler ColorReset;
 
         #endregion
@@ -671,11 +671,11 @@ namespace ColourClashNet.Components
 
         #endregion
 
-        private static Image MakeColorSwatch(System.Drawing.Color color, int size = 12, int border = 1)
+        private static Image MakeColorSwatch(System.Drawing.Color Color, int size = 12, int border = 1)
         {
             var bmp = new Bitmap(size, size);
             using (var g = Graphics.FromImage(bmp))
-            using (var brush = new SolidBrush(color))
+            using (var brush = new SolidBrush(Color))
             using (var pen = new Pen(System.Drawing.Color.FromArgb(120, System.Drawing.Color.Black), border))
             {
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;

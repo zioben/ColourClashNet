@@ -22,7 +22,7 @@ namespace ColourClashNet.Color.Transformation
             TransformationMap.Reset();
 
             var rgbList = ImageSource.ColorPalette.ToList();
-            ColourClashNet.Color.Palette paletteEnhance = new ();
+            Palette paletteEnhance = new ();
             paletteEnhance.Create(ReferencePalette);
             for (int i = 0; i < ReferencePalette.Count; i++)
             {

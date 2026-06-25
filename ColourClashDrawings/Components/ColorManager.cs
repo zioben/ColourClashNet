@@ -1,4 +1,4 @@
-﻿using ColourClashLib.Color;
+﻿using ColourClashNet.Color;
 using ColourClashNet.Color;
 using ColourClashNet.Color.Dithering;
 using ColourClashNet.Color.Transformation;
@@ -39,10 +39,10 @@ namespace ColourClashNet.Components
 
         #region Properties
 
-       
-//        public Dictionary<string, object> DataParameters = new Dictionary<string, object>();
 
-        public ColorTransformConfig Config { get; private set; }
+        //        public Dictionary<string, object> DataParameters = new Dictionary<string, object>();
+
+        public ColorTransformConfig transformConfig { get; set; }
 
         ColorTransformInterface transformSource;
         ColorTransformInterface transformBkgRemover;
@@ -93,8 +93,7 @@ namespace ColourClashNet.Components
             string sMethod = nameof(Reset);
             try
             {
-                Config = new ColorTransformConfig();
-                //DataParameters = new Dictionary<string, object>();
+                transformConfig = new ColorTransformConfig();
                 transformSource = new ColorTransformIdentity();
                 transformBkgRemover = new ColorTransformBkgRemover();
                 transformQuantizer = new ColorTransformQuantization();
@@ -185,9 +184,11 @@ namespace ColourClashNet.Components
 
                 CancellationTokenSource cts = new CancellationTokenSource();
 
+                var noDitherConfig = transformConfig.Clone().WithDithering(ColorDithering.None, 1, ColorDitheringFx.None);
+
                 LogMan.Trace(sClass, sMethod, "Process Bkg Remover");
                 transformBkgRemover
-                    .SetProperties(Config)
+                    .SetProperties(noDitherConfig)
                     .Create(DataSourceX);
                 var DataBkgRemovedRes = transformBkgRemover.ProcessColors(cts.Token);
                 DataBkgRemoved = DataBkgRemovedRes.DataOut;
@@ -195,8 +196,9 @@ namespace ColourClashNet.Components
 
                 LogMan.Trace(sClass, sMethod, "Process Quantizer");
                 transformQuantizer
-                    .SetProperties(Config)
+                    .SetProperties(noDitherConfig)
                     .Create(DataBkgRemoved);
+
                 var DataQuantizedRes = transformQuantizer.ProcessColors(cts.Token);
                 DataQuantized = DataQuantizedRes.DataOut;
                 ImageQuantized = ImageToolsGDI.ImageDataToGdiImage(DataQuantized);
@@ -302,7 +304,7 @@ namespace ColourClashNet.Components
                         transformProcessing = null;
                         return null;
                 }
-                transformProcessing.SetProperties(Config);
+                transformProcessing.SetProperties(transformConfig);
 //                Config.SetProperties(transformProcessing);
                 if (InvalidatePreProcess)
                 {

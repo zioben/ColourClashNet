@@ -55,7 +55,7 @@ public static partial class ImageTools
     public static ImageData DoubleXResolution(ImageData image)
     {
         ImageData.AssertValid(image);
-        var matrix = MatrixTools.DoubleColumnResolution(image.matrix);
+        var matrix = MatrixTools.DoubleMatrixColumns(image.matrix);
         return new ImageData().Create(matrix);
     }
 
@@ -64,12 +64,19 @@ public static partial class ImageTools
     /// </summary>
     /// <param name="image"></param>
     /// <returns></returns>
-    public static ImageData HalveXResolution(ImageData image)
+    public static ImageData HalveXResolution(ImageData image, bool keepEvenColumns)
     {
         ImageData.AssertValid(image);
-        var matrix = MatrixTools.HalveColumnResolution(image.matrix);
+        var matrix = MatrixTools.HalveMatrixColumns(image.matrix, keepEvenColumns);
         return new ImageData().Create(matrix);
     }
+
+
+    public static bool SaveImageAsIndexedBitmap(ImageData image,  string fileName, WidthAlignMode pixelWidthAlignment)
+        =>MatrixTools.SaveIndexedMatrixAsImage(image.matrix, fileName, image.ColorPalette, pixelWidthAlignment);
+    public static bool SaveImageAsIndexedBitmap(ImageData image, string fileName)
+        => MatrixTools.SaveIndexedMatrixAsImage(image.matrix, fileName, image.ColorPalette);
+
 
     public static bool SaveImage(ImageData image, string fileName, ImageSaveFormat saveFormat, int quality=80)
     {
@@ -143,7 +150,7 @@ public static partial class ImageTools
 
             using SKBitmap skBitmap = original.ColorType == targetInfo.ColorType && original.AlphaType == targetInfo.AlphaType
                 ? original.Copy()
-                : original.Copy(SKColorType.Bgra8888); // gestisce conversione colore
+                : original.Copy(SKColorType.Bgra8888); // gestisce conversione Colore
 
             // Se Copy(ColorType) non normalizza l'alpha (rimane Premul), ricostruiamo
             // esplicitamente il bitmap nel formato desiderato.

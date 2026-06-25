@@ -1,6 +1,4 @@
-﻿using ColourClashLib.Color;
-using ColourClashNet.Color.Tile;
-using ColourClashNet.Color.Transformation;
+﻿using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
@@ -17,22 +15,6 @@ public partial class TileProcessing
     static readonly string sC = nameof(TileProcessing);
 
     object locker = new object();
-
-    //public bool IsValid
-    //{
-    //    get
-    //    {
-    //        if (!tileItem?.IsValid ?? true)
-    //        {
-    //            return false;
-    //        }
-    //        if(transformation == null)
-    //        {
-    //            return false;
-    //        }
-    //        return true;
-    //    }
-    //} 
 
     protected TileItem? tileItem =  null;
 
@@ -64,14 +46,14 @@ public partial class TileProcessing
         }
     }
 
-    public TileProcessing Create(ImageData sourceImage, int sourceX, int sourceY, int tileWidth, int tileHeight, double normalizationError, ColorTransformType colorTransformType, ColorTransformConfig colorTransformParams)
+    public TileProcessing Create(ImageData sourceImage, int sourceX, int sourceY, int tileWidth, int tileHeight, double normalizationError, ColorTransformType colorTransformType, ColorTransformConfig colorTransformConfig)
     {
         lock (locker)
         {
             Reset();
             NormalizationError = normalizationError;
             tileItem = new TileItem().Create(sourceImage, sourceX, sourceY, tileWidth, tileHeight);
-            transformation = ColorTransformBase.CreateColorTransformInterface(colorTransformType, colorTransformParams );
+            transformation = ColorTransformBase.CreateColorTransformInterface(colorTransformType, colorTransformConfig );
             return this;
         }
     }

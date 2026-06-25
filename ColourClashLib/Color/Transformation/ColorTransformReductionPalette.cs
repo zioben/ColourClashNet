@@ -15,16 +15,9 @@ namespace ColourClashNet.Color.Transformation
         {
             Type = ColorTransformType.ColorReductionGenericPalette;
             Description = "Color palette trasformation";
-            // no one can overwrite the palette
-            ReferencePaletteWriteLock = true;
         }
 
-        public ColorTransformReductionPalette SetReferencePalette(Palette pal)
-        {
-            OverwriteReferencePalette(pal);
-            return this;
-        }
-
+        
         protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken = default)
         {
             TransformationMap.Reset();
@@ -35,7 +28,7 @@ namespace ColourClashNet.Color.Transformation
             {
                 TransformationMap.Add(rgb, ColorIntExt.GetNearestColor(rgb, ReferencePalette, this.ColorDistanceEvaluationMode));
             }//);
-            //Ferificed OK
+            //Verified OK
             //var t = TransformationMap.rgbTransformationMap.Values.Distinct().ToList();
             return ColorTransformResult.CreateValidResult();
         }
