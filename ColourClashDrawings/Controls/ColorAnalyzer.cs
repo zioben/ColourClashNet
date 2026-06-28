@@ -190,6 +190,13 @@ namespace ColourClashNet.Controls
             });
         }
 
+        public void Create(ImageData image, string name)
+        {
+            oLoadedBmp = ImageToolsGDI.ImageDataToGdiImage( image ) as Bitmap;
+            oName = name;
+            Create();
+        }
+
         public void Create(Image image, string name)
         {
             oLoadedBmp = image as Bitmap;
@@ -199,7 +206,7 @@ namespace ColourClashNet.Controls
 
         public void Create(FileInfo fileInfo)
         {
-            var image = Image.FromFile(fileInfo.FullName);
+            var image = ImageTools.LoadImage(fileInfo.FullName);
             Create(image, fileInfo.Name);
         }
 
@@ -248,7 +255,8 @@ namespace ColourClashNet.Controls
             //
             oColorManager.transformConfig.WithC64ScreenMode(
                (ColorTransformReductionC64.C64VideoMode)Enum.Parse(typeof(ColorTransformReductionC64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString()), 
-               ColorTransformReductionC64.C64DitheringMode.PreDitherImage);
+               ColorTransformReductionC64.C64DitheringMode.PreDitherImage,
+               chkShowTileBorders.Checked);
             //
             oColorManager.transformConfig.WithCpcVideoMode(
                 (ColorTransformReductionCPC.CPCVideoMode)Enum.Parse(typeof(ColorTransformReductionCPC.CPCVideoMode), cbCpcVideoMode.SelectedItem.ToString()));
@@ -262,7 +270,8 @@ namespace ColourClashNet.Controls
                  (ColorTransformReductionZxSpectrum.ZxAutotuneMode)Enum.Parse(typeof(ColorTransformReductionZxSpectrum.ZxAutotuneMode), cbZxAutotuneMode.SelectedItem.ToString()),
                  chkZxBlackHI.Checked,
                  chkZxDitherHI.Checked,
-                 chkZxBlackHI.Checked);
+                 chkZxBlackHI.Checked,
+                 chkShowTileBorders.Checked);
             //
             oColorManager.transformConfig.WithAmigaScreenMode(
                 (ColorTransformReductionAmiga.EnumAmigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString()),

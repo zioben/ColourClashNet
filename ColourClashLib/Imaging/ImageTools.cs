@@ -189,7 +189,33 @@ public static partial class ImageTools
             if (!ReferenceEquals(normalized, skBitmap))
                 normalized.Dispose();
 
-            return new ImageData().Create(matrix);
+            int R = matrix.GetLength(0);
+            int C = matrix.GetLength(1);
+
+            for (int r = 0; r < R; r++)
+            {
+                for (int c = 0; c < C; c++)
+                {
+                    matrix[r, c] = matrix[r, c] & 0x00FFFFFF;
+                }
+            }
+
+            if (C % 2 == 0)
+            {
+                return new ImageData().Create(matrix);
+            }
+            else
+            {
+                var matrixPadded = new int[R, C + 1];
+                for (int r = 0; r < R; r++)
+                {
+                    for (int c = 0; c < C; c++)
+                    {
+                        matrixPadded[r, c] = matrix[r, c];
+                    }
+                }
+                return new ImageData().Create(matrixPadded);
+            }
         }
         catch (Exception e)
         {

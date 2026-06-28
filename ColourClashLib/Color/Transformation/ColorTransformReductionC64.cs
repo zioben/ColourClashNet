@@ -118,14 +118,15 @@ namespace ColourClashNet.Color.Transformation
 
         #region fluent with - set
 
-        public ColorTransformReductionC64 WithC64ScreenMode(C64VideoMode mode, C64DitheringMode ditheringMode)
+        public ColorTransformReductionC64 WithC64ScreenMode(C64VideoMode mode, C64DitheringMode ditheringMode,bool showTileBorders)
         {
+            TileBorderShow = showTileBorders;
             VideoMode = mode;
             VideoDithering = ditheringMode;
             return this;
         }
 
-        public ColorTransformReductionC64 WithC64ScreenMode(ColorTransformConfig cfg) => WithC64ScreenMode(cfg.C64VideoMode, cfg.C64DitheringMode);
+        public ColorTransformReductionC64 WithC64ScreenMode(ColorTransformConfig cfg) => WithC64ScreenMode(cfg.C64VideoMode, cfg.C64DitheringMode, cfg.ShowTileBorders);
 
         public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
         {

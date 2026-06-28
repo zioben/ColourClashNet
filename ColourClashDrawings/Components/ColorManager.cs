@@ -42,7 +42,7 @@ namespace ColourClashNet.Components
 
         //        public Dictionary<string, object> DataParameters = new Dictionary<string, object>();
 
-        public ColorTransformConfig transformConfig { get; set; }
+        public ColorTransformConfig transformConfig { get; set; } = new ColorTransformConfig();
 
         ColorTransformInterface transformSource;
         ColorTransformInterface transformBkgRemover;

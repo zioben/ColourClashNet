@@ -34,10 +34,10 @@ namespace ModuleTester
         void CreateCombo()
         {
             oDict = new();
-            oDict.Add("1M Colors", ColourClashNet.Properties.Resources.BMP_1MColors);
-            oDict.Add("RGB Palette", ColourClashNet.Properties.Resources.BMP_RGB_Palette);
-            oDict.Add("FADE Base", ColourClashNet.Properties.Resources.BMP_FadeTest);
-            oDict.Add("GRANGER Charts", ColourClashNet.Properties.Resources.BMP_Granger_Chart);
+            oDict.Add("1M Colors", ColourClashLib.Properties.Resources.BMP_1MColors);
+            oDict.Add("RGB Palette", ColourClashLib.Properties.Resources.BMP_RGB_Palette);
+            oDict.Add("FADE Base", ColourClashLib.Properties.Resources.BMP_FadeTest);
+            oDict.Add("GRANGER Charts", ColourClashLib.Properties.Resources.BMP_Granger_Chart);
             cbPreset.Items.Clear();
             cbPreset.Items.AddRange(oDict.Select(X => X.Key).ToArray());
 
@@ -184,7 +184,7 @@ namespace ModuleTester
             }
             ColourClashNet.Color.Transformation.ColorTransformReductionC64 transf = new();
             var cfg = new ColorTransformConfig()
-                .WithC64ScreenMode(ColorTransformReductionC64.C64VideoMode.MultiColor, ColorTransformReductionC64.C64DitheringMode.PreDitherImage);
+                .WithC64ScreenMode(ColorTransformReductionC64.C64VideoMode.Multicolor, ColorTransformReductionC64.C64DitheringMode.PreDitherImage, false);
             Process(transf, cfg);
         }
 
@@ -261,7 +261,7 @@ namespace ModuleTester
             ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum transf = new();
             var cfg = new ColorTransformConfig()
                 .WithZxScreenMode(ColorTransformReductionZxSpectrum.ZxPaletteMode.Both, 128, 256)
-                .WithZxProcessing(ColorTransformReductionZxSpectrum.ZxAutotuneMode.Fast, true, true, true);
+                .WithZxProcessing(ColorTransformReductionZxSpectrum.ZxAutotuneMode.Fast, true, true, true, false);
             Process(transf, cfg);
         }
 

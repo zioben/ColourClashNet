@@ -29,11 +29,13 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ColorAnalyzer));
             splitMain = new SplitContainer();
             tableLayoutPanel1 = new TableLayoutPanel();
             splitProcessing = new SplitContainer();
             tlConfig = new TableLayoutPanel();
             panelSelectColors = new Panel();
+            chkShowTileBorders = new CheckBox();
             nudColorsWanted = new NumericUpDown();
             label2 = new Label();
             pbBkColor = new PictureBox();
@@ -228,6 +230,7 @@
             // 
             // panelSelectColors
             // 
+            panelSelectColors.Controls.Add(chkShowTileBorders);
             panelSelectColors.Controls.Add(nudColorsWanted);
             panelSelectColors.Controls.Add(label2);
             panelSelectColors.Controls.Add(pbBkColor);
@@ -238,6 +241,16 @@
             panelSelectColors.Name = "panelSelectColors";
             panelSelectColors.Size = new Size(357, 69);
             panelSelectColors.TabIndex = 29;
+            // 
+            // chkShowTileBorders
+            // 
+            chkShowTileBorders.AutoSize = true;
+            chkShowTileBorders.Location = new Point(231, 9);
+            chkShowTileBorders.Name = "chkShowTileBorders";
+            chkShowTileBorders.Size = new Size(119, 19);
+            chkShowTileBorders.TabIndex = 13;
+            chkShowTileBorders.Text = "Show Tile Borders";
+            chkShowTileBorders.UseVisualStyleBackColor = true;
             // 
             // nudColorsWanted
             // 
@@ -264,7 +277,7 @@
             // 
             pbBkColor.Location = new Point(152, 34);
             pbBkColor.Name = "pbBkColor";
-            pbBkColor.Size = new Size(194, 30);
+            pbBkColor.Size = new Size(198, 30);
             pbBkColor.TabIndex = 12;
             pbBkColor.TabStop = false;
             pbBkColor.DoubleClick += pbBkColor_DoubleClick;
@@ -1045,6 +1058,7 @@
             oColorManager.DataQuantized = null;
             oColorManager.DataSourceX = null;
             oColorManager.InvalidatePreProcess = true;
+            oColorManager.transformConfig = new();
             // 
             // ColorAnalyzer
             // 
@@ -1189,5 +1203,6 @@
         private CheckBox chkZxDitherImageLo;
         private ComboBox cbZxAutotuneMode;
         private Label label11;
+        private CheckBox chkShowTileBorders;
     }
 }

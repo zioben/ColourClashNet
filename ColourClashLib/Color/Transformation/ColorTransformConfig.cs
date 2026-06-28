@@ -74,6 +74,7 @@ namespace ColourClashNet.Color.Transformation
         public bool ZxDitherLowColorImage { get; set; } = false;
         public bool ZxDitherHighColorImage { get; set; } = false;
         public ColorTransformReductionZxSpectrum.ZxAutotuneMode ZxAutotuneMode { get; set; } = ColorTransformReductionZxSpectrum.ZxAutotuneMode.None;
+        public bool ShowTileBorders { get; set; } = true;
 
         public ColorTransformConfig WithReferencePalette(Palette palette)
         {
@@ -130,10 +131,11 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        public ColorTransformConfig WithC64ScreenMode(C64VideoMode mode, C64DitheringMode ditheringMode)
+        public ColorTransformConfig WithC64ScreenMode(C64VideoMode mode, C64DitheringMode ditheringMode, bool showTileBorers)
         {
             C64VideoMode = mode;
             C64DitheringMode = ditheringMode;
+            ShowTileBorders = showTileBorers;
             return this;
         }
         public ColorTransformConfig WithCpcVideoMode(CPCVideoMode videoMode)
@@ -179,12 +181,13 @@ namespace ColourClashNet.Color.Transformation
             this.ZxColHSeed = highColorInSeed;
             return this;
         }
-        public ColorTransformConfig WithZxProcessing(ZxAutotuneMode autotuneMode, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor)
+        public ColorTransformConfig WithZxProcessing(ZxAutotuneMode autotuneMode, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor, bool showTileBorders)
         {
             this.ZxDitherLowColorImage = ditherLowColorImage;
             this.ZxDitherHighColorImage = ditherHighColorImage;
             this.ZxIncludeBlackInHighColorImage = includeBlackInHighColor;
             this.ZxAutotuneMode = autotuneMode;
+            this.ShowTileBorders = showTileBorders;
             return this;
         }
         public ColorTransformConfig WithHSV(double hueShift, double saturationMultFactor, double brightnessMultFactor)

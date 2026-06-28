@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ColourClashDrawings\ColourClashDrawings.csproj" />
     <ProjectReference Include="..\ColourClashLib\ColourClashLib.csproj" />
     <ProjectReference Include="..\ColourClashSupport\ColourClashSupport.csproj" />
   </ItemGroup>
