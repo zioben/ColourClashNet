@@ -160,65 +160,14 @@ namespace ColourClashNet.Color.Transformation
 
         #endregion
 
-        #region math/conversion
-
-        protected T Clamp<T>(T value, T min, T max) where T : IComparable<T>
-        {
-            if (value.CompareTo(min) < 0) return min;
-            else if (value.CompareTo(max) > 0) return max;
-            else return value;
-        }
-        protected double Clamp(object value, double min, double max)
-        {
-            return Math.Min(Math.Max(ToDouble(value), min), max);
-        }
-
-
-        protected double ToDouble(object value)
-        {
-            if (value is IConvertible c)
-                return c.ToDouble(CultureInfo.InvariantCulture);
-            throw new ArgumentException($"Invalid value type for conversion to double: {value?.GetType().Name}");
-        }
-
-        protected bool ToBool(object value)
-        {
-            if (value is IConvertible c)
-                return c.ToBoolean(CultureInfo.InvariantCulture);
-            throw new ArgumentException($"Invalid value type for conversion to boolean: {value?.GetType().Name}");
-        }
-        protected int ToInt(object value)
-        {
-            if (value is IConvertible c)
-                return c.ToInt32(CultureInfo.InvariantCulture);
-            throw new ArgumentException($"Invalid value type for conversion to boolean: {value?.GetType().Name}");
-        }
-
-        protected T ToEnum<T>(object value) where T : struct, Enum
-        {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
-
-            if (Enum.TryParse<T>(value.ToString(), out var eVal))
-                return eVal;
-
-            throw new ArgumentException($"Invalid value for enum conversion to {typeof(T).Name}: {value}", nameof(value));
-        }
-
-        #endregion
-
-        #region property
-
-       
-
-        #endregion
+        
 
         #region with helpers
 
         public ColorTransformBase WithDithering(ColorDithering ditheringType, double strength = 1.0, ColorDitheringFx fx = ColorDitheringFx.None)
         {
             DitheringType = ditheringType;
-            DitheringStrength = Clamp(strength, 0.0, 1.0);
+            DitheringStrength = ColourTools.Clamp(strength, 0.0, 1.0);
             DitheringFx = fx;
             return this;
         }

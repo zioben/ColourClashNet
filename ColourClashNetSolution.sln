@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.7.11911.148 stable
+VisualStudioVersion = 18.7.11911.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ColourClashNet", "ColourClashNet\ColourClashNet.csproj", "{C057D6A1-6683-43C5-B162-FD7422D3A3CA}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModuleTester", "ModuleTester\ModuleTester.csproj", "{0AB50823-BDB4-480B-837A-5A43348667E8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ColourClashDrawings", "ColourClashDrawings\ColourClashDrawings.csproj", "{A6FBB293-F879-459A-8720-D688C59572C0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ColourClash", "ColourClash\ColourClash.csproj", "{E2FB29DB-F1FB-4AEC-B878-0E75B2841BDE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{A6FBB293-F879-459A-8720-D688C59572C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6FBB293-F879-459A-8720-D688C59572C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6FBB293-F879-459A-8720-D688C59572C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2FB29DB-F1FB-4AEC-B878-0E75B2841BDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2FB29DB-F1FB-4AEC-B878-0E75B2841BDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2FB29DB-F1FB-4AEC-B878-0E75B2841BDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2FB29DB-F1FB-4AEC-B878-0E75B2841BDE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

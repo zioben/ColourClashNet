@@ -76,6 +76,24 @@ namespace ColourClashNet.Color.Transformation
         public ColorTransformReductionZxSpectrum.ZxAutotuneMode ZxAutotuneMode { get; set; } = ColorTransformReductionZxSpectrum.ZxAutotuneMode.None;
         public bool ShowTileBorders { get; set; } = true;
 
+        /// <summary>
+        /// Creates a indipendent copy of the current ColorTransformConfig instance.
+        /// </summary>
+        /// <returns>cloned instance</returns>
+        public ColorTransformConfig Clone()
+        {
+            var ret = base.MemberwiseClone() as ColorTransformConfig;
+            if (ReferencePalette != null)
+            {
+                ret.ReferencePalette = new Palette().Create(this.ReferencePalette);
+            }
+            if(ColorBackgroundList != null)
+            {
+                ret.ColorBackgroundList = new Palette().Create(this.ColorBackgroundList);
+            };
+            return ret;
+        }
+
         public ColorTransformConfig WithReferencePalette(Palette palette)
         {
             ReferencePalette = palette;
@@ -196,9 +214,6 @@ namespace ColourClashNet.Color.Transformation
             HsvSaturationMultFactor = saturationMultFactor;
             HsvBrightnessMultFactor = brightnessMultFactor;
             return this;
-        }
-
-        public ColorTransformConfig Clone()
-            => base.MemberwiseClone() as ColorTransformConfig;
+        }       
     }
 }

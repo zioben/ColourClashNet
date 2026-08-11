@@ -141,8 +141,8 @@ public abstract class DitherErrorDiffusion : DitherBase
                             int cOffset = c + cc - CO;
                             if (cOffset < 0)
                                 continue;
-                            if (c == CO)
-                                continue;
+                            //if (c == CO)
+                             //   continue;
                             if (cOffset >= C)
                                 break;
                             oRO[rOffset, cOffset] += ErrorR * matErrorDiffusion[rr, cc] * dStrenght;

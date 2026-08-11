@@ -34,10 +34,10 @@ namespace ModuleTester
         void CreateCombo()
         {
             oDict = new();
-            oDict.Add("1M Colors", ColourClashLib.Properties.Resources.BMP_1MColors);
-            oDict.Add("RGB Palette", ColourClashLib.Properties.Resources.BMP_RGB_Palette);
-            oDict.Add("FADE Base", ColourClashLib.Properties.Resources.BMP_FadeTest);
-            oDict.Add("GRANGER Charts", ColourClashLib.Properties.Resources.BMP_Granger_Chart);
+            oDict.Add("1M Colors", ColourClashDrawings.Properties.Resources.BMP_1Mcolors);
+            oDict.Add("RGB Palette", ColourClashDrawings.Properties.Resources.BMP_RGB_Palette);
+            oDict.Add("FADE Base", ColourClashDrawings.Properties.Resources.BMP_FadeTest);
+            oDict.Add("GRANGER Charts", ColourClashDrawings.Properties.Resources.BMP_Granger_Chart);
             cbPreset.Items.Clear();
             cbPreset.Items.AddRange(oDict.Select(X => X.Key).ToArray());
 

@@ -19,25 +19,6 @@ namespace ColourClashNet.Color.Transformation
         public int MaxColorsWanted { get; set; } = -1;
         public bool UseColorMean { get; set; } = true;
 
-        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
-        //{
-        //    base.SetProperty(propertyName, value);
-
-        //    switch (propertyName)
-        //    {
-        //        case ColorTransformProperties.MaxColorsWanted:                 
-        //                ColorsMaxWanted = ToInt(value);
-        //            break;
-               
-        //        case ColorTransformProperties.UseColorMean:
-        //                UseColorMean = ToBool(value);
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //    return this;
-        //}
-
         public ColorTransformReductionMedianCut WithProcessingParams(int maxColors, bool useColorMean)
         {
             MaxColorsWanted = maxColors;
@@ -58,28 +39,25 @@ namespace ColourClashNet.Color.Transformation
 
         int GetMedian(List<int> lList)
         {
-            float fLim = lList.Sum() / 2;
-            if (fLim <= 0)
+            float fLim = lList.Sum() / 2f;
+            if (fLim <= 0) return 0;
+
+            float fSum = 0;
+            for (int i = 0; i < lList.Count; i++)
             {
-                return 0;
-            }
-            int i = 0;
-            float fSum = lList[i];
-            while (fSum <= fLim && i < lList.Count())
-            {
-                i++;
                 fSum += lList[i];
+                if (fSum > fLim) return i;
             }
-            return i;
+            return lList.Count - 1;
         }
+
 
         int GetRange(List<int> lList)
         {
-            var f = lList.IndexOf(lList.FirstOrDefault(X => X != 0));
-            lList.Reverse();
-            var l = lList.Count() - lList.IndexOf(lList.FirstOrDefault(X => X != 0)) - 1;
-            lList.Reverse();
-            return l - f;
+            int first = lList.FindIndex(x => x != 0);
+            if (first < 0) return 0; // lista tutta a zero
+            int last = lList.FindLastIndex(x => x != 0);
+            return last - first;
         }
 
         void Partition(Palette oPalette, int iMaxColor)

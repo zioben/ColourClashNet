@@ -9,6 +9,7 @@ namespace ColourClashNet.Color
     /// <summary>
     /// Enums to select color quantization mode 
     /// </summary>
+    [Serializable]
     public enum ColorQuantizationMode
     {
         Unknown = 0,
@@ -25,6 +26,7 @@ namespace ColourClashNet.Color
     /// <summary>
     /// Enums to select color space for color distance evaluation
     /// </summary>
+    [Serializable]
     public enum Colorspace
     {
         RGB,
@@ -33,9 +35,11 @@ namespace ColourClashNet.Color
         XYZ,
     }
 
+
     /// <summary>
     /// Enums to select color distance evaluation algorithm
     /// </summary>
+    [Serializable]
     public enum ColorDistanceEvaluationMode
     {
         RGB,
@@ -48,6 +52,7 @@ namespace ColourClashNet.Color
     /// <summary>
     /// Enums to select color transformation algorithm 
     /// </summary>
+    [Serializable]
     public enum ColorTransformType
     {
         None = 0,
@@ -72,6 +77,7 @@ namespace ColourClashNet.Color
     /// <summary>
     /// Enums to select dithering algorithm 
     /// </summary>
+    [Serializable]
     public enum ColorDithering
     {
         None = 0,
@@ -88,6 +94,7 @@ namespace ColourClashNet.Color
         ScanLine,
     }
 
+    [Serializable]
     public enum ColorDitheringFx
     {
         None = 0,
@@ -100,6 +107,7 @@ namespace ColourClashNet.Color
     /// <summary>
     /// Enums to select how to calculate the mean color of a cluster 
     /// </summary>
+    [Serializable]
     public enum ColorMeanMode
     {
         UseMean,
@@ -109,6 +117,7 @@ namespace ColourClashNet.Color
     /// <summary>
     /// Enums to decorate Parameter Class 
     /// </summary>
+    [Serializable]
     public enum Parameters
     {
         Unknown = 0,
@@ -121,6 +130,7 @@ namespace ColourClashNet.Color
     /// <summary>
     /// Enums to decorate ColorTransformBase Class
     /// </summary>
+    [Serializable]
     public enum ColorTransformProperties
     {
         Unknown = 0,
@@ -134,11 +144,9 @@ namespace ColourClashNet.Color
         HsvBrightnessMultFactor,
         QuantizationMode,
         C64VideoMode,
-        //ClusterColorsMax,
         ClusterTrainingLoop,
         CPCVideoMode,
         AmigaVideoMode,
-        AmigaHamColorProcessingMode,
         UseColorMean,
         UseFixedPalette,
         UseSharedPalette,
@@ -151,11 +159,11 @@ namespace ColourClashNet.Color
         ZxDitherHighColorImage,
         ZxAutotuneMode,
         PriorityPalette,
-//        Forced_Palette,
         DitheringType,
         DitheringStrength,
         DitheringFx,
     }
+
 
     /// <summary>
     /// Enums to decorate ColorIntExt Class
@@ -164,6 +172,7 @@ namespace ColourClashNet.Color
     /// Everything tha in nor "real" color is maked with 1 on MSB, so resulting in always a negative number. This Helps on filtering operations.
     /// </para>
     /// </summary>
+    [Serializable]
     public enum ColorInfo
     {
         /// <summary>

@@ -1,5 +1,4 @@
 ﻿using ColourClashNet.Color;
-using ColourClashNet.Color;
 using ColourClashNet.Color.Dithering;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Drawing;
@@ -42,6 +41,7 @@ namespace ColourClashNet.Components
 
         //        public Dictionary<string, object> DataParameters = new Dictionary<string, object>();
 
+        [DefaultValue(null)]
         public ColorTransformConfig transformConfig { get; set; } = new ColorTransformConfig();
 
         ColorTransformInterface transformSource;
@@ -50,20 +50,31 @@ namespace ColourClashNet.Components
         ColorTransformInterface transformProcessing;
 
         [Browsable(false)]
+        [DefaultValue(null)]
         public ImageData DataSourceX { get; set; }
 
         [Browsable(false)]
+        [DefaultValue(null)]    
         public ImageData DataBkgRemoved { get; set; }
 
         [Browsable(false)]
+        [DefaultValue(null)]
         public ImageData DataQuantized { get; set; }
 
         [Browsable(false)]
+        [DefaultValue(null)]
         public ImageData DataProcessed { get; set; }
 
+        [DefaultValue(null)]
         public Image ImageSource { get; protected set; }
+
+        [DefaultValue(null)]
         public Image ImageBkgRemoved { get; protected set; }
+
+        [DefaultValue(null)]
         public Image ImageQuantized { get; protected set; }
+
+        [DefaultValue(null)]
         public Image ImageProcessed { get; protected set; }
 
         public int ImageSourceColors => transformSource?.ImageOutput?.Colors ?? 0;
@@ -72,6 +83,7 @@ namespace ColourClashNet.Components
         public int ImageProcessedColors => transformProcessing?.ImageOutput?.Colors ?? 0;
 
         [Browsable(false)]
+        [DefaultValue(true)]
         public bool InvalidatePreProcess { get; set; } = true;
 
         #endregion

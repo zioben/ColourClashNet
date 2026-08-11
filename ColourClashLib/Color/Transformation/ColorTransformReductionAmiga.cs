@@ -19,6 +19,7 @@ namespace ColourClashNet.Color.Transformation
 
         public enum EnumAmigaVideoMode
         {
+            //Bitplanes = 0,
             Ham6,
             Ham8,
             ExtraHalfBright
@@ -41,23 +42,6 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
-        //{
-        //    base.SetProperty(propertyName, value);
-        //    switch (propertyName)
-        //    {
-        //        case ColorTransformProperties.AmigaVideoMode:
-        //                AmigaVideoMode = ToEnum<EnumAmigaVideoMode>(value);
-        //            break;
-        //        case ColorTransformProperties.AmigaHamColorProcessingMode:
-        //                HamColorProcessingMode = ToEnum<EnumHamColorProcessingMode>(value);
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //    return this;
-        //}
-
         public ColorTransformReductionAmiga WithAmigaProperties(EnumAmigaVideoMode mode, EnumHamColorProcessingMode hamModeProcessing )
         {
             AmigaVideoMode = mode;
@@ -76,12 +60,7 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-
-            // Not Needed
-            // protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
-
-
-            ImageData ToHam(ImageData oDataSource, ImageData oDataPreProcessed, ColorQuantizationMode eQuantization)
+        ImageData ToHam(ImageData oDataSource, ImageData oDataPreProcessed, ColorQuantizationMode eQuantization)
         {
 
             var oQuantization = new ColorTransformQuantization();

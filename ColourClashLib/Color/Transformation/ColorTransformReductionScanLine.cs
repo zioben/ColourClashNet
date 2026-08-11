@@ -26,38 +26,6 @@ namespace ColourClashNet.Color.Transformation
         public List<UInt16> ColorListMask { get; private set; } = new List<UInt16>();
         public bool UseColorMean { get; set; } = true;
 
-        //internal protected override ColorTransformInterface SetProperty(ColorTransformProperties propertyName, object value)
-        //{
-        //    base.SetProperty(propertyName, value);
-
-        //    switch (propertyName)
-        //    {
-        //        case ColorTransformProperties.UseFixedPalette:
-        //            CreateSharedPalette=ToBool(value);
-        //            break;
-
-        //        case ColorTransformProperties.MaxColorsWanted:
-        //            ColorsMaxWanted = ToInt(value);
-        //            break;
-
-        //        case ColorTransformProperties.UseClustering:
-        //            LineReductionClustering = ToBool(value);
-        //            break;
-        //        case ColorTransformProperties.UseColorMean:
-        //                UseColorMean = ToBool(value);
-        //            break;
-        //        case ColorTransformProperties.MaxColorChangePerLine:
-        //            LineReductionMaxColors = ToInt(value);
-        //            break;
-        //        case ColorTransformProperties.UseSharedPalette:
-        //            CreateSharedPalette = ToBool(value);
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //    return this;
-        //}
-
         public ColorTransformReductionScanLine WithProcessingParams(bool createSharedPalette, int colorsMaxWanted, int lineReductionMaxColors, bool lineReductionClustering, bool useColorMean)
         {
             CreateSharedPalette = createSharedPalette;

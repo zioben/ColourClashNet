@@ -50,14 +50,19 @@ namespace ColourClashNet.Controls
         FileInfo oFileInfo = null;
         String oName = "";
 
+        [DefaultValue(null)]
         public GraphicsResolution WantedRes { get; set; } = null;
 
+        [DefaultValue(ColorQuantizationMode.RGB888)]
         public ColorQuantizationMode QuantizationMode { get; set; } = ColorQuantizationMode.RGB888;
 
+        [DefaultValue(ColorDithering.FloydSteinberg)]
         public ColorDithering DitheringType { get; set; } = ColorDithering.FloydSteinberg;
 
+        [DefaultValue(ColorDitheringFx.None)]
         public ColorDitheringFx DitheringFx { get; set; } = ColorDitheringFx.None;
 
+        [DefaultValue(ColorDistanceEvaluationMode.RGB)]
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
 
         //public ColorTransformConfig Config => oColorManager.Config;

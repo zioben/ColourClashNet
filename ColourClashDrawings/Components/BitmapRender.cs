@@ -103,34 +103,41 @@ namespace ColourClashNet.Components
         public object locker = new object();
 
         [Browsable(true), Category("Appearance")]
-        public Boolean ImageBlockScroll { get; set; }
+        [DefaultValue(false)]
+        public Boolean ImageBlockScroll { get; set; } = false;
 
         [Browsable(true), Category("Appearance")]
-        public EnumZoom ImageZoomMode { get; set; }
+        [DefaultValue(EnumZoom.Stretch)]
+        public EnumZoom ImageZoomMode { get; set; } = EnumZoom.Stretch;
 
         [Browsable(true), Category("Appearance")]
-        public Boolean ImageMoveOverControlBorder { get; set; }
+        [DefaultValue(true)]
+        public Boolean ImageMoveOverControlBorder { get; set; } = true;
 
 
-        float fRoiZoomM = 1;
+        float fRoiZoomM = 1.0f;
 
         [Browsable(true), Category("Appearance")]
+        [DefaultValue(1.0f)]
         public float ImageZoomManual
         {
             get { return fRoiZoomM; }
-            set { if (value > 0) fRoiZoomM = value; ForceRefresh(); }
+            set { if (value > 0 && value != fRoiZoomM) fRoiZoomM = value; ForceRefresh(); }
         }
 
         [Browsable(true), Category("Behavior")]
         [Description("Define mouse button for dragging")]
-        public MouseButtons MouseMovingButton { get; set; } = MouseButtons.Left;
+        [DefaultValue(MouseButtons.Left)]
+        public MouseButtons MouseMovingButton { get; set; } = MouseButtons.Left;    
 
         [Browsable(true), Category("Behavior")]
         [Description("Define mouse button for selection")]
+        [DefaultValue(MouseButtons.Right)]
         public MouseButtons MouseSelectButton { get; set; } = MouseButtons.Right;
 
         [Browsable(true), Category("Behavior")]
         [Description("Continuous Image Dragging Mode.")]
+        [DefaultValue(true)]
         public bool MouseImageFollowing { get; set; } = true;
 
         MouseHandler.PointTrack MouseControlTrack => MouseImageFollowing ? oMouseManager.PointTrackHistory : oMouseManager.PointTrackCurrent;
@@ -160,6 +167,7 @@ namespace ColourClashNet.Components
 
         Control oControl;
         [Browsable(true), Category("Appearance")]
+        [DefaultValue(null)]
         public Control Control
         {
             get { return oControl; }
@@ -176,6 +184,7 @@ namespace ColourClashNet.Components
 
         Image oImage;
         [Browsable(true), Category("Appearance")]
+        [DefaultValue(null)]
         public Image Image
         {
             get { return oImage; }
@@ -194,7 +203,20 @@ namespace ColourClashNet.Components
         MouseHandler oMouseManager= new MouseHandler();
         CoordinateManager oCoordinateManager = new CoordinateManager();
 
-        public List<System.Drawing.Color> SelectedColors { get; protected set; } = new List<System.Drawing.Color>();
+        List<System.Drawing.Color> lSelectedColors = new List<System.Drawing.Color>();  
+        [DefaultValue(null)]
+        public List<System.Drawing.Color> SelectedColors 
+        {
+            get { return lSelectedColors; }
+            protected set
+            { 
+                if( value != lSelectedColors)
+                {
+                    lSelectedColors = value;
+                    RebuildMouseColorToolStripItems();
+                }
+            }
+        }
 
         #endregion
 

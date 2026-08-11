@@ -46,4 +46,20 @@ namespace ColourClashNet.Imaging
         Multiple256 = 256,
     }
 
+
+    public enum TileMode
+    {
+        None,
+        CornerSpot,
+        Box,
+        BoundingBox,
+        CheckerHighlight
+    }
+
+    public enum OverlayMode
+    {
+        Draw,
+        TileMode,
+        CookieCut,
+    }
 }

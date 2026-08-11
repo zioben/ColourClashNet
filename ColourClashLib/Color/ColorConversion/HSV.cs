@@ -137,6 +137,11 @@ namespace ColourClashNet.Color.Conversion
             return dh * dh + ds * ds + dv * dv;
         }
 
+        /// <summary>
+        /// Creates an HSV instance from an integer RGB representation.
+        /// </summary>
+        /// <param name="rgb"></param>
+        /// <returns></returns>
         public static HSV CreateFromIntRGB(int rgb)
             => new HSV(rgb);
 
