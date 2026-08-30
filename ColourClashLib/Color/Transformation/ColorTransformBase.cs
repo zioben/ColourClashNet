@@ -64,13 +64,7 @@ namespace ColourClashNet.Color.Transformation
         //-------------------------------------------------------------------------------------------------------------------------------
         public bool BypassDithering { get; set; }
 
-        public ColorDithering DitheringType { get; set; }
-
-        public double DitheringStrength { get; set; } = 1.0;
-
-        public ColorDitheringFx DitheringFx { get; set; }
-
-
+        public DitherConfig DitheringConfig { get; set; } = new();
 
 
         #endregion
@@ -166,13 +160,18 @@ namespace ColourClashNet.Color.Transformation
 
         public ColorTransformBase WithDithering(ColorDithering ditheringType, double strength = 1.0, ColorDitheringFx fx = ColorDitheringFx.None)
         {
-            DitheringType = ditheringType;
-            DitheringStrength = ColourTools.Clamp(strength, 0.0, 1.0);
-            DitheringFx = fx;
+            DitheringConfig.DitheringType = ditheringType;
+            DitheringConfig.DitheringStrength = ColourTools.Clamp(strength, 0.0, 1.0);
+            DitheringConfig.DitheringFx = fx;
+            return this;
+        }
+        public ColorTransformBase WithDithering(DitherConfig cfg)
+        {
+            DitheringConfig = cfg?.Clone() as DitherConfig ?? throw new ArgumentNullException(nameof(cfg));
             return this;
         }
 
-        public ColorTransformBase WithDithering(ColorTransformConfig cfg) => WithDithering(cfg.DitheringType, cfg.DitheringStrength, cfg.DitheringFx);
+        public ColorTransformBase WithDithering(ColorTransformConfig cfg) => WithDithering(cfg.DitheringCfg);
 
         public ColorTransformBase WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode mode)
         {
@@ -306,7 +305,7 @@ namespace ColourClashNet.Color.Transformation
                 else
                 {
 
-                    if (BypassDithering || DitheringType == ColorDithering.None)
+                    if (BypassDithering || DitheringConfig.DitheringType == ColorDithering.None)
                     {
                         ImageOutput.Create(oTransfRes.DataOut);
                         oRetRes = ColorTransformResult.CreateValidResult(ImageSource, ImageOutput);
@@ -327,13 +326,13 @@ namespace ColourClashNet.Color.Transformation
 
                         if (oHash.Count > 256)
                         {
-                            LogMan.Warning(sC, sM, $"{Name} : Processing Completed - {DitheringType} : Too many colors to apply a dither : {oHash.Count}");
+                            LogMan.Warning(sC, sM, $"{Name} : Processing Completed - {DitheringConfig} : Too many colors to apply a dither : {oHash.Count}");
                             ImageOutput.Create(processedImage);
                             oRetRes = ColorTransformResult.CreateValidResult(ImageSource, ImageOutput);
                         }
                         else
                         {
-                            var oDithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength, DitheringFx);
+                            var oDithering = DitherBase.CreateDitherInterface(DitheringConfig);
                             var oImageDataDither = oDithering.Dither(ImageReference, processedImage, ColorDistanceEvaluationMode, token);
                             if (oImageDataDither.IsSuccess)
                             {

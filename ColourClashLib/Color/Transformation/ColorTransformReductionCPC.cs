@@ -90,7 +90,7 @@ namespace ColourClashNet.Color.Transformation
 
             ImageData? PreProcess(bool bHalveRes, CancellationToken oToken=default)
         {           
-            var oTmpData = bHalveRes ? ImageTools.HalveXResolution(ImageSource,true) : ImageSource;
+            var oTmpData = bHalveRes ? ImageTools.HalveXResolution(ImageSource, HalveResolutionMode.OddPixel) : ImageSource;
             var oTmpDataProc = TransformationMap.Transform(oTmpData, oToken);
             return oTmpDataProc;
         }
@@ -104,10 +104,10 @@ namespace ColourClashNet.Color.Transformation
 
             BypassDithering = true;
 
-            if (DitheringType != ColorDithering.None)
+            if (DitheringConfig.DitheringType != ColorDithering.None)
             {
-                var imageRef = bDoubleRes ? ImageTools.HalveXResolution(ImageSource,true) : ImageSource;
-                var dithering = DitherBase.CreateDitherInterface(DitheringType, DitheringStrength,DitheringFx);
+                var imageRef = bDoubleRes ? ImageTools.HalveXResolution(ImageSource,  HalveResolutionMode.OddPixel) : ImageSource;
+                var dithering = DitherBase.CreateDitherInterface(DitheringConfig);
                 var ditherRes = dithering.Dither(imageRef, oRes.DataOut, ColorDistanceEvaluationMode, oToken);
                 return bDoubleRes ? ImageTools.DoubleXResolution(ditherRes.DataOut) : ditherRes.DataOut;
             }

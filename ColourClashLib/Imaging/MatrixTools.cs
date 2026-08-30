@@ -520,37 +520,47 @@ public static class MatrixTools
     /// <param name="keepEvenColumns"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    static public int[,] HalveMatrixColumns(int[,]? matrixSrc, bool keepEvenColumns)
+    static public int[,] HalveMatrixColumns(int[,]? matrixSrc, HalveResolutionMode halveResolutionMode)
     {
         string sM = nameof(HalveMatrixColumns);
         if (matrixSrc == null)
             throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixSrc)} is null");
         var R = matrixSrc.GetLength(0);
         var C = matrixSrc.GetLength(1);
-        var cs = keepEvenColumns ? 0 : 1;
         var CO = (C + 1) / 2;
         var oRet = new int[R, CO];
-        //Parallel.For(0, R, r =>
-        for (int r = 0; r < R; r++)
+        switch (halveResolutionMode)
         {
-            for (int c = cs, co = 0; c < C; c += 2, co++)
-            {
-                if (c < C - 1)
-                {
-                    var a = matrixSrc[r, c];
-                    var b = matrixSrc[r, c + 1];
-                    var mean = ColorIntExt.GetColorMean(a, b);
-                    if (ColorIntExt.Distance(a, mean, ColorDistanceEvaluationMode.RGB) <= ColorIntExt.Distance(b, mean, ColorDistanceEvaluationMode.RGB))
+            case HalveResolutionMode.OddPixel:
+                for (int r = 0; r < R; r++)
+                    for (int c = 0, co = 0; c < C; c += 2, co++)
                     {
-                        oRet[r, co] = a;
+                        oRet[r, co] = matrixSrc[r, c];
                     }
-                    else
+                break;
+            case HalveResolutionMode.EvenPixel:
+                for (int r = 0; r < R; r++)
+                    for (int c = 1, co = 0; c < C; c += 2, co++)
                     {
-                        oRet[r, co] = b;
+                        oRet[r, co] = matrixSrc[r, c];
                     }
-                }
-            }
-        }//);
+                break;
+            case HalveResolutionMode.MeanColor:
+                for (int r = 0; r < R; r++)
+                    for (int c = 1, co = 0; c < C; c += 2, co++)
+                    {
+                        oRet[r, co] = matrixSrc[r, c];
+                        var a = matrixSrc[r, c];
+                        var b = a;
+                        if (c < C - 1)
+                        {
+                            b = matrixSrc[r, c + 1];
+                        }
+                        oRet[r, co] = ColorIntExt.GetColorMean(a, b);
+                    }
+                break;
+            default: throw new ArgumentException($"{sC}.{sM} : unsupported halve mode : '{halveResolutionMode}'", nameof(HalveResolutionMode));
+        }
         return oRet;
     }
 

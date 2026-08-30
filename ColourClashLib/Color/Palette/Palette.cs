@@ -125,6 +125,7 @@ namespace ColourClashNet.Color
             return ((IEnumerable<int>)rgbPalette).GetEnumerator();
         }
 
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return ((IEnumerable)rgbPalette).GetEnumerator();

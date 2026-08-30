@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ColourClashNet.Color.Dithering;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -18,27 +19,39 @@ namespace ColourClashNet.Color.Transformation
             Description = "Raster line color reduction";
         }
 
-        public bool CreateSharedPalette { get; set; } = true;
-        public int ColorsMaxWanted { get; set; } = 16;
-        public int LineReductionMaxColors { get; set; } = 8;
-        public bool LineReductionClustering { get; set; } = false;
+        // -------------------------------------------------------------
+        // Ideas:
+        // Input image is divided in horizontal chunks of N lines (default 1 line)
+        // Without shared palette:
+        // Each chunk is processed to reduce the number of colors to a maximum of M colors (default 16) (MaxColorsPerChunk)
+        // Each chunk is processed to reduce the number of color changes per line to a maximum of K changes (default 8) respect previous chunk palette (MaxChangesPerChunk)
+        // With shared palette (ReferencePalette or use 
+        // Every chunk is processed to reduce the number of colors to a maximum of M colors (default 16) (MaxColorsPerChunk) with the same palette for all chunks
+        // Each chunk is processed to reduce the number of color changes per line to a maximum of K changes (default 8) respect previous chunk palette (MaxChangesPerChunk)
+
+        public bool CreateReferencePalette { get; set; } = true;
+        public int MaxColorsPerChunk { get; set; } = 16;
+        public int MaxChangesPerChunk { get; set; } = 8;
+        public int ChunkHeight { get; set; } = 1;
+        public ColorTrasformInternalModel InternalTransformationModel { get; set; } = ColorTrasformInternalModel.ColorReductionFast;
         public List<List<int>> ColorListRow { get; private set; } = new List<List<int>>();
         public List<UInt16> ColorListMask { get; private set; } = new List<UInt16>();
         public bool UseColorMean { get; set; } = true;
 
-        public ColorTransformReductionScanLine WithProcessingParams(bool createSharedPalette, int colorsMaxWanted, int lineReductionMaxColors, bool lineReductionClustering, bool useColorMean)
+        public ColorTransformReductionScanLine WithProcessingParams(int chunkHeight, bool createReferencePalette, int maxColorPerChunk, int maxChangesPerChunk, ColorTrasformInternalModel internalTransformationModel, bool useColorMean)
         {
-            CreateSharedPalette = createSharedPalette;
-            ColorsMaxWanted = colorsMaxWanted;
-            LineReductionMaxColors = lineReductionMaxColors;
-            LineReductionClustering = lineReductionClustering;
+            ChunkHeight=chunkHeight;
+            CreateReferencePalette = createReferencePalette;
+            MaxColorsPerChunk = maxColorPerChunk;
+            MaxChangesPerChunk = maxChangesPerChunk;
+            InternalTransformationModel = internalTransformationModel;
             UseColorMean = useColorMean;
             return this;
         }
 
 
         public ColorTransformReductionScanLine WithReductionScanLine(ColorTransformConfig cfg) 
-            => WithProcessingParams(cfg.UseSharedPalette, cfg.MaxColorsWanted, cfg.MaxColorChangePerLine, cfg.UseClustering, cfg.UseColorMean);
+            => WithProcessingParams(cfg.ChunkHeight, cfg.UseSharedPalette, cfg.MaxColorsWanted, cfg.MaxColorChangePerChunk, cfg.InternalTransformationModel, cfg.UseColorMean);
 
         public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
         {
@@ -59,40 +72,47 @@ namespace ColourClashNet.Color.Transformation
             var oLineFixedPalette = ReferencePalette;
             // Step 1 : Reducing to target palette colors -> 128 to 16 colors 
             // MainPaletteUsed = false;
-            if (CreateSharedPalette)
+            if (CreateReferencePalette)
             {
                 var oMainHist = new HistogramRGB().Create(ImageSource);
                 var oMainPalette = oMainHist.ToPalette();
-                if (oMainPalette.Count <= ColorsMaxWanted)
+                if (oMainPalette.Count <= MaxColorsPerChunk)
                 {
                     oLineFixedPalette = oMainPalette;
                 }
                 else
                 {
-                    ColorTransformInterface oLineTrasf;
-                    if (LineReductionClustering)
-                    {
-                        var transf2 = new ColorTransformReductionCluster()
-                        .WithProcessingParams(ColorsMaxWanted, 30, UseColorMean)
-                        .WithReferencePalette(oLineFixedPalette)
-                        .WithDithering(DitheringType);
-                        oLineTrasf = transf2;
-                    }
-                    else
-                    {
-                        var transf2 = new ColorTransformReductionFast()
-                        .WithProcessingParams(ColorsMaxWanted)
-                        .WithReferencePalette(oLineFixedPalette)
-                        .WithDithering(DitheringType);
-                        oLineTrasf = transf2;
-                    }
+                    //ColorTransformConfig cfg = new ColorTransformConfig()
+                    //{
+                    //    MaxColorsPerChunk = MaxColorsPerChunk,
+                    //    UseColorMean = UseColorMean,
+                    //    InternalTransformationModel = InternalTransformationModel,
+                    ////    DitheringConfig = DitheringConfig.Clone() as DitherConfig,
+                    //};
+                    //ColorTransformInterface oLineTrasf = ColorTransformInternal.Create(InternalTransformationModel);
+                    //if (InternalTransformationMode)
+                    //{
+                    //    var transf2 = new ColorTransformReductionCluster()
+                    //    .WithProcessingParams(MaxColorsPerChunk, 30, UseColorMean)
+                    //    .WithReferencePalette(oLineFixedPalette)
+                    //  //  .WithDithering(DitheringType);
+                    //    oLineTrasf = transf2;
+                    //}
+                    //else
+                    //{
+                    //    var transf2 = new ColorTransformReductionFast()
+                    //    .WithProcessingParams(MaxColorsPerChunk)
+                    //    .WithReferencePalette(oLineFixedPalette)
+                    //    .WithDithering(DitheringType);
+                    //    oLineTrasf = transf2;
+                    //}
 
-                    oLineTrasf.Create(ImageSource);
+                    //oLineTrasf.Create(ImageSource);
 
-                    var oMainRet = oLineTrasf.ProcessColors(oToken);
-                    oSourceNew = oMainRet.DataOut;
-                    var oHistNew = new HistogramRGB().Create(ImageSource);
-                    oLineFixedPalette = oHistNew.ToPalette();
+                    //var oMainRet = oLineTrasf.ProcessColors(oToken);
+                    //oSourceNew = oMainRet.DataOut;
+                    //var oHistNew = new HistogramRGB().Create(ImageSource);
+                    //oLineFixedPalette = oHistNew.ToPalette();
                 }
             }
             oToken.ThrowIfCancellationRequested();
@@ -112,11 +132,11 @@ namespace ColourClashNet.Color.Transformation
                 }
                 // Create row histogram and take the most used colors
                 var oHist = new HistogramRGB().Create(new ImageData().Create(oCols));//.SortColorsDescending();
-                var oNewPal = oHist.SortColorsDescending().ToPalette(LineReductionMaxColors);
+                var oNewPal = oHist.SortColorsDescending().ToPalette(MaxChangesPerChunk);
                 // Create 
                 //--------------------------------------------------------------
                 //    Trace.WriteLine($"Row - {r}");
-                if (DitheringType == ColorDithering.None)
+                if (DitheringConfig.DitheringType == ColorDithering.None)
                 {
                     for (int c = 0; c < ImageSource.Columns; c++)
                     {
@@ -127,7 +147,7 @@ namespace ColourClashNet.Color.Transformation
                 {
                     var oTras = new ColorTransformReductionPalette()
                     .WithReferencePalette(oNewPal)
-                    .WithDithering(DitheringType, DitheringStrength, DitheringFx)   
+                    .WithDithering(DitheringConfig)   
                     .Create(new ImageData().Create(oCols));
                     var oColRes = oTras.ProcessColors(oToken);
                     for (int c = 0; c < ImageSource.Columns; c++)

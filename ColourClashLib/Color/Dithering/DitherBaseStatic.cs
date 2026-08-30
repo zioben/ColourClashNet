@@ -10,7 +10,7 @@ namespace ColourClashNet.Color.Dithering
 {
     public abstract partial class DitherBase
     {
-        public static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, double ditheringStrength, ColorDitheringFx extraFxMode)
+        static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, double ditheringStrength, ColorDitheringFx extraFxMode)
         {
             switch (ditheringModel)
             {
@@ -42,6 +42,9 @@ namespace ColourClashNet.Color.Dithering
                     return new DitherIdentity() { DitheringStrenght = ditheringStrength, DitheringFx = extraFxMode };
             }
         }
+
+        public static DitherInterface CreateDitherInterface(DitherConfig ditherConfig)
+            => CreateDitherInterface(ditherConfig.DitheringType, ditherConfig.DitheringStrength, ditherConfig.DitheringFx);
 
         public static DitherInterface CreateDitherInterface( Dictionary<ColorTransformProperties,object> properties )
         {

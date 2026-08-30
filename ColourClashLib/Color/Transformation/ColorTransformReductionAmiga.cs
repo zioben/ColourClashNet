@@ -126,7 +126,7 @@ namespace ColourClashNet.Color.Transformation
             var oQuantization = new ColorTransformQuantization();
             oQuantization.WithQuantization(ColorQuantizationMode.RGB444)
                          .WithReferencePalette(ReferencePalette)
-                         .WithDithering(DitheringType, DitheringStrength, DitheringFx);
+                         .WithDithering(DitheringConfig);
 
             int iMaxColors = 0;
 
@@ -157,7 +157,7 @@ namespace ColourClashNet.Color.Transformation
                     {
                         oColorReduction = new ColorTransformReductionMedianCut()
                             .WithProcessingParams(iMaxColors, true)
-                            .WithDithering(DitheringType, DitheringStrength, DitheringFx)
+                            .WithDithering(DitheringConfig)
                             .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
                     }
                     break;
@@ -165,7 +165,7 @@ namespace ColourClashNet.Color.Transformation
                     {
                         oColorReduction = new ColorTransformReductionCluster()
                             .WithProcessingParams(iMaxColors, 10, true)
-                            .WithDithering(DitheringType, DitheringStrength, DitheringFx)
+                            .WithDithering(DitheringConfig)
                             .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
                     }
                     break;

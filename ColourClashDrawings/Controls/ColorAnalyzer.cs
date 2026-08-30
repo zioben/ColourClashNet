@@ -239,14 +239,17 @@ namespace ColourClashNet.Controls
             oColorManager.transformConfig.WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
             //
             oColorManager.transformConfig.WithScanline(
+                1,
                 chkScanlineSharedPal.Checked,
                 (int)nudColorsWanted.Value,
                 (int)nudScanlineLineColors.Value,
-                chkScanLineCluster.Checked, true);
+                ColorTrasformInternalModel.ColorReductionClustering,
+                true);
             //
             oColorManager.transformConfig.WithClustering(
                 (int)nudColorsWanted.Value,
-                (int)nudClusterLoop.Value, true);
+                (int)nudClusterLoop.Value, 
+                true);
             // Dithering viene settato dalla form
             oColorManager.transformConfig.WithDithering(
                 DitheringType,

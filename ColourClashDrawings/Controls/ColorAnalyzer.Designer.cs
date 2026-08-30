@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ColorAnalyzer));
             splitMain = new SplitContainer();
             tableLayoutPanel1 = new TableLayoutPanel();
             splitProcessing = new SplitContainer();
@@ -244,6 +243,7 @@
             // 
             // chkShowTileBorders
             // 
+            chkShowTileBorders.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             chkShowTileBorders.AutoSize = true;
             chkShowTileBorders.Location = new Point(231, 9);
             chkShowTileBorders.Name = "chkShowTileBorders";
@@ -255,7 +255,7 @@
             // nudColorsWanted
             // 
             nudColorsWanted.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            nudColorsWanted.Increment = new decimal(new int[] { 8, 0, 0, 0 });
+            nudColorsWanted.Increment = new decimal(new int[] { 4, 0, 0, 0 });
             nudColorsWanted.Location = new Point(152, 7);
             nudColorsWanted.Maximum = new decimal(new int[] { 256, 0, 0, 0 });
             nudColorsWanted.Minimum = new decimal(new int[] { 2, 0, 0, 0 });
@@ -935,6 +935,7 @@
             // 
             // pgColorProcessor
             // 
+            pgColorProcessor.BackColor = SystemColors.Control;
             pgColorProcessor.Dock = DockStyle.Fill;
             pgColorProcessor.Location = new Point(3, 19);
             pgColorProcessor.Name = "pgColorProcessor";
@@ -1029,36 +1030,13 @@
             // oBitmapRenderSource
             // 
             oBitmapRenderSource.Control = pictureBoxSrc;
-            oBitmapRenderSource.Image = null;
-            oBitmapRenderSource.ImageBlockScroll = false;
-            oBitmapRenderSource.ImageMoveOverControlBorder = true;
-            oBitmapRenderSource.ImageZoomManual = 1F;
             oBitmapRenderSource.ImageZoomMode = Components.BitmapRender.EnumZoom.Zoom1;
-            oBitmapRenderSource.MouseImageFollowing = true;
-            oBitmapRenderSource.MouseMovingButton = MouseButtons.Left;
-            oBitmapRenderSource.MouseSelectButton = MouseButtons.Right;
             oBitmapRenderSource.MouseMove += oBitmapRenderSource_MouseMove;
             // 
             // oBitmapRenderDest
             // 
             oBitmapRenderDest.Control = pictureBoxProc;
-            oBitmapRenderDest.Image = null;
-            oBitmapRenderDest.ImageBlockScroll = false;
-            oBitmapRenderDest.ImageMoveOverControlBorder = true;
-            oBitmapRenderDest.ImageZoomManual = 1F;
             oBitmapRenderDest.ImageZoomMode = Components.BitmapRender.EnumZoom.Zoom1;
-            oBitmapRenderDest.MouseImageFollowing = true;
-            oBitmapRenderDest.MouseMovingButton = MouseButtons.Left;
-            oBitmapRenderDest.MouseSelectButton = MouseButtons.Right;
-            // 
-            // oColorManager
-            // 
-            oColorManager.DataBkgRemoved = null;
-            oColorManager.DataProcessed = null;
-            oColorManager.DataQuantized = null;
-            oColorManager.DataSourceX = null;
-            oColorManager.InvalidatePreProcess = true;
-            oColorManager.transformConfig = new();
             // 
             // ColorAnalyzer
             // 

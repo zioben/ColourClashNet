@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Imaging;
+﻿using ColourClashNet.Color.Dithering;
+using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,9 +28,8 @@ namespace ColourClashNet.Color.Transformation
         ColorTransformationMap TransformationMap { get; }
 
         //------------------------------------------------------------
-        ColorDithering DitheringType { get; set; }
         public bool BypassDithering { get; set; }
-        public double ProcessingTimeMilliseconds { get; }
+        DitherConfig DitheringConfig { get; }
 
         //------------------------------------------------------------
 

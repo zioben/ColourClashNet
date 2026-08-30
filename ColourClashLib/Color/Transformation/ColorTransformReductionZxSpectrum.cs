@@ -96,7 +96,7 @@ namespace ColourClashNet.Color.Transformation
         {
             return new ColorTransformConfig()
                 .WithReferencePalette(palette)
-                .WithDithering(ditheringType, DitheringStrength, DitheringFx)
+                .WithDithering(DitheringConfig)
                 .WithClustering(2, 6, false);                
         }
 
@@ -172,7 +172,7 @@ namespace ColourClashNet.Color.Transformation
                 var zxBaseTransform = new ColorTransformEnhancePalette()
                 .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
                 .WithReferencePalette(zxPalette)
-                .WithDithering(DitheringType, DitheringStrength, DitheringFx)
+                .WithDithering(DitheringConfig)
                .Create(ImageSource);
             var zxBaseResult = zxBaseTransform.ProcessColors(token);
             var zxBaseImage = zxBaseResult.DataOut;
@@ -181,13 +181,13 @@ namespace ColourClashNet.Color.Transformation
 
         TileManager CreateAndProcessTiles(bool loPalette, ImageData zxBestImage, ColorTransformationMap transformationMap, bool useDithering, CancellationToken token = default)
         {
-            var dithering = useDithering ? DitheringType : ColorDithering.None;
+            var dithering = useDithering ? DitheringConfig.DitheringType : ColorDithering.None;
 
             //Create best input image on input seed palette
             var zxBaseTransform = new ColorTransformReductionPalette()
                .WithReferencePalette(transformationMap.GetInputPalette())
                .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
-               .WithDithering(DitheringType, DitheringStrength, DitheringFx)
+               .WithDithering(DitheringConfig)
                .Create(ImageSource,ImageReference);
             var zxBaseResult = zxBaseTransform.ProcessColors(token);
             var zxBaseImage = zxBaseResult.DataOut;

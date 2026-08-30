@@ -73,15 +73,14 @@ namespace ColourClashNet.Color.Transformation
 
         #region properties
 
-        public C64VideoMode VideoMode { get; set; }= C64VideoMode.Multicolor;
+        public C64VideoMode VideoMode { get; set; } = C64VideoMode.Multicolor;
         public C64DitheringMode VideoDithering { get; private set; }
-        public bool EnableColorSwitching { get; set; } = false;
 
         public bool TileBorderShow { get; set; } = false;
-        int TileBorderColor = 0x_00_00_FF_00;
-        
-       
-        List<int> basePalette = new List<int>
+        int TileBorderColor = ColorIntExt.FromRGB(255, 0, 255);
+
+        Palette basePalette = new Palette().Create(
+                new List<int>
                 {
                     0x00_00_00_00,
                     0x00_FF_FF_FF,
@@ -98,9 +97,9 @@ namespace ColourClashNet.Color.Transformation
                     0x00_80_80_80,
                     0x00_AC_EA_88,
                     0x00_AB_AB_AB,
-                };
+                });
 
-        List<int> enhancedPalette = new List<int>();
+        Palette enhancedPalette = new();
         ColorTransformType ColorTransformationModel { get; } = ColorTransformType.ColorReductionClustering;
 
         C64DitheringMode DitheringProcessing { get; set; } = C64DitheringMode.PreDitherImage;
@@ -114,6 +113,30 @@ namespace ColourClashNet.Color.Transformation
             Type = ColorTransformType.ColorReductionCBM64;
             Description = "Reduce color to C64 palette";
             CreateEnhancedPalette();
+        }
+
+        void CreateEnhancedPalette()
+        {
+            var sM = nameof(CreateEnhancedPalette);
+            var baseList = basePalette.ToList();
+            var enhancedList = basePalette.ToList();
+            for (int i = 0; i < basePalette.Count - 1; i++)
+            {
+                for (int j = i + 1; j < basePalette.Count; j++)
+                {
+                    int iRGBA = baseList[i];
+                    int iRGBB = baseList[j];
+                    var HSVA = HSV.CreateFromIntRGB(iRGBA);
+                    var HSVB = HSV.CreateFromIntRGB(iRGBB);
+                    // LogMan.Message(sC, sM, $"{i} : {j} -> {HSVA.V:f1} - {HSVB.V:f1}");
+                    if (Math.Abs(HSVA.V - HSVB.V) < 15.0)
+                    {
+                        int iRGBM = ColorIntExt.GetColorMean(iRGBA, iRGBB);
+                        enhancedList.Add(iRGBM);
+                    }
+                }
+            }
+            enhancedPalette = new Palette().Create(enhancedList);
         }
 
         #region fluent with - set
@@ -136,104 +159,49 @@ namespace ColourClashNet.Color.Transformation
 
         #endregion
 
-        void CreateEnhancedPalette()
-        {
-            var sM = nameof(CreateEnhancedPalette);
-            enhancedPalette = new List<int>();
-            enhancedPalette.AddRange(basePalette);
-            for (int i = 0; i < basePalette.Count-1; i++)
-            {
-                for (int j = i+1; j < basePalette.Count; j++)
-                {
-                    int iRGBA = basePalette[i];
-                    int iRGBB = basePalette[j];   
-                    var HSVA = HSV.CreateFromIntRGB(iRGBA);
-                    var HSVB = HSV.CreateFromIntRGB(iRGBB);                   
-                   // LogMan.Message(sC, sM, $"{i} : {j} -> {HSVA.V:f1} - {HSVB.V:f1}");
-                    if (Math.Abs(HSVA.V-HSVB.V)<15.0)
-                    {
-                        int iRGBM = ColorIntExt.GetColorMean(iRGBA, iRGBB);
-                        enhancedPalette.Add(iRGBM);
-                    }
-                }
-            }
-        }
-
+        
         ColorTransformConfig CreateConfig(int maxColors, Palette referencePalette)
         {
             return new ColorTransformConfig()
                 .WithReferencePalette(referencePalette)
-                .WithDithering(DitheringType, DitheringStrength, DitheringFx)
+                .WithDithering(DitheringConfig)
                 .WithClustering(maxColors, 6, false);
         }
 
-        TileManager CreateTileManager(int tileHeight, int tileWidth, int maxColors, ImageData image, Palette referencePalette, CancellationToken token = default)
+        TileManager CreateTileManager(int tileWidth, int tileHeight, int maxColors, ImageData image, Palette referencePalette, CancellationToken token = default)
         {
-            tileManager = new TileManager().Create(tileHeight, tileWidth, image, 1.0, ColorTransformationModel, CreateConfig(maxColors, referencePalette), token);
+            tileManager = new TileManager().Create(tileWidth, tileHeight, image, 1.0, ColorTransformationModel, CreateConfig(maxColors, referencePalette), token);
             tileManager.TileBorderShow = TileBorderShow;
             tileManager.TileBorderColor = TileBorderColor;
             return tileManager;
         }
 
-        Palette GetPalette()
-        {
-            if (!EnableColorSwitching)
-            {
-                
-            }
-            var palB = new Palette().Create(basePalette);
-            var palE = new Palette().Create(enhancedPalette);
-            switch (VideoMode)
-            {
-                case C64VideoMode.FlexibleLineInterpretation: return palB;
-                case C64VideoMode.HiRes: return palB;
-                case C64VideoMode.HiResEnhanced: return palE;
-                case C64VideoMode.HiResFlexibleLineInterpretation: return palB;
-                case C64VideoMode.Multicolor: return palB;
-                case C64VideoMode.MulticolorEnhanced: return palE;
-                case C64VideoMode.Charset: return palB;
-                case C64VideoMode.CharsetMulticolor: return palB;
-                case C64VideoMode.DebugBasePalette: return palB;
-                case C64VideoMode.DebugEnhancedPalette: return palE;
 
-                default:
-                    return palB;
-            }
-        }
 
-ImageData? PreProcess(bool bHalveRes, CancellationToken token=default)
-        {
-            string sM= nameof(PreProcess);
-            var refImage = bHalveRes ? ImageTools.HalveXResolution(ImageSource,true) : ImageSource;
-            // Reduce all to the base 16 C64 colors without restrictions
-            var colorTrans = new ColorTransformReductionPalette()
-                .WithReferencePalette(new Palette().Create(GetPalette()))
-                .WithDithering(DitheringType, DitheringStrength, DitheringFx)
-                .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
-            var res = colorTrans.CreateAndProcessColors(refImage, token);
-            // Raise pre processing event
-            RaiseProcessPartialEvent(new ColorProcessingEventArgs()
-            {
-                ColorTransformInterface = this,
-                CompletedPercent = 0,
-                ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, res.DataOut, "Dithered Base")
-            });
-            return res.DataOut;
-        }
 
         // Only to debug purpose, this is the best image obtainable using C64 palette
-        ImageData? ToBasePalette(CancellationToken token=default) 
-            => PreProcess(false, token);
-
-        // Cerate a Tile Map 8x8 2 indipendent colors
-        ImageData ToHires(CancellationToken token=default)
+        ImageData? ToDebugImage(ImageData image, Palette palette, CancellationToken token = default)
         {
-            var oTmpData = PreProcess(false, token);
-            var oManager = CreateTileManager(8, 8, 2, oTmpData, new Palette(), token);
+            var tempResult = new ColorTransformReductionPalette()
+                .WithReferencePalette(palette)
+                .WithDithering(DitheringConfig)
+                .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
+                .CreateAndProcessColors(image, token);
+            return tempResult.DataOut;
+        }
+
+
+        // Tile 8x8 - 2 selectable color per tile
+        ImageData ToBitmapHires(Palette palette, CancellationToken token = default)
+        {
+            var tempImage = ToDebugImage(ImageSource,palette,token);
+            ImageData.AssertValid(tempImage);
+            TileManager oManager = CreateTileManager(8, 8, 2, tempImage, new Palette(), token);
             var tileResul = oManager.ProcessColors(token);
             if (tileResul)
             {
-                return oManager.CreateImageFromTiles();
+                var tileImage = oManager.CreateImageFromTiles();
+                return tileImage;
             }
             else
             {
@@ -241,13 +209,15 @@ ImageData? PreProcess(bool bHalveRes, CancellationToken token=default)
             }
         }
 
-
-        // Create a Tile Map 8x4 1 fixed color + 3 selectable colors per tile
-        ImageData ToBitmapMultiColor(CancellationToken token=default)
+        // Tile 4x8 - 1 fixed color (bkg) + 3 selectable color per tile
+        ImageData ToBitmapMultiColor(Palette palette, CancellationToken token = default)
         {
-            var preprocessImage = PreProcess(true, token);
-            var paletteFixedColor = new HistogramRGB().Create(preprocessImage).SortColorsDescending().ToPalette(1);
-            TileManager oManager = CreateTileManager(4, 8, 4, preprocessImage, paletteFixedColor, token);
+            var halveImage = ImageTools.HalveXResolution(ImageSource, HalveResolutionMode.MeanColor);
+            var tempImage = ToDebugImage(halveImage, palette, token);
+
+            ImageData.AssertValid(tempImage);
+            var backgroundColor = new HistogramRGB().Create(tempImage).SortColorsDescending().ToPalette(1);
+            TileManager oManager = CreateTileManager(4, 8, 4, tempImage, backgroundColor, token);
             var tileResul = oManager.ProcessColors(token);
             if (tileResul)
             {
@@ -259,46 +229,54 @@ ImageData? PreProcess(bool bHalveRes, CancellationToken token=default)
                 return null;
             }
         }
+
+        // Tile 4x1 - 1 fixed color (bkg) + 3 selectable color per tile
+        ImageData ToBitmapMulticolorFli( Palette palette, CancellationToken token = default)
+        {
+            var halveImage = ImageTools.HalveXResolution(ImageSource, HalveResolutionMode.MeanColor);
+            var tempImage = ToDebugImage(halveImage, palette, token);
+            ImageData.AssertValid(tempImage);
+            var backgroundColor = new HistogramRGB().Create(tempImage).SortColorsDescending().ToPalette(1);
+            TileManager oManager = CreateTileManager(4, 1, 4, tempImage, backgroundColor, token);
+            var tileResul = oManager.ProcessColors(token);
+            if (tileResul)
+            {
+                var tileImage = oManager.CreateImageFromTiles();
+                return ImageTools.DoubleXResolution(tileImage);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        // Tile 8x1 - 2 selectable color per tile
+        ImageData ToBitmapHiresFli(Palette palette, CancellationToken token = default)
+        {
+            var tempImage = ToDebugImage(ImageSource, palette, token);
+            ImageData.AssertValid(tempImage);
+            TileManager oManager = CreateTileManager(8, 1, 2, tempImage, new Palette(), token);
+            var tileResul = oManager.ProcessColors(token);
+            if (tileResul)
+            {
+                var tileImage = oManager.CreateImageFromTiles();
+                return tileImage;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
 
 
         // Create a Tile Map 8x4 3 fixed color + 1 selectable color per tile
         ImageData ToCharsetMulticolor(CancellationToken token = default)
-        {
-            var preprocessImage = PreProcess(true, token);
-            var paletteFixedColor = new HistogramRGB().Create(preprocessImage).SortColorsDescending().ToPalette(3);
-            TileManager oManager = CreateTileManager(4, 8, 4, preprocessImage, paletteFixedColor, token);
-            var tileResul = oManager.ProcessColors(token);
-            if (tileResul)
-            {
-                var tileImage = oManager.CreateImageFromTiles();
-                return ImageTools.DoubleXResolution(tileImage);
-            }
-            else
-            {
-                return null;
-            }
+        {   
+            return null;
         }
 
-        // Create a Tile Map 1x4 2 selectable color per tile
-        ImageData? ToBitmapFli(CancellationToken token = default)
-        {
-            var preprocessImage = PreProcess(true, token);
-
-            // Select the most used color
-            var paletteFixedColor = new HistogramRGB().Create(preprocessImage).SortColorsDescending().ToPalette(1);
-            TileManager oManager = CreateTileManager(4, 1, 2, preprocessImage, new Palette(), token);
-            var tileResul = oManager.ProcessColors(token);
-            if (tileResul)
-            {
-                var tileImage = oManager.CreateImageFromTiles();
-                return ImageTools.DoubleXResolution(tileImage);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
+      
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             ImageData? oPreprocessedData = null;
@@ -307,32 +285,44 @@ ImageData? PreProcess(bool bHalveRes, CancellationToken token=default)
             {
 
                 case C64VideoMode.DebugEnhancedPalette:
+                    {
+                        oPreprocessedData = ToDebugImage(ImageSource, enhancedPalette, token);
+                    }
+                    break;
                 case C64VideoMode.DebugBasePalette:
                     {
-                        oPreprocessedData = ToBasePalette(token);
+                        oPreprocessedData = ToDebugImage(ImageSource, basePalette, token);
                     }
                     break;
                 case C64VideoMode.Charset:
                 case C64VideoMode.HiResEnhanced:
+                    {
+                        oPreprocessedData = ToBitmapHires(enhancedPalette, token);
+                    }
+                    break;
                 case C64VideoMode.HiRes:
                     {                       
-                        oPreprocessedData = ToHires(token);
+                        oPreprocessedData = ToBitmapHires(basePalette, token);
                     }
                 break;
                 case C64VideoMode.FlexibleLineInterpretation:
                     {
-                        oPreprocessedData = ToBitmapFli(token);
+                        oPreprocessedData = ToBitmapMulticolorFli(basePalette, token);
                     }
                 break;
                 case C64VideoMode.MulticolorEnhanced:
+                    {
+                        oPreprocessedData = ToBitmapMultiColor(enhancedPalette, token);
+                    }
+                    break;
                 case C64VideoMode.Multicolor:
                     {
-                        oPreprocessedData = ToBitmapMultiColor(token);
+                        oPreprocessedData = ToBitmapMultiColor(basePalette, token);
                     }
                 break;
                 case C64VideoMode.HiResFlexibleLineInterpretation:
                     {
-                        oPreprocessedData = ToBitmapMultiColor(token);
+                        oPreprocessedData = ToBitmapHiresFli(basePalette, token);
                     }
                     break;
                 case C64VideoMode.CharsetMulticolor:

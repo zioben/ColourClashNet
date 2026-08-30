@@ -1,4 +1,5 @@
 ﻿using ColourClashNet.Color;
+using ColourClashNet.Color.Dithering;
 using System.ComponentModel;
 using static ColourClashNet.Color.Transformation.ColorTransformReductionAmiga;
 using static ColourClashNet.Color.Transformation.ColorTransformReductionC64;
@@ -23,7 +24,10 @@ namespace ColourClashNet.Color.Transformation
             = ColorQuantizationMode.RGB888;
 
         public int MaxColorsWanted { get; set; } = 256;
-        public int MaxColorChangePerLine { get; set; } = 0;
+
+        // ── Scanline ─────────────────────────────────────────────────────────
+        public int MaxColorChangePerChunk { get; set; } = 0;
+        public int ChunkHeight { get; set; } = 1;
 
         // ── Palette ─────────────────────────────────────────────────────────
         public Palette ReferencePalette { get; set; } = new Palette();
@@ -34,13 +38,11 @@ namespace ColourClashNet.Color.Transformation
         public bool UseColorMean { get; set; } = false;
         public bool UseFixedPalette { get; set; } = false;
         public bool UseSharedPalette { get; set; } = false;
-        public bool UseClustering { get; set; } = false;
+        public ColorTrasformInternalModel InternalTransformationModel { get; set; } = ColorTrasformInternalModel.ColorReductionFast;
         public int ClusterTrainingLoop { get; set; } = 10;
 
         // ── Dithering ────────────────────────────────────────────────────────
-        public ColorDithering DitheringType { get; set; } = ColorDithering.None;
-        public double DitheringStrength { get; set; } = 1.0;
-        public ColorDitheringFx DitheringFx { get; set; } = ColorDitheringFx.None;
+        public DitherConfig DitheringCfg { get; set; } = new DitherConfig();
 
         // ── HSV adjustments ──────────────────────────────────────────────────
         public int HsvHueShift { get; set; } = 0;
@@ -121,24 +123,33 @@ namespace ColourClashNet.Color.Transformation
 
         public ColorTransformConfig WithDithering(ColorDithering ditheringType, double strength, ColorDitheringFx fx)
         {
-            DitheringType = ditheringType;
-            DitheringStrength = strength;
-            DitheringFx = fx;
+            DitheringCfg = new DitherConfig
+            {
+                DitheringType = ditheringType,
+                DitheringStrength = strength,
+                DitheringFx = fx
+            };
             return this;
         }
+        public ColorTransformConfig WithDithering(DitherConfig cfg)
+        {
+            DitheringCfg = cfg?.Clone() as DitherConfig ?? throw new ArgumentNullException(nameof(cfg));
+            return this;
+        }
+
         public ColorTransformConfig WithDitheringType(ColorDithering ditheringType)
         {
-            DitheringType = ditheringType;
+            DitheringCfg.DitheringType = ditheringType;
             return this;
         }
         public ColorTransformConfig WithDitheringStrength(double strength)
         {
-            DitheringStrength = strength;
+            DitheringCfg.DitheringStrength = strength;
             return this;
         }
         public ColorTransformConfig WithDitheringFx(ColorDitheringFx fx)
         {
-            DitheringFx = fx;
+            DitheringCfg.DitheringFx = fx;
             return this;
         }
 
@@ -182,12 +193,12 @@ namespace ColourClashNet.Color.Transformation
             UseColorMean = useColorMean;
             return this;
         }
-        public ColorTransformConfig WithScanline(bool createSharedPalette, int colorsMaxWanted, int lineReductionMaxColors, bool lineReductionClustering, bool useColorMean)
+        public ColorTransformConfig WithScanline(int chunkHeight, bool createSharedPalette, int maxColorWanted, int maxColorChangePerLine, ColorTrasformInternalModel internalTransformtionMode, bool useColorMean)
         {
             UseSharedPalette = createSharedPalette;
-            MaxColorsWanted = colorsMaxWanted;
-            MaxColorChangePerLine = lineReductionMaxColors;
-            UseClustering = lineReductionClustering;
+            MaxColorsWanted = maxColorWanted;
+            MaxColorChangePerChunk = maxColorChangePerLine;
+            InternalTransformationModel = internalTransformtionMode;
             UseColorMean = useColorMean;
             return this;
         }

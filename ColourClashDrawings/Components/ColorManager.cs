@@ -40,7 +40,7 @@ namespace ColourClashNet.Components
 
 
         //        public Dictionary<string, object> DataParameters = new Dictionary<string, object>();
-
+        [DesignerSerializationVisibility( DesignerSerializationVisibility.Hidden)]
         [DefaultValue(null)]
         public ColorTransformConfig transformConfig { get; set; } = new ColorTransformConfig();
 

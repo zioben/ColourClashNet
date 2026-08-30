@@ -64,10 +64,10 @@ public static partial class ImageTools
     /// </summary>
     /// <param name="image"></param>
     /// <returns></returns>
-    public static ImageData HalveXResolution(ImageData image, bool keepEvenColumns)
+    public static ImageData HalveXResolution(ImageData image, HalveResolutionMode halveMode)
     {
         ImageData.AssertValid(image);
-        var matrix = MatrixTools.HalveMatrixColumns(image.matrix, keepEvenColumns);
+        var matrix = MatrixTools.HalveMatrixColumns(image.matrix, halveMode);
         return new ImageData().Create(matrix);
     }
 

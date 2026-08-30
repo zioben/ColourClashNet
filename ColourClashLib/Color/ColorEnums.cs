@@ -12,7 +12,6 @@ namespace ColourClashNet.Color
     [Serializable]
     public enum ColorQuantizationMode
     {
-        Unknown = 0,
         RGB888,
         RGB666,
         RGB565,
@@ -72,6 +71,13 @@ namespace ColourClashNet.Color
         ColorReductionSaturation,
         ColorReductionTileBase,
         ColorReductionEnhancePalette,
+    }
+
+    public enum ColorTrasformInternalModel
+    {
+        ColorReductionFast,
+        ColorReductionClustering,
+        ColorReductionMedianCut
     }
 
     /// <summary>
@@ -203,5 +209,13 @@ namespace ColourClashNet.Color
         /// The color should be considered invalid
         /// </summary>
         Invalid = 0b11111111,
+    }
+
+    public enum HalveResolutionMode
+    {
+        OddPixel = 0,
+        EvenPixel,
+        MeanColor,
+
     }
 }
