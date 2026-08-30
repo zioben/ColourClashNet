@@ -240,7 +240,7 @@ namespace ColourClashNet.Controls
             //
             oColorManager.transformConfig.WithScanline(
                 1,
-                chkScanlineSharedPal.Checked,
+                chkScanlineSharedPal.Checked ? ColorTransformReductionScanLine.ScanlineReductionMode.IndependentPalettePerLine : ColorTransformReductionScanLine.ScanlineReductionMode.IndependentPalettePerLine,
                 (int)nudColorsWanted.Value,
                 (int)nudScanlineLineColors.Value,
                 ColorTrasformInternalModel.ColorReductionClustering,

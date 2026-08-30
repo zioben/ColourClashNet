@@ -28,6 +28,7 @@ namespace ColourClashNet.Color.Transformation
         // ── Scanline ─────────────────────────────────────────────────────────
         public int MaxColorChangePerChunk { get; set; } = 0;
         public int ChunkHeight { get; set; } = 1;
+        public ColorTransformReductionScanLine.ScanlineReductionMode ScanlineReductionMode { get; set; } = ColorTransformReductionScanLine.ScanlineReductionMode.IndependentPalettePerLine;
 
         // ── Palette ─────────────────────────────────────────────────────────
         public Palette ReferencePalette { get; set; } = new Palette();
@@ -37,7 +38,6 @@ namespace ColourClashNet.Color.Transformation
         // ── Flags ────────────────────────────────────────────────────────────
         public bool UseColorMean { get; set; } = false;
         public bool UseFixedPalette { get; set; } = false;
-        public bool UseSharedPalette { get; set; } = false;
         public ColorTrasformInternalModel InternalTransformationModel { get; set; } = ColorTrasformInternalModel.ColorReductionFast;
         public int ClusterTrainingLoop { get; set; } = 10;
 
@@ -193,9 +193,9 @@ namespace ColourClashNet.Color.Transformation
             UseColorMean = useColorMean;
             return this;
         }
-        public ColorTransformConfig WithScanline(int chunkHeight, bool createSharedPalette, int maxColorWanted, int maxColorChangePerLine, ColorTrasformInternalModel internalTransformtionMode, bool useColorMean)
+        public ColorTransformConfig WithScanline(int chunkHeight, ColorTransformReductionScanLine.ScanlineReductionMode scanlineReductionMode, int maxColorWanted, int maxColorChangePerLine, ColorTrasformInternalModel internalTransformtionMode, bool useColorMean)
         {
-            UseSharedPalette = createSharedPalette;
+            ScanlineReductionMode = scanlineReductionMode;
             MaxColorsWanted = maxColorWanted;
             MaxColorChangePerChunk = maxColorChangePerLine;
             InternalTransformationModel = internalTransformtionMode;
