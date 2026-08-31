@@ -17,9 +17,22 @@ namespace ColourClashNet.Color.Transformation
     public class ColorTransformReductionCluster : ColorTransformBase
     {
         static string sClass = nameof(ColorTransformReductionCluster);
-        public int MaxColorsWanted { get; set; } = -1;
-        public bool UseClusterColorMean { get; set; } = true;
-        public int TrainingLoop { get; set; } = -1;
+        public int MaxColorsWanted 
+        { 
+            get => config.MaxColorsWanted;
+            set => config.MaxColorsWanted = value;  
+        }
+        public bool UseClusterColorMean 
+        { 
+            get => config.UseColorMean;
+            set => config.UseColorMean = value;
+        } 
+        
+        public int TrainingLoop 
+        {
+            get => config.ClusterTrainingLoop;
+            set => config.ClusterTrainingLoop = value;
+        }
 
       
         public ColorTransformReductionCluster()
@@ -39,11 +52,6 @@ namespace ColourClashNet.Color.Transformation
         public ColorTransformReductionCluster WithClustering(ColorTransformConfig cfg) =>
          WithProcessingParams(cfg.MaxColorsWanted, cfg.ClusterTrainingLoop, cfg.UseColorMean);
 
-        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
-        {
-            base.SetProperties(cfg);
-            return WithClustering(cfg);
-        }
 
         ColorTransformationMap CreateTransformationMap( HistogramRGB histogram, List<Tuple<List<int>, Dictionary<int, int>>> colorClusterList)
         {

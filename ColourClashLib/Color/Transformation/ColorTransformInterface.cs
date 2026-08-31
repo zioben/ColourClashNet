@@ -37,6 +37,8 @@ namespace ColourClashNet.Color.Transformation
 
         ColorTransformInterface SetProperties(ColorTransformConfig cfg);
 
+        ColorTransformConfig GetProperties();
+
         //------------------------------------------------------------
 
         ColorTransformInterface Create(ImageData sourceImage, ImageData referenceImage);

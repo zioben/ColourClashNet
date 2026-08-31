@@ -26,7 +26,7 @@ namespace ColourClashNet.Color.Transformation
         public int MaxColorsWanted { get; set; } = 256;
 
         // ── Scanline ─────────────────────────────────────────────────────────
-        public int MaxColorChangePerChunk { get; set; } = 0;
+        public int MaxColorsPerChunk { get; set; } = 0;
         public int ChunkHeight { get; set; } = 1;
         public ColorTransformReductionScanLine.ScanlineReductionMode ScanlineReductionMode { get; set; } = ColorTransformReductionScanLine.ScanlineReductionMode.IndependentPalettePerLine;
 
@@ -38,14 +38,14 @@ namespace ColourClashNet.Color.Transformation
         // ── Flags ────────────────────────────────────────────────────────────
         public bool UseColorMean { get; set; } = false;
         public bool UseFixedPalette { get; set; } = false;
-        public ColorTrasformInternalModel InternalTransformationModel { get; set; } = ColorTrasformInternalModel.ColorReductionFast;
+        public ColorTransformType InternalTransformationModel { get; set; } = ColorTransformType.ColorReductionFast;
         public int ClusterTrainingLoop { get; set; } = 10;
 
         // ── Dithering ────────────────────────────────────────────────────────
         public DitherConfig DitheringCfg { get; set; } = new DitherConfig();
 
         // ── HSV adjustments ──────────────────────────────────────────────────
-        public int HsvHueShift { get; set; } = 0;
+        public double HsvHueShift { get; set; } = 0.0;
         public double HsvSaturationMultFactor { get; set; } = 1.0;
         public double HsvBrightnessMultFactor { get; set; } = 1.0;
 
@@ -68,15 +68,16 @@ namespace ColourClashNet.Color.Transformation
 
         // ── Platform-specific: ZX Spectrum ───────────────────────────────────
         public ColorTransformReductionZxSpectrum.ZxPaletteMode ZxPaletteMode { get; set; }
-            = ColorTransformReductionZxSpectrum.ZxPaletteMode.Both;
+            = ColorTransformReductionZxSpectrum.ZxPaletteMode.BothPalettes;
 
-        public int ZxColLSeed { get; set; } = 192;
-        public int ZxColHSeed { get; set; } = 255;
+        public int ZxPaletteInColorSeedLow { get; set; } = 192;
+        public int ZxPaletteInColorSeedHigh { get; set; } = 255;
         public bool ZxIncludeBlackInHighColorImage { get; set; } = false;
         public bool ZxDitherLowColorImage { get; set; } = false;
         public bool ZxDitherHighColorImage { get; set; } = false;
         public ColorTransformReductionZxSpectrum.ZxAutotuneMode ZxAutotuneMode { get; set; } = ColorTransformReductionZxSpectrum.ZxAutotuneMode.None;
         public bool ShowTileBorders { get; set; } = true;
+        public int TileBorderColor { get; set; } = ColorIntExt.FromRGB(255, 0, 255);
 
         /// <summary>
         /// Creates a indipendent copy of the current ColorTransformConfig instance.
@@ -187,17 +188,23 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
+        public ColorTransformConfig WithMaxColorWanted(int maxColors)
+        {
+            MaxColorsWanted = maxColors;
+            return this;
+        }
+
         public ColorTransformConfig WithMedianCut(int maxColors, bool useColorMean)
         {
             MaxColorsWanted = maxColors;
             UseColorMean = useColorMean;
             return this;
         }
-        public ColorTransformConfig WithScanline(int chunkHeight, ColorTransformReductionScanLine.ScanlineReductionMode scanlineReductionMode, int maxColorWanted, int maxColorChangePerLine, ColorTrasformInternalModel internalTransformtionMode, bool useColorMean)
+        public ColorTransformConfig WithScanline(int chunkHeight, ColorTransformReductionScanLine.ScanlineReductionMode scanlineReductionMode, int maxColorWanted, int maxColorChangePerLine, ColorTransformType internalTransformtionMode, bool useColorMean)
         {
             ScanlineReductionMode = scanlineReductionMode;
             MaxColorsWanted = maxColorWanted;
-            MaxColorChangePerChunk = maxColorChangePerLine;
+            MaxColorsPerChunk = maxColorChangePerLine;
             InternalTransformationModel = internalTransformtionMode;
             UseColorMean = useColorMean;
             return this;
@@ -206,8 +213,8 @@ namespace ColourClashNet.Color.Transformation
         public ColorTransformConfig WithZxScreenMode(ZxPaletteMode paletteMode, int lowColorInSeed, int highColorInSeed )
         {
             this.ZxPaletteMode = paletteMode;
-            this.ZxColLSeed = lowColorInSeed;
-            this.ZxColHSeed = highColorInSeed;
+            this.ZxPaletteInColorSeedLow = lowColorInSeed;
+            this.ZxPaletteInColorSeedHigh = highColorInSeed;
             return this;
         }
         public ColorTransformConfig WithZxProcessing(ZxAutotuneMode autotuneMode, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor, bool showTileBorders)

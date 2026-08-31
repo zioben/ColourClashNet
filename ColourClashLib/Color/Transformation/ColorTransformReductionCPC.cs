@@ -20,7 +20,11 @@ namespace ColourClashNet.Color.Transformation
             DebugPalette
         }
 
-        public CPCVideoMode VideoMode { get; set; } =  CPCVideoMode.Mode0;
+        public CPCVideoMode VideoMode 
+        { 
+            get => config.CPCVideoMode;
+            set => config.CPCVideoMode = value;
+        }
         public ColorTransformReductionCPC()
         {
             Type = ColorTransformType.ColorReductionCBM64;
@@ -80,11 +84,6 @@ namespace ColourClashNet.Color.Transformation
 
         public ColorTransformReductionCPC WithCpcVideoMode(ColorTransformConfig cfg) => WithCpcVideoMode(cfg.CPCVideoMode);
 
-        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
-        {
-            base.SetProperties(cfg);
-            return WithCpcVideoMode(cfg);
-        }
        
 
 

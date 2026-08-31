@@ -16,8 +16,16 @@ namespace ColourClashNet.Color.Transformation
             Description = "Median partition color reduction";
         }
 
-        public int MaxColorsWanted { get; set; } = -1;
-        public bool UseColorMean { get; set; } = true;
+        public int MaxColorsWanted 
+        { 
+            get => config.MaxColorsWanted;
+            set => config.MaxColorsWanted = value;
+        }
+        public bool UseColorMean 
+        { 
+            get => config.UseColorMean;
+            set => config.UseColorMean = value;
+        }
 
         public ColorTransformReductionMedianCut WithProcessingParams(int maxColors, bool useColorMean)
         {
@@ -29,11 +37,6 @@ namespace ColourClashNet.Color.Transformation
         public ColorTransformReductionMedianCut WithProcessingParams(ColorTransformConfig cfg) => WithProcessingParams(cfg.MaxColorsWanted, cfg.UseColorMean);
 
 
-        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
-        {
-            base.SetProperties(cfg);
-            return WithProcessingParams(cfg);
-        }
 
 
 

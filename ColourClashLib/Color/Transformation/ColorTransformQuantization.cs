@@ -20,7 +20,11 @@ namespace ColourClashNet.Color.Transformation
             Description = "Reduces color bit spectrum";
         }
 
-        public ColorQuantizationMode QuantizationMode { get; set; }  
+        public ColorQuantizationMode QuantizationMode 
+        { 
+            get => config.QuantizationMode; 
+            set => config.QuantizationMode = value;
+        }  
 
         public ColorTransformQuantization WithQuantization(ColorQuantizationMode mode)
         {
@@ -30,11 +34,6 @@ namespace ColourClashNet.Color.Transformation
 
         public ColorTransformQuantization WithQuantization(ColorTransformConfig cfg) => WithQuantization(cfg.QuantizationMode);
 
-        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
-        {
-            base.SetProperties(cfg);
-            return WithQuantization(cfg);
-        }
 
         public int QuantizeColor(int iRGB)
         {

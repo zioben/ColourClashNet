@@ -63,6 +63,7 @@ public partial class TileManager
         }
     }
 
+
     public TileManager Create(int tileWidth, int tileHeight, ImageData image, double normalizationError, ColorTransformType colorTransformType, ColorTransformConfig colorTransformConfig , CancellationToken oToken=default)
     {
 
@@ -118,7 +119,7 @@ public partial class TileManager
 
 
 
-    public bool ProcessColors(CancellationToken token = default)
+    public ColorTransformResult ProcessColors(CancellationToken token = default)
     {
         string sM = nameof(ProcessColors);  
         GlobalTransformationError = double.NaN;
@@ -138,12 +139,12 @@ public partial class TileManager
                 };
             }//);
             var dError = RecalcGlobalTransformationError();
-            return true;
+            return ColorTransformResult.CreateValidResult();
         }
         catch (OperationCanceledException ex)
         {
             LogMan.Exception(sC, sM, "Operation cancelled",ex);
-            return false;
+            return ColorTransformResult.CreateErrorResult("Operation cancelled");
         }
     }
 

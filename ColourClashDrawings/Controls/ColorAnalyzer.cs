@@ -106,8 +106,8 @@ namespace ColourClashNet.Controls
         {
             if (sender is ColorTransformReductionZxSpectrum oZX)
             {
-                nudZxColorLO.Value = oZX.ZxLowColorInSeed;
-                nudZxColorHI.Value = oZX.ZxHighColorInSeed;
+                nudZxColorLO.Value = oZX.ZxPaletteInColorSeedLow;
+                nudZxColorHI.Value = oZX.ZxPaletteInColorSeedHigh;
             }
         }
 
@@ -240,10 +240,10 @@ namespace ColourClashNet.Controls
             //
             oColorManager.transformConfig.WithScanline(
                 1,
-                chkScanlineSharedPal.Checked ? ColorTransformReductionScanLine.ScanlineReductionMode.IndependentPalettePerLine : ColorTransformReductionScanLine.ScanlineReductionMode.IndependentPalettePerLine,
+                chkScanlineSharedPal.Checked ? ColorTransformReductionScanLine.ScanlineReductionMode.SharedPaletteForAllLines : ColorTransformReductionScanLine.ScanlineReductionMode.IndependentPalettePerLine,
                 (int)nudColorsWanted.Value,
                 (int)nudScanlineLineColors.Value,
-                ColorTrasformInternalModel.ColorReductionClustering,
+                ColorTransformType.ColorReductionClustering,
                 true);
             //
             oColorManager.transformConfig.WithClustering(

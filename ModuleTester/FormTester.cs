@@ -260,7 +260,7 @@ namespace ModuleTester
             }
             ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum transf = new();
             var cfg = new ColorTransformConfig()
-                .WithZxScreenMode(ColorTransformReductionZxSpectrum.ZxPaletteMode.Both, 128, 256)
+                .WithZxScreenMode(ColorTransformReductionZxSpectrum.ZxPaletteMode.BothPalettes, 128, 256)
                 .WithZxProcessing(ColorTransformReductionZxSpectrum.ZxAutotuneMode.Fast, true, true, true, false);
             Process(transf, cfg);
         }

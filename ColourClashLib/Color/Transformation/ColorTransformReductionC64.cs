@@ -73,11 +73,27 @@ namespace ColourClashNet.Color.Transformation
 
         #region properties
 
-        public C64VideoMode VideoMode { get; set; } = C64VideoMode.Multicolor;
-        public C64DitheringMode VideoDithering { get; private set; }
+        public C64VideoMode VideoMode 
+        { 
+            get => config.C64VideoMode;
+            set => config.C64VideoMode = value; 
+        }
+        public C64DitheringMode VideoDithering 
+        { 
+            get => config.C64DitheringMode;
+            private set => config.C64DitheringMode = value; 
+        }
 
-        public bool TileBorderShow { get; set; } = false;
-        int TileBorderColor = ColorIntExt.FromRGB(255, 0, 255);
+        public bool TileBorderShow 
+        { 
+            get => config.ShowTileBorders;
+            set => config.ShowTileBorders = value;
+        }
+        public int TileBorderColor
+        {
+            get => config.TileBorderColor;
+            set => config.TileBorderColor = value;
+        }
 
         Palette basePalette = new Palette().Create(
                 new List<int>
@@ -100,6 +116,7 @@ namespace ColourClashNet.Color.Transformation
                 });
 
         Palette enhancedPalette = new();
+        
         ColorTransformType ColorTransformationModel { get; } = ColorTransformType.ColorReductionClustering;
 
         C64DitheringMode DitheringProcessing { get; set; } = C64DitheringMode.PreDitherImage;
@@ -151,26 +168,22 @@ namespace ColourClashNet.Color.Transformation
 
         public ColorTransformReductionC64 WithC64ScreenMode(ColorTransformConfig cfg) => WithC64ScreenMode(cfg.C64VideoMode, cfg.C64DitheringMode, cfg.ShowTileBorders);
 
-        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
-        {
-            base.SetProperties(cfg);
-            return WithC64ScreenMode(cfg);
-        }
 
         #endregion
 
         
-        ColorTransformConfig CreateConfig(int maxColors, Palette referencePalette)
-        {
-            return new ColorTransformConfig()
-                .WithReferencePalette(referencePalette)
-                .WithDithering(DitheringConfig)
-                .WithClustering(maxColors, 6, false);
-        }
+        //ColorTransformConfig CreateConfig(int maxColors, Palette referencePalette)
+        //{
+        //    return new ColorTransformConfig()
+        //        .WithReferencePalette(referencePalette)
+        //        .WithDithering(DitheringConfig)
+        //        .WithClustering(maxColors, 6, false);
+        //}
 
         TileManager CreateTileManager(int tileWidth, int tileHeight, int maxColors, ImageData image, Palette referencePalette, CancellationToken token = default)
         {
-            tileManager = new TileManager().Create(tileWidth, tileHeight, image, 1.0, ColorTransformationModel, CreateConfig(maxColors, referencePalette), token);
+            var cfg = config.Clone().WithReferencePalette(referencePalette).WithDithering(DitheringConfig).WithMaxColorWanted(maxColors);
+            tileManager = new TileManager().Create(tileWidth, tileHeight, image, 1.0, cfg.InternalTransformationModel,cfg, token);
             tileManager.TileBorderShow = TileBorderShow;
             tileManager.TileBorderColor = TileBorderColor;
             return tileManager;
@@ -198,7 +211,7 @@ namespace ColourClashNet.Color.Transformation
             ImageData.AssertValid(tempImage);
             TileManager oManager = CreateTileManager(8, 8, 2, tempImage, new Palette(), token);
             var tileResul = oManager.ProcessColors(token);
-            if (tileResul)
+            if (tileResul.IsSuccess)
             {
                 var tileImage = oManager.CreateImageFromTiles();
                 return tileImage;
@@ -219,7 +232,7 @@ namespace ColourClashNet.Color.Transformation
             var backgroundColor = new HistogramRGB().Create(tempImage).SortColorsDescending().ToPalette(1);
             TileManager oManager = CreateTileManager(4, 8, 4, tempImage, backgroundColor, token);
             var tileResul = oManager.ProcessColors(token);
-            if (tileResul)
+            if (tileResul.IsSuccess)
             {
                 var tileImage = oManager.CreateImageFromTiles();
                 return ImageTools.DoubleXResolution(tileImage);
@@ -239,7 +252,7 @@ namespace ColourClashNet.Color.Transformation
             var backgroundColor = new HistogramRGB().Create(tempImage).SortColorsDescending().ToPalette(1);
             TileManager oManager = CreateTileManager(4, 1, 4, tempImage, backgroundColor, token);
             var tileResul = oManager.ProcessColors(token);
-            if (tileResul)
+            if (tileResul.IsSuccess)
             {
                 var tileImage = oManager.CreateImageFromTiles();
                 return ImageTools.DoubleXResolution(tileImage);
@@ -257,7 +270,7 @@ namespace ColourClashNet.Color.Transformation
             ImageData.AssertValid(tempImage);
             TileManager oManager = CreateTileManager(8, 1, 2, tempImage, new Palette(), token);
             var tileResul = oManager.ProcessColors(token);
-            if (tileResul)
+            if (tileResul.IsSuccess)
             {
                 var tileImage = oManager.CreateImageFromTiles();
                 return tileImage;

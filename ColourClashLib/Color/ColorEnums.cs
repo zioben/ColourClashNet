@@ -73,12 +73,13 @@ namespace ColourClashNet.Color
         ColorReductionEnhancePalette,
     }
 
-    public enum ColorTrasformInternalModel
-    {
-        ColorReductionFast,
-        ColorReductionClustering,
-        ColorReductionMedianCut
-    }
+    //public enum ColorTrasformInternalModel
+    //{
+    //    ColorReductionFast,
+    //    ColorReductionClustering,
+    //    ColorReductionMedianCut,
+    //    ColorReductionGenericPalette
+    //}
 
     /// <summary>
     /// Enums to select dithering algorithm 

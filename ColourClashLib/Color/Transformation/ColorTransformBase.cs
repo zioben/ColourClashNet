@@ -34,6 +34,8 @@ namespace ColourClashNet.Color.Transformation
 
         private readonly SemaphoreSlim semaphore = new(1, 1);
 
+        protected ColorTransformConfig config = new ColorTransformConfig();
+
         //-------------------------------------------------------------------------------------------------------------------------------
         public ColorTransformType Type { get; protected init; }
 
@@ -64,8 +66,12 @@ namespace ColourClashNet.Color.Transformation
         //-------------------------------------------------------------------------------------------------------------------------------
         public bool BypassDithering { get; set; }
 
-        public DitherConfig DitheringConfig { get; set; } = new();
-
+        public DitherConfig DitheringConfig 
+        { 
+            get => config.DitheringCfg;
+            set => config.DitheringCfg = value ?? new DitherConfig();
+        }
+            
 
         #endregion
 
@@ -201,15 +207,15 @@ namespace ColourClashNet.Color.Transformation
         public ColorTransformBase WithReferencePalette(params int[] palette) => WithReferencePalette(new Palette().Create(palette));
         public ColorTransformBase WithReferencePalette(ColorTransformConfig cfg) => WithReferencePalette(cfg.ReferencePalette);
 
-        public virtual ColorTransformInterface SetProperties(ColorTransformConfig cfg)
+        public ColorTransformInterface SetProperties(ColorTransformConfig cfg)
         {
-            WithDithering(cfg);
-            WithColorDistanceEvaluationMode(cfg);
-            WithReferencePalette(cfg);
+            config = cfg?.Clone() as ColorTransformConfig ?? throw new ArgumentNullException(nameof(cfg));
             return this;           
         }
-
-
+        public ColorTransformConfig GetProperties()
+        {
+            return config?.Clone() as ColorTransformConfig ?? throw new ArgumentNullException(nameof(config));
+        }
 
         #endregion
         internal ColorProcessingEventArgs CreateTransformEventArgs(CancellationTokenSource tokenSource, ColorTransformResult result)

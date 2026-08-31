@@ -18,9 +18,21 @@ namespace ColourClashNet.Color.Transformation
             Description = "Expand color crominance";
         }
 
-        public double HueShift { get; set; } = 0;
-        public double SaturationMultFactor { get; set; } = 1.0;
-        public double BrightnessMultFactor { get; set; } = 1.0;
+        public double HueShift 
+        { 
+            get => config.HsvHueShift; 
+            set => config.HsvHueShift = value;
+        }
+        public double SaturationMultFactor 
+        { 
+            get => config.HsvSaturationMultFactor;
+            set => config.HsvSaturationMultFactor = value;
+        }
+        public double BrightnessMultFactor 
+        {
+            get => config.HsvBrightnessMultFactor;
+            set => config.HsvBrightnessMultFactor = value;
+        }
 
 
         public ColorTransformLumSat WithHueShiftValue(double hueShift, double saturationMultFactor, double brightnessMultFactor)
@@ -33,11 +45,6 @@ namespace ColourClashNet.Color.Transformation
     
         public ColorTransformLumSat WithHueShiftValue(ColorTransformConfig cfg) => WithHueShiftValue(cfg.HsvHueShift, cfg.HsvSaturationMultFactor, cfg.HsvBrightnessMultFactor);
 
-        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
-        {
-            base.SetProperties(cfg);
-            return WithHueShiftValue(cfg);
-        }
 
         // Not Needed
         //protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)

@@ -10,45 +10,52 @@ namespace ColourClashNet.Color.Transformation
     {
         static string sC = nameof(ColorTransformInternal);
 
-        public static ColorTransformInterface Create(ColorTrasformInternalModel internalTransformModel, DitherConfig ditherConfig,int maxColors,bool useColorMean)
+
+        public static ColorTransformInterface Alloc(ColorTransformConfig cfg)
         {
             string sM = nameof(ColorTransformInternal);
+            if(cfg == null) 
+            { 
+                throw new ArgumentNullException($"{sC}.{sM} : {nameof(cfg)}");
+            }
             ColorTransformInterface trans;
-            switch (internalTransformModel)
+            switch (cfg.InternalTransformationModel)
             {
-                case ColourClashNet.Color.ColorTrasformInternalModel.ColorReductionClustering:
+                case ColorTransformType.ColorReductionClustering:
                     {
-                        trans = new ColorTransformReductionCluster().WithProcessingParams(maxColors,10,useColorMean).WithDithering(ditherConfig);
-                        
+                        trans = new ColorTransformReductionCluster();
                     }
                     break;
-                case ColourClashNet.Color.ColorTrasformInternalModel.ColorReductionFast:
+                case ColorTransformType.ColorReductionFast:
                     {
-                        trans = new ColorTransformReductionFast().WithProcessingParams(maxColors).WithDithering(ditherConfig);
+                        trans = new ColorTransformReductionFast();
                     }
                     break;
-                case ColourClashNet.Color.ColorTrasformInternalModel.ColorReductionMedianCut:
+                case ColorTransformType.ColorReductionMedianCut:
                     {
-                        trans = new ColorTransformReductionMedianCut().WithProcessingParams(maxColors,useColorMean).WithDithering(ditherConfig);
+                        trans = new ColorTransformReductionMedianCut();
+                    }
+                    break;
+                case ColorTransformType.ColorReductionGenericPalette:
+                    {
+                        trans = new ColorTransformReductionPalette();
                     }
                     break;
                 default:
-                    throw new ArgumentException($"{sC}.{sM} : {internalTransformModel} not supported");
+                    throw new ArgumentException($"{sC}.{sM} : {cfg.InternalTransformationModel} not supported");
             }
-            return trans;
+            return trans.SetProperties(cfg);
         }
 
-    
-
-        public static ColorTransformInterface Create(ColorTransformConfig cfg)
+        public static List<string> GetInternalTransformationList()
         {
-            string sM = nameof(ColorTransformInternal);
-            if (cfg == null)
-                throw new ArgumentNullException($"{sC}.{sM} : {nameof(cfg)} null");
-            ColorTransformInterface trans = Create(cfg.InternalTransformationModel, cfg.DitheringCfg, cfg.MaxColorsWanted, cfg.UseColorMean);
-            //trans.SetProperties(cfg);
-            return trans;
+            return new List<string>()
+            {
+                ColorTransformType.ColorReductionClustering.ToString(),
+                ColorTransformType.ColorReductionFast.ToString(),
+                ColorTransformType.ColorReductionMedianCut.ToString(),
+                ColorTransformType.ColorReductionGenericPalette.ToString()
+            };
         }
-
     }
 }

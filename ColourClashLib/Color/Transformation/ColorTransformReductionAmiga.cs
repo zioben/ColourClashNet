@@ -31,9 +31,17 @@ namespace ColourClashNet.Color.Transformation
             Detailed
         }
 
-        public EnumAmigaVideoMode AmigaVideoMode { get; set; } = EnumAmigaVideoMode.Ham6;
-
-        public EnumHamColorProcessingMode HamColorProcessingMode { get; set; } = EnumHamColorProcessingMode.Fast;
+        public EnumAmigaVideoMode AmigaVideoMode 
+        { 
+            get => config.AmigaVideoMode;
+            set => config.AmigaVideoMode = value;
+        }
+            
+        public EnumHamColorProcessingMode HamColorProcessingMode 
+        { 
+            get => config.AmigaHamColorProcessingMode;
+            set => config.AmigaHamColorProcessingMode = value;
+        }
 
         public ColorTransformReductionAmiga()
         {
@@ -53,11 +61,6 @@ namespace ColourClashNet.Color.Transformation
 
 
 
-        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
-        {
-            base.SetProperties(cfg);
-            return WithAmigaProperties(cfg);
-        }
 
 
         ImageData ToHam(ImageData oDataSource, ImageData oDataPreProcessed, ColorQuantizationMode eQuantization)

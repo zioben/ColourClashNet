@@ -15,8 +15,12 @@ namespace ColourClashNet.Color.Transformation
             Description = "Quantitative color reduction";
         }
 
-        public int MaxColorWanted { get; set; } = -1;
-
+        public int MaxColorWanted 
+        { 
+            get => config.MaxColorsWanted;
+            set => config.MaxColorsWanted = value;
+        }
+            
         public ColorTransformReductionFast WithProcessingParams(int maxColors)
         {
              MaxColorWanted = maxColors;
@@ -24,11 +28,6 @@ namespace ColourClashNet.Color.Transformation
         }
         public ColorTransformReductionFast WithProcessingParams(ColorTransformConfig cfg) => WithProcessingParams(cfg.MaxColorsWanted);
 
-        public override ColorTransformInterface SetProperties(ColorTransformConfig cfg)
-        {
-            base.SetProperties(cfg);
-            return WithProcessingParams(cfg);
-        }
 
 
         protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken = default)
