@@ -39,7 +39,7 @@ namespace ColourClashNet.Color.Transformation
         public int ColorBackgroundReplacement { get; set; } = ColorIntExt.FromRGB(0, 0, 0);
 
         // ── Flags ────────────────────────────────────────────────────────────
-        public ColorSelectionMode ColorMeanMode { get; set; } = ColorSelectionMode.UseColorPalette;
+        public ColorSelectionMode ColorMeanMode { get; set; } = ColorSelectionMode.EvaluateColorMean;
         public bool UseFixedPalette { get; set; } = false;
         public ColorTransformType InternalTransformationModel { get; set; } = ColorTransformType.ColorReductionFast;
         public int ClusterTrainingLoop { get; set; } = 10;

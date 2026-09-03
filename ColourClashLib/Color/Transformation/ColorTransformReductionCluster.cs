@@ -1,4 +1,5 @@
 ﻿using ColourClashLib;
+using ColourClashNet.Color.Conversion;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Log;
 using System;
@@ -93,7 +94,8 @@ namespace ColourClashNet.Color.Transformation
             // Sort by most used colors from original image, to have the most used colors as initial cluster seeds
             // Creating a temporary palette with fixed colors and histogram colors
             var tempHistogram = new HistogramRGB().Create(ImageSource).SortColorsDescending();
-            var tempPalette = Palette.MergePalette(ReferencePalette, tempHistogram.ToPalette());
+            var tempHistogramPal = tempHistogram.ToPalette();
+            var tempPalette = Palette.MergePalette(ReferencePalette, tempHistogramPal);
             // If got less colors than wanted, just map them directly
             if (tempPalette.Count <= MaxColorsWanted)
             {
@@ -103,7 +105,22 @@ namespace ColourClashNet.Color.Transformation
                 }
                 return ColorTransformResult.CreateValidResult();
             }
-
+            else
+            {
+                tempPalette.Create(ReferencePalette);
+                for (int s = 100; s > 0; s /= 2)
+                {
+                    for (int h = 0; h < 360; h += 10)
+                    {
+                        HSV hsv = new HSV(h, s, 100);
+                        tempPalette.Add(hsv.ToIntRGB());
+                        if (tempPalette.Count >= MaxColorsWanted)
+                            break;
+                    }
+                    if (tempPalette.Count >= MaxColorsWanted)
+                        break;
+                }
+            }
             // Init Clustering Algorithm
             // Got a Tuple of List<ColorMeanOfTheCluster>, Dictionary<ColorOfTheCluster,ColorOccurrences> for each cluster
             // List<ColorMeanOfTheCluster> is the evolution of the cluster color, starting from the initial color
@@ -122,6 +139,9 @@ namespace ColourClashNet.Color.Transformation
             var rgbFixedList = ReferencePalette.ToList();
     
             int i = 0;
+
+            // Problem : if the reference palette is bigger than the max colors wanted, we need to limit the number of fixed colors to the max colors wanted
+            // when selecting initial colors 
             foreach (var rgb in tempPalette)
             {
                 colorClusterList.Add(Tuple.Create(new List<int> { rgb }, new Dictionary<int, int>()));
