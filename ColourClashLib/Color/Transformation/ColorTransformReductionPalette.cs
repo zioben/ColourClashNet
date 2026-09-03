@@ -16,11 +16,21 @@ namespace ColourClashNet.Color.Transformation
             Type = ColorTransformType.ColorReductionGenericPalette;
             Description = "Color palette trasformation";
         }
+        public ColorTransformReductionPalette WithFixedPalette(List<int> palette)
+        {
+            config.WithFixedPalette(palette,true);
+            return this;
+        }
 
-        
+        protected virtual void RebuildReferencePalette()
+        {
+            
+        }
+
         protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken = default)
         {
             TransformationMap.Reset();
+            RebuildReferencePalette();
             var rgbList = ImageSource.ColorPalette.ToList();
 
             //Parallel.ForEach(rgbList, rgb =>

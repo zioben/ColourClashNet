@@ -10,13 +10,14 @@ namespace ColourClashNet.Color.Transformation
     {
         public ColorTransformReductionEGA()
         {
-            Type = ColorTransformType.ColorReductionEga;
+            Type = ColorTransformType.ColorReductionEGA;
             Description = "Reduce color to EGA palette";
-            CreatePalette();
         }
-        void CreatePalette()
+
+
+        protected override void RebuildReferencePalette()     
         {
-            WithReferencePalette(
+            WithFixedPalette(
                 new List<int>
                 {
                     0x00_00_00_00,

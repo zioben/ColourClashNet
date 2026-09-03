@@ -44,7 +44,10 @@ public partial class TileItem
     /// </summary>
     public int OriginY { get; private set; } = 0;
 
-
+    /// <summary>
+    /// Gets the number of colors in the source image.
+    /// </summary>
+    public int SourceColors { get => TileImage?.Colors ?? 0; }
     ///// <summary>
     ///// Gets a value indicating whether the current image source is valid.
     ///// </summary>

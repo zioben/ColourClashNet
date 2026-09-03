@@ -25,22 +25,16 @@ namespace ColourClashNet.Color.Transformation
             ExtraHalfBright
         }
 
-        public enum EnumHamColorProcessingMode
-        {
-            Fast,
-            Detailed
-        }
-
         public EnumAmigaVideoMode AmigaVideoMode 
         { 
             get => config.AmigaVideoMode;
             set => config.AmigaVideoMode = value;
         }
             
-        public EnumHamColorProcessingMode HamColorProcessingMode 
+        public  ColorTransformType HamColorTransformationModel
         { 
-            get => config.AmigaHamColorProcessingMode;
-            set => config.AmigaHamColorProcessingMode = value;
+            get => config.InternalTransformationModel;
+            set => config.InternalTransformationModel = value;
         }
 
         public ColorTransformReductionAmiga()
@@ -50,14 +44,14 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        public ColorTransformReductionAmiga WithAmigaProperties(EnumAmigaVideoMode mode, EnumHamColorProcessingMode hamModeProcessing )
+        public ColorTransformReductionAmiga WithAmigaProperties(EnumAmigaVideoMode videoMode, ColorTransformType hamColorTransformationModel )
         {
-            AmigaVideoMode = mode;
-            HamColorProcessingMode = hamModeProcessing;
+            AmigaVideoMode = videoMode;
+            HamColorTransformationModel = hamColorTransformationModel;
             return this;
         }
 
-        public ColorTransformReductionAmiga WithAmigaProperties(ColorTransformConfig cfg) => WithAmigaProperties(cfg.AmigaVideoMode, cfg.AmigaHamColorProcessingMode);
+        public ColorTransformReductionAmiga WithAmigaProperties(ColorTransformConfig cfg) => WithAmigaProperties(cfg.AmigaVideoMode, cfg.InternalTransformationModel);
 
 
 
@@ -125,7 +119,6 @@ namespace ColourClashNet.Color.Transformation
         {
             string sM = nameof(ExecuteTransform);
 
-            ColorTransformInterface oColorReduction;
             var oQuantization = new ColorTransformQuantization();
             oQuantization.WithQuantization(ColorQuantizationMode.RGB444)
                          .WithReferencePalette(ReferencePalette)
@@ -153,28 +146,11 @@ namespace ColourClashNet.Color.Transformation
 
             var oResultQuantized = oQuantization.CreateAndProcessColors(ImageSource, token);
 
-            switch (HamColorProcessingMode)
-            {
-                default:
-                case  EnumHamColorProcessingMode.Fast:
-                    {
-                        oColorReduction = new ColorTransformReductionMedianCut()
-                            .WithProcessingParams(iMaxColors, true)
-                            .WithDithering(DitheringConfig)
-                            .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
-                    }
-                    break;
-                case EnumHamColorProcessingMode.Detailed:
-                    {
-                        oColorReduction = new ColorTransformReductionCluster()
-                            .WithProcessingParams(iMaxColors, 10, true)
-                            .WithDithering(DitheringConfig)
-                            .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
-                    }
-                    break;
-            }
-
-
+            var cfg = config.Clone()
+                .WithMaxColorWanted(iMaxColors)
+                .WithColorMean(ColorSelectionMode.EvaluateColorMean);
+            var oColorReduction = ColorTransformInternal.Alloc(config) as ColorTransformBase;
+            oColorReduction.SetProperties(config);
             var oDataPreprocessedResult = oColorReduction.CreateAndProcessColors(oResultQuantized.DataOut, token);
             BypassDithering = true;
 

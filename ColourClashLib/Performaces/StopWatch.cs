@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace ColourClashNet
 {
     public class StopWatch
     {
+        private readonly Stopwatch _sw = new();
+
         public DateTime? TimeStart { get; private set; } = null;
         public DateTime? TimeStop { get; private set; } = null;
 
@@ -15,27 +14,15 @@ namespace ColourClashNet
         {
             TimeStart = DateTime.Now;
             TimeStop = null;
+            _sw.Restart();
         }
 
         public void Update()
         {
             TimeStop = DateTime.Now;
+            _sw.Stop();
         }
 
-        public double ElapsedMilliseconds
-        {
-            get
-            {
-                if (TimeStart == null)
-                {
-                    return 0;
-                }
-                if (TimeStop == null)
-                {
-                    return (DateTime.Now - TimeStart.Value).TotalMilliseconds;
-                }
-                return (TimeStop.Value - TimeStart.Value).TotalMilliseconds;
-            }
-        }
+        public double ElapsedMilliseconds => _sw.Elapsed.TotalMilliseconds;
     }
 }

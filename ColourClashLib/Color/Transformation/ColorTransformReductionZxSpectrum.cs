@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformReductionZxSpectrum : ColorTransformReductionPalette
+    public class ColorTransformReductionZxSpectrum : ColorTransformBase
     {
         static string sC = nameof(ColorTransformReductionZxSpectrum);
 
@@ -113,10 +113,10 @@ namespace ColourClashNet.Color.Transformation
         ColorTransformType transformType { get; set; } = ColorTransformType.ColorReductionClustering;
         ColorTransformConfig CreateConfig(Palette palette, ColorDithering ditheringType)
         {
-            return new ColorTransformConfig()
+            return config.Clone()
                 .WithReferencePalette(palette)
                 .WithDithering(DitheringConfig)
-                .WithClustering(2, 6, false);                
+                .WithClustering(2, 6, ColorSelectionMode.UseColorPalette);                
         }
 
 
@@ -183,7 +183,7 @@ namespace ColourClashNet.Color.Transformation
             zxPalette.Add(ColorIntExt.FromRGB(l, l, l));
 
             // var zxBaseTransform = new ColorTransformReductionPalette()
-                var zxBaseTransform = new ColorTransformEnhancePalette()
+                var zxBaseTransform = new ColorTransformReductionPaletteEnhanced()
                 .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
                 .WithReferencePalette(zxPalette)
                 .WithDithering(DitheringConfig)
@@ -209,7 +209,7 @@ namespace ColourClashNet.Color.Transformation
             // transform to real ZX colors
             var zxRealImage = transformationMap.Transform(zxBaseImage, token);
             // evaluate tiles 8x8 - 2 colors per tile
-            TileManager oTileManager = new TileManager().Create(8, 8, zxRealImage, loPalette ? 1.0 : 2.0, transformType, CreateConfig(new Palette(), dithering), token); // ColorDithering.None);, token);//  ithering), token);
+            TileManager oTileManager = new TileManager().Create(8, 8, zxRealImage, loPalette ? 1.0 : 2.0, CreateConfig(new Palette(), dithering), token); // ColorDithering.None);, token);//  ithering), token);
             var tileProcRes = oTileManager.ProcessColors(token);
             var normalization = ColorIntExt.GetMaxColorDistance(transformationMap.GetOutputPalette(), ColorDistanceEvaluationMode, token);
             var dError = oTileManager.RecalcGlobalTransformationError(zxBestImage, token);

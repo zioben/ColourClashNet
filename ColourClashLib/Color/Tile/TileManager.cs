@@ -33,7 +33,6 @@ public partial class TileManager
 
     public ImageData ImageSource { get; private set; } = new ImageData();
 
-    public ColorTransformType TransformationType { get; private set; } = ColorTransformType.ColorReductionClustering;
     public ColorTransformConfig TransformationConfig { get; private set; } = new ();
     public double GlobalTransformationError { get; set; } = double.NaN;
     public double NormalizationError { get; private set; } = 1.0;
@@ -57,14 +56,13 @@ public partial class TileManager
             tileProcessingMatrix = null;
             ImageSource = new ImageData();
             GlobalTransformationError = double.NaN;
-            TransformationType = ColorTransformType.ColorReductionClustering;
             TransformationConfig = new ();
             NormalizationError = 1.0;
         }
     }
 
 
-    public TileManager Create(int tileWidth, int tileHeight, ImageData image, double normalizationError, ColorTransformType colorTransformType, ColorTransformConfig colorTransformConfig , CancellationToken oToken=default)
+    public TileManager Create(int tileWidth, int tileHeight, ImageData image, double normalizationError, ColorTransformConfig colorTransformConfig , CancellationToken oToken=default)
     {
 
         string sM = nameof(Create);
@@ -81,7 +79,7 @@ public partial class TileManager
                 Reset();
                 TileW = tileWidth;
                 TileH = tileHeight;
-                TransformationType = colorTransformType;
+                //TransformationType = colorTransformType;
                 NormalizationError = normalizationError;
 
                 ImageSource = new ImageData().Create(image);
@@ -102,7 +100,6 @@ public partial class TileManager
                             TileW,
                             TileH,
                             NormalizationError,
-                            colorTransformType,
                             colorTransformConfig);
                     }
                 }//);
@@ -117,7 +114,12 @@ public partial class TileManager
         }
     }
 
-
+    public TileManager WithTileBorder( bool tileBorderShow, int tileBorderColor)
+    {
+        TileBorderShow = tileBorderShow;
+        TileBorderColor = tileBorderColor;
+        return this;
+    }
 
     public ColorTransformResult ProcessColors(CancellationToken token = default)
     {

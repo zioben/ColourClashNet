@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
-using System.Drawing;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -16,17 +15,17 @@ namespace ColourClashNet.Color.Transformation
 {
     public class ColorTransformReductionCluster : ColorTransformBase
     {
-        static string sClass = nameof(ColorTransformReductionCluster);
+        static string sC = nameof(ColorTransformReductionCluster);
         public int MaxColorsWanted 
         { 
             get => config.MaxColorsWanted;
             set => config.MaxColorsWanted = value;  
         }
-        public bool UseClusterColorMean 
-        { 
-            get => config.UseColorMean;
-            set => config.UseColorMean = value;
-        } 
+        public ColorSelectionMode ClusterColorMeanMode
+        {
+            get => config.ColorMeanMode;
+            set => config.ColorMeanMode = value;
+        }
         
         public int TrainingLoop 
         {
@@ -41,41 +40,46 @@ namespace ColourClashNet.Color.Transformation
             Description = "K-Means color reduction";
         }
 
-        public ColorTransformReductionCluster WithProcessingParams(int maxColorsWanted, int trainingLoop, bool useClusterColorMean)
+        public ColorTransformReductionCluster WithProcessingParams(int maxColorsWanted, int trainingLoop, ColorSelectionMode colorMeanMode)
         {
             MaxColorsWanted = maxColorsWanted;
             TrainingLoop = trainingLoop;
-            UseClusterColorMean = useClusterColorMean;
+            ClusterColorMeanMode = colorMeanMode;
             return this;
         }
 
         public ColorTransformReductionCluster WithClustering(ColorTransformConfig cfg) =>
-         WithProcessingParams(cfg.MaxColorsWanted, cfg.ClusterTrainingLoop, cfg.UseColorMean);
+         WithProcessingParams(cfg.MaxColorsWanted, cfg.ClusterTrainingLoop, cfg.ColorMeanMode);
 
 
         ColorTransformationMap CreateTransformationMap( HistogramRGB histogram, List<Tuple<List<int>, Dictionary<int, int>>> colorClusterList)
         {
+            string sM = nameof(CreateTransformationMap);
             ColorTransformationMap map = new ColorTransformationMap();
             foreach (var kvp in histogram.HistogramDictionary)
             {
                 var distanceMin = colorClusterList.Min(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode));
                 var item = colorClusterList.FirstOrDefault(Y => Y.Item1.Last().Distance(kvp.Key, ColorDistanceEvaluationMode) == distanceMin);
                 var rgb = ColorDefaults.DefaultInvalidColorInt; ;
-                if (UseClusterColorMean)
+                switch (ClusterColorMeanMode)
                 {
-                    rgb = item?.Item1.Last() ?? ColorDefaults.DefaultInvalidColorInt; ;
-                }
-                else
-                {
-                    if (item?.Item2.Count > 0)
-                    {
-                        var maxOccurrences = item?.Item2.Max(X => X.Value);
-                        rgb = item?.Item2.FirstOrDefault(X => X.Value == maxOccurrences).Key ?? ColorDefaults.DefaultInvalidColorInt; ;
-                    }
-                    else
-                    {
-                        rgb = ColorDefaults.DefaultInvalidColorInt;
-                    }
+                    case ColorSelectionMode.EvaluateColorMean:
+                            if (item?.Item2.Count > 0)
+                            {
+                                var maxOccurrences = item?.Item2.Max(X => X.Value);
+                                rgb = item?.Item2.FirstOrDefault(X => X.Value == maxOccurrences).Key ?? ColorDefaults.DefaultInvalidColorInt; ;
+                            }
+                            else
+                            {
+                                rgb = ColorDefaults.DefaultInvalidColorInt;
+                            }
+                    break;
+                    case ColorSelectionMode.UseColorPalette:
+                             rgb = item?.Item1.Last() ?? ColorDefaults.DefaultInvalidColorInt; ;
+                        break;
+                    default:
+                        throw new NotImplementedException($"{sC}.{sM} : ColorMeanMode {ClusterColorMeanMode} not implemented");
+                        break;
                 }
                 map.Add(kvp.Key, rgb);
             }
@@ -131,7 +135,7 @@ namespace ColourClashNet.Color.Transformation
             // For each loop, assign every color to the nearest cluster, then recalculate the cluster mean
             for (int train = 0; train < TrainingLoop; train++)
             {
-                LogMan.Trace(sClass, sMethod, $"{Type} : Training loop {train}");
+                LogMan.Trace(sC, sMethod, $"{Type} : Training loop {train}");
                 // Clear previous cluster assignment
                 colorClusterList.ForEach(X => X.Item2.Clear());
                 // Aggregate part : Assign every color to the best cluster of appartenence 
@@ -154,7 +158,7 @@ namespace ColourClashNet.Color.Transformation
                 {
                     if (tuple.Item2.Count > 0)
                     {
-                        var rgbMean = ColorIntExt.GetColorMean(tuple.Item2, ColorMeanMode.UseMean);
+                        var rgbMean = ColorIntExt.GetColorMean(tuple.Item2, ColorSelectionMode.EvaluateColorMean);
                         tuple.Item1.Add(rgbMean);
                     }
                     else
@@ -162,7 +166,7 @@ namespace ColourClashNet.Color.Transformation
                         // Might that no cluster is assigned to a evolving color because the distance from this cluster is too high.
                         // the color can be re-engaged during next evolutions
                         var rgb = tuple.Item1.Last();
-                        LogMan.Warning(sClass, sMethod, $"Color {rgb} did't evolved, replug it");
+                        LogMan.Warning(sC, sMethod, $"Color {rgb} did't evolved, replug it");
                         tuple.Item1.Add(rgb);
                     }
                 });

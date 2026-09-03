@@ -16,6 +16,7 @@ namespace ColourClashNet.Color.Transformation
     /// </summary>
     public class ColorTransformConfig
     {
+
         // ── Core ────────────────────────────────────────────────────────────
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; }
             = ColorDistanceEvaluationMode.RGB;
@@ -31,12 +32,14 @@ namespace ColourClashNet.Color.Transformation
         public ColorTransformReductionScanLine.ScanlineReductionMode ScanlineReductionMode { get; set; } = ColorTransformReductionScanLine.ScanlineReductionMode.IndependentPalettePerLine;
 
         // ── Palette ─────────────────────────────────────────────────────────
-        public Palette ReferencePalette { get; set; } = new Palette();
+        private object paletteLock = new object();
+        public bool ReferencePaletteWriteLock { get; private set; } = false;
+        public Palette ReferencePalette { get; private set; } = new Palette();
         public Palette ColorBackgroundList { get; set; } = new Palette();
         public int ColorBackgroundReplacement { get; set; } = ColorIntExt.FromRGB(0, 0, 0);
 
         // ── Flags ────────────────────────────────────────────────────────────
-        public bool UseColorMean { get; set; } = false;
+        public ColorSelectionMode ColorMeanMode { get; set; } = ColorSelectionMode.UseColorPalette;
         public bool UseFixedPalette { get; set; } = false;
         public ColorTransformType InternalTransformationModel { get; set; } = ColorTransformType.ColorReductionFast;
         public int ClusterTrainingLoop { get; set; } = 10;
@@ -58,13 +61,15 @@ namespace ColourClashNet.Color.Transformation
         // ── Platform-specific: Amiga ─────────────────────────────────────────
         public ColorTransformReductionAmiga.EnumAmigaVideoMode AmigaVideoMode { get; set; }
             = ColorTransformReductionAmiga.EnumAmigaVideoMode.Ham6;
-        public EnumHamColorProcessingMode AmigaProcessingMode { get; private set; }
-        public ColorTransformReductionAmiga.EnumHamColorProcessingMode AmigaHamColorProcessingMode { get; set; }
-            = ColorTransformReductionAmiga.EnumHamColorProcessingMode.Detailed;
 
         // ── Platform-specific: CPC ───────────────────────────────────────────
         public ColorTransformReductionCPC.CPCVideoMode CPCVideoMode { get; set; }
             = ColorTransformReductionCPC.CPCVideoMode.Mode0;
+
+        // ── Platform-specific: CGA ───────────────────────────────────
+
+        public ColorTransformReductionCGA.CGAVideoMode CGAVideoMode { get; set; }
+            = ColorTransformReductionCGA.CGAVideoMode.Mode4_0L;
 
         // ── Platform-specific: ZX Spectrum ───────────────────────────────────
         public ColorTransformReductionZxSpectrum.ZxPaletteMode ZxPaletteMode { get; set; }
@@ -85,21 +90,73 @@ namespace ColourClashNet.Color.Transformation
         /// <returns>cloned instance</returns>
         public ColorTransformConfig Clone()
         {
-            var ret = base.MemberwiseClone() as ColorTransformConfig;
-            if (ReferencePalette != null)
+            lock (paletteLock)
             {
-                ret.ReferencePalette = new Palette().Create(this.ReferencePalette);
+                var ret = base.MemberwiseClone() as ColorTransformConfig;
+                ret.paletteLock = new object();
+                if (ReferencePalette != null)
+                {
+                    ret.ReferencePalette = new Palette().Create(this.ReferencePalette);
+                }
+                else
+                {
+                    ReferencePalette = new Palette();
+                }
+                if (ColorBackgroundList != null)
+                {
+                    ret.ColorBackgroundList = new Palette().Create(this.ColorBackgroundList);
+                }
+                else
+                {
+                    ret.ColorBackgroundList = new Palette();
+                }
+                return ret;
             }
-            if(ColorBackgroundList != null)
-            {
-                ret.ColorBackgroundList = new Palette().Create(this.ColorBackgroundList);
-            };
-            return ret;
         }
 
-        public ColorTransformConfig WithReferencePalette(Palette palette)
+        public ColorTransformConfig WithColorMean(ColorSelectionMode colorMeanMode)
         {
-            ReferencePalette = palette;
+            ColorMeanMode = colorMeanMode;
+            return this;
+        }
+
+
+        public ColorTransformConfig WithReferencePalette(IEnumerable<int> palette, bool forcePaletteOverwrite=false)
+        {
+            lock (paletteLock)
+            {
+                if (!ReferencePaletteWriteLock || forcePaletteOverwrite)
+                {
+                    ReferencePalette = new Palette().Create(palette);
+                    ReferencePaletteWriteLock = true;
+                }
+            }
+            return this;
+        }
+
+        public ColorTransformConfig WithFixedPalette(IEnumerable<int> palette, bool forcePaletteOverwrite = false)
+        {
+            lock (paletteLock)
+            {
+                if (!ReferencePaletteWriteLock || forcePaletteOverwrite)
+                {
+                    ReferencePalette = new Palette().Create(palette);
+                    ReferencePaletteWriteLock = true;
+                }
+            }
+            return this;
+        }
+
+        public ColorTransformConfig WithReferencePalette(Palette palette, bool forcePaletteOverwrite=false)
+        {
+            lock (paletteLock)
+            {
+                if (!ReferencePaletteWriteLock || forcePaletteOverwrite)
+                {
+                    ReferencePalette = new Palette().Create(palette);
+                    ReferencePaletteWriteLock = true;
+                }
+            }
             return this;
         }
 
@@ -154,10 +211,11 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        public ColorTransformConfig WithAmigaScreenMode(EnumAmigaVideoMode mode, EnumHamColorProcessingMode processingMode)
+        public ColorTransformConfig WithAmigaScreenMode(EnumAmigaVideoMode videoMode, ColorTransformType colorTransformationMode, ColorSelectionMode colorMeanMode)
         {
-            AmigaVideoMode = mode;
-            AmigaProcessingMode = processingMode;
+            AmigaVideoMode = videoMode;
+            InternalTransformationModel = colorTransformationMode;
+            ColorMeanMode = colorMeanMode;
             return this;
         }
 
@@ -174,11 +232,11 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        public ColorTransformConfig WithClustering(int maxColorsWanted, int trainingLoop, bool useClusterColorMean)
+        public ColorTransformConfig WithClustering(int maxColorsWanted, int trainingLoop, ColorSelectionMode colorMeanMode)
         {
             MaxColorsWanted = maxColorsWanted;
             ClusterTrainingLoop = trainingLoop;
-            UseColorMean = useClusterColorMean;
+            ColorMeanMode = colorMeanMode;
             return this;
         }
 
@@ -194,19 +252,18 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        public ColorTransformConfig WithMedianCut(int maxColors, bool useColorMean)
+        public ColorTransformConfig WithMedianCut(int maxColors )
         {
             MaxColorsWanted = maxColors;
-            UseColorMean = useColorMean;
             return this;
         }
-        public ColorTransformConfig WithScanline(int chunkHeight, ColorTransformReductionScanLine.ScanlineReductionMode scanlineReductionMode, int maxColorWanted, int maxColorChangePerLine, ColorTransformType internalTransformtionMode, bool useColorMean)
+        public ColorTransformConfig WithScanline(int chunkHeight, ColorTransformReductionScanLine.ScanlineReductionMode scanlineReductionMode, int maxColorWanted, int maxColorChangePerLine, ColorTransformType internalTransformtionMode, ColorSelectionMode colorMeanMode )
         {
-            ScanlineReductionMode = scanlineReductionMode;
+            ScanlineReductionMode = scanlineReductionMode;  
             MaxColorsWanted = maxColorWanted;
             MaxColorsPerChunk = maxColorChangePerLine;
             InternalTransformationModel = internalTransformtionMode;
-            UseColorMean = useColorMean;
+            ColorMeanMode = colorMeanMode;
             return this;
         }
 

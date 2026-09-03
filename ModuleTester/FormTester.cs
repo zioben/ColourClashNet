@@ -158,7 +158,9 @@ namespace ModuleTester
             }
             ColourClashNet.Color.Transformation.ColorTransformReductionAmiga transf = new();
             var cfg = new ColorTransformConfig()
-                .WithAmigaScreenMode(ColorTransformReductionAmiga.EnumAmigaVideoMode.Ham6, ColorTransformReductionAmiga.EnumHamColorProcessingMode.Detailed);
+                .WithAmigaScreenMode(ColorTransformReductionAmiga.EnumAmigaVideoMode.Ham6,  
+                ColorTransformType.ColorReductionClustering,
+                ColorSelectionMode.EvaluateColorMean);
             Process(transf,cfg);
         }
 
@@ -197,7 +199,7 @@ namespace ModuleTester
             }
             ColourClashNet.Color.Transformation.ColorTransformReductionCluster transf = new();
             var cfg = new ColorTransformConfig()
-                .WithClustering(16, 10, true);
+                .WithClustering(16, 10, ColorSelectionMode.EvaluateColorMean);
             Process(transf, cfg);
             }
 
@@ -216,12 +218,23 @@ namespace ModuleTester
 
         void TestTransformEGA()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorReductionEga)
+            if (oldTrasf?.Type == ColorTransformType.ColorReductionEGA)
             {
                 Process(oldTrasf, oldConfig);
                 return;
             }
             ColourClashNet.Color.Transformation.ColorTransformReductionEGA transf = new();
+            Process(transf, new ColorTransformConfig());
+        }
+
+        void TestTransformCGA()
+        {
+            if (oldTrasf?.Type == ColorTransformType.ColorReductionCGA)
+            {
+                Process(oldTrasf, oldConfig);
+                return;
+            }
+            ColourClashNet.Color.Transformation.ColorTransformReductionCGA transf = new();
             Process(transf, new ColorTransformConfig());
         }
 
@@ -247,7 +260,7 @@ namespace ModuleTester
             }
             ColourClashNet.Color.Transformation.ColorTransformReductionMedianCut transf = new();
             var cfg = new ColorTransformConfig()
-               .WithMedianCut(16, true);
+               .WithMedianCut(16);
             Process(transf, cfg);
         }
 
@@ -351,7 +364,7 @@ namespace ModuleTester
 
         private void btnCGA_Click(object sender, EventArgs e)
         {
-
+            TestTransformCGA();
         }
 
         private async void btnFast_Click(object sender, EventArgs e)

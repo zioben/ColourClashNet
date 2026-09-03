@@ -244,12 +244,12 @@ namespace ColourClashNet.Controls
                 (int)nudColorsWanted.Value,
                 (int)nudScanlineLineColors.Value,
                 ColorTransformType.ColorReductionClustering,
-                true);
+                ColorSelectionMode.UseColorPalette);
             //
             oColorManager.transformConfig.WithClustering(
                 (int)nudColorsWanted.Value,
                 (int)nudClusterLoop.Value, 
-                true);
+                ColorSelectionMode.UseColorPalette);
             // Dithering viene settato dalla form
             oColorManager.transformConfig.WithDithering(
                 DitheringType,
@@ -282,8 +282,11 @@ namespace ColourClashNet.Controls
                  chkShowTileBorders.Checked);
             //
             oColorManager.transformConfig.WithAmigaScreenMode(
-                (ColorTransformReductionAmiga.EnumAmigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode), cbAmigaVideoMode.SelectedItem.ToString()),
-                ColorTransformReductionAmiga.EnumHamColorProcessingMode.Detailed);
+                (ColorTransformReductionAmiga.EnumAmigaVideoMode)Enum.Parse(typeof(ColorTransformReductionAmiga.EnumAmigaVideoMode),
+                 cbAmigaVideoMode.SelectedItem.ToString()),
+                 ColorTransformType.ColorReductionClustering,
+                 ColorSelectionMode.UseColorPalette
+                 );
         }
 
         private async void btnReduceColors_Click(object sender, EventArgs e)
@@ -333,7 +336,7 @@ namespace ColourClashNet.Controls
         private async void btnReduceColorsEga_Click(object sender, EventArgs e)
         {
             SetControlToConfig();
-            await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionEga);
+            await oColorManager.ProcessColorsAsync(ColorTransformType.ColorReductionEGA);
         }
 
         private async void BtnReduceColorsC64v1_Click(object sender, EventArgs e)

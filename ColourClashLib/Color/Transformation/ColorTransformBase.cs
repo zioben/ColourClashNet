@@ -49,8 +49,11 @@ namespace ColourClashNet.Color.Transformation
         public ImageData ImageOutput { get; protected set; } = new ImageData();
 
         //-------------------------------------------------------------------------------------------------------------------------------
-        public Palette ReferencePalette { get; private set; } = new Palette();
-
+        public Palette ReferencePalette 
+        {
+            get => config.ReferencePalette;
+            private set => config.WithReferencePalette( value ?? new Palette() );
+        }
         /// <summary>
         /// Lock reference palette for further lock - will be used on derived classes to avoid palette rewriting
         /// </summary>
@@ -185,22 +188,19 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
+        public ColorTransformBase WithColorMean(ColorSelectionMode colorMeanMode)
+        {
+            config.ColorMeanMode = colorMeanMode;
+            return this;
+        }
+
         public ColorTransformBase WithColorDistanceEvaluationMode(ColorTransformConfig cfg) => WithColorDistanceEvaluationMode(cfg.ColorDistanceEvaluationMode);
 
         protected ColorTransformBase WithReferencePalette(IEnumerable<int> palette, bool forcePaletteOverwrite)
         {
-            string sM = nameof(ColorTransformBase);
-            lock (locker)
-            {
-                if (!ReferencePaletteWriteLock || forcePaletteOverwrite)
-                {
-                    ReferencePalette = new Palette().Create(palette);
-                    ReferencePaletteWriteLock = true;
-                }
-            }
+            config.WithReferencePalette(palette, forcePaletteOverwrite);
             return this;
         }
-
         public ColorTransformBase WithReferencePalette(Palette palette) => WithReferencePalette(palette, false);
         public ColorTransformBase WithReferencePalette(IEnumerable<int> palette)=> WithReferencePalette(new Palette().Create(palette));
         public ColorTransformBase WithReferencePalette(List<int> palette) => WithReferencePalette(new Palette().Create(palette));

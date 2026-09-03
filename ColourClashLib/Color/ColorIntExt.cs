@@ -232,19 +232,19 @@ namespace ColourClashNet.Color
         /// <param name="lColorHistogram"></param>
         /// <param name="eMeanMode"></param>
         /// <returns></returns>
-        public static int GetColorMean(Dictionary<int, int> lColorHistogram, ColorMeanMode eMeanMode)
+        public static int GetColorMean(Dictionary<int, int> lColorHistogram, ColorSelectionMode eMeanMode)
         {
             if (lColorHistogram == null || lColorHistogram.Count == 0)
                 return ColorDefaults.DefaultInvalidColorInt;
             switch (eMeanMode)
             {
-                case ColorMeanMode.UseColorPalette:
+                case ColorSelectionMode.UseColorPalette:
                     {
                         var max = lColorHistogram.Max(X => X.Value);
                         var kvp = lColorHistogram.FirstOrDefault(X => X.Value == max);
                         return kvp.Key;
                     }
-                case ColorMeanMode.UseMean:
+                case ColorSelectionMode.EvaluateColorMean:
                     {
                         int Count = 0;
                         double R = 0;
@@ -276,7 +276,7 @@ namespace ColourClashNet.Color
         /// <param name="oPalette"></param>
         /// <param name="eMeanMode"></param>
         /// <returns></returns>
-        public static int GetColorMean(Palette oPalette, ColorMeanMode eMeanMode)
+        public static int GetColorMean(Palette oPalette, ColorSelectionMode eMeanMode)
         {
             if (oPalette == null || oPalette.Count == 0)
                 return ColorDefaults.DefaultInvalidColorInt;
@@ -297,9 +297,9 @@ namespace ColourClashNet.Color
             var iMean = ColorIntExt.FromRGB(R, G, B);
             switch (eMeanMode)
             {
-                case ColorMeanMode.UseMean:
+                case ColorSelectionMode.EvaluateColorMean:
                     return iMean;
-                case ColorMeanMode.UseColorPalette:
+                case ColorSelectionMode.UseColorPalette:
                     return GetNearestColor(iMean, oPalette, ColorDistanceEvaluationMode.RGB);
                 default:
                     return ColorDefaults.DefaultInvalidColorInt;

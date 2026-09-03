@@ -63,23 +63,16 @@ namespace ColourClashNet.Color
         ColorReductionHam,
         ColorReductionScanline,
         ColorReductionGenericPalette,
-        ColorReductionEga,
+        ColorReductionEGA,
         ColorReductionZxSpectrum,
         ColorReductionCBM64,
         ColorReductionCPC,
         ColorReductionMedianCut,
         ColorReductionSaturation,
-        ColorReductionTileBase,
-        ColorReductionEnhancePalette,
-    }
+        ColorReductionEnhancedPalette,
 
-    //public enum ColorTrasformInternalModel
-    //{
-    //    ColorReductionFast,
-    //    ColorReductionClustering,
-    //    ColorReductionMedianCut,
-    //    ColorReductionGenericPalette
-    //}
+        ColorReductionCGA,
+    }
 
     /// <summary>
     /// Enums to select dithering algorithm 
@@ -115,9 +108,9 @@ namespace ColourClashNet.Color
     /// Enums to select how to calculate the mean color of a cluster 
     /// </summary>
     [Serializable]
-    public enum ColorMeanMode
+    public enum ColorSelectionMode
     {
-        UseMean,
+        EvaluateColorMean,
         UseColorPalette
     }
 

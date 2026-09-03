@@ -21,20 +21,15 @@ namespace ColourClashNet.Color.Transformation
             get => config.MaxColorsWanted;
             set => config.MaxColorsWanted = value;
         }
-        public bool UseColorMean 
-        { 
-            get => config.UseColorMean;
-            set => config.UseColorMean = value;
-        }
 
-        public ColorTransformReductionMedianCut WithProcessingParams(int maxColors, bool useColorMean)
+
+        public ColorTransformReductionMedianCut WithProcessingParams(int maxColors)
         {
             MaxColorsWanted = maxColors;
-            UseColorMean = useColorMean;
             return this;
         }
 
-        public ColorTransformReductionMedianCut WithProcessingParams(ColorTransformConfig cfg) => WithProcessingParams(cfg.MaxColorsWanted, cfg.UseColorMean);
+        public ColorTransformReductionMedianCut WithProcessingParams(ColorTransformConfig cfg) => WithProcessingParams(cfg.MaxColorsWanted);
 
 
 
@@ -124,7 +119,7 @@ namespace ColourClashNet.Color.Transformation
             {
                 if (oPalette.Count == 0)
                     return;
-                var iRGB = ColorIntExt.GetColorMean(oPalette, ColorMeanMode.UseColorPalette);
+                var iRGB = ColorIntExt.GetColorMean(oPalette, ColorSelectionMode.UseColorPalette);
                 foreach (var rgb in rgbList)
                 {
                     if (!TransformationMap.rgbTransformationMap.ContainsKey(rgb))

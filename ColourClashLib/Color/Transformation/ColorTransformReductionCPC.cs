@@ -29,9 +29,9 @@ namespace ColourClashNet.Color.Transformation
         {
             Type = ColorTransformType.ColorReductionCBM64;
             Description = "Reduce color to Amstrad CPC palette";
-            CreatePalette();
         }
-        void CreatePalette()
+
+        protected override void RebuildReferencePalette()
         {
             WithReferencePalette(
                 new List<int>
@@ -87,7 +87,7 @@ namespace ColourClashNet.Color.Transformation
        
 
 
-            ImageData? PreProcess(bool bHalveRes, CancellationToken oToken=default)
+        ImageData? PreProcess(bool bHalveRes, CancellationToken oToken=default)
         {           
             var oTmpData = bHalveRes ? ImageTools.HalveXResolution(ImageSource, HalveResolutionMode.OddPixel) : ImageSource;
             var oTmpDataProc = TransformationMap.Transform(oTmpData, oToken);

@@ -33,6 +33,10 @@ public partial class TileProcessing
 
     public ImageData? TileSourceImage => tileItem?.TileImage;
     public ImageData? TileProcessedImage => transformation?.ImageOutput;
+
+    public int TileSourceColors => tileItem?.SourceColors ?? 0;
+    public int TileProcessedColors => transformation?.ImageOutput?.Colors ?? 0;
+
     public ColorDistanceEvaluationMode ColorDistanceEvaluationMode => transformation?.ColorDistanceEvaluationMode ?? ColorDistanceEvaluationMode.RGB;
 
     public void Reset()
@@ -46,14 +50,14 @@ public partial class TileProcessing
         }
     }
 
-    public TileProcessing Create(ImageData sourceImage, int sourceX, int sourceY, int tileWidth, int tileHeight, double normalizationError, ColorTransformType colorTransformType, ColorTransformConfig colorTransformConfig)
+    public TileProcessing Create(ImageData sourceImage, int sourceX, int sourceY, int tileWidth, int tileHeight, double normalizationError, ColorTransformConfig colorTransformConfig)
     {
         lock (locker)
         {
             Reset();
             NormalizationError = normalizationError;
             tileItem = new TileItem().Create(sourceImage, sourceX, sourceY, tileWidth, tileHeight);
-            transformation = ColorTransformBase.CreateColorTransformInterface(colorTransformType, colorTransformConfig );
+            transformation = ColorTransformInternal.Alloc(colorTransformConfig);
             return this;
         }
     }

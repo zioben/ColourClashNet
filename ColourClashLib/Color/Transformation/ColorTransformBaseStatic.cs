@@ -38,7 +38,7 @@ namespace ColourClashNet.Color.Transformation
                 case ColorTransformType.ColorReductionCPC:
                     trans = new ColorTransformReductionCPC();
                     break;
-                case ColorTransformType.ColorReductionEga:
+                case ColorTransformType.ColorReductionEGA:
                     trans = new ColorTransformReductionEGA();
                     break;
                 case ColorTransformType.ColorReductionFast:
@@ -68,8 +68,14 @@ namespace ColourClashNet.Color.Transformation
                 case ColorTransformType.ColorRemover:
                     trans = new ColorTransformBkgRemover();
                     break;
+                case ColorTransformType.ColorReductionEnhancedPalette:
+                    trans = new ColorTransformReductionPaletteEnhanced();
+                    break;
+                case ColorTransformType.ColorReductionCGA:
+                    trans = new ColorTransformReductionCGA();
+                    break;
                 default:
-                    throw new ArgumentOutOfRangeException(sMethod, $"Transform type {transformType} not recognised");
+                    throw new ArgumentOutOfRangeException(sMethod, $"Transform type {transformType} not yet supported");
             }
 
             return trans.SetProperties(paramList);

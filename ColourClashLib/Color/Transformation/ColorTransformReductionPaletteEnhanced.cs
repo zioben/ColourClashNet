@@ -6,16 +6,17 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformEnhancePalette : ColorTransformBase
+    public class ColorTransformReductionPaletteEnhanced : ColorTransformBase
     {
         //-------------------------------------------------------------
         // Generic Fixed Palette Management 
         //-------------------------------------------------------------
-        public ColorTransformEnhancePalette()
+        public ColorTransformReductionPaletteEnhanced()
         {
-            Type = ColorTransformType.ColorReductionGenericPalette;
+            Type = ColorTransformType.ColorReductionEnhancedPalette;
             Description = "Color palette trasformation";
         }
+
 
         protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken = default)
         {

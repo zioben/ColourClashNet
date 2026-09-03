@@ -5,7 +5,6 @@ using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -13,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformReductionC64 : ColorTransformReductionPalette
+    public class ColorTransformReductionC64 : ColorTransformBase
     {
         static readonly string sC = nameof(ColorTransformReductionC64);
 
@@ -171,26 +170,14 @@ namespace ColourClashNet.Color.Transformation
 
         #endregion
 
-        
-        //ColorTransformConfig CreateConfig(int maxColors, Palette referencePalette)
-        //{
-        //    return new ColorTransformConfig()
-        //        .WithReferencePalette(referencePalette)
-        //        .WithDithering(DitheringConfig)
-        //        .WithClustering(maxColors, 6, false);
-        //}
-
         TileManager CreateTileManager(int tileWidth, int tileHeight, int maxColors, ImageData image, Palette referencePalette, CancellationToken token = default)
         {
             var cfg = config.Clone().WithReferencePalette(referencePalette).WithDithering(DitheringConfig).WithMaxColorWanted(maxColors);
-            tileManager = new TileManager().Create(tileWidth, tileHeight, image, 1.0, cfg.InternalTransformationModel,cfg, token);
-            tileManager.TileBorderShow = TileBorderShow;
-            tileManager.TileBorderColor = TileBorderColor;
+            tileManager = new TileManager()
+                .WithTileBorder(TileBorderShow, TileBorderColor)
+                .Create(tileWidth, tileHeight, image, 1.0, cfg, token);
             return tileManager;
         }
-
-
-
 
         // Only to debug purpose, this is the best image obtainable using C64 palette
         ImageData? ToDebugImage(ImageData image, Palette palette, CancellationToken token = default)

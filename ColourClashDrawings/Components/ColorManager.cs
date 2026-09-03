@@ -245,7 +245,7 @@ namespace ColourClashNet.Components
         public ImageData ProcessColors(ColorTransformType eTrasformType)
         {
             string sMethod = nameof(ProcessColors);
-            transformProcessing = null;
+            ColorTransformInterface transformProcessing = null;
             try
             {
                 OnPreProcess?.Invoke(this, new ColorManagerProcessEventArgs
@@ -254,74 +254,81 @@ namespace ColourClashNet.Components
                     DataSource = DataSourceX,
                     Transformation = transformSource
                 });
-                switch (eTrasformType)
-                {
-                    case ColorTransformType.ColorReductionFast:
-                        {
-                            transformProcessing = new ColorTransformReductionFast();
-                        }
-                        break;
-                    case ColorTransformType.ColorReductionClustering:
-                        {
-                            transformProcessing = new ColorTransformReductionCluster();
-                        }
-                        break;
-                    case ColorTransformType.ColorReductionScanline:
-                        {
-                            transformProcessing = new ColorTransformReductionScanLine();
-                        }
-                        break;
-                    case ColorTransformType.ColorReductionZxSpectrum:
-                        {
-                            transformProcessing = new ColorTransformReductionZxSpectrum();
-                        }
-                        break;
-                    case ColorTransformType.ColorReductionEga:
-                        {
-                            transformProcessing = new ColorTransformReductionEGA();
-                        }
-                        break;
-                    case ColorTransformType.ColorReductionCBM64:
-                        {
-                            transformProcessing = new ColorTransformReductionC64();
-                        }
-                        break;
+                //switch (eTrasformType)
+                //{
+                //    case ColorTransformType.ColorReductionFast:
+                //        {
+                //            transformProcessing = new ColorTransformReductionFast();
+                //        }
+                //        break;
+                //    case ColorTransformType.ColorReductionClustering:
+                //        {
+                //            transformProcessing = new ColorTransformReductionCluster();
+                //        }
+                //        break;
+                //    case ColorTransformType.ColorReductionScanline:
+                //        {
+                //            transformProcessing = new ColorTransformReductionScanLine();
+                //        }
+                //        break;
+                //    case ColorTransformType.ColorReductionZxSpectrum:
+                //        {
+                //            transformProcessing = new ColorTransformReductionZxSpectrum();
+                //        }
+                //        break;
+                //    case ColorTransformType.ColorReductionEga:
+                //        {
+                //            transformProcessing = new ColorTransformReductionEGA();
+                //        }
+                //        break;
+                //    case ColorTransformType.ColorReductionCBM64:
+                //        {
+                //            transformProcessing = new ColorTransformReductionC64();
+                //        }
+                //        break;
 
-                    case ColorTransformType.ColorReductionCPC:
-                        {
-                            transformProcessing = new ColorTransformReductionCPC();
-                        }
-                        break;
+                //    case ColorTransformType.ColorReductionCPC:
+                //        {
+                //            transformProcessing = new ColorTransformReductionCPC();
+                //        }
+                //        break;
 
-                    case ColorTransformType.ColorReductionMedianCut:
-                        {
-                            transformProcessing = new ColorTransformReductionMedianCut();
-                        }
-                        break;
-                    case ColorTransformType.ColorReductionSaturation:
-                        {
-                            transformProcessing = new ColorTransformLumSat();
-                        }
-                        break;
-                    case ColorTransformType.ColorReductionHam:
-                        {
-                            var transf = new ColorTransformReductionAmiga();
-                            //transf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
-                            //transf.AmigaVideoMode = Config.AmigaScreenMode;
-                            transformProcessing = transf;
-                        }
-                        break;
-                    default:
-                        LogMan.Error(sClass, sMethod, $"Transformation {eTrasformType} not implemented");
-                        transformProcessing = null;
-                        return null;
-                }
-                transformProcessing.SetProperties(transformConfig);
-//                Config.SetProperties(transformProcessing);
+                //    case ColorTransformType.ColorReductionMedianCut:
+                //        {
+                //            transformProcessing = new ColorTransformReductionMedianCut();
+                //        }
+                //        break;
+                //    case ColorTransformType.ColorReductionSaturation:
+                //        {
+                //            transformProcessing = new ColorTransformLumSat();
+                //        }
+                //        break;
+                //    case ColorTransformType.ColorReductionHam:
+                //        {
+                //            var transf = new ColorTransformReductionAmiga();
+                //            //transf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
+                //            //transf.AmigaVideoMode = Config.AmigaScreenMode;
+                //            transformProcessing = transf;
+                //        }
+                //        break;
+                //    case ColorTransformType.ColorReductionEnhancedPalette:
+                //        {
+                //            var transf = new ColorTransformReductionPaletteEnhanced();
+                //            //transf.ColorDistanceEvaluationMode = Config.ColorDistanceEvaluationMode;
+                //            //transf.AmigaVideoMode = Config.AmigaScreenMode;
+                //            transformProcessing = transf;
+                //        }
+                //        break;
+                //    default:
+                //        LogMan.Error(sClass, sMethod, $"Transformation {eTrasformType} not implemented");
+                //        transformProcessing = null;
+                //        return null;
+                //}
                 if (InvalidatePreProcess)
                 {
                     PreProcess();
                 }
+                transformProcessing = ColorTransformBase.CreateColorTransformInterface(eTrasformType, transformConfig);
                 CancellationTokenSource cts = new CancellationTokenSource();
                 ProcessingForm.CreateProcessingForm(transformProcessing, cts);
                 transformProcessing.Create(DataQuantized);
