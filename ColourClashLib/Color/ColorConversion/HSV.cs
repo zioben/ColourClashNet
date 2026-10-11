@@ -1,4 +1,5 @@
 ﻿using ColourClashNet.Color;
+using ColourClashNet.Color.Transformation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -146,6 +147,9 @@ namespace ColourClashNet.Color.Conversion
             => new HSV(rgb);
 
         public override string ToString() => $"HSV(H={H:F2}, S={S:F2}, V={V:F2})";
+
+
+       
     }
 }
 

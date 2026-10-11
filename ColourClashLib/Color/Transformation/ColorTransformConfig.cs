@@ -38,6 +38,7 @@ namespace ColourClashNet.Color.Transformation
         public Palette ColorBackgroundList { get; set; } = new Palette();
         public int ColorBackgroundReplacement { get; set; } = ColorIntExt.FromRGB(0, 0, 0);
 
+
         // ── Flags ────────────────────────────────────────────────────────────
         public ColorSelectionMode ColorMeanMode { get; set; } = ColorSelectionMode.EvaluateColorMean;
         public bool UseFixedPalette { get; set; } = false;
@@ -70,6 +71,9 @@ namespace ColourClashNet.Color.Transformation
 
         public ColorTransformReductionCGA.CGAVideoMode CGAVideoMode { get; set; }
             = ColorTransformReductionCGA.CGAVideoMode.Mode4_0L;
+
+        public ColorTransformReductionCGA.CGAOutputMode CGAOutputMode { get; set; }
+            = ColorTransformReductionCGA.CGAOutputMode.ProcessedImage;
 
         // ── Platform-specific: ZX Spectrum ───────────────────────────────────
         public ColorTransformReductionZxSpectrum.ZxPaletteMode ZxPaletteMode { get; set; }

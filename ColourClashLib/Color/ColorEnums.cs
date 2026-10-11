@@ -26,12 +26,12 @@ namespace ColourClashNet.Color
     /// Enums to select color space for color distance evaluation
     /// </summary>
     [Serializable]
-    public enum Colorspace
+    public enum ColorMode
     {
         RGB,
         HSV,
         LAB,
-        XYZ,
+        GRAY,
     }
 
 

@@ -37,6 +37,20 @@ namespace ColourClashNet.Color.Conversion
             Y = GetGray(rgb);
         }
 
+        public GRAY(float wr, float wg, float wb, int r, int g, int b)
+        {
+            WeightR = wr;
+            WeightG = wg;
+            WeightB = wb;
+            Y = GetGray(ColorIntExt.FromRGB(r, g, b));
+        }
+
+        public GRAY(int r, int g, int b)
+        {
+            Y = GetGray(ColorIntExt.FromRGB(r, g, b));
+        }
+
+
         public GRAY(int rgb)
         {
             Y = GetGray(rgb);

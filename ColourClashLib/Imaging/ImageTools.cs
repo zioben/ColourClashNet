@@ -76,6 +76,19 @@ public static partial class ImageTools
         => MatrixTools.SaveIndexedMatrixAsImage(image.matrix, fileName, image.ColorPalette);
 
 
+    public static string SetFileNameExtension(string fileName, ImageSaveFormat saveFormat)
+    {
+        string ext = saveFormat switch
+        {
+            ImageSaveFormat.Png => ".png",
+            ImageSaveFormat.Bmp => ".bmp",
+            ImageSaveFormat.Jpg => ".jpg",
+            _ => throw new ArgumentException($"{saveFormat} not supported")
+        };
+        string newFileName = Path.ChangeExtension(fileName, ext);
+        return newFileName;
+    }   
+
     public static bool SaveImage(ImageData image, string fileName, ImageSaveFormat saveFormat, int quality=80)
     {
         string sM = nameof(SaveImage);
@@ -118,8 +131,9 @@ public static partial class ImageTools
                 default: throw new ArgumentException($"{saveFormat} not supported");
             }
 //            using SKImage skImage = SKImage.FromBitmap(skBitmap);
+            var newFileName = SetFileNameExtension(fileName, saveFormat);
             using SKData encoded = skBitmap.Encode(format, quality);
-            using FileStream stream = File.Create(fileName);
+            using FileStream stream = File.Create(newFileName);
             encoded.SaveTo(stream);
             return true;
         }

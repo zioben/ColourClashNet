@@ -100,6 +100,26 @@ public static class MatrixTools
 
     #endregion
 
+    #region base
+
+    static public int[,] CreateMatrix(int rows, int cols, int rfbFill)
+    {
+        var m = new int[rows, cols];
+        for(int r = 0; r < rows; r++)
+        {
+            for (int c = 0; c < cols; c++)
+            {
+                m[r, c] = rfbFill;
+            }
+        }
+        return m;
+    }
+
+    static public int[,] CreateImageMatrix(int width, int height, int rfbFill)
+        => CreateMatrix(height, width, rfbFill);
+
+    #endregion
+
 
     #region Indexed Data Manipulation
 
@@ -593,5 +613,25 @@ public static class MatrixTools
         return oRet;
     }
 
+    //static public int[,] Fill(int[,] matrix, int rgbFillValue)
+    //{
+    //    string sM = nameof(Crop);
+    //    if (matrix == null)
+    //        throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrix)} is null");
+
+    //    int R = matrix.GetLength(0);
+    //    int C = matrix.GetLength(1);
+
+    //    var oRet = new int[R, C];
+    //    for (int r = 0; r < R; r++)
+    //    {
+    //        for (int c = 0; c < C; c++)
+    //        {
+    //            oRet[r, c] = rgbFillValue;
+    //        }
+    //    }
+    //    return oRet;
+    //}
+
     #endregion
-}
+}   
