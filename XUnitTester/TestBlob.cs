@@ -18,8 +18,8 @@ namespace XUnitTester
             int colFgd = ColorIntExt.FromRGB(128, 128, 128);
 
             // Create an image with 4 blobs
-            var mat1 = MatrixTools.CreateImageMatrix(320, 200, colBkg);
-            var mat2 = MatrixTools.CreateImageMatrix(32, 24, colFgd);
+            var mat1 = MatrixTools.CreateMatrix(320, 200, colBkg);
+            var mat2 = MatrixTools.CreateMatrix(32, 24, colFgd);
             for( int i = 0; i < 10; i++)
             {
                 MatrixTools.Blit(mat2, mat1, 0, 0, i * 10, i * 8, 32, 24);
@@ -31,7 +31,7 @@ namespace XUnitTester
             ImageData oImage = new ImageData().Create(mat1);
 
             Directory.CreateDirectory("C:\\Temp");
-            ImageTools.SaveImage(oImage, "C:\\Temp\\TestBlobIn.png", ImageSaveFormat.Png);
+            ImageTools.SaveImage(oImage, "C:\\Temp\\TestBlobIn");
 
             ColourClashProcessing.Blob.Blob blob = new ColourClashProcessing.Blob.Blob()
                 .WithThreshold(ColorIntExt.FromRGB(255, 0, 255), 0, false)
@@ -41,7 +41,10 @@ namespace XUnitTester
             var result = blob.Process(oImage);
 
             var oImageOut = blob.GetShapeImage();
-            ImageTools.SaveImage(oImageOut, "C:\\Temp\\TestBlobOut.png", ImageSaveFormat.Png);
+            ImageTools.SaveImage(oImageOut, "C:\\Temp\\TestBlobOut");
+
+            var blobSegmetedOut = blob.GetBlobSegmentedImage();
+            ImageTools.SaveImage(blobSegmetedOut, $"C:\\Temp\\TestBlobOut_Segmented");
 
         }
 
@@ -59,7 +62,7 @@ namespace XUnitTester
             int H = 200;
 
             // Crate te most difficult blob to process
-            var mat1 = MatrixTools.CreateImageMatrix(W, H, colBkg);
+            var mat1 = MatrixTools.CreateMatrix(W, H, colBkg);
             for (int y = 0; y < H; y++)
             {
                 for (int x = 0; x < W; x++)
@@ -81,18 +84,20 @@ namespace XUnitTester
 
             ColourClashProcessing.Blob.Blob blob = new ColourClashProcessing.Blob.Blob()
                 .WithThreshold(ColorIntExt.FromRGB(255, 0, 255), 0, false)
-                .WithFiltering(10, 1000000, 10, 1000000, 10, 1000000)
+                .WithFiltering(0,0,0,0,0,0)
                 .WithProcessing(ColourClashProcessing.Blob.BlobConnectionModes.FourConnected);
 
             blob.WithProcessing(connectionMode);
             var result = blob.Process(oImage);
 
             var imageShapeOut = blob.GetShapeImage();
-            ImageTools.SaveImage(imageShapeOut, $"C:\\Temp\\{connectionMode}_ShapeOut_{blob.Blobs.Count}.png", ImageSaveFormat.Png);
+            ImageTools.SaveImage(imageShapeOut, $"C:\\Temp\\{connectionMode}_ShapeOut_{blob.BlobList.Count}");
 
             var imageBlobOut = blob.GetBlobImage();
-            ImageTools.SaveImage(imageBlobOut, $"C:\\Temp\\{connectionMode}_BlobOut_{blob.Blobs.Count}.png", ImageSaveFormat.Png);
+            ImageTools.SaveImage(imageBlobOut, $"C:\\Temp\\{connectionMode}_BlobOut_{blob.BlobList.Count}");
 
+            var blobSegmetedOut = blob.GetBlobSegmentedImage();
+            ImageTools.SaveImage(blobSegmetedOut, $"C:\\Temp\\{connectionMode}_BlobSegment_{blob.BlobList.Count}");
         }
 
         [Fact]
@@ -101,11 +106,12 @@ namespace XUnitTester
             int colBkg = ColorIntExt.FromRGB(255, 0, 255);
             int colFgd = ColorIntExt.FromRGB(128, 128, 128);
 
+            string fileName = "ChunLi";
             // Create an image with 4 blobs
 
-            Directory.CreateDirectory("C:\\Temp");
-            ImageData oImage = ImageTools.LoadImage("C:\\Temp\\ryu.png");
-            ImageTools.SaveImage(oImage, "C:\\Temp\\TestRyuBlobIn.png", ImageSaveFormat.Png);
+            Directory.CreateDirectory($"C:\\Temp\\{fileName}\\Frames");
+            ImageData oImage = ImageTools.LoadImage($"C:\\Temp\\{fileName}.png");
+            ImageTools.SaveImage(oImage, $"C:\\Temp\\{fileName}\\Test{fileName}_BlobIn");
 
             ColourClashProcessing.Blob.Blob blob = new ColourClashProcessing.Blob.Blob()
                 .WithThreshold(ColorIntExt.FromRGB(255, 0, 255), 0, false)
@@ -115,12 +121,16 @@ namespace XUnitTester
             var result = blob.Process(oImage);
 
             var shapeOut = blob.GetShapeImage();
-            ImageTools.SaveImage(shapeOut, "C:\\Temp\\TestRyuShapeOut.png", ImageSaveFormat.Png);
+            ImageTools.SaveImage(shapeOut, $"C:\\Temp\\{fileName}\\Test{fileName}_ShapeOut");
 
             var blobOut = blob.GetBlobImage();
-            ImageTools.SaveImage(blobOut, "C:\\Temp\\TestRyuBlobOut.png", ImageSaveFormat.Png);
+            ImageTools.SaveImage(blobOut, $"C:\\Temp\\{fileName}\\Test{fileName}_BlobOut");
 
-            BlobTools.ExportImages(blob,"C:\\Temp\\Ryu","TestRyu", ImageSaveFormat.Png);
+            var blobSegmetedOut = blob.GetBlobSegmentedImage();
+            ImageTools.SaveImage(blobSegmetedOut, $"C:\\Temp\\{fileName}\\Test{fileName}_SegmentedOut");
+
+
+            BlobTools.ExportImages(blob, $"C:\\Temp\\{fileName}\\Frames", $"{fileName}");
 
 
         }

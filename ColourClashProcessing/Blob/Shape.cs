@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color;
+﻿using ColourClashNet;
+using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
@@ -100,7 +101,7 @@ namespace ColourClashProcessing.Blob
             {
                 throw new InvalidOperationException($"Shape is not valid: SourceWidth={SourceWidth}, SourceHeight={SourceHeight}");
             }
-            return RunLength.ToImageData(RunLengths, SourceWidth, SourceHeight);
+            return RunLength.ToImageData(RunLengths, SourceWidth, SourceHeight, ColorDefaults.DefaultShapeForeColorInt, ColorDefaults.DefaultShapeBkgColorInt);
         }
     }
 }

@@ -11,26 +11,43 @@ namespace ColourClashProcessing.Blob
     public static class BlobTools
     {
         static string sC = nameof(BlobTools);
-        public static bool ExportImages(Blob blob, string sPath, string sPrefix, ImageSaveFormat format)
+        public static bool ExportImages(Blob blob, string sPath, string sPrefix, ImageSaveFormat format, int imageQuality)
         {
             string sM = nameof(ExportImages);
             try
             {
                 Directory.CreateDirectory(sPath);
-                var oImageOut = blob.GetShapeImage();
-                bool res = true;
-                foreach (var blobItem in blob.Blobs)
+                var imageList = blob.ToImageList();
+                var res = true;
+                foreach (var image in imageList)
                 {
-                    var oImageBlob = blob.GetBlobImage(blobItem.BlobId);
-                    res &= ImageTools.SaveImage(oImageBlob, $"{sPath}\\{sPrefix}Blob_{blobItem.BlobId}", format);
+                    res &= ImageTools.SaveImage( image, $"{sPath}\\{sPrefix}Blob_{Convert.ToInt32(image.Name):D3}", format, imageQuality);
                 }
                 return res;
             }
             catch (Exception ex)
             {
-                LogMan.Exception(sC,sM, ex);
+                LogMan.Exception(sC, sM, ex);
                 return false;
-            };
+            }
+        }
+
+        public static bool ExportImages(Blob blob, string sPath, string sPrefix)
+            => ExportImages(blob, sPath, sPrefix, ImageSaveFormat.Png, 80);
+
+
+        public static bool RepackImages(Blob blob, string sPath, string sPrefix, ImageSaveFormat format, int imageQuality)
+        {
+            string sM = nameof(ExportImages);
+            try
+            {
+                throw new NotImplementedException(sM);
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, ex);
+                return false;
+            }
         }
     }
 }

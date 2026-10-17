@@ -63,28 +63,25 @@ namespace ColourClashProcessing.Blob
             return false;
         }
 
-
-        public static ImageData ToImageData(List<RunLength> runLengths, int Width, int Height )
+        public static int[,] ToMask(List<RunLength> runLengths, int width, int height, int foreRGB, int bkgRGB)
         {
-            string sM = nameof(ToImageData);
+            string sM = nameof(ToMask);
             try
             {
                 if (runLengths == null)
                     throw new ArgumentNullException(nameof(runLengths));
-                if (Width <= 0 || Height <= 0)
+                if (width <= 0 || height <= 0)
                     throw new ArgumentException("Width and Height must be positive.");
 
-                var matrix = new int[Height, Width];
-                var col = ColorIntExt.FromRGB(255, 255, 255);
+                var matrix = MatrixTools.CreateMatrix(width, height, bkgRGB);
                 foreach (var rl in runLengths)
                 {
                     for (int c = rl.XS; c <= rl.XE; c++)
                     {
-                        matrix[rl.Y, c] = col;
+                        matrix[rl.Y, c] = foreRGB;
                     }
                 }
-                var imageOut = new ImageData().Create(matrix);
-                return imageOut;
+                return matrix;
             }
             catch (Exception ex)
             {
@@ -92,5 +89,80 @@ namespace ColourClashProcessing.Blob
                 throw;
             }
         }
+
+
+        public static int[,] ToMask(List<RunLength> runLengths, int foreRGB, int bkgRGB)
+        {
+            string sM = nameof(ToMask);
+            try
+            {
+                if (runLengths == null)
+                    throw new ArgumentNullException(nameof(runLengths));
+                int xMin = runLengths.Min(R => R.XS);
+                int xMax = runLengths.Max(R => R.XE);
+                int yMin = runLengths.Min(R => R.Y);
+                int yMax = runLengths.Max(R => R.Y);
+                var width = xMax - xMin+1;
+                var height= yMax - yMin+1;
+                if (width <= 0 || height <= 0)
+                    throw new ArgumentException("Width and Height must be positive.");
+
+                var matrix = MatrixTools.CreateMatrix(width, height, bkgRGB);
+                foreach (var rl in runLengths)
+                {
+                    for (int c = rl.XS; c <= rl.XE; c++)
+                    {
+                        matrix[rl.Y-yMin, c-xMin] = foreRGB;
+                    }
+                }
+                return matrix;
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, $"Operation failed", ex);
+                throw;
+            }            
+        }
+
+
+        public static ImageData ToImageData(List<RunLength> runLengths, int width, int height, int foreRGB, int bkgRGB)
+            => new ImageData().Create(ToMask(runLengths, width, height, foreRGB, bkgRGB));
+
+
+        public static ImageData ToImageData(List<RunLength> runLengths, ImageData referenceImage, int foreRGB, int bkgRGB)
+        {
+            ImageData.AssertValid(referenceImage);
+            return ToImageData(runLengths, referenceImage.Width, referenceImage.Height, foreRGB, bkgRGB);
+        }
+
+
+        public static bool ToMatrix(List<RunLength> runLengths, int[,] outputMatrix, int foreRGB)
+        {
+            string sM = nameof(ToMatrix);
+            if(outputMatrix==null)
+                throw new ArgumentNullException(nameof(outputMatrix));
+            var W = outputMatrix.GetLength(1);
+            var H = outputMatrix.GetLength(0);
+            var yMin = runLengths.Min(R => R.Y);
+            var yMax = runLengths.Max(R => R.Y);
+            var xMin = runLengths.Min(R => R.XS);
+            var xMax = runLengths.Max(R => R.XE);
+            if (yMin < 0 || yMax >= H || xMin < 0 || xMax >= W)
+            {
+                LogMan.Error(sC, sM, $"Run length dimensions [{xMin},{yMin};{xMax},{yMax}] exceeded matrix dimension [0,0;{W},{H}]");
+                return false;
+            }
+            foreach (var rl in runLengths)
+            {
+                for (int c = rl.XS; c <= rl.XE; c++)
+                {
+                    outputMatrix[rl.Y, c] = foreRGB;
+                }
+            }
+            return true;
+        }
+
+        public static ImageData ToImageData(List<RunLength> runLengths, int foreRGB, int bkgRGB)
+            => new ImageData().Create(ToMask(runLengths, foreRGB, bkgRGB));
     }
 }

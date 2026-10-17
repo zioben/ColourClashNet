@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color;
+﻿using ColourClashNet;
+using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
@@ -19,10 +20,17 @@ namespace ColourClashProcessing.Blob
     {
         static String sC = nameof(Blob);
 
+        #region private fields
+
         GlobalThreshold threshold = new GlobalThreshold();
-        
+        Dictionary<int, List<RunLength>>? _connectedComponents = null;
         Shape shape = new Shape();
 
+        StopWatch timer=new();
+
+        #endregion
+
+        #region config properties
 
         [Browsable(true),Category("Input")]
         public Palette ThresholdPalette { get; set; } = new();
@@ -36,6 +44,9 @@ namespace ColourClashProcessing.Blob
         [Browsable(true), Category("Input")]
         public BlobConnectionModes ConnectionMode { get; private set; } = BlobConnectionModes.FourConnected;
 
+        #endregion
+
+        #region filtering proeprties
 
         [Browsable(true), Category("Filtering")]
         public int MinBlobWidth { get; private set; } = 0;
@@ -55,23 +66,20 @@ namespace ColourClashProcessing.Blob
         [Browsable(true), Category("Filtering")]
         public int MaxBlobArea { get; private set; } = 0;
 
-        [Browsable(true), Category("Data")]
-        int SourceWidth => shape.Valid ? shape.SourceWidth : 0;
+        #endregion
 
-        [Browsable(true), Category("Data")]
-        int SourceHeight => shape.Valid ? shape.SourceHeight : 0;
-    
+        #region output
 
         /// <summary>Blobs found by the last <see cref="Process"/>, numbered 1..N.</summary>
-        public IReadOnlyList<BlobItem> Blobs { get; private set; } = Array.Empty<BlobItem>();
+        public IReadOnlyList<BlobItem> BlobList { get; private set; } = Array.Empty<BlobItem>();
 
         public bool Valid => shape.Valid && _connectedComponents != null;
 
-        Dictionary<int, List<RunLength>>? _connectedComponents = null;
+        public ImageData ImageSource { get; private set; }
 
-        public ImageData ImageSource { get;private set; }
-        public ImageData ImageShape { get; private set; }
-        public ImageData ImageBlob { get; private set; }
+        public double ProcessingTime => timer.ElapsedMilliseconds;
+
+        #endregion
 
 
         public Blob()
@@ -105,12 +113,12 @@ namespace ColourClashProcessing.Blob
         void ResetResults()
         {
             shape.Reset();
-            Blobs = Array.Empty<BlobItem>();
+            BlobList = Array.Empty<BlobItem>();
             ImageSource = null;
-            ImageShape = null;
-            ImageBlob = null;
             _connectedComponents = null;
         }
+
+        #region setup fluent
 
         public Blob WithThreshold(Palette thresholdPalette, double toleranceFactor = 0.0, bool invertResults = false)
         {
@@ -133,6 +141,7 @@ namespace ColourClashProcessing.Blob
             ConnectionMode = connectionMode;
             return this;
         }
+
         public Blob WithFiltering(int minArea, int maxArea, int minWidth, int maxWidth, int minHeight, int maxHeight)
         {
             MinBlobArea = minArea;
@@ -144,11 +153,14 @@ namespace ColourClashProcessing.Blob
             return this;
         }
 
+        #endregion
+
         public ColorTransformResult Process(ImageData image, CancellationToken cancellationToken = default)
         {
             string sM = nameof(Process);
             try
             {
+                timer.Start();
                 ResetResults();
                 ImageData.AssertValid(image);
                 ImageSource = new ImageData().Create(image);
@@ -187,11 +199,10 @@ namespace ColourClashProcessing.Blob
                 if (MaxBlobHeight > 0)
                     blobs.RemoveAll(b => b.Height > MaxBlobHeight);
 
-                Blobs = blobs;
+                BlobList = blobs;
                 _connectedComponents = blobs.ToDictionary(b => b.BlobId, b => b.RunLengths);
 
-                ImageShape = GetShapeImage();
-                ImageBlob = GetBlobImage();
+                timer.Update();
 
                 return ColorTransformResult.CreateValidResult(
                     image,
@@ -201,36 +212,56 @@ namespace ColourClashProcessing.Blob
             catch (OperationCanceledException cex)
             {
                 LogMan.Exception(sC, sM, "Operation canceled", cex);
+                timer.Update();
                 return ColorTransformResult.CreateErrorResult(image, null, "Operation canceled", cex);
             }
             catch (Exception ex)
             {
                 LogMan.Exception(sC, sM, "Blob processing failed", ex);
                 ResetResults();
+                timer.Update();
                 return ColorTransformResult.CreateErrorResult(image, null, $"Exception during blob processing: {ex.Message}", ex);
             }
         }
 
-        
+        /// <summary>
+        /// Rebuild image containing ALL source shapes
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public ImageData GetShapeImage()
         {
-            return shape.Valid ? shape.ToImageData() : throw new InvalidOperationException("Shape image is not available. Call Process() first.");
+           if(!Valid) 
+                throw new InvalidOperationException("Shaper image is not available. Call Process() first.");
+            return shape.ToImageData();
         }
+
+        /// <summary>
+        /// Rebuild image containing only blobs
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public ImageData GetBlobImage()
         {
             if(!Valid) 
                 throw new InvalidOperationException("Blob image is not available. Call Process() first.");
 
             List<RunLength> allRuns = _connectedComponents!.Values.SelectMany(runs => runs).ToList();
-            var blobImage = RunLength.ToImageData(allRuns, SourceWidth, SourceHeight);
+            var blobImage = RunLength.ToImageData(allRuns, ImageSource, ColorDefaults.DefaultShapeForeColorInt, ColorDefaults.DefaultShapeBkgColorInt);
             return blobImage;
         }
 
+        /// <summary>
+        /// Get blob item data
+        /// </summary>
+        /// <param name="iBlobID"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         private BlobItem GetBlobItem(int iBlobID)
         {
             if (!Valid)
                 throw new InvalidOperationException("Blob is not available. Call Process() first.");
-            var blob = Blobs.FirstOrDefault(b => b.BlobId == iBlobID);
+            var blob = BlobList.FirstOrDefault(b => b.BlobId == iBlobID);
             if (blob == null)
             {
                 return null;
@@ -238,6 +269,13 @@ namespace ColourClashProcessing.Blob
             return blob;
         }
 
+        /// <summary>
+        /// Rebuild a single shape with original image associated to the Blob ID
+        /// <para>Coockie cut algorithm is used to avoid partial overlapping with other shapes inside the blob bounding box</para>
+        /// </summary>
+        /// <param name="iBlobID"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public ImageData GetBlobImage(int iBlobID)
         {
             if (!Valid)
@@ -247,31 +285,62 @@ namespace ColourClashProcessing.Blob
             {
                 return null;
             }
-            var matrixSrc = ImageSource.GetMatrix();
-            var matrixDst =MatrixTools.CreateMatrix(blob.Height, blob.Width, 0);  
-            MatrixTools.Blit( matrixSrc , matrixDst, blob.XMin,blob.YMin, 0, 0, blob.Width, blob.Height);
+            var matrixDst = MatrixTools.CreateMatrix(blob.Width, blob.Height, 0);
+            var imageMask = RunLength.ToImageData(blob.RunLengths, ColorDefaults.DefaultShapeForeColorInt, ColorDefaults.DefaultShapeBkgColorInt);
+            MatrixTools.CoockieCut(ImageSource, imageMask, matrixDst, blob.XMin,blob.YMin,0,0, 0, 0, blob.Width, blob.Height);
             var imageData = new ImageData().Create(matrixDst);
             return imageData;
         }
 
-/*        public bool SaveBlobItemImage(string basePath, int iBlobID  )
+        public ImageData GetBlobImage(BlobItem blobItem)
         {
-            if (!Valid)
-                throw new InvalidOperationException("Blob image is not available. Call Process() first.");
-            var imageData = GetBlobImage(iBlobID);
-            return ImageTools.SaveImage(imageData, $"{basePath}_Blob_{iBlobID:D4}.png", ImageSaveFormat.Png);
+            if (blobItem == null)
+                throw new NullReferenceException($"{nameof(blobItem)}");
+            return GetBlobImage(blobItem.BlobId);
         }
-        public bool SaveBlobImages(string basePath)
+
+        /// <summary>
+        /// Rebuild a shaped image. Segmentation is obtained associating every shape with the associated Blob ID
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public ImageData GetBlobSegmentedImage()
         {
             if (!Valid)
                 throw new InvalidOperationException("Blob image is not available. Call Process() first.");
-            bool bRet = true;
-            foreach (var blob in Blobs)
+
+            var matrix = MatrixTools.CreateMatrix(ImageSource.Width, ImageSource.Height);
+            foreach (var item in BlobList)
             {
-                bRet &= SaveBlobItemImage(basePath, blob.BlobId);
+                RunLength.ToMatrix(item.RunLengths, matrix, item.BlobId);
             }
-            return bRet;
+            var blobImage = new ImageData().Create(matrix);
+            return blobImage;
         }
-*/
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<ImageData> ToEnumerable()
+        {
+            if (!Valid)
+                throw new InvalidOperationException("Blob image is not available. Call Process() first.");
+
+            foreach (var item in BlobList)
+            {
+                var image = GetBlobImage(item);
+                image.Name = $"{item.BlobId}";
+                yield return image;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public List<ImageData> ToImageList()
+            => ToEnumerable().ToList();
+
     }
 }

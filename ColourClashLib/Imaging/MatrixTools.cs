@@ -102,42 +102,55 @@ public static class MatrixTools
 
     #region base
 
-    static public int[,] CreateMatrix(int rows, int cols, int rfbFill)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    /// <param name="rgbFill"></param>
+    /// <returns></returns>
+    static public int[,] CreateMatrix(int width, int height, int fillRGB)
     {
-        var m = new int[rows, cols];
-        for(int r = 0; r < rows; r++)
+        var m = new int[height, width];
+        for(int r = 0; r < height; r++)
         {
-            for (int c = 0; c < cols; c++)
+            for (int c = 0; c < width; c++)
             {
-                m[r, c] = rfbFill;
+                m[r, c] = fillRGB;
             }
         }
         return m;
     }
 
-    static public int[,] CreateImageMatrix(int width, int height, int rfbFill)
-        => CreateMatrix(height, width, rfbFill);
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    /// <returns></returns>
+
+    static public int[,] CreateMatrix(int width, int height) => CreateMatrix(width, height, 0);
 
     #endregion
 
 
-    #region Indexed Data Manipulation
+        #region Indexed Data Manipulation
 
-    /// <summary>
-    /// Creates a two-dimensional byte array representing indexed image data, mapping each Color value in the source
-    /// matrix to its corresponding palette index.
-    /// </summary>
-    /// <remarks>If a Color value in the source matrix does not exist in the palette or the palette
-    /// contains fewer than 256 Colors, the corresponding output value is set to 255; otherwise, it is set to 0. The
-    /// width of each row in the output array may be increased to satisfy the specified alignment mode.</remarks>
-    /// <param name="rgbMatrix">A two-dimensional array containing the source Color values to be indexed. Each element represents a Color
-    /// value to be mapped to the palette.</param>
-    /// <param name="palette">A list of integer Color values representing the palette. Each unique Color in the palette is assigned an
-    /// index used in the output array.</param>
-    /// <param name="widthAlignMode">Specifies the alignment mode to use for the width of the output image data. Determines how the width of each
-    /// row in the output array is aligned.</param>
-    /// <returns>A two-dimensional byte array where each element contains the palette index corresponding to the Color value
-    /// in the source matrix. Returns null if the input data or palette is null, or if an error occurs.</returns>
+        /// <summary>
+        /// Creates a two-dimensional byte array representing indexed image data, mapping each Color value in the source
+        /// matrix to its corresponding palette index.
+        /// </summary>
+        /// <remarks>If a Color value in the source matrix does not exist in the palette or the palette
+        /// contains fewer than 256 Colors, the corresponding output value is set to 255; otherwise, it is set to 0. The
+        /// width of each row in the output array may be increased to satisfy the specified alignment mode.</remarks>
+        /// <param name="rgbMatrix">A two-dimensional array containing the source Color values to be indexed. Each element represents a Color
+        /// value to be mapped to the palette.</param>
+        /// <param name="palette">A list of integer Color values representing the palette. Each unique Color in the palette is assigned an
+        /// index used in the output array.</param>
+        /// <param name="widthAlignMode">Specifies the alignment mode to use for the width of the output image data. Determines how the width of each
+        /// row in the output array is aligned.</param>
+        /// <returns>A two-dimensional byte array where each element contains the palette index corresponding to the Color value
+        /// in the source matrix. Returns null if the input data or palette is null, or if an error occurs.</returns>
     public static byte[,] CreateIndexedMatrix(int[,] rgbMatrix, List<int> paletteList, WidthAlignMode widthAlignMode)
     {
         string sM = nameof(CreateIndexedMatrix);
@@ -471,6 +484,30 @@ public static class MatrixTools
     /// <summary>
     /// 
     /// </summary>
+    /// <param name="imageSrc"></param>
+    /// <param name="matrixDst"></param>
+    /// <param name="xSrc"></param>
+    /// <param name="ySrc"></param>
+    /// <param name="xDst"></param>
+    /// <param name="yDst"></param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    static public bool Blit(ImageData imageSrc, int[,] matrixDst, int xSrc, int ySrc, int xDst, int yDst, int width, int height)
+    {
+        string sM = nameof(Blit);
+        ImageData.AssertValid(imageSrc);
+        if (matrixDst == null)
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixDst)} is null");
+        if(imageSrc.matrix == matrixDst)
+            throw new InvalidDataException( $"{sC}.{sM} : cannot blit inside the same ImageData");
+        return Blit(imageSrc.matrix, matrixDst, xSrc, ySrc, xDst, yDst, width, height);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
     /// <param name="matrixSrc"></param>
     /// <param name="matrixDst"></param>
     /// <param name="rectangleSource"></param>
@@ -480,6 +517,16 @@ public static class MatrixTools
     static public void Blit(int[,] matrixSrc, int[,] matrixDst, Rectangle<int> rectangleSource, int xDst, int yDst)
        => Blit(matrixSrc, matrixDst, rectangleSource.X, rectangleSource.Y, xDst, yDst, rectangleSource.Width, rectangleSource.Height);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="imageSrc"></param>
+    /// <param name="matrixDst"></param>
+    /// <param name="rectangleSource"></param>
+    /// <param name="xDst"></param>
+    /// <param name="yDst"></param>
+    static public void Blit(ImageData imageSrc, int[,] matrixDst, Rectangle<int> rectangleSource, int xDst, int yDst)
+       => Blit(imageSrc, matrixDst, rectangleSource.X, rectangleSource.Y, xDst, yDst, rectangleSource.Width, rectangleSource.Height);
 
 
     /// <summary>
@@ -524,6 +571,122 @@ public static class MatrixTools
         }
         return dstMatrix;
     }
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="matrixSrc"></param>
+    /// <param name="matrixMsk"></param>
+    /// <param name="matrixDst"></param>
+    /// <param name="xSrc"></param>
+    /// <param name="ySrc"></param>
+    /// <param name="xDst"></param>
+    /// <param name="yDst"></param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    static public bool CoockieCut(int[,] matrixSrc, int[,] matrixMsk, int[,] matrixDst, int xSrc, int ySrc, int xMsk, int yMsk, int xDst, int yDst, int width, int height)
+    {
+        string sM = nameof(CoockieCut);
+        if (matrixSrc == null)
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixSrc)} is null");
+        if (matrixMsk == null)
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixMsk)} is null");
+        if (matrixDst == null)
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixDst)} is null");
+
+        Rectangle<int> rectSrc = Rectangle<int>.Intersect(new(xSrc, ySrc, width, height), GetRectangle(matrixSrc));
+        Rectangle<int> rectMsk = Rectangle<int>.Intersect(new(xDst, yDst, width, height), GetRectangle(matrixMsk));
+        Rectangle<int> rectDst = Rectangle<int>.Intersect(new(xDst, yDst, width, height), GetRectangle(matrixDst));
+
+        if (rectSrc.IsEmpty)
+        {
+            LogMan.Warning(sC, sM, "Source blit rectangle is out of bounds");
+            return false;
+        }
+        if (rectMsk.IsEmpty)
+        {
+            LogMan.Warning(sC, sM, "Mask blit rectangle is out of bounds");
+            return false;
+        }
+        if (rectDst.IsEmpty)
+        {
+            LogMan.Warning(sC, sM, "Destination blit rectangle is out of bounds");
+            return false;
+        }
+        int minHeight = Math.Min(rectMsk.Height,Math.Min(rectSrc.Height, rectDst.Height));
+        int minWidth = Math.Min(rectMsk.Width,Math.Min(rectSrc.Width, rectDst.Width));
+        //var rectSrcClip = new MatrixRectangle<int>(rectSrc.Row, rectSrc.Column, minHeight, minWidth);
+        for (int y = 0; y < minHeight; y++)
+        {
+            for (int x = 0; x < minWidth; x++)
+            {
+                var mskRGB = matrixSrc[y,x];
+                if (ColorIntExt.IsColor(mskRGB) && mskRGB != ColorDefaults.DefaultShapeBkgColorInt)
+                {
+                    matrixDst[rectDst.Y + y, rectDst.X + x] = matrixSrc[rectSrc.Y + y, rectSrc.X + x];
+                }
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="imageSrc"></param>
+    /// <param name="matrixMsk"></param>
+    /// <param name="matrixDst"></param>
+    /// <param name="xSrc"></param>
+    /// <param name="ySrc"></param>
+    /// <param name="xDst"></param>
+    /// <param name="yDst"></param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="InvalidDataException"></exception>
+    static public bool CoockieCut(ImageData imageSrc, int[,] matrixMsk, int[,] matrixDst, int xSrc, int ySrc, int xMsk, int yMsk, int xDst, int yDst, int width, int height)
+    {
+        string sM = nameof(CoockieCut);
+        ImageData.AssertValid(imageSrc);
+        if (matrixDst == null)
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixDst)} is null");
+        if (imageSrc.matrix == matrixDst)
+            throw new InvalidDataException($"{sC}.{sM} : cannot blit inside the same ImageData");
+        return CoockieCut(imageSrc.matrix, matrixMsk, matrixDst, xSrc, ySrc, xMsk,yMsk, xDst, yDst, width, height);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="imageSrc"></param>
+    /// <param name="matrixMsk"></param>
+    /// <param name="matrixDst"></param>
+    /// <param name="xSrc"></param>
+    /// <param name="ySrc"></param>
+    /// <param name="xDst"></param>
+    /// <param name="yDst"></param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="InvalidDataException"></exception>
+    static public bool CoockieCut(ImageData imageSrc, ImageData imageMsk, int[,] matrixDst, int xSrc, int ySrc, int xMsk, int yMsk, int xDst, int yDst, int width, int height)
+    {
+        string sM = nameof(CoockieCut);
+        ImageData.AssertValid(imageSrc);
+        ImageData.AssertValid(imageMsk);
+        if (matrixDst == null)
+            throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixDst)} is null");
+        if (imageSrc.matrix == matrixDst)
+            throw new InvalidDataException($"{sC}.{sM} : cannot blit inside the same ImageData");
+        return CoockieCut(imageSrc.matrix, imageMsk.matrix, matrixDst, xSrc, ySrc, xMsk, yMsk, xDst, yDst, width, height);
+    }
+
+
 
     /// <summary>
     /// 
@@ -613,25 +776,6 @@ public static class MatrixTools
         return oRet;
     }
 
-    //static public int[,] Fill(int[,] matrix, int rgbFillValue)
-    //{
-    //    string sM = nameof(Crop);
-    //    if (matrix == null)
-    //        throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrix)} is null");
-
-    //    int R = matrix.GetLength(0);
-    //    int C = matrix.GetLength(1);
-
-    //    var oRet = new int[R, C];
-    //    for (int r = 0; r < R; r++)
-    //    {
-    //        for (int c = 0; c < C; c++)
-    //        {
-    //            oRet[r, c] = rgbFillValue;
-    //        }
-    //    }
-    //    return oRet;
-    //}
 
     #endregion
 }   

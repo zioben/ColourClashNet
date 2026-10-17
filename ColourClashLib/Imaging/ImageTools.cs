@@ -144,6 +144,10 @@ public static partial class ImageTools
         }
     }
 
+    public static bool SaveImage(ImageData image, string fileName)
+        => SaveImage(image, fileName, ImageSaveFormat.Png);
+    
+
     public static ImageData LoadImage(string fileName)
     {
         string sM = nameof(LoadImage);
