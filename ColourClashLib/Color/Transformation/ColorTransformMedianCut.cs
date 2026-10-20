@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformReductionMedianCut : ColorTransformBase
+    public class ColorTransformMedianCut : ColorTransformBase
     {
 
-        public ColorTransformReductionMedianCut()
+        public ColorTransformMedianCut()
         {
             Type = ColorTransformType.ColorReductionMedianCut;
             Description = "Median partition color reduction";
@@ -22,14 +22,21 @@ namespace ColourClashNet.Color.Transformation
             set => config.MaxColorsWanted = value;
         }
 
+        public ColorSelectionMode ColorSelectionMode
+        {
+            get => config.MedianCutColorSelectionMode;
+            set => config.MedianCutColorSelectionMode = value;
+        }
 
-        public ColorTransformReductionMedianCut WithProcessingParams(int maxColors)
+
+        public ColorTransformMedianCut WithProcessingParams(int maxColors, ColorSelectionMode colorSelectionMode )
         {
             MaxColorsWanted = maxColors;
+
             return this;
         }
 
-        public ColorTransformReductionMedianCut WithProcessingParams(ColorTransformConfig cfg) => WithProcessingParams(cfg.MaxColorsWanted);
+        public ColorTransformMedianCut WithProcessingParams(ColorTransformConfig cfg) => WithProcessingParams(cfg.MaxColorsWanted, cfg.MedianCutColorSelectionMode );
 
 
 
@@ -119,7 +126,7 @@ namespace ColourClashNet.Color.Transformation
             {
                 if (oPalette.Count == 0)
                     return;
-                var iRGB = ColorIntExt.GetColorMean(oPalette, ColorSelectionMode.UseColorPalette);
+                var iRGB = ColorIntExt.GetColorMean(oPalette, ColorSelectionMode);
                 foreach (var rgb in rgbList)
                 {
                     if (!TransformationMap.rgbTransformationMap.ContainsKey(rgb))

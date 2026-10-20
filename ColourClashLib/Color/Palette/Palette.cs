@@ -13,7 +13,7 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Internal storage for unique colors.
         /// </summary>
-        protected HashSet<int> rgbPalette { get; private init; } = new HashSet<int>();
+        protected internal HashSet<int> rgbPalette { get; private init; } = new HashSet<int>();
 
        /// <summary>
        /// Gets the number of colors contained in the palette.

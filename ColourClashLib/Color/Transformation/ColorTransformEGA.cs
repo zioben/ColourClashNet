@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformReductionEGA : ColorTransformReductionPalette
+    public class ColorTransformEGA : ColorTransformFixedPalette
     {
-        public ColorTransformReductionEGA()
+        public ColorTransformEGA()
         {
             Type = ColorTransformType.ColorReductionEGA;
             Description = "Reduce color to EGA palette";

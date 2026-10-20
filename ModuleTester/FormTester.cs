@@ -156,9 +156,9 @@ namespace ModuleTester
                 Process(oldTrasf,oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformReductionAmiga transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformCbmAmiga transf = new();
             var cfg = new ColorTransformConfig()
-                .WithAmigaScreenMode(ColorTransformReductionAmiga.EnumAmigaVideoMode.Ham6,  
+                .WithAmigaScreenMode(ColorTransformCbmAmiga.EnumAmigaVideoMode.Ham6,  
                 ColorTransformType.ColorReductionClustering,
                 ColorSelectionMode.EvaluateColorMean);
             Process(transf,cfg);
@@ -184,9 +184,9 @@ namespace ModuleTester
                 Process(oldTrasf, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformReductionC64 transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformCbm64 transf = new();
             var cfg = new ColorTransformConfig()
-                .WithC64ScreenMode(ColorTransformReductionC64.C64VideoMode.Multicolor, ColorTransformReductionC64.C64DitheringMode.PreDitherImage, false);
+                .WithC64ScreenMode(ColorTransformCbm64.C64VideoMode.Multicolor, ColorTransformCbm64.C64DitheringMode.PreDitherImage, false);
             Process(transf, cfg);
         }
 
@@ -197,7 +197,7 @@ namespace ModuleTester
                 Process(oldTrasf, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformReductionCluster transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformClustering transf = new();
             var cfg = new ColorTransformConfig()
                 .WithClustering(16, 10, ColorSelectionMode.EvaluateColorMean);
             Process(transf, cfg);
@@ -210,9 +210,9 @@ namespace ModuleTester
                 Process(oldTrasf, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformReductionCPC transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformAmstradCPC transf = new();
             var cfg = new ColorTransformConfig()
-                .WithCpcVideoMode(ColorTransformReductionCPC.CPCVideoMode.Mode1);
+                .WithCpcVideoMode(ColorTransformAmstradCPC.CPCVideoMode.Mode1);
             Process(transf, cfg);
         }
 
@@ -223,7 +223,7 @@ namespace ModuleTester
                 Process(oldTrasf, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformReductionEGA transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformEGA transf = new();
             Process(transf, new ColorTransformConfig());
         }
 
@@ -234,7 +234,7 @@ namespace ModuleTester
                 Process(oldTrasf, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformReductionCGA transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformCGA transf = new();
             Process(transf, new ColorTransformConfig());
         }
 
@@ -245,7 +245,7 @@ namespace ModuleTester
                 Process(oldTrasf, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformReductionFast transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformFast transf = new();
             var cfg = new ColorTransformConfig()
                 .WithFastReduction(16);
             Process(transf, cfg);
@@ -258,7 +258,7 @@ namespace ModuleTester
                 Process(oldTrasf, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformReductionMedianCut transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformMedianCut transf = new();
             var cfg = new ColorTransformConfig()
                .WithMedianCut(16);
             Process(transf, cfg);
@@ -271,10 +271,10 @@ namespace ModuleTester
                 Process(oldTrasf, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformZxSpectrum transf = new();
             var cfg = new ColorTransformConfig()
-                .WithZxScreenMode(ColorTransformReductionZxSpectrum.ZxPaletteMode.BothPalettes, 128, 256)
-                .WithZxProcessing(ColorTransformReductionZxSpectrum.ZxAutotuneMode.Fast, true, true, true, false);
+                .WithZxScreenMode(ColorTransformZxSpectrum.ZxPaletteMode.BothPalettes, 128, 256)
+                .WithZxProcessing(ColorTransformZxSpectrum.ZxAutotuneMode.Fast, true, true, true, false);
             Process(transf, cfg);
         }
 
@@ -285,7 +285,7 @@ namespace ModuleTester
                 Process(oldTrasf, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformReductionPalette transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformFixedPalette transf = new();
             var palette = new Palette().Create();
             for (int i = 0; i < 256; i += 16)
             {

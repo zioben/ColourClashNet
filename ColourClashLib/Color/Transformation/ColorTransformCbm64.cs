@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformReductionC64 : ColorTransformBase
+    public class ColorTransformCbm64 : ColorTransformBase
     {
-        static readonly string sC = nameof(ColorTransformReductionC64);
+        static readonly string sC = nameof(ColorTransformCbm64);
 
         #region enums
         public enum C64VideoMode
@@ -124,7 +124,7 @@ namespace ColourClashNet.Color.Transformation
 
         #endregion
 
-        public ColorTransformReductionC64()
+        public ColorTransformCbm64()
         {
             Type = ColorTransformType.ColorReductionCBM64;
             Description = "Reduce color to C64 palette";
@@ -157,7 +157,7 @@ namespace ColourClashNet.Color.Transformation
 
         #region fluent with - set
 
-        public ColorTransformReductionC64 WithC64ScreenMode(C64VideoMode mode, C64DitheringMode ditheringMode,bool showTileBorders)
+        public ColorTransformCbm64 WithC64ScreenMode(C64VideoMode mode, C64DitheringMode ditheringMode,bool showTileBorders)
         {
             TileBorderShow = showTileBorders;
             VideoMode = mode;
@@ -165,7 +165,7 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        public ColorTransformReductionC64 WithC64ScreenMode(ColorTransformConfig cfg) => WithC64ScreenMode(cfg.C64VideoMode, cfg.C64DitheringMode, cfg.ShowTileBorders);
+        public ColorTransformCbm64 WithC64ScreenMode(ColorTransformConfig cfg) => WithC64ScreenMode(cfg.C64VideoMode, cfg.C64DitheringMode, cfg.ShowTileBorders);
 
 
         #endregion
@@ -182,7 +182,7 @@ namespace ColourClashNet.Color.Transformation
         // Only to debug purpose, this is the best image obtainable using C64 palette
         ImageData? ToDebugImage(ImageData image, Palette palette, CancellationToken token = default)
         {
-            var tempResult = new ColorTransformReductionPalette()
+            var tempResult = new ColorTransformFixedPalette()
                 .WithReferencePalette(palette)
                 .WithDithering(DitheringConfig)
                 .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)

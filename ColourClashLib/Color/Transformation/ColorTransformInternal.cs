@@ -11,7 +11,7 @@ namespace ColourClashNet.Color.Transformation
         static string sC = nameof(ColorTransformInternal);
 
 
-        public static ColorTransformInterface Alloc(ColorTransformConfig cfg)
+        public static ColorTransformInterface Alloc(ColorTransformConfig cfg, ColorTransformType type)
         {
             string sM = nameof(ColorTransformInternal);
             if(cfg == null) 
@@ -19,30 +19,30 @@ namespace ColourClashNet.Color.Transformation
                 throw new ArgumentNullException($"{sC}.{sM} : {nameof(cfg)}");
             }
             ColorTransformInterface trans;
-            switch (cfg.InternalTransformationModel)
+            switch (type)
             {
                 case ColorTransformType.ColorReductionClustering:
                     {
-                        trans = new ColorTransformReductionCluster();
+                        trans = new ColorTransformClustering();
                     }
                     break;
                 case ColorTransformType.ColorReductionFast:
                     {
-                        trans = new ColorTransformReductionFast();
+                        trans = new ColorTransformFast();
                     }
                     break;
                 case ColorTransformType.ColorReductionMedianCut:
                     {
-                        trans = new ColorTransformReductionMedianCut();
+                        trans = new ColorTransformMedianCut();
                     }
                     break;
                 case ColorTransformType.ColorReductionGenericPalette:
                     {
-                        trans = new ColorTransformReductionPalette();
+                        trans = new ColorTransformFixedPalette();
                     }
                     break;
                 default:
-                    throw new ArgumentException($"{sC}.{sM} : {cfg.InternalTransformationModel} not supported");
+                    throw new ArgumentException($"{sC}.{sM} : {type} not supported");
             }
             return trans.SetProperties(cfg);
         }

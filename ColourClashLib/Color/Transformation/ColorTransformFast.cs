@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformReductionFast : ColorTransformBase
+    public class ColorTransformFast : ColorTransformBase
     {
 
-        public ColorTransformReductionFast()
+        public ColorTransformFast()
         {
             Type = ColorTransformType.ColorReductionFast;
             Description = "Quantitative color reduction";
@@ -21,12 +21,12 @@ namespace ColourClashNet.Color.Transformation
             set => config.MaxColorsWanted = value;
         }
             
-        public ColorTransformReductionFast WithProcessingParams(int maxColors)
+        public ColorTransformFast WithProcessingParams(int maxColors)
         {
              MaxColorWanted = maxColors;
             return this;
         }
-        public ColorTransformReductionFast WithProcessingParams(ColorTransformConfig cfg) => WithProcessingParams(cfg.MaxColorsWanted);
+        public ColorTransformFast WithProcessingParams(ColorTransformConfig cfg) => WithProcessingParams(cfg.MaxColorsWanted);
 
 
 

@@ -8,9 +8,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionC64;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionCPC;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum;
+using static ColourClashNet.Color.Transformation.ColorTransformCbm64;
+using static ColourClashNet.Color.Transformation.ColorTransformAmstradCPC;
+using static ColourClashNet.Color.Transformation.ColorTransformZxSpectrum;
 
 namespace ColourClashNet
 {

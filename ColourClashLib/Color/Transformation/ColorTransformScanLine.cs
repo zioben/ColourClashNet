@@ -13,9 +13,9 @@ using ColourClashNet.Color.Tile;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformReductionScanLine : ColorTransformBase
+    public class ColorTransformScanLine : ColorTransformBase
     {
-        static string sC = nameof(ColorTransformReductionScanLine);
+        static string sC = nameof(ColorTransformScanLine);
 
         public enum ScanlineReductionMode
         {
@@ -23,7 +23,7 @@ namespace ColourClashNet.Color.Transformation
             SharedPaletteForAllLines
         }
 
-        public ColorTransformReductionScanLine()
+        public ColorTransformScanLine()
         {
             Type = ColorTransformType.ColorReductionScanline;
             Description = "Raster line color reduction";
@@ -42,8 +42,8 @@ namespace ColourClashNet.Color.Transformation
 
         public int ChunkHeight
         {
-            get => config.ChunkHeight;
-            set => config.ChunkHeight = value;
+            get => config.ScanLineChunkHeight;
+            set => config.ScanLineChunkHeight = value;
         }
         public ScanlineReductionMode ReductionModePalette
         {
@@ -57,31 +57,45 @@ namespace ColourClashNet.Color.Transformation
         }
         public int MaxColorsPerChunk
         {
-            get => config.MaxColorsPerChunk;
-            set => config.MaxColorsPerChunk = value;
+            get => config.ScanLineMaxColorsPerChunk;
+            set => config.ScanLineMaxColorsPerChunk = value;
         }
         public ColorTransformType InternalTransformationModel 
         { 
-            get => config.InternalTransformationModel;
-            set => config.InternalTransformationModel = value;
+            get => config.ScanLineInternalTransformationModel;
+            set => config.ScanLineInternalTransformationModel = value;
+        }
+
+        public bool ColorBackgroundReplacementFixed
+        { 
+            get => config.ScanLineColorBackgriundReplacementFixed;
+            set => config.ScanLineColorBackgriundReplacementFixed = value;
+        }
+
+        public int ColorBackgroundReplacement
+        {
+            get => config.ColorBackgroundReplacementValue;
+            set => config.ColorBackgroundReplacementValue = value;
         }
 
         public List<List<int>> ColorListRow { get; private set; } = new List<List<int>>();
         public List<UInt16> ColorListMask { get; private set; } = new List<UInt16>();
 
-        public ColorTransformReductionScanLine WithProcessingParams(int chunkHeight, ScanlineReductionMode scanlineReductionMode, int maxColorsWanted, int maxColorsPerChunk, ColorTransformType internalTransformationModel)
+        public ColorTransformScanLine WithProcessingParams(int chunkHeight, ScanlineReductionMode scanlineReductionMode, int maxColorsWanted, int maxColorsPerChunk, ColorTransformType internalTransformationModel, bool bkgColorFixed, int bkgColorValue )
         {
             ChunkHeight=chunkHeight;
             ReductionModePalette = scanlineReductionMode;
             MaxColorsWanted = maxColorsWanted;
             MaxColorsPerChunk = maxColorsPerChunk;
             InternalTransformationModel = internalTransformationModel;
+            ColorBackgroundReplacementFixed = bkgColorFixed;
+            ColorBackgroundReplacement = bkgColorValue;
             return this;
         }
 
 
-        public ColorTransformReductionScanLine WithReductionScanLine(ColorTransformConfig cfg) 
-            => WithProcessingParams(cfg.ChunkHeight, cfg.ScanlineReductionMode, cfg.MaxColorsWanted, cfg.MaxColorsPerChunk, cfg.InternalTransformationModel);
+        public ColorTransformScanLine WithReductionScanLine(ColorTransformConfig cfg) 
+            => WithProcessingParams(cfg.ScanLineChunkHeight, cfg.ScanlineReductionMode, cfg.MaxColorsWanted, cfg.ScanLineMaxColorsPerChunk, cfg.ScanLineInternalTransformationModel, cfg.ScanLineColorBackgriundReplacementFixed, cfg.ColorBackgroundReplacementValue);
 
 
         protected override ColorTransformResult ExecuteTransform(CancellationToken oToken = default)
@@ -112,7 +126,12 @@ namespace ColourClashNet.Color.Transformation
         {
             string sM = nameof(ExecuteTransformSharedPalette);
             TileManager = new TileManager();
-            var cfg = config.Clone().WithMaxColorWanted(MaxColorsPerChunk).WithReferencePalette(new Palette());
+            //Palette palFixed = new Palette();
+            //if (ColorBackgroundReplacementFixed)
+            //{
+            //    palFixed.Create(new List<int> { ColorBackgroundReplacement });
+            //}
+            var cfg = config.Clone().WithMaxColorWanted(MaxColorsPerChunk).WithReferencePalette(ReferencePalette);
             TileManager.Create(ImageSource.Width, ChunkHeight, ImageSource, 1.0, cfg, oToken);
             var tileResult = TileManager.ProcessColors(oToken);
             if (tileResult.IsSuccess)
@@ -128,19 +147,24 @@ namespace ColourClashNet.Color.Transformation
 
         ColorTransformResult ExecuteTransformSharedPalette(CancellationToken oToken = default)
         {
-            string sM = nameof(ExecuteTransformSharedPalette);  
+            string sM = nameof(ExecuteTransformSharedPalette);
             var oMainImage = ImageSource;
             var oMainPalette = oMainImage.ColorPalette;
             if (oMainPalette.Count > MaxColorsWanted)
             {
-                var transf = ColorTransformInternal.Alloc(config).Create(ImageSource);
+                var transf = ColorTransformInternal.Alloc(config,config.ScanLineInternalTransformationModel).Create(ImageSource);
                 var result = transf.ProcessColors(oToken);
                 oMainImage = result.DataOut;
+                //WithReferencePalette(oMainImage.ColorPalette);
             }
             ImageData.AssertValid(oMainImage);
-            WithReferencePalette(oMainImage.ColorPalette);
             TileManager = new TileManager();
-            var cfg = config.Clone().WithMaxColorWanted(MaxColorsPerChunk);
+            //Palette palFixed = new Palette();
+            //if (ColorBackgroundReplacementFixed)
+            //{
+            //    palFixed.Create(new List<int> { ColorBackgroundReplacement });
+            //}
+            var cfg = config.Clone().WithMaxColorWanted(MaxColorsPerChunk);//.WithReferencePalette(palFixed,true);
             TileManager.Create(oMainImage.Width, ChunkHeight, oMainImage, 1.0, cfg, oToken);
             var tileResult = TileManager.ProcessColors(oToken);
             if (tileResult.IsSuccess)

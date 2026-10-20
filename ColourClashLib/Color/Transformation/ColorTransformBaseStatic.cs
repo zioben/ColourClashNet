@@ -30,28 +30,28 @@ namespace ColourClashNet.Color.Transformation
                     trans = new ColorTransformIdentity();
                     break;
                 case ColorTransformType.ColorReductionCBM64:
-                    trans = new ColorTransformReductionC64();
+                    trans = new ColorTransformCbm64();
                     break;
                 case ColorTransformType.ColorReductionClustering:
-                    trans = new ColorTransformReductionCluster();
+                    trans = new ColorTransformClustering();
                     break;
                 case ColorTransformType.ColorReductionCPC:
-                    trans = new ColorTransformReductionCPC();
+                    trans = new ColorTransformAmstradCPC();
                     break;
                 case ColorTransformType.ColorReductionEGA:
-                    trans = new ColorTransformReductionEGA();
+                    trans = new ColorTransformEGA();
                     break;
                 case ColorTransformType.ColorReductionFast:
-                    trans = new ColorTransformReductionFast();
+                    trans = new ColorTransformFast();
                     break;
                 case ColorTransformType.ColorReductionGenericPalette:
-                    trans = new ColorTransformReductionPalette();
+                    trans = new ColorTransformFixedPalette();
                     break;
                 case ColorTransformType.ColorReductionHam:
-                    trans = new ColorTransformReductionAmiga();
+                    trans = new ColorTransformCbmAmiga();
                     break;
                 case ColorTransformType.ColorReductionMedianCut:
-                    trans = new ColorTransformReductionMedianCut();
+                    trans = new ColorTransformMedianCut();
                     break;
                 case ColorTransformType.ColorReductionQuantization:
                     trans = new ColorTransformQuantization();
@@ -60,19 +60,19 @@ namespace ColourClashNet.Color.Transformation
                     trans = new ColorTransformLumSat();
                     break;
                 case ColorTransformType.ColorReductionScanline:
-                    trans = new ColorTransformReductionScanLine();
+                    trans = new ColorTransformScanLine();
                     break;
                 case ColorTransformType.ColorReductionZxSpectrum:
-                    trans = new ColorTransformReductionZxSpectrum();                    
+                    trans = new ColorTransformZxSpectrum();                    
                     break;
                 case ColorTransformType.ColorRemover:
                     trans = new ColorTransformBkgRemover();
                     break;
                 case ColorTransformType.ColorReductionEnhancedPalette:
-                    trans = new ColorTransformReductionPaletteEnhanced();
+                    trans = new ColorTransformFixedPaletteEnhanced();
                     break;
                 case ColorTransformType.ColorReductionCGA:
-                    trans = new ColorTransformReductionCGA();
+                    trans = new ColorTransformCGA();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(sMethod, $"Transform type {transformType} not yet supported");

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformReductionCGA : ColorTransformReductionPalette
+    public class ColorTransformCGA : ColorTransformFixedPalette
     {
 
         public enum CGAVideoMode
@@ -47,7 +47,7 @@ namespace ColourClashNet.Color.Transformation
 
 
 
-        public ColorTransformReductionCGA()
+        public ColorTransformCGA()
         {
             Type = ColorTransformType.ColorReductionCGA;
             Description = "Reduce color to CGA palette";
@@ -83,7 +83,7 @@ namespace ColourClashNet.Color.Transformation
             set => config.CGAOutputMode = value;
         }
 
-        public ColorTransformReductionCGA WithProcessingParams(CGAVideoMode value, CGAOutputMode outputMode)
+        public ColorTransformCGA WithProcessingParams(CGAVideoMode value, CGAOutputMode outputMode)
         {
             OutputMode = outputMode;
             VideoMode = value;

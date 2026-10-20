@@ -59,11 +59,17 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public bool ReferencePaletteWriteLock { get; private set; } = false;
         public int ReferenceColors => ReferencePalette?.Count ?? 0;
-        public bool EnablePreviewEvents { get; set; }
+        public bool EnablePreviewEvents { get; set; } = true;
 
         //-------------------------------------------------------------------------------------------------------------------------------
         public ColorTransformationMap TransformationMap { get; protected set; } = new ColorTransformationMap();
-        public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
+        
+        public ColorDistanceEvaluationMode ColorDistanceEvaluationMode 
+        { 
+            get => config.ColorDistanceEvaluationMode;
+            set => config.ColorDistanceEvaluationMode = value;
+        }
+
         public double TransformationError { get; set; } = double.NaN;
 
         //-------------------------------------------------------------------------------------------------------------------------------
@@ -188,11 +194,7 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        public ColorTransformBase WithColorMean(ColorSelectionMode colorMeanMode)
-        {
-            config.ColorMeanMode = colorMeanMode;
-            return this;
-        }
+       
 
         public ColorTransformBase WithColorDistanceEvaluationMode(ColorTransformConfig cfg) => WithColorDistanceEvaluationMode(cfg.ColorDistanceEvaluationMode);
 

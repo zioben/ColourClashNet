@@ -115,6 +115,16 @@ namespace ColourClashNet.Color
     }
 
     /// <summary>
+    /// Enums to select how to calculate the mean color of a cluster 
+    /// </summary>
+    [Serializable]
+    public enum ClusterPaletteInitializationMode
+    {
+        ImagePalette,
+        Random,
+    }
+
+    /// <summary>
     /// Enums to decorate Parameter Class 
     /// </summary>
     [Serializable]

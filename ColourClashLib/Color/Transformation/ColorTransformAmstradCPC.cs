@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformReductionCPC : ColorTransformReductionPalette
+    public class ColorTransformAmstradCPC : ColorTransformFixedPalette
     {
 
         public enum CPCVideoMode
@@ -25,7 +25,7 @@ namespace ColourClashNet.Color.Transformation
             get => config.CPCVideoMode;
             set => config.CPCVideoMode = value;
         }
-        public ColorTransformReductionCPC()
+        public ColorTransformAmstradCPC()
         {
             Type = ColorTransformType.ColorReductionCBM64;
             Description = "Reduce color to Amstrad CPC palette";
@@ -76,13 +76,13 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        public ColorTransformReductionCPC WithCpcVideoMode(CPCVideoMode videoMode)
+        public ColorTransformAmstradCPC WithCpcVideoMode(CPCVideoMode videoMode)
         { 
             this.VideoMode = videoMode;
             return this;
         }
 
-        public ColorTransformReductionCPC WithCpcVideoMode(ColorTransformConfig cfg) => WithCpcVideoMode(cfg.CPCVideoMode);
+        public ColorTransformAmstradCPC WithCpcVideoMode(ColorTransformConfig cfg) => WithCpcVideoMode(cfg.CPCVideoMode);
 
        
 
@@ -96,7 +96,7 @@ namespace ColourClashNet.Color.Transformation
 
         ImageData? PostProcess(ImageData image, int iMaxColors, bool bDoubleRes, CancellationToken oToken)
         {
-            var oRes = new ColorTransformReductionFast()
+            var oRes = new ColorTransformFast()
                 .WithProcessingParams(iMaxColors)
                 .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
                 .CreateAndProcessColors(image, oToken);

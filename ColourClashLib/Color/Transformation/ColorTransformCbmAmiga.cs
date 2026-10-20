@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformReductionAmiga : ColorTransformBase
+    public class ColorTransformCbmAmiga : ColorTransformBase
     {
-        static string sC = nameof(ColorTransformReductionAmiga);
+        static string sC = nameof(ColorTransformCbmAmiga);
 
 
         public enum EnumAmigaVideoMode
@@ -33,25 +33,25 @@ namespace ColourClashNet.Color.Transformation
             
         public  ColorTransformType HamColorTransformationModel
         { 
-            get => config.InternalTransformationModel;
-            set => config.InternalTransformationModel = value;
+            get => config.AmigaInternalTransformationModel;
+            set => config.AmigaInternalTransformationModel = value;
         }
 
-        public ColorTransformReductionAmiga()
+        public ColorTransformCbmAmiga()
         {
             Type = ColorTransformType.ColorReductionClustering;
             Description = "Commododre Amiga specific color reduction";
         }
 
 
-        public ColorTransformReductionAmiga WithAmigaProperties(EnumAmigaVideoMode videoMode, ColorTransformType hamColorTransformationModel )
+        public ColorTransformCbmAmiga WithAmigaProperties(EnumAmigaVideoMode videoMode, ColorTransformType hamColorTransformationModel )
         {
             AmigaVideoMode = videoMode;
             HamColorTransformationModel = hamColorTransformationModel;
             return this;
         }
 
-        public ColorTransformReductionAmiga WithAmigaProperties(ColorTransformConfig cfg) => WithAmigaProperties(cfg.AmigaVideoMode, cfg.InternalTransformationModel);
+        public ColorTransformCbmAmiga WithAmigaProperties(ColorTransformConfig cfg) => WithAmigaProperties(cfg.AmigaVideoMode, cfg.AmigaInternalTransformationModel);
 
 
 
@@ -147,9 +147,8 @@ namespace ColourClashNet.Color.Transformation
             var oResultQuantized = oQuantization.CreateAndProcessColors(ImageSource, token);
 
             var cfg = config.Clone()
-                .WithMaxColorWanted(iMaxColors)
-                .WithColorMean(ColorSelectionMode.EvaluateColorMean);
-            var oColorReduction = ColorTransformInternal.Alloc(config) as ColorTransformBase;
+                .WithMaxColorWanted(iMaxColors);
+            var oColorReduction = ColorTransformInternal.Alloc(config, config.AmigaInternalTransformationModel) as ColorTransformBase;
             oColorReduction.SetProperties(config);
             var oDataPreprocessedResult = oColorReduction.CreateAndProcessColors(oResultQuantized.DataOut, token);
             BypassDithering = true;

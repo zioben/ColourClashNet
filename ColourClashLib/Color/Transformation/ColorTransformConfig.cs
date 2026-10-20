@@ -1,10 +1,10 @@
 ﻿using ColourClashNet.Color;
 using ColourClashNet.Color.Dithering;
 using System.ComponentModel;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionAmiga;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionC64;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionCPC;
-using static ColourClashNet.Color.Transformation.ColorTransformReductionZxSpectrum;
+using static ColourClashNet.Color.Transformation.ColorTransformCbmAmiga;
+using static ColourClashNet.Color.Transformation.ColorTransformCbm64;
+using static ColourClashNet.Color.Transformation.ColorTransformAmstradCPC;
+using static ColourClashNet.Color.Transformation.ColorTransformZxSpectrum;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -25,25 +25,34 @@ namespace ColourClashNet.Color.Transformation
             = ColorQuantizationMode.RGB888;
 
         public int MaxColorsWanted { get; set; } = 256;
+        public bool ShowTileBorders { get; set; } = true;
+        public int TileBorderColor { get; set; } = ColorIntExt.FromRGB(255, 0, 255);
 
         // ── Scanline ─────────────────────────────────────────────────────────
-        public int MaxColorsPerChunk { get; set; } = 0;
-        public int ChunkHeight { get; set; } = 1;
-        public ColorTransformReductionScanLine.ScanlineReductionMode ScanlineReductionMode { get; set; } = ColorTransformReductionScanLine.ScanlineReductionMode.IndependentPalettePerLine;
+        public int ScanLineMaxColorsPerChunk { get; set; } = 0;
+        public int ScanLineChunkHeight { get; set; } = 1;
+        public ColorTransformScanLine.ScanlineReductionMode ScanlineReductionMode { get; set; } = ColorTransformScanLine.ScanlineReductionMode.IndependentPalettePerLine;
+        public ColorSelectionMode ScanLineColorSelectionMode { get; set; } = ColorSelectionMode.EvaluateColorMean;
+        public ColorTransformType ScanLineInternalTransformationModel { get; set; } = ColorTransformType.ColorReductionFast;
+        public bool ScanLineColorBackgriundReplacementFixed { get; set; } = true;
+
 
         // ── Palette ─────────────────────────────────────────────────────────
         private object paletteLock = new object();
         public bool ReferencePaletteWriteLock { get; private set; } = false;
         public Palette ReferencePalette { get; private set; } = new Palette();
-        public Palette ColorBackgroundList { get; set; } = new Palette();
-        public int ColorBackgroundReplacement { get; set; } = ColorIntExt.FromRGB(0, 0, 0);
+        public Palette ColorBackgroundPalette { get; set; } = new Palette();
+        public int ColorBackgroundReplacementValue { get; set; } = ColorIntExt.FromRGB(0, 0, 0);
 
 
-        // ── Flags ────────────────────────────────────────────────────────────
-        public ColorSelectionMode ColorMeanMode { get; set; } = ColorSelectionMode.EvaluateColorMean;
-        public bool UseFixedPalette { get; set; } = false;
-        public ColorTransformType InternalTransformationModel { get; set; } = ColorTransformType.ColorReductionFast;
+        
+        // ── Clustering ────────────────────────────────────────────────────────────
         public int ClusterTrainingLoop { get; set; } = 10;
+        public ColorSelectionMode ClusterColorSelectionMode { get; set; } = ColorSelectionMode.EvaluateColorMean;
+        public ClusterPaletteInitializationMode ClusterPaletteInitializationMode { get; set; } = ClusterPaletteInitializationMode.ImagePalette;
+
+        // ── ColorMean ────────────────────────────────────────────────────────────
+        public ColorSelectionMode MedianCutColorSelectionMode { get; set; } = ColorSelectionMode.EvaluateColorMean;
 
         // ── Dithering ────────────────────────────────────────────────────────
         public DitherConfig DitheringCfg { get; set; } = new DitherConfig();
@@ -54,39 +63,42 @@ namespace ColourClashNet.Color.Transformation
         public double HsvBrightnessMultFactor { get; set; } = 1.0;
 
         // ── Platform-specific: C64 ───────────────────────────────────────────
-        public ColorTransformReductionC64.C64VideoMode C64VideoMode { get; set; }
-            = ColorTransformReductionC64.C64VideoMode.Multicolor;
-        public ColorTransformReductionC64.C64DitheringMode C64DitheringMode { get; set; }
-            = ColorTransformReductionC64.C64DitheringMode.PreDitherImage;
+        public ColorTransformCbm64.C64VideoMode C64VideoMode { get; set; }
+            = ColorTransformCbm64.C64VideoMode.Multicolor;
+        public ColorTransformCbm64.C64DitheringMode C64DitheringMode { get; set; }
+            = ColorTransformCbm64.C64DitheringMode.PreDitherImage;
 
         // ── Platform-specific: Amiga ─────────────────────────────────────────
-        public ColorTransformReductionAmiga.EnumAmigaVideoMode AmigaVideoMode { get; set; }
-            = ColorTransformReductionAmiga.EnumAmigaVideoMode.Ham6;
+        public ColorTransformCbmAmiga.EnumAmigaVideoMode AmigaVideoMode { get; set; }
+            = ColorTransformCbmAmiga.EnumAmigaVideoMode.Ham6;
+
+        public ColorSelectionMode AmigaColorSelectionMode { get; set; } = ColorSelectionMode.UseColorPalette;
+        public ColorTransformType AmigaInternalTransformationModel { get; set; } = ColorTransformType.ColorReductionFast;
+
 
         // ── Platform-specific: CPC ───────────────────────────────────────────
-        public ColorTransformReductionCPC.CPCVideoMode CPCVideoMode { get; set; }
-            = ColorTransformReductionCPC.CPCVideoMode.Mode0;
+        public ColorTransformAmstradCPC.CPCVideoMode CPCVideoMode { get; set; }
+            = ColorTransformAmstradCPC.CPCVideoMode.Mode0;
 
         // ── Platform-specific: CGA ───────────────────────────────────
 
-        public ColorTransformReductionCGA.CGAVideoMode CGAVideoMode { get; set; }
-            = ColorTransformReductionCGA.CGAVideoMode.Mode4_0L;
+        public ColorTransformCGA.CGAVideoMode CGAVideoMode { get; set; }
+            = ColorTransformCGA.CGAVideoMode.Mode4_0L;
 
-        public ColorTransformReductionCGA.CGAOutputMode CGAOutputMode { get; set; }
-            = ColorTransformReductionCGA.CGAOutputMode.ProcessedImage;
+        public ColorTransformCGA.CGAOutputMode CGAOutputMode { get; set; }
+            = ColorTransformCGA.CGAOutputMode.ProcessedImage;
 
         // ── Platform-specific: ZX Spectrum ───────────────────────────────────
-        public ColorTransformReductionZxSpectrum.ZxPaletteMode ZxPaletteMode { get; set; }
-            = ColorTransformReductionZxSpectrum.ZxPaletteMode.BothPalettes;
+        public ColorTransformZxSpectrum.ZxPaletteMode ZxPaletteMode { get; set; }
+            = ColorTransformZxSpectrum.ZxPaletteMode.BothPalettes;
 
         public int ZxPaletteInColorSeedLow { get; set; } = 192;
         public int ZxPaletteInColorSeedHigh { get; set; } = 255;
         public bool ZxIncludeBlackInHighColorImage { get; set; } = false;
         public bool ZxDitherLowColorImage { get; set; } = false;
         public bool ZxDitherHighColorImage { get; set; } = false;
-        public ColorTransformReductionZxSpectrum.ZxAutotuneMode ZxAutotuneMode { get; set; } = ColorTransformReductionZxSpectrum.ZxAutotuneMode.None;
-        public bool ShowTileBorders { get; set; } = true;
-        public int TileBorderColor { get; set; } = ColorIntExt.FromRGB(255, 0, 255);
+        public ColorTransformZxSpectrum.ZxAutotuneMode ZxAutotuneMode { get; set; } = ColorTransformZxSpectrum.ZxAutotuneMode.None;
+
 
         /// <summary>
         /// Creates a indipendent copy of the current ColorTransformConfig instance.
@@ -106,23 +118,23 @@ namespace ColourClashNet.Color.Transformation
                 {
                     ReferencePalette = new Palette();
                 }
-                if (ColorBackgroundList != null)
+                if (ColorBackgroundPalette != null)
                 {
-                    ret.ColorBackgroundList = new Palette().Create(this.ColorBackgroundList);
+                    ret.ColorBackgroundPalette = new Palette().Create(this.ColorBackgroundPalette);
                 }
                 else
                 {
-                    ret.ColorBackgroundList = new Palette();
+                    ret.ColorBackgroundPalette = new Palette();
                 }
                 return ret;
             }
         }
 
-        public ColorTransformConfig WithColorMean(ColorSelectionMode colorMeanMode)
-        {
-            ColorMeanMode = colorMeanMode;
-            return this;
-        }
+        //public ColorTransformConfig WithColorMean(ColorSelectionMode colorMeanMode)
+        //{
+        //    ColorMeanColorSelectionMode = colorMeanMode;
+        //    return this;
+        //}
 
 
         public ColorTransformConfig WithReferencePalette(IEnumerable<int> palette, bool forcePaletteOverwrite=false)
@@ -172,8 +184,8 @@ namespace ColourClashNet.Color.Transformation
 
         public ColorTransformConfig WithBackgroundColorReplacement(Palette colorPalette, int replacementColor)
         {
-            ColorBackgroundList = new Palette().Create(colorPalette);
-            ColorBackgroundReplacement = replacementColor;
+            ColorBackgroundPalette = new Palette().Create(colorPalette);
+            ColorBackgroundReplacementValue = replacementColor;
             return this;
         }
 
@@ -218,8 +230,8 @@ namespace ColourClashNet.Color.Transformation
         public ColorTransformConfig WithAmigaScreenMode(EnumAmigaVideoMode videoMode, ColorTransformType colorTransformationMode, ColorSelectionMode colorMeanMode)
         {
             AmigaVideoMode = videoMode;
-            InternalTransformationModel = colorTransformationMode;
-            ColorMeanMode = colorMeanMode;
+            AmigaInternalTransformationModel = colorTransformationMode;
+            AmigaColorSelectionMode = colorMeanMode;
             return this;
         }
 
@@ -240,7 +252,7 @@ namespace ColourClashNet.Color.Transformation
         {
             MaxColorsWanted = maxColorsWanted;
             ClusterTrainingLoop = trainingLoop;
-            ColorMeanMode = colorMeanMode;
+            ClusterColorSelectionMode = colorMeanMode;
             return this;
         }
 
@@ -261,30 +273,36 @@ namespace ColourClashNet.Color.Transformation
             MaxColorsWanted = maxColors;
             return this;
         }
-        public ColorTransformConfig WithScanline(int chunkHeight, ColorTransformReductionScanLine.ScanlineReductionMode scanlineReductionMode, int maxColorWanted, int maxColorChangePerLine, ColorTransformType internalTransformtionMode, ColorSelectionMode colorMeanMode )
+        public ColorTransformConfig WithScanline(int chunkHeight, ColorTransformScanLine.ScanlineReductionMode scanlineReductionMode, int maxColorWanted, int maxColorChangePerLine, ColorTransformType internalTransformtionMode, ColorSelectionMode colorMeanMode )
         {
             ScanlineReductionMode = scanlineReductionMode;  
             MaxColorsWanted = maxColorWanted;
-            MaxColorsPerChunk = maxColorChangePerLine;
-            InternalTransformationModel = internalTransformtionMode;
-            ColorMeanMode = colorMeanMode;
+            ScanLineMaxColorsPerChunk = maxColorChangePerLine;
+            ScanLineInternalTransformationModel = internalTransformtionMode;
+            ScanLineColorSelectionMode = colorMeanMode;
+            return this;
+        }
+
+        public ColorTransformConfig WithMedianCut(ColorSelectionMode colorMeanMode)
+        {
+            MedianCutColorSelectionMode = colorMeanMode;
             return this;
         }
 
         public ColorTransformConfig WithZxScreenMode(ZxPaletteMode paletteMode, int lowColorInSeed, int highColorInSeed )
         {
-            this.ZxPaletteMode = paletteMode;
-            this.ZxPaletteInColorSeedLow = lowColorInSeed;
-            this.ZxPaletteInColorSeedHigh = highColorInSeed;
+            ZxPaletteMode = paletteMode;
+            ZxPaletteInColorSeedLow = lowColorInSeed;
+            ZxPaletteInColorSeedHigh = highColorInSeed;
             return this;
         }
         public ColorTransformConfig WithZxProcessing(ZxAutotuneMode autotuneMode, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor, bool showTileBorders)
         {
-            this.ZxDitherLowColorImage = ditherLowColorImage;
-            this.ZxDitherHighColorImage = ditherHighColorImage;
-            this.ZxIncludeBlackInHighColorImage = includeBlackInHighColor;
-            this.ZxAutotuneMode = autotuneMode;
-            this.ShowTileBorders = showTileBorders;
+            ZxDitherLowColorImage = ditherLowColorImage;
+            ZxDitherHighColorImage = ditherHighColorImage;
+            ZxIncludeBlackInHighColorImage = includeBlackInHighColor;
+            ZxAutotuneMode = autotuneMode;
+            ShowTileBorders = showTileBorders;
             return this;
         }
         public ColorTransformConfig WithHSV(double hueShift, double saturationMultFactor, double brightnessMultFactor)

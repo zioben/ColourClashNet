@@ -15,9 +15,9 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformReductionZxSpectrum : ColorTransformBase
+    public class ColorTransformZxSpectrum : ColorTransformBase
     {
-        static string sC = nameof(ColorTransformReductionZxSpectrum);
+        static string sC = nameof(ColorTransformZxSpectrum);
 
         public enum ZxPaletteMode
         {
@@ -34,7 +34,7 @@ namespace ColourClashNet.Color.Transformation
             Detailed = 2,
         }
 
-        public ColorTransformReductionZxSpectrum()
+        public ColorTransformZxSpectrum()
         {
             Type = ColorTransformType.ColorReductionZxSpectrum;
             Description = "Reduce color to ZX Spectrum color map and apply ColourClash reduction";
@@ -120,17 +120,17 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        public ColorTransformReductionZxSpectrum WithZxScreenMode(ZxPaletteMode paletteMode, int lowColorInSeed, int highColorInSeed)
+        public ColorTransformZxSpectrum WithZxScreenMode(ZxPaletteMode paletteMode, int lowColorInSeed, int highColorInSeed)
         {
             ZxPaletteInColorSeedLow = lowColorInSeed;
             ZxPaletteInColorSeedHigh = highColorInSeed;
             PaletteMode = paletteMode;
             return this;
         }
-        public ColorTransformReductionZxSpectrum WithZxScreenMode(ColorTransformConfig cfg)
+        public ColorTransformZxSpectrum WithZxScreenMode(ColorTransformConfig cfg)
             => WithZxScreenMode(cfg.ZxPaletteMode, cfg.ZxPaletteInColorSeedLow, cfg.ZxPaletteInColorSeedHigh);
 
-        public ColorTransformReductionZxSpectrum WithProcessingParams(ZxAutotuneMode autotuneMode, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor)
+        public ColorTransformZxSpectrum WithProcessingParams(ZxAutotuneMode autotuneMode, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor)
         {
             DitherLowColorImage = ditherLowColorImage;
             DitherHighColorImage = ditherHighColorImage;
@@ -139,7 +139,7 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        public ColorTransformReductionZxSpectrum WithProcessingParams(ColorTransformConfig cfg)
+        public ColorTransformZxSpectrum WithProcessingParams(ColorTransformConfig cfg)
             => WithProcessingParams(cfg.ZxAutotuneMode, cfg.ZxDitherLowColorImage, cfg.ZxDitherHighColorImage, cfg.ZxIncludeBlackInHighColorImage);
 
 
@@ -183,7 +183,7 @@ namespace ColourClashNet.Color.Transformation
             zxPalette.Add(ColorIntExt.FromRGB(l, l, l));
 
             // var zxBaseTransform = new ColorTransformReductionPalette()
-                var zxBaseTransform = new ColorTransformReductionPaletteEnhanced()
+                var zxBaseTransform = new ColorTransformFixedPaletteEnhanced()
                 .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
                 .WithReferencePalette(zxPalette)
                 .WithDithering(DitheringConfig)
@@ -198,7 +198,7 @@ namespace ColourClashNet.Color.Transformation
             var dithering = useDithering ? DitheringConfig.DitheringType : ColorDithering.None;
 
             //Create best input image on input seed palette
-            var zxBaseTransform = new ColorTransformReductionPalette()
+            var zxBaseTransform = new ColorTransformFixedPalette()
                .WithReferencePalette(transformationMap.GetInputPalette())
                .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
                .WithDithering(DitheringConfig)

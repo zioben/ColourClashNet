@@ -6,38 +6,39 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformReductionPaletteEnhanced : ColorTransformBase
+    public class ColorTransformFixedPalette : ColorTransformBase
     {
         //-------------------------------------------------------------
         // Generic Fixed Palette Management 
         //-------------------------------------------------------------
-        public ColorTransformReductionPaletteEnhanced()
+        public ColorTransformFixedPalette()
         {
-            Type = ColorTransformType.ColorReductionEnhancedPalette;
+            Type = ColorTransformType.ColorReductionGenericPalette;
             Description = "Color palette trasformation";
         }
+        public ColorTransformFixedPalette WithFixedPalette(List<int> palette)
+        {
+            config.WithFixedPalette(palette,true);
+            return this;
+        }
 
+        protected virtual void RebuildReferencePalette()
+        {
+            
+        }
 
         protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken = default)
         {
             TransformationMap.Reset();
-
+            RebuildReferencePalette();
             var rgbList = ImageSource.ColorPalette.ToList();
-            Palette paletteEnhance = new ();
-            paletteEnhance.Create(ReferencePalette);
-            for (int i = 0; i < ReferencePalette.Count; i++)
-            {
-                for (int j = i + 1; j < ReferencePalette.Count; j++)
-                {
-                    paletteEnhance.Add(ColorIntExt.GetColorMean(rgbList[i], rgbList[j]));
-                }
-            }
-            //Parallel.ForEach(rgbListEnhance, rgb =>
+
+            //Parallel.ForEach(rgbList, rgb =>
             foreach (var rgb in rgbList)    
             {
-                TransformationMap.Add(rgb, ColorIntExt.GetNearestColor(rgb, paletteEnhance, this.ColorDistanceEvaluationMode));
+                TransformationMap.Add(rgb, ColorIntExt.GetNearestColor(rgb, ReferencePalette, this.ColorDistanceEvaluationMode));
             }//);
-            //Ferificed OK
+            //Verified OK
             //var t = TransformationMap.rgbTransformationMap.Values.Distinct().ToList();
             return ColorTransformResult.CreateValidResult();
         }

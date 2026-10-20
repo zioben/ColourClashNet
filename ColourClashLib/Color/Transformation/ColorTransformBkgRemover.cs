@@ -22,14 +22,14 @@ namespace ColourClashNet.Color.Transformation
 
         public Palette BackgroundPalette
         {
-            get => config.ColorBackgroundList;
-            set => config.ColorBackgroundList = value ?? new Palette();
+            get => config.ColorBackgroundPalette;
+            set => config.ColorBackgroundPalette = value ?? new Palette();
         }
 
         public int ColorBackgroundReplacement 
         { 
-            get => config.ColorBackgroundReplacement;
-            set => config.ColorBackgroundReplacement = value;
+            get => config.ColorBackgroundReplacementValue;
+            set => config.ColorBackgroundReplacementValue = value;
         } 
 
         public ColorTransformInterface WithColorReplacement( Palette colorPalette, int replacementColor)
@@ -39,7 +39,7 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        public ColorTransformInterface WithColorReplacement(ColorTransformConfig cfg) => WithColorReplacement(cfg.ColorBackgroundList, cfg.ColorBackgroundReplacement);
+        public ColorTransformInterface WithColorReplacement(ColorTransformConfig cfg) => WithColorReplacement(cfg.ColorBackgroundPalette, cfg.ColorBackgroundReplacementValue);
 
 
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)

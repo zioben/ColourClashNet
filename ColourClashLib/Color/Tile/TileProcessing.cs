@@ -57,7 +57,7 @@ public partial class TileProcessing
             Reset();
             NormalizationError = normalizationError;
             tileItem = new TileItem().Create(sourceImage, sourceX, sourceY, tileWidth, tileHeight);
-            transformation = ColorTransformInternal.Alloc(colorTransformConfig);
+            transformation = ColorTransformInternal.Alloc(colorTransformConfig, ColorTransformType.ColorReductionClustering);
             return this;
         }
     }
