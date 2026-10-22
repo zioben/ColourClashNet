@@ -31,11 +31,9 @@ namespace ColourClashNet.Color.Transformation
         // ── Scanline ─────────────────────────────────────────────────────────
         public int ScanLineMaxColorsPerChunk { get; set; } = 0;
         public int ScanLineChunkHeight { get; set; } = 1;
-        public ColorTransformScanLine.ScanlineReductionMode ScanlineReductionMode { get; set; } = ColorTransformScanLine.ScanlineReductionMode.IndependentPalettePerLine;
-        public ColorSelectionMode ScanLineColorSelectionMode { get; set; } = ColorSelectionMode.EvaluateColorMean;
+        public ColorTransformScanLine.ScanlinePaletteMode ScanlinePaletteMode { get; set; } = ColorTransformScanLine.ScanlinePaletteMode.IndependentChunkPalette;
         public ColorTransformType ScanLineInternalTransformationModel { get; set; } = ColorTransformType.ColorReductionFast;
-        public bool ScanLineColorBackgriundReplacementFixed { get; set; } = true;
-
+  
 
         // ── Palette ─────────────────────────────────────────────────────────
         private object paletteLock = new object();
@@ -273,13 +271,12 @@ namespace ColourClashNet.Color.Transformation
             MaxColorsWanted = maxColors;
             return this;
         }
-        public ColorTransformConfig WithScanline(int chunkHeight, ColorTransformScanLine.ScanlineReductionMode scanlineReductionMode, int maxColorWanted, int maxColorChangePerLine, ColorTransformType internalTransformtionMode, ColorSelectionMode colorMeanMode )
+        public ColorTransformConfig WithScanline(int chunkHeight, ColorTransformScanLine.ScanlinePaletteMode scanlineReductionMode, int maxColorWanted, int maxColorChangePerLine, ColorTransformType internalTransformtionMode )
         {
-            ScanlineReductionMode = scanlineReductionMode;  
+            ScanlinePaletteMode = scanlineReductionMode;  
             MaxColorsWanted = maxColorWanted;
             ScanLineMaxColorsPerChunk = maxColorChangePerLine;
             ScanLineInternalTransformationModel = internalTransformtionMode;
-            ScanLineColorSelectionMode = colorMeanMode;
             return this;
         }
 
