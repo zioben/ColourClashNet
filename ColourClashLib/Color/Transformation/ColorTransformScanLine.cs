@@ -43,8 +43,8 @@ namespace ColourClashNet.Color.Transformation
 
         public int ChunkHeight
         {
-            get => config.ScanLineChunkHeight;
-            set => config.ScanLineChunkHeight = value;
+            get => config.ScanlineChunkHeight;
+            set => config.ScanlineChunkHeight = value;
         }
         public ScanlinePaletteMode PaletteMode
         {
@@ -58,13 +58,13 @@ namespace ColourClashNet.Color.Transformation
         }
         public int MaxColorsPerChunk
         {
-            get => config.ScanLineMaxColorsPerChunk;
-            set => config.ScanLineMaxColorsPerChunk = value;
+            get => config.ScanlineMaxColorsPerChunk;
+            set => config.ScanlineMaxColorsPerChunk = value;
         }
         public ColorTransformType InternalTransformationModel 
         { 
-            get => config.ScanLineInternalTransformationModel;
-            set => config.ScanLineInternalTransformationModel = value;
+            get => config.ScanlineInternalTransformationModel;
+            set => config.ScanlineInternalTransformationModel = value;
         }
 
 
@@ -73,10 +73,10 @@ namespace ColourClashNet.Color.Transformation
         public List<List<int>> ColorListRow { get; private set; } = new List<List<int>>();
         public List<UInt16> ColorListMask { get; private set; } = new List<UInt16>();
 
-        public ColorTransformScanLine WithProcessingParams(int chunkHeight, ScanlinePaletteMode scanlineReductionMode, int maxColorsWanted, int maxColorsPerChunk, ColorTransformType internalTransformationModel )
+        public ColorTransformScanLine WithProcessingParams(int chunkHeight, ScanlinePaletteMode scanlinePaletteMode, int maxColorsWanted, int maxColorsPerChunk, ColorTransformType internalTransformationModel )
         {
             ChunkHeight=chunkHeight;
-            PaletteMode = scanlineReductionMode;
+            PaletteMode = scanlinePaletteMode;
             MaxColorsWanted = maxColorsWanted;
             MaxColorsPerChunk = maxColorsPerChunk;
             InternalTransformationModel = internalTransformationModel;
@@ -85,7 +85,7 @@ namespace ColourClashNet.Color.Transformation
 
 
         public ColorTransformScanLine WithProcessingParams(ColorTransformConfig cfg) 
-            => WithProcessingParams(cfg.ScanLineChunkHeight, cfg.ScanlinePaletteMode, cfg.MaxColorsWanted, cfg.ScanLineMaxColorsPerChunk, cfg.ScanLineInternalTransformationModel);
+            => WithProcessingParams(cfg.ScanlineChunkHeight, cfg.ScanlinePaletteMode, cfg.MaxColorsWanted, cfg.ScanlineMaxColorsPerChunk, cfg.ScanlineInternalTransformationModel);
 
 
         protected override ColorTransformResult ExecuteTransform(CancellationToken oToken = default)
@@ -134,12 +134,14 @@ namespace ColourClashNet.Color.Transformation
             var oMainPalette = oMainImage.ColorPalette;
             if (oMainPalette.Count > MaxColorsWanted)
             {
-                var transf = ColorTransformInternal.Alloc(config,config.ScanLineInternalTransformationModel).Create(ImageSource);
+                var transf = ColorTransformInternal.Alloc(config,config.ScanlineInternalTransformationModel).Create(ImageSource);
                 var result = transf.ProcessColors(oToken);
                 oMainImage = result.DataOut;
             }
             ImageData.AssertValid(oMainImage);
-            var cfg = config.Clone().WithMaxColorWanted(MaxColorsPerChunk).WithReferencePalette(new(), true);
+            var cfg = config.Clone()
+                .WithMaxColorWanted(MaxColorsPerChunk)
+                .WithReferencePalette(new(), true);
             TileManager = new TileManager()
                 .Create(oMainImage.Width, ChunkHeight, oMainImage, 1.0, cfg, oToken);
             var tileResult = TileManager.ProcessColors(oToken);
@@ -150,7 +152,7 @@ namespace ColourClashNet.Color.Transformation
             }
             else
             {
-                return ColorTransformResult.CreateErrorResult(ImageSource, ImageSource, $"{sC}.{sM} : Tile processing error : {tileResult.Message}");
+                return ColorTransformResult.CreateErrorResult(ImageSource, null, $"{sC}.{sM} : Tile processing error : {tileResult.Message}");
             }
         }
     }

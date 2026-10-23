@@ -24,7 +24,7 @@ namespace ColourClashNet.Controls
     {
 
 
-     
+
 
         public class CopyDataEventArgs : EventArgs
         {
@@ -84,7 +84,7 @@ namespace ColourClashNet.Controls
             CreateComboBox(cbZxAutotuneMode, Enum.GetNames(typeof(ColorTransformZxSpectrum.ZxAutotuneMode)).ToList());
             oBitmapRenderSource.ColorAdded += (s, e) => { BuildBkgPalette(); };
             oBitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };
-            oColorManager.OnQuantize += (s, e) => { Invoke( ()=> RefreshData() ); };
+            oColorManager.OnQuantize += (s, e) => { Invoke(() => RefreshData()); };
             oColorManager.OnProcess += (s, e) => { Invoke(() => { RefreshData(); RebuildParams(e.Transformation); }); };
         }
 
@@ -111,9 +111,9 @@ namespace ColourClashNet.Controls
             }
         }
 
-       
 
-      
+
+
         void BuildBkgPalette()
         {
             pbBkColor.Image = null;
@@ -151,8 +151,8 @@ namespace ColourClashNet.Controls
 
         void RefreshData()
         {
-            pgColorProcessor.SelectedObject = null;
             pgColorProcessor.SelectedObject = oColorManager;
+            pgColorProcessorConfig.SelectedObject = oColorManager?.transformConfig;
             ShowImage();
         }
 
@@ -198,7 +198,7 @@ namespace ColourClashNet.Controls
 
         public void Create(ImageData image, string name)
         {
-            oLoadedBmp = ImageToolsGDI.ImageDataToGdiImage( image ) as Bitmap;
+            oLoadedBmp = ImageToolsGDI.ImageDataToGdiImage(image) as Bitmap;
             oName = name;
             Create();
         }
@@ -240,16 +240,15 @@ namespace ColourClashNet.Controls
             oColorManager.transformConfig.WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
             //
             oColorManager.transformConfig.WithScanline(
-                1,
+                (int)numLinesPerBlock.Value,
                 chkScanlineSharedPal.Checked ? ColorTransformScanLine.ScanlinePaletteMode.SharedChunksPalette : ColorTransformScanLine.ScanlinePaletteMode.IndependentChunkPalette,
                 (int)nudColorsWanted.Value,
                 (int)nudScanlineLineColors.Value,
-                ColorTransformType.ColorReductionClustering,
-                ColorSelectionMode.UseColorPalette);
+                ColorTransformType.ColorReductionClustering);
             //
             oColorManager.transformConfig.WithClustering(
                 (int)nudColorsWanted.Value,
-                (int)nudClusterLoop.Value, 
+                (int)nudClusterLoop.Value,
                 ColorSelectionMode.UseColorPalette);
             // Dithering viene settato dalla form
             oColorManager.transformConfig.WithDithering(
@@ -263,7 +262,7 @@ namespace ColourClashNet.Controls
                 (double)nudHue.Value);
             //
             oColorManager.transformConfig.WithC64ScreenMode(
-               (ColorTransformCbm64.C64VideoMode)Enum.Parse(typeof(ColorTransformCbm64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString()), 
+               (ColorTransformCbm64.C64VideoMode)Enum.Parse(typeof(ColorTransformCbm64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString()),
                ColorTransformCbm64.C64DitheringMode.PreDitherImage,
                chkShowTileBorders.Checked);
             //
@@ -315,10 +314,10 @@ namespace ColourClashNet.Controls
         {
             SetControlToConfig();
             await oColorManager.ProcessColorsAsync(type);
-           // RefreshData();
+            // RefreshData();
         }
 
-        private async void btnReduceColors_Click(object sender, EventArgs e) 
+        private async void btnReduceColors_Click(object sender, EventArgs e)
             => ReduceColorsAsync(ColorTransformType.ColorReductionMedianCut);
 
         private async void btnReduceColorsScanline_Click(object sender, EventArgs e)
@@ -327,7 +326,7 @@ namespace ColourClashNet.Controls
         private async void btnReduceColorCluster_Click(object sender, EventArgs e)
             => ReduceColorsAsync(ColorTransformType.ColorReductionClustering);
 
-       
+
         private async void btnReduceColorsZx_Click(object sender, EventArgs e)
             => ReduceColorsAsync(ColorTransformType.ColorReductionZxSpectrum);
 
@@ -368,29 +367,29 @@ namespace ColourClashNet.Controls
             bDitherStrenghtUpdating = false;
         }
 
-        private void gbLayoutV_CheckedChanged(object sender, EventArgs e)
-        {
-            splitRenderLayout.Orientation = Orientation.Vertical;
-        }
 
-        private void rbLayoutH_CheckedChanged(object sender, EventArgs e)
-        {
-            splitRenderLayout.Orientation = Orientation.Horizontal;
-        }
 
         private void scMain_SplitterMoved(object sender, SplitterEventArgs e)
         {
-            if (splitMain.Panel1.Width > iPanel1MaxWidth)
+            if (splitMainA_BC.Panel1.Width > iPanel1MaxWidth)
             {
-                splitMain.SplitterDistance = iPanel1MaxWidth;
+                splitMainA_BC.SplitterDistance = iPanel1MaxWidth;
+            }
+            if (splitMainB_C.Panel2.Width > iPanel1MaxWidth)
+            {
+                splitMainB_C.SplitterDistance = iPanel1MaxWidth;
             }
         }
 
         private void scMain_SizeChanged(object sender, EventArgs e)
         {
-            if (splitMain.Panel1.Width > iPanel1MaxWidth)
+            if (splitMainA_BC.Panel1.Width > iPanel1MaxWidth)
             {
-                splitMain.SplitterDistance = iPanel1MaxWidth;
+                splitMainA_BC.SplitterDistance = iPanel1MaxWidth;
+            }
+            if (splitMainB_C.Panel2.Width > iPanel1MaxWidth)
+            {
+                splitMainB_C.SplitterDistance = iPanel1MaxWidth;
             }
         }
 
@@ -426,9 +425,26 @@ namespace ColourClashNet.Controls
                 SourceBitmap = oS,
                 DestBitmap = oD,
                 DestBitmapRoi = new Rectangle(0, 0, oD.Width, oD.Height)
-            }); 
+            });
         }
 
-      
+        void SetRenderPanelLayout(bool bHorizonalLayout)
+        {
+            splitRenderLayout.Orientation = bHorizonalLayout ? Orientation.Horizontal : Orientation.Vertical;
+            horizontalToolStripMenuItem.Checked = bHorizonalLayout;
+            verticalToolStripMenuItem.Checked = !bHorizonalLayout;
+        }
+
+        private void horizontalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetRenderPanelLayout(true);
+        }
+
+
+        private void verticalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetRenderPanelLayout(false);
+        }
+
     }
 }

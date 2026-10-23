@@ -18,83 +18,151 @@ namespace ColourClashNet.Color.Transformation
     {
 
         // ── Core ────────────────────────────────────────────────────────────
+
+        [Browsable(true),Category("Shared")]
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; }
             = ColorDistanceEvaluationMode.RGB;
 
+        [Browsable(true), Category("Shared")]
         public ColorQuantizationMode QuantizationMode { get; set; }
             = ColorQuantizationMode.RGB888;
 
+        [Browsable(true), Category("Shared")]
         public int MaxColorsWanted { get; set; } = 256;
-        public bool ShowTileBorders { get; set; } = true;
-        public int TileBorderColor { get; set; } = ColorIntExt.FromRGB(255, 0, 255);
 
-        // ── Scanline ─────────────────────────────────────────────────────────
-        public int ScanLineMaxColorsPerChunk { get; set; } = 0;
-        public int ScanLineChunkHeight { get; set; } = 1;
-        public ColorTransformScanLine.ScanlinePaletteMode ScanlinePaletteMode { get; set; } = ColorTransformScanLine.ScanlinePaletteMode.IndependentChunkPalette;
-        public ColorTransformType ScanLineInternalTransformationModel { get; set; } = ColorTransformType.ColorReductionFast;
-  
+        [Browsable(true), Category("Shared")]
+        public bool ShowTileBorders { get; set; } = true;
+
+        [Browsable(true), Category("Shared")]
+        public int TileBorderColor { get; set; } = ColorIntExt.FromRGB(255, 0, 255);
 
         // ── Palette ─────────────────────────────────────────────────────────
         private object paletteLock = new object();
+
+        [Browsable(true), Category("Shared")]
         public bool ReferencePaletteWriteLock { get; private set; } = false;
+
+        [Browsable(true), Category("Shared")]
         public Palette ReferencePalette { get; private set; } = new Palette();
+
+        // ── Dithering ────────────────────────────────────────────────────────
+
+        [Browsable(true), Category("Shared")]
+        [TypeConverter(typeof(ExpandableObjectConverter))]
+        public DitherConfig DitheringCfg { get; set; } = new DitherConfig();
+
+        // ── Scanline ─────────────────────────────────────────────────────────
+
+        [Browsable(true), Category("Scanline")]
+        public int ScanlineMaxColorsPerChunk { get; set; } = 0;
+
+        [Browsable(true), Category("Scanline")]
+        public int ScanlineChunkHeight { get; set; } = 1;
+
+        [Browsable(true), Category("Scanline")]
+        public ColorTransformScanLine.ScanlinePaletteMode ScanlinePaletteMode { get; set; } = ColorTransformScanLine.ScanlinePaletteMode.IndependentChunkPalette;
+
+        [Browsable(true), Category("Scanline")]
+        public ColorTransformType ScanlineInternalTransformationModel { get; set; } = ColorTransformType.ColorReductionFast;
+  
+        // ── Background ─────────────────────────────────────────────────────────
+
+        [Browsable(true), Category("Background Replacement")]
         public Palette ColorBackgroundPalette { get; set; } = new Palette();
+
+        [Browsable(true), Category("Background Replacement")]
         public int ColorBackgroundReplacementValue { get; set; } = ColorIntExt.FromRGB(0, 0, 0);
 
 
-        
         // ── Clustering ────────────────────────────────────────────────────────────
+
+        [Browsable(true), Category("Cluster")]
         public int ClusterTrainingLoop { get; set; } = 10;
+
+        [Browsable(true), Category("Cluster")]
         public ColorSelectionMode ClusterColorSelectionMode { get; set; } = ColorSelectionMode.EvaluateColorMean;
+
+        [Browsable(true), Category("Cluster")]
         public ClusterPaletteInitializationMode ClusterPaletteInitializationMode { get; set; } = ClusterPaletteInitializationMode.ImagePalette;
 
         // ── ColorMean ────────────────────────────────────────────────────────────
+
+        [Browsable(true), Category("Median Cut")]
         public ColorSelectionMode MedianCutColorSelectionMode { get; set; } = ColorSelectionMode.EvaluateColorMean;
 
-        // ── Dithering ────────────────────────────────────────────────────────
-        public DitherConfig DitheringCfg { get; set; } = new DitherConfig();
 
         // ── HSV adjustments ──────────────────────────────────────────────────
+
+        [Browsable(true), Category("HSV")]
         public double HsvHueShift { get; set; } = 0.0;
+
+        [Browsable(true), Category("HSV")]
         public double HsvSaturationMultFactor { get; set; } = 1.0;
+
+        [Browsable(true), Category("HSV")]
         public double HsvBrightnessMultFactor { get; set; } = 1.0;
 
         // ── Platform-specific: C64 ───────────────────────────────────────────
+
+        [Browsable(true), Category("CBM C64")]
         public ColorTransformCbm64.C64VideoMode C64VideoMode { get; set; }
             = ColorTransformCbm64.C64VideoMode.Multicolor;
+
+        [Browsable(true), Category("CBM C64")]
         public ColorTransformCbm64.C64DitheringMode C64DitheringMode { get; set; }
             = ColorTransformCbm64.C64DitheringMode.PreDitherImage;
 
         // ── Platform-specific: Amiga ─────────────────────────────────────────
+
+        [Browsable(true), Category("CBM Amiga")]
         public ColorTransformCbmAmiga.EnumAmigaVideoMode AmigaVideoMode { get; set; }
             = ColorTransformCbmAmiga.EnumAmigaVideoMode.Ham6;
 
+        [Browsable(true), Category("CBM Amiga")]
         public ColorSelectionMode AmigaColorSelectionMode { get; set; } = ColorSelectionMode.UseColorPalette;
+
+        [Browsable(true), Category("CBM Amiga")]
         public ColorTransformType AmigaInternalTransformationModel { get; set; } = ColorTransformType.ColorReductionFast;
 
 
         // ── Platform-specific: CPC ───────────────────────────────────────────
+
+        [Browsable(true), Category("Amstrad CPC")]
         public ColorTransformAmstradCPC.CPCVideoMode CPCVideoMode { get; set; }
             = ColorTransformAmstradCPC.CPCVideoMode.Mode0;
 
         // ── Platform-specific: CGA ───────────────────────────────────
 
+        [Browsable(true), Category("CGA")]
         public ColorTransformCGA.CGAVideoMode CGAVideoMode { get; set; }
             = ColorTransformCGA.CGAVideoMode.Mode4_0L;
 
+        [Browsable(true), Category("CGA")]
         public ColorTransformCGA.CGAOutputMode CGAOutputMode { get; set; }
             = ColorTransformCGA.CGAOutputMode.ProcessedImage;
 
         // ── Platform-specific: ZX Spectrum ───────────────────────────────────
+
+        [Browsable(true), Category("ZX Spectrum")]
         public ColorTransformZxSpectrum.ZxPaletteMode ZxPaletteMode { get; set; }
             = ColorTransformZxSpectrum.ZxPaletteMode.BothPalettes;
 
+        [Browsable(true), Category("ZX Spectrum")]
         public int ZxPaletteInColorSeedLow { get; set; } = 192;
+
+        [Browsable(true), Category("ZX Spectrum")]
         public int ZxPaletteInColorSeedHigh { get; set; } = 255;
+
+        [Browsable(true), Category("ZX Spectrum")]
         public bool ZxIncludeBlackInHighColorImage { get; set; } = false;
+
+        [Browsable(true), Category("ZX Spectrum")]
         public bool ZxDitherLowColorImage { get; set; } = false;
+
+        [Browsable(true), Category("ZX Spectrum")]
         public bool ZxDitherHighColorImage { get; set; } = false;
+
+        [Browsable(true), Category("ZX Spectrum")]
         public ColorTransformZxSpectrum.ZxAutotuneMode ZxAutotuneMode { get; set; } = ColorTransformZxSpectrum.ZxAutotuneMode.None;
 
 
@@ -273,10 +341,11 @@ namespace ColourClashNet.Color.Transformation
         }
         public ColorTransformConfig WithScanline(int chunkHeight, ColorTransformScanLine.ScanlinePaletteMode scanlineReductionMode, int maxColorWanted, int maxColorChangePerLine, ColorTransformType internalTransformtionMode )
         {
+            WithMaxColorWanted(maxColorWanted);
+            ScanlineChunkHeight = chunkHeight;
             ScanlinePaletteMode = scanlineReductionMode;  
-            MaxColorsWanted = maxColorWanted;
-            ScanLineMaxColorsPerChunk = maxColorChangePerLine;
-            ScanLineInternalTransformationModel = internalTransformtionMode;
+            ScanlineMaxColorsPerChunk = maxColorChangePerLine;
+            ScanlineInternalTransformationModel = internalTransformtionMode;
             return this;
         }
 

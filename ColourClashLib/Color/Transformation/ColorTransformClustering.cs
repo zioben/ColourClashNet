@@ -30,13 +30,7 @@ namespace ColourClashNet.Color.Transformation
             get => config.ClusterColorSelectionMode;
             set => config.ClusterColorSelectionMode = value;
         }
-
-        public ClusterPaletteInitializationMode ClusterPaletteInitializationMode
-        {
-            get => config.ClusterPaletteInitializationMode;
-            set => config.ClusterPaletteInitializationMode = value;
-        }    
-        
+      
         public int TrainingLoop 
         {
             get => config.ClusterTrainingLoop;
@@ -83,7 +77,7 @@ namespace ColourClashNet.Color.Transformation
                 }
                 return ColorTransformResult.CreateValidResult();
             }
-            // Create a statup palette for evolution
+            // Create a startup palette for color evolution - Random colors
             else
             {
                 tempPalette = new Palette().Create(ReferencePalette);
@@ -91,39 +85,6 @@ namespace ColourClashNet.Color.Transformation
                 {
                     tempPalette.Add(ColorIntExt.FromRGB(255.0 * random.NextDouble(), 255.0 * random.NextDouble(), 255.0 * random.NextDouble()));
                 }
-
-                /*                switch (ClusterPaletteInitializationMode)
-                                {
-                                    case ClusterPaletteInitializationMode.ImagePalette:
-                                        ColorTransformMedianCut reduction = new ColorTransformMedianCut();
-                                        var firstResult = reduction
-                                            .WithProcessingParams(MaxColorsWanted, ColorSelectionMode.UseColorPalette)
-                                            .WithDithering(ColorDithering.None)
-                                            .WithReferencePalette(ReferencePalette)
-                                            .WithColorDistanceEvaluationMode(config.ColorDistanceEvaluationMode)
-                                            .CreateAndProcessColors(ImageSource, token);
-
-                                        if (!firstResult.IsSuccess)
-                                            throw new InvalidDataException($"{sC}.{sMethod} : Cannot create first palette");
-                                        tempPalette.Create(firstResult.DataOut.ColorPalette);
-                                        while (tempPalette.Count < MaxColorsWanted)
-                                        {
-                                            tempPalette.Add(ColorIntExt.FromRGB(255.0 * random.NextDouble(), 255.0 * random.NextDouble(), 255.0 * random.NextDouble()));
-                                        }
-                                        break;
-                                    case ClusterPaletteInitializationMode.Random:
-                                        {
-                                            tempPalette = new Palette().Create(ReferencePalette);
-                                            while (tempPalette.Count < MaxColorsWanted)
-                                            {
-                                                tempPalette.Add(ColorIntExt.FromRGB(255.0 * random.NextDouble(), 255.0 * random.NextDouble(), 255.0 * random.NextDouble()));
-                                            }
-                                        }
-                                        break;
-                                    default:
-                                        throw new ArgumentException($"{sC}.{sMethod} : {nameof(ClusterPaletteInitializationMode)} not supported : {ClusterPaletteInitializationMode}");
-                                }
-                */
             }
             // Init Clustering Algorithm
             // Got a Tuple of List<ColorMeanOfTheCluster>, Dictionary<ColorOfTheCluster,ColorOccurrences> for each cluster
