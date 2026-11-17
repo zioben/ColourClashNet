@@ -92,7 +92,8 @@ namespace ColourClashNet.Components
                 BlobAnalysis
                     .WithThreshold(blobConfig)
                     .WithFiltering(blobConfig)
-                    .WithProcessing(blobConfig);
+                    .WithProcessing(blobConfig)
+                    .WithColors(blobConfig);
                 var oRes = BlobAnalysis.Process(sourceImage, cts.Token);
                 if (!oRes.IsSuccess)
                 {

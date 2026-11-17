@@ -36,7 +36,7 @@ namespace ColourClashProcessing.Blob
         public GlobalThreshold ThresholdRGB { get; set; } = new();
 
         [Browsable(true), Category("Rebuild")]
-        public int BlobBkgColor { get; set; } = ColorDefaults.DefaultShapeForeColorInt;
+        public int BlobBkgColor { get; set; } = ColorDefaults.DefaultBkgColorInt;
 
         public BlobConfig Clone()
         {

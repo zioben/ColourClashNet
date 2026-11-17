@@ -299,7 +299,7 @@ namespace ColourClashProcessing.Blob
             {
                 return null;
             }
-            var matrixDst = MatrixTools.CreateMatrix(blob.Width, blob.Height, 0);
+            var matrixDst = MatrixTools.CreateMatrix(blob.Width, blob.Height, config.BlobBkgColor);
             var imageMask = RunLength.ToShapeImageData(blob.RunLengths);
             MatrixTools.CoockieCut(ImageSource, imageMask, matrixDst, blob.XMin,blob.YMin,0,0, 0, 0, blob.Width, blob.Height);
             //MatrixTools.Blit(ImageSource, matrixDst, blob.XMin, blob.YMin, 0, 0, blob.Width, blob.Height);
