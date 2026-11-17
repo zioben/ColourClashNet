@@ -36,9 +36,7 @@ namespace ColourClashNet
 
         public static int DefaultShapeForeColorInt { get; set; } = ColorIntExt.FromRGB(255, 255, 255);
         public static int DefaultShapeBkgColorInt { get; set; } = ColorIntExt.FromRGB(0,0,0);
-
-        public static int DefaultBlobForeColorInt { get; set; } = ColorIntExt.FromRGB(0, 0, 255);
-        public static int DefaultBlobBkgColorInt { get; set; } = ColorIntExt.FromRGB(0, 0, 0);
+       // public static int DefaultBlobBkgColorInt { get; set; } = DefaultBkgColorInt;
 
     }
 }

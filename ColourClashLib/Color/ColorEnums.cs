@@ -63,7 +63,6 @@ namespace ColourClashNet.Color
         ColorReductionHam,
         ColorReductionScanline,
         ColorReductionGenericPalette,
-        ColorReductionEGA,
         ColorReductionZxSpectrum,
         ColorReductionCBM64,
         ColorReductionCPC,
@@ -72,6 +71,10 @@ namespace ColourClashNet.Color
         ColorReductionEnhancedPalette,
 
         ColorReductionCGA,
+        ColorReductionHercules,
+        ColorReductionEGA,
+        ColorReductionVGA,
+
     }
 
     /// <summary>

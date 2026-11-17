@@ -62,10 +62,17 @@
             btnReduceColors = new Button();
             tpMainIndexed = new TabPage();
             gbVgaTransform = new GroupBox();
+            brnReduceColorsVGA = new Button();
             gbEgaTransform = new GroupBox();
             btnReduceColorsEga = new Button();
             gbCgaTransform = new GroupBox();
+            cbCgaVideoOutput = new ComboBox();
+            cbCgaVideoMode = new ComboBox();
+            label23 = new Label();
+            label22 = new Label();
+            btnReduceColorsCGA = new Button();
             gbHerculeTransform = new GroupBox();
+            btnReduceColorsHercules = new Button();
             tpMainCbm = new TabPage();
             tabCbm = new TabControl();
             tpCbm64 = new TabPage();
@@ -104,6 +111,29 @@
             cbCpcVideoMode = new ComboBox();
             lblCpcVideoMode = new Label();
             btnReduceColorCPC = new Button();
+            tpRevEng = new TabPage();
+            groupBox1 = new GroupBox();
+            chkBlobInvertSelection = new CheckBox();
+            btnBlobRepack = new Button();
+            btnBlobSaveFrames = new Button();
+            label21 = new Label();
+            btnProcessBlob = new Button();
+            cbBlobConnectionMode = new ComboBox();
+            numBlobMaxA = new NumericUpDown();
+            numBlobMaxH = new NumericUpDown();
+            numBlobMaxW = new NumericUpDown();
+            numBlobMinH = new NumericUpDown();
+            numBlobMinA = new NumericUpDown();
+            numBlobMinW = new NumericUpDown();
+            numBlobThreshold = new NumericUpDown();
+            label20 = new Label();
+            label19 = new Label();
+            label18 = new Label();
+            label17 = new Label();
+            label16 = new Label();
+            label15 = new Label();
+            label14 = new Label();
+            label13 = new Label();
             splitMainB_C = new SplitContainer();
             layoutRender = new TableLayoutPanel();
             ssImageData = new StatusStrip();
@@ -130,7 +160,9 @@
             pgColorProcessorConfig = new PropertyGrid();
             oBitmapRenderSource = new ColourClashNet.Components.BitmapRender(components);
             oBitmapRenderDest = new ColourClashNet.Components.BitmapRender(components);
-            oColorManager = new ColourClashNet.Components.ColorManager(components);
+            oColorManager = new ColourClashNet.Components.ColorTransformManager(components);
+            saveFileDialogBlobs = new SaveFileDialog();
+            oBlobManager = new ColourClashNet.Components.BlobManager(components);
             ((System.ComponentModel.ISupportInitialize)splitMainA_BC).BeginInit();
             splitMainA_BC.Panel1.SuspendLayout();
             splitMainA_BC.Panel2.SuspendLayout();
@@ -154,7 +186,10 @@
             ((System.ComponentModel.ISupportInitialize)nudClusterLoop).BeginInit();
             gbMeanTransform.SuspendLayout();
             tpMainIndexed.SuspendLayout();
+            gbVgaTransform.SuspendLayout();
             gbEgaTransform.SuspendLayout();
+            gbCgaTransform.SuspendLayout();
+            gbHerculeTransform.SuspendLayout();
             tpMainCbm.SuspendLayout();
             tabCbm.SuspendLayout();
             tpCbm64.SuspendLayout();
@@ -168,6 +203,15 @@
             ((System.ComponentModel.ISupportInitialize)nudZxColorHI).BeginInit();
             ((System.ComponentModel.ISupportInitialize)nudZxColorLO).BeginInit();
             tpMainAmstrad.SuspendLayout();
+            tpRevEng.SuspendLayout();
+            groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numBlobMaxA).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numBlobMaxH).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numBlobMaxW).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numBlobMinH).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numBlobMinA).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numBlobMinW).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numBlobThreshold).BeginInit();
             ((System.ComponentModel.ISupportInitialize)splitMainB_C).BeginInit();
             splitMainB_C.Panel1.SuspendLayout();
             splitMainB_C.Panel2.SuspendLayout();
@@ -370,6 +414,7 @@
             tabControlMain.Controls.Add(tpMainCbm);
             tabControlMain.Controls.Add(tpMainSinclair);
             tabControlMain.Controls.Add(tpMainAmstrad);
+            tabControlMain.Controls.Add(tpRevEng);
             tabControlMain.Dock = DockStyle.Fill;
             tabControlMain.Location = new Point(3, 132);
             tabControlMain.Name = "tabControlMain";
@@ -555,20 +600,32 @@
             // gbVgaTransform
             // 
             gbVgaTransform.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            gbVgaTransform.Location = new Point(6, 333);
+            gbVgaTransform.Controls.Add(brnReduceColorsVGA);
+            gbVgaTransform.Location = new Point(3, 391);
             gbVgaTransform.Name = "gbVgaTransform";
-            gbVgaTransform.Size = new Size(299, 200);
+            gbVgaTransform.Size = new Size(299, 100);
             gbVgaTransform.TabIndex = 19;
             gbVgaTransform.TabStop = false;
             gbVgaTransform.Text = "VGA Videocard";
+            // 
+            // brnReduceColorsVGA
+            // 
+            brnReduceColorsVGA.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            brnReduceColorsVGA.Location = new Point(6, 34);
+            brnReduceColorsVGA.Name = "brnReduceColorsVGA";
+            brnReduceColorsVGA.Size = new Size(287, 48);
+            brnReduceColorsVGA.TabIndex = 16;
+            brnReduceColorsVGA.Text = "Process";
+            brnReduceColorsVGA.UseVisualStyleBackColor = true;
+            brnReduceColorsVGA.Click += btnReduceColorsVGA_Click;
             // 
             // gbEgaTransform
             // 
             gbEgaTransform.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             gbEgaTransform.Controls.Add(btnReduceColorsEga);
-            gbEgaTransform.Location = new Point(6, 227);
+            gbEgaTransform.Location = new Point(6, 276);
             gbEgaTransform.Name = "gbEgaTransform";
-            gbEgaTransform.Size = new Size(299, 200);
+            gbEgaTransform.Size = new Size(299, 109);
             gbEgaTransform.TabIndex = 18;
             gbEgaTransform.TabStop = false;
             gbEgaTransform.Text = "EGA Videocard";
@@ -576,7 +633,7 @@
             // btnReduceColorsEga
             // 
             btnReduceColorsEga.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            btnReduceColorsEga.Location = new Point(6, 22);
+            btnReduceColorsEga.Location = new Point(6, 37);
             btnReduceColorsEga.Name = "btnReduceColorsEga";
             btnReduceColorsEga.Size = new Size(287, 48);
             btnReduceColorsEga.TabIndex = 15;
@@ -587,22 +644,84 @@
             // gbCgaTransform
             // 
             gbCgaTransform.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            gbCgaTransform.Location = new Point(6, 112);
+            gbCgaTransform.Controls.Add(cbCgaVideoOutput);
+            gbCgaTransform.Controls.Add(cbCgaVideoMode);
+            gbCgaTransform.Controls.Add(label23);
+            gbCgaTransform.Controls.Add(label22);
+            gbCgaTransform.Controls.Add(btnReduceColorsCGA);
+            gbCgaTransform.Location = new Point(6, 98);
             gbCgaTransform.Name = "gbCgaTransform";
-            gbCgaTransform.Size = new Size(299, 200);
+            gbCgaTransform.Size = new Size(299, 172);
             gbCgaTransform.TabIndex = 17;
             gbCgaTransform.TabStop = false;
             gbCgaTransform.Text = "CGA Videocard";
             // 
+            // cbCgaVideoOutput
+            // 
+            cbCgaVideoOutput.FormattingEnabled = true;
+            cbCgaVideoOutput.Location = new Point(124, 66);
+            cbCgaVideoOutput.Name = "cbCgaVideoOutput";
+            cbCgaVideoOutput.Size = new Size(166, 23);
+            cbCgaVideoOutput.TabIndex = 20;
+            // 
+            // cbCgaVideoMode
+            // 
+            cbCgaVideoMode.FormattingEnabled = true;
+            cbCgaVideoMode.Location = new Point(124, 24);
+            cbCgaVideoMode.Name = "cbCgaVideoMode";
+            cbCgaVideoMode.Size = new Size(166, 23);
+            cbCgaVideoMode.TabIndex = 19;
+            // 
+            // label23
+            // 
+            label23.AutoSize = true;
+            label23.Location = new Point(12, 69);
+            label23.Name = "label23";
+            label23.Size = new Size(106, 15);
+            label23.TabIndex = 18;
+            label23.Text = "Composite Output";
+            // 
+            // label22
+            // 
+            label22.AutoSize = true;
+            label22.Location = new Point(12, 27);
+            label22.Name = "label22";
+            label22.Size = new Size(71, 15);
+            label22.TabIndex = 17;
+            label22.Text = "Video Mode";
+            // 
+            // btnReduceColorsCGA
+            // 
+            btnReduceColorsCGA.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            btnReduceColorsCGA.Location = new Point(6, 104);
+            btnReduceColorsCGA.Name = "btnReduceColorsCGA";
+            btnReduceColorsCGA.Size = new Size(287, 48);
+            btnReduceColorsCGA.TabIndex = 16;
+            btnReduceColorsCGA.Text = "Process";
+            btnReduceColorsCGA.UseVisualStyleBackColor = true;
+            btnReduceColorsCGA.Click += btnReduceColorsCGA_Click;
+            // 
             // gbHerculeTransform
             // 
             gbHerculeTransform.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            gbHerculeTransform.Controls.Add(btnReduceColorsHercules);
             gbHerculeTransform.Location = new Point(6, 6);
             gbHerculeTransform.Name = "gbHerculeTransform";
-            gbHerculeTransform.Size = new Size(299, 200);
+            gbHerculeTransform.Size = new Size(299, 86);
             gbHerculeTransform.TabIndex = 16;
             gbHerculeTransform.TabStop = false;
             gbHerculeTransform.Text = "Hercules Videocard";
+            // 
+            // btnReduceColorsHercules
+            // 
+            btnReduceColorsHercules.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            btnReduceColorsHercules.Location = new Point(6, 22);
+            btnReduceColorsHercules.Name = "btnReduceColorsHercules";
+            btnReduceColorsHercules.Size = new Size(287, 48);
+            btnReduceColorsHercules.TabIndex = 17;
+            btnReduceColorsHercules.Text = "Process";
+            btnReduceColorsHercules.UseVisualStyleBackColor = true;
+            btnReduceColorsHercules.Click += btnReduceColorsHercules_Click;
             // 
             // tpMainCbm
             // 
@@ -665,7 +784,7 @@
             btnReduceColorsC64v1.TabIndex = 18;
             btnReduceColorsC64v1.Text = "Process";
             btnReduceColorsC64v1.UseVisualStyleBackColor = true;
-            btnReduceColorsC64v1.Click += BtnReduceColorsC64v1_Click;
+            btnReduceColorsC64v1.Click += btnReduceColorsC64v1_Click;
             // 
             // tpCbmAmiga
             // 
@@ -1012,6 +1131,243 @@
             btnReduceColorCPC.UseVisualStyleBackColor = true;
             btnReduceColorCPC.Click += btnReduceColorCPC_Click;
             // 
+            // tpRevEng
+            // 
+            tpRevEng.Controls.Add(groupBox1);
+            tpRevEng.Location = new Point(4, 24);
+            tpRevEng.Name = "tpRevEng";
+            tpRevEng.Padding = new Padding(3);
+            tpRevEng.Size = new Size(311, 562);
+            tpRevEng.TabIndex = 5;
+            tpRevEng.Text = "R.Eng.";
+            tpRevEng.UseVisualStyleBackColor = true;
+            // 
+            // groupBox1
+            // 
+            groupBox1.Controls.Add(chkBlobInvertSelection);
+            groupBox1.Controls.Add(btnBlobRepack);
+            groupBox1.Controls.Add(btnBlobSaveFrames);
+            groupBox1.Controls.Add(label21);
+            groupBox1.Controls.Add(btnProcessBlob);
+            groupBox1.Controls.Add(cbBlobConnectionMode);
+            groupBox1.Controls.Add(numBlobMaxA);
+            groupBox1.Controls.Add(numBlobMaxH);
+            groupBox1.Controls.Add(numBlobMaxW);
+            groupBox1.Controls.Add(numBlobMinH);
+            groupBox1.Controls.Add(numBlobMinA);
+            groupBox1.Controls.Add(numBlobMinW);
+            groupBox1.Controls.Add(numBlobThreshold);
+            groupBox1.Controls.Add(label20);
+            groupBox1.Controls.Add(label19);
+            groupBox1.Controls.Add(label18);
+            groupBox1.Controls.Add(label17);
+            groupBox1.Controls.Add(label16);
+            groupBox1.Controls.Add(label15);
+            groupBox1.Controls.Add(label14);
+            groupBox1.Controls.Add(label13);
+            groupBox1.Location = new Point(6, 3);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Size = new Size(301, 553);
+            groupBox1.TabIndex = 0;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "Blob Analisys";
+            // 
+            // chkBlobInvertSelection
+            // 
+            chkBlobInvertSelection.AutoSize = true;
+            chkBlobInvertSelection.Location = new Point(103, 130);
+            chkBlobInvertSelection.Name = "chkBlobInvertSelection";
+            chkBlobInvertSelection.Size = new Size(134, 19);
+            chkBlobInvertSelection.TabIndex = 22;
+            chkBlobInvertSelection.Text = "Invert Blob Selection";
+            chkBlobInvertSelection.UseVisualStyleBackColor = true;
+            // 
+            // btnBlobRepack
+            // 
+            btnBlobRepack.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            btnBlobRepack.Location = new Point(10, 494);
+            btnBlobRepack.Name = "btnBlobRepack";
+            btnBlobRepack.Size = new Size(285, 49);
+            btnBlobRepack.TabIndex = 20;
+            btnBlobRepack.Text = "Repack Blobs";
+            btnBlobRepack.UseVisualStyleBackColor = true;
+            // 
+            // btnBlobSaveFrames
+            // 
+            btnBlobSaveFrames.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            btnBlobSaveFrames.Location = new Point(10, 439);
+            btnBlobSaveFrames.Name = "btnBlobSaveFrames";
+            btnBlobSaveFrames.Size = new Size(285, 49);
+            btnBlobSaveFrames.TabIndex = 19;
+            btnBlobSaveFrames.Text = "Save Blobs";
+            btnBlobSaveFrames.UseVisualStyleBackColor = true;
+            btnBlobSaveFrames.Click += btnBlobSaveFrames_Click;
+            // 
+            // label21
+            // 
+            label21.AutoSize = true;
+            label21.Location = new Point(6, 69);
+            label21.Name = "label21";
+            label21.Size = new Size(69, 15);
+            label21.TabIndex = 18;
+            label21.Text = "Connection";
+            // 
+            // btnProcessBlob
+            // 
+            btnProcessBlob.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            btnProcessBlob.Location = new Point(10, 384);
+            btnProcessBlob.Name = "btnProcessBlob";
+            btnProcessBlob.Size = new Size(285, 49);
+            btnProcessBlob.TabIndex = 17;
+            btnProcessBlob.Text = "Process";
+            btnProcessBlob.UseVisualStyleBackColor = true;
+            btnProcessBlob.Click += btnProcessBlob_Click;
+            // 
+            // cbBlobConnectionMode
+            // 
+            cbBlobConnectionMode.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            cbBlobConnectionMode.FormattingEnabled = true;
+            cbBlobConnectionMode.Location = new Point(103, 66);
+            cbBlobConnectionMode.Name = "cbBlobConnectionMode";
+            cbBlobConnectionMode.Size = new Size(185, 23);
+            cbBlobConnectionMode.TabIndex = 16;
+            // 
+            // numBlobMaxA
+            // 
+            numBlobMaxA.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            numBlobMaxA.Location = new Point(103, 345);
+            numBlobMaxA.Maximum = new decimal(new int[] { 1000000000, 0, 0, 0 });
+            numBlobMaxA.Name = "numBlobMaxA";
+            numBlobMaxA.Size = new Size(185, 23);
+            numBlobMaxA.TabIndex = 15;
+            // 
+            // numBlobMaxH
+            // 
+            numBlobMaxH.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            numBlobMaxH.Location = new Point(103, 308);
+            numBlobMaxH.Maximum = new decimal(new int[] { 2048, 0, 0, 0 });
+            numBlobMaxH.Name = "numBlobMaxH";
+            numBlobMaxH.Size = new Size(185, 23);
+            numBlobMaxH.TabIndex = 14;
+            // 
+            // numBlobMaxW
+            // 
+            numBlobMaxW.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            numBlobMaxW.Location = new Point(103, 272);
+            numBlobMaxW.Maximum = new decimal(new int[] { 2048, 0, 0, 0 });
+            numBlobMaxW.Name = "numBlobMaxW";
+            numBlobMaxW.Size = new Size(185, 23);
+            numBlobMaxW.TabIndex = 13;
+            // 
+            // numBlobMinH
+            // 
+            numBlobMinH.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            numBlobMinH.Location = new Point(103, 197);
+            numBlobMinH.Maximum = new decimal(new int[] { 2048, 0, 0, 0 });
+            numBlobMinH.Name = "numBlobMinH";
+            numBlobMinH.Size = new Size(185, 23);
+            numBlobMinH.TabIndex = 11;
+            numBlobMinH.Value = new decimal(new int[] { 4, 0, 0, 0 });
+            // 
+            // numBlobMinA
+            // 
+            numBlobMinA.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            numBlobMinA.Location = new Point(103, 234);
+            numBlobMinA.Maximum = new decimal(new int[] { 1000000000, 0, 0, 0 });
+            numBlobMinA.Name = "numBlobMinA";
+            numBlobMinA.Size = new Size(185, 23);
+            numBlobMinA.TabIndex = 10;
+            numBlobMinA.Value = new decimal(new int[] { 25, 0, 0, 0 });
+            // 
+            // numBlobMinW
+            // 
+            numBlobMinW.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            numBlobMinW.Location = new Point(103, 163);
+            numBlobMinW.Maximum = new decimal(new int[] { 2048, 0, 0, 0 });
+            numBlobMinW.Name = "numBlobMinW";
+            numBlobMinW.Size = new Size(185, 23);
+            numBlobMinW.TabIndex = 9;
+            numBlobMinW.Value = new decimal(new int[] { 4, 0, 0, 0 });
+            // 
+            // numBlobThreshold
+            // 
+            numBlobThreshold.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            numBlobThreshold.Location = new Point(103, 95);
+            numBlobThreshold.Name = "numBlobThreshold";
+            numBlobThreshold.Size = new Size(185, 23);
+            numBlobThreshold.TabIndex = 8;
+            // 
+            // label20
+            // 
+            label20.AutoSize = true;
+            label20.Location = new Point(6, 347);
+            label20.Name = "label20";
+            label20.Size = new Size(53, 15);
+            label20.TabIndex = 7;
+            label20.Text = "MaxArea";
+            // 
+            // label19
+            // 
+            label19.AutoSize = true;
+            label19.Location = new Point(6, 199);
+            label19.Name = "label19";
+            label19.Size = new Size(64, 15);
+            label19.TabIndex = 6;
+            label19.Text = "MinHeight";
+            // 
+            // label18
+            // 
+            label18.AutoSize = true;
+            label18.Location = new Point(6, 310);
+            label18.Name = "label18";
+            label18.Size = new Size(65, 15);
+            label18.TabIndex = 5;
+            label18.Text = "MaxHeight";
+            // 
+            // label17
+            // 
+            label17.AutoSize = true;
+            label17.Location = new Point(7, 236);
+            label17.Name = "label17";
+            label17.Size = new Size(52, 15);
+            label17.TabIndex = 4;
+            label17.Text = "MinArea";
+            // 
+            // label16
+            // 
+            label16.AutoSize = true;
+            label16.Location = new Point(6, 274);
+            label16.Name = "label16";
+            label16.Size = new Size(61, 15);
+            label16.TabIndex = 3;
+            label16.Text = "MaxWidth";
+            // 
+            // label15
+            // 
+            label15.AutoSize = true;
+            label15.Location = new Point(6, 163);
+            label15.Name = "label15";
+            label15.Size = new Size(60, 15);
+            label15.TabIndex = 2;
+            label15.Text = "MinWidth";
+            // 
+            // label14
+            // 
+            label14.AutoSize = true;
+            label14.Location = new Point(6, 97);
+            label14.Name = "label14";
+            label14.Size = new Size(85, 15);
+            label14.TabIndex = 1;
+            label14.Text = "RGB Threshold";
+            // 
+            // label13
+            // 
+            label13.Location = new Point(10, 26);
+            label13.Name = "label13";
+            label13.Size = new Size(283, 47);
+            label13.TabIndex = 0;
+            label13.Text = "Uniform color background input image must be accomplisched before processing";
+            // 
             // splitMainB_C
             // 
             splitMainB_C.Dock = DockStyle.Fill;
@@ -1299,7 +1655,11 @@
             ((System.ComponentModel.ISupportInitialize)nudClusterLoop).EndInit();
             gbMeanTransform.ResumeLayout(false);
             tpMainIndexed.ResumeLayout(false);
+            gbVgaTransform.ResumeLayout(false);
             gbEgaTransform.ResumeLayout(false);
+            gbCgaTransform.ResumeLayout(false);
+            gbCgaTransform.PerformLayout();
+            gbHerculeTransform.ResumeLayout(false);
             tpMainCbm.ResumeLayout(false);
             tabCbm.ResumeLayout(false);
             tpCbm64.ResumeLayout(false);
@@ -1314,6 +1674,16 @@
             ((System.ComponentModel.ISupportInitialize)nudZxColorHI).EndInit();
             ((System.ComponentModel.ISupportInitialize)nudZxColorLO).EndInit();
             tpMainAmstrad.ResumeLayout(false);
+            tpRevEng.ResumeLayout(false);
+            groupBox1.ResumeLayout(false);
+            groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numBlobMaxA).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numBlobMaxH).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numBlobMaxW).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numBlobMinH).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numBlobMinA).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numBlobMinW).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numBlobThreshold).EndInit();
             splitMainB_C.Panel1.ResumeLayout(false);
             splitMainB_C.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitMainB_C).EndInit();
@@ -1343,7 +1713,7 @@
         private SplitContainer splitMainA_BC;
         private PictureBox pictureBoxSrc;
         private Components.BitmapRender oBitmapRenderSource;
-        private Components.ColorManager oColorManager;
+        private Components.ColorTransformManager oColorManager;
         private SplitContainer splitRenderLayout;
         private PictureBox pictureBoxProc;
         private Components.BitmapRender oBitmapRenderDest;
@@ -1442,5 +1812,37 @@
         private SplitContainer splitProcessing;
         private NumericUpDown numLinesPerBlock;
         private Label label12;
+        private TabPage tpRevEng;
+        private GroupBox groupBox1;
+        private Label label14;
+        private Label label13;
+        private Label label19;
+        private Label label18;
+        private Label label17;
+        private Label label16;
+        private Label label15;
+        private Button btnProcessBlob;
+        private ComboBox cbBlobConnectionMode;
+        private NumericUpDown numBlobMaxA;
+        private NumericUpDown numBlobMaxH;
+        private NumericUpDown numBlobMaxW;
+        private NumericUpDown numBlobMinH;
+        private NumericUpDown numBlobMinA;
+        private NumericUpDown numBlobMinW;
+        private NumericUpDown numBlobThreshold;
+        private Label label20;
+        private Label label21;
+        private Button brnReduceColorsVGA;
+        private ComboBox cbCgaVideoOutput;
+        private ComboBox cbCgaVideoMode;
+        private Label label23;
+        private Label label22;
+        private Button btnReduceColorsCGA;
+        private Button btnReduceColorsHercules;
+        private Button btnBlobRepack;
+        private Button btnBlobSaveFrames;
+        private CheckBox chkBlobInvertSelection;
+        private SaveFileDialog saveFileDialogBlobs;
+        private Components.BlobManager oBlobManager;
     }
 }

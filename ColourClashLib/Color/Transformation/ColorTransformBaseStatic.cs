@@ -38,8 +38,17 @@ namespace ColourClashNet.Color.Transformation
                 case ColorTransformType.ColorReductionCPC:
                     trans = new ColorTransformAmstradCPC();
                     break;
+                case ColorTransformType.ColorReductionHercules:
+                    trans = new ColorTransformHercules();
+                    break;
+                case ColorTransformType.ColorReductionCGA:
+                    trans = new ColorTransformCGA();
+                    break;
                 case ColorTransformType.ColorReductionEGA:
                     trans = new ColorTransformEGA();
+                    break;
+                case ColorTransformType.ColorReductionVGA:
+                    trans = new ColorTransformVGA();
                     break;
                 case ColorTransformType.ColorReductionFast:
                     trans = new ColorTransformFast();
@@ -70,9 +79,6 @@ namespace ColourClashNet.Color.Transformation
                     break;
                 case ColorTransformType.ColorReductionEnhancedPalette:
                     trans = new ColorTransformFixedPaletteEnhanced();
-                    break;
-                case ColorTransformType.ColorReductionCGA:
-                    trans = new ColorTransformCGA();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(sMethod, $"Transform type {transformType} not yet supported");

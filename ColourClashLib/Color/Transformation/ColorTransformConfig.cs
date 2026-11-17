@@ -1,10 +1,7 @@
 ﻿using ColourClashNet.Color;
 using ColourClashNet.Color.Dithering;
 using System.ComponentModel;
-using static ColourClashNet.Color.Transformation.ColorTransformCbmAmiga;
-using static ColourClashNet.Color.Transformation.ColorTransformCbm64;
-using static ColourClashNet.Color.Transformation.ColorTransformAmstradCPC;
-using static ColourClashNet.Color.Transformation.ColorTransformZxSpectrum;
+using ColourClashLib.Color.Transformation;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -84,7 +81,7 @@ namespace ColourClashNet.Color.Transformation
 
         [Browsable(true), Category("Cluster")]
         public ClusterPaletteInitializationMode ClusterPaletteInitializationMode { get; set; } = ClusterPaletteInitializationMode.ImagePalette;
-
+       
         // ── ColorMean ────────────────────────────────────────────────────────────
 
         [Browsable(true), Category("Median Cut")]
@@ -138,8 +135,8 @@ namespace ColourClashNet.Color.Transformation
             = ColorTransformCGA.CGAVideoMode.Mode4_0L;
 
         [Browsable(true), Category("CGA")]
-        public ColorTransformCGA.CGAOutputMode CGAOutputMode { get; set; }
-            = ColorTransformCGA.CGAOutputMode.ProcessedImage;
+        public ColorTransformCGA.CGACompositeOutputMode CGAOutputMode { get; set; }
+            = ColorTransformCGA.CGACompositeOutputMode.ProcessedImage;
 
         // ── Platform-specific: ZX Spectrum ───────────────────────────────────
 
@@ -293,7 +290,7 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        public ColorTransformConfig WithAmigaScreenMode(EnumAmigaVideoMode videoMode, ColorTransformType colorTransformationMode, ColorSelectionMode colorMeanMode)
+        public ColorTransformConfig WithAmigaScreenMode(ColorTransformCbmAmiga.EnumAmigaVideoMode videoMode, ColorTransformType colorTransformationMode, ColorSelectionMode colorMeanMode)
         {
             AmigaVideoMode = videoMode;
             AmigaInternalTransformationModel = colorTransformationMode;
@@ -301,14 +298,22 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        public ColorTransformConfig WithC64ScreenMode(C64VideoMode mode, C64DitheringMode ditheringMode, bool showTileBorers)
+        public ColorTransformConfig WithCGAScreenMode(ColorTransformCGA.CGAVideoMode videoMode, ColorTransformCGA.CGACompositeOutputMode outputMode)
+        {
+            CGAVideoMode = videoMode;
+            CGAOutputMode = outputMode;
+            return this;
+        }
+
+
+        public ColorTransformConfig WithC64ScreenMode(ColorTransformCbm64.C64VideoMode mode, ColorTransformCbm64.C64DitheringMode ditheringMode, bool showTileBorers)
         {
             C64VideoMode = mode;
             C64DitheringMode = ditheringMode;
             ShowTileBorders = showTileBorers;
             return this;
         }
-        public ColorTransformConfig WithCpcVideoMode(CPCVideoMode videoMode)
+        public ColorTransformConfig WithCpcVideoMode(ColorTransformAmstradCPC.CPCVideoMode videoMode)
         {
             CPCVideoMode = videoMode;
             return this;
@@ -355,14 +360,14 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        public ColorTransformConfig WithZxScreenMode(ZxPaletteMode paletteMode, int lowColorInSeed, int highColorInSeed )
+        public ColorTransformConfig WithZxScreenMode( ColorTransformZxSpectrum.ZxPaletteMode paletteMode, int lowColorInSeed, int highColorInSeed )
         {
             ZxPaletteMode = paletteMode;
             ZxPaletteInColorSeedLow = lowColorInSeed;
             ZxPaletteInColorSeedHigh = highColorInSeed;
             return this;
         }
-        public ColorTransformConfig WithZxProcessing(ZxAutotuneMode autotuneMode, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor, bool showTileBorders)
+        public ColorTransformConfig WithZxProcessing( ColorTransformZxSpectrum.ZxAutotuneMode autotuneMode, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor, bool showTileBorders)
         {
             ZxDitherLowColorImage = ditherLowColorImage;
             ZxDitherHighColorImage = ditherHighColorImage;

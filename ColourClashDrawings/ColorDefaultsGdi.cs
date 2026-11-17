@@ -28,10 +28,6 @@ namespace ColourClashNet.Defaults
 
         public static System.Drawing.Color DefaultShapeBkgColor { get; set; } = System.Drawing.Color.FromArgb(ColorDefaults.DefaultShapeBkgColorInt);
 
-        public static System.Drawing.Color DefaultBlobForeColor { get; set; } = System.Drawing.Color.FromArgb(ColorDefaults.DefaultBlobForeColorInt);
-
-        public static System.Drawing.Color DefaultBlobBkgColor { get; set; } = System.Drawing.Color.FromArgb(ColorDefaults.DefaultBlobBkgColorInt);
-
-
+   
     }
 }

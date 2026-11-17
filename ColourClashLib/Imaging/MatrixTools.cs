@@ -623,8 +623,9 @@ public static class MatrixTools
         {
             for (int x = 0; x < minWidth; x++)
             {
-                var mskRGB = matrixSrc[y,x];
+                var mskRGB = matrixMsk[y,x];
                 if (ColorIntExt.IsColor(mskRGB) && mskRGB != ColorDefaults.DefaultShapeBkgColorInt)
+               // if (mskRGB != ColorDefaults.DefaultShapeBkgColorInt)
                 {
                     matrixDst[rectDst.Y + y, rectDst.X + x] = matrixSrc[rectSrc.Y + y, rectSrc.X + x];
                 }

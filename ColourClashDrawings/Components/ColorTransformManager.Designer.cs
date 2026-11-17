@@ -1,6 +1,6 @@
 ﻿namespace ColourClashNet.Components
 {
-    partial class ColorManager
+    partial class ColorTransformManager
     {
         /// <summary>
         /// Required designer variable.

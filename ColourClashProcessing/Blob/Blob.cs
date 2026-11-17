@@ -22,7 +22,9 @@ namespace ColourClashProcessing.Blob
 
         #region private fields
 
-        GlobalThreshold threshold = new GlobalThreshold();
+        BlobConfig config = new BlobConfig();
+
+//        GlobalThreshold threshold = new GlobalThreshold();
         Dictionary<int, List<RunLength>>? _connectedComponents = null;
         Shape shape = new Shape();
 
@@ -32,39 +34,41 @@ namespace ColourClashProcessing.Blob
 
         #region config properties
 
-        [Browsable(true),Category("Input")]
-        public Palette ThresholdPalette { get; set; } = new();
+        [Browsable(true), Category("Input")]
+        public Palette ThresholdPalette => config.ThresholdRGB.ThresholdPalette;
 
         [Browsable(true), Category("Input")]
-        public double ThresholdTolerance { get; set; } = 0.0;
+        public double ThresholdTolerance => config.ThresholdRGB.ToleranceFactor;
 
         [Browsable(true), Category("Input")]
-        public bool ThresholdInvertResults { get; set; } = false;
+        public bool ThresholdInvertResults => config.ThresholdRGB.InvertResults;
 
         [Browsable(true), Category("Input")]
-        public BlobConnectionModes ConnectionMode { get; private set; } = BlobConnectionModes.FourConnected;
+        public BlobConnectionModes ConnectionMode => config.ConnectionMode;
 
         #endregion
 
         #region filtering proeprties
 
         [Browsable(true), Category("Filtering")]
-        public int MinBlobWidth { get; private set; } = 0;
+        public int MinBlobWidth => config.MinBlobWidth;
 
         [Browsable(true), Category("Filtering")]
-        public int MinBlobHeight { get; private set; } = 0;
+        public int MinBlobHeight => config.MinBlobHeight;
 
         [Browsable(true), Category("Filtering")]
-        public int MinBlobArea { get; private set; } = 0;
+        public int MinBlobArea => config.MinBlobArea;
 
         [Browsable(true), Category("Filtering")]
-        public int MaxBlobWidth { get; private set; } = 0;
+        public int MaxBlobWidth => config.MaxBlobWidth;
 
         [Browsable(true), Category("Filtering")]
-        public int MaxBlobHeight { get; private set; } = 0;
+        public int MaxBlobHeight => config.MaxBlobHeight;
 
         [Browsable(true), Category("Filtering")]
-        public int MaxBlobArea { get; private set; } = 0;
+        public int MaxBlobArea => config.MaxBlobArea;
+
+        public int BlobBkgColor => config.BlobBkgColor;
 
         #endregion
 
@@ -90,19 +94,8 @@ namespace ColourClashProcessing.Blob
         /// <summary>Restores the default configuration and clears the results.</summary>
         public void Reset()
         {
-            threshold = new GlobalThreshold();
-            ThresholdPalette = new Palette().Create(threshold.ThresholdPalette);
-            ThresholdTolerance= threshold.ToleranceFactor;
-            ThresholdInvertResults = threshold.InvertResults;
-
+            config = new BlobConfig();
             shape = new Shape();
-            ConnectionMode = BlobConnectionModes.FourConnected;
-            MinBlobArea = 0;
-            MinBlobWidth = 0;
-            MinBlobHeight = 0;
-            MaxBlobArea = 0;
-            MaxBlobWidth = 0;
-            MaxBlobHeight = 0;
             ResetResults();
         }
 
@@ -120,38 +113,57 @@ namespace ColourClashProcessing.Blob
 
         #region setup fluent
 
-        public Blob WithThreshold(Palette thresholdPalette, double toleranceFactor = 0.0, bool invertResults = false)
+        public Blob WithThreshold(Palette thresholdPalette, double toleranceFactor, bool invertResults)
         {
-            ThresholdPalette= new Palette().Create(thresholdPalette);
-            ThresholdTolerance = toleranceFactor;
-            ThresholdInvertResults = invertResults;
+            config.ThresholdRGB.WithThreshold( new Palette().Create(thresholdPalette),toleranceFactor,invertResults);
             return this;
         }
 
-        public Blob WithThreshold(int rgbThreshold, double toleranceFactor = 0.0, bool invertResults = false)
+        public Blob WithThreshold(int rgbThreshold, double toleranceFactor, bool invertResults)
         {
-            ThresholdPalette = new Palette().Create(new List<int> { rgbThreshold });
-            ThresholdTolerance = toleranceFactor;
-            ThresholdInvertResults = invertResults;
+            config.ThresholdRGB.WithThreshold( new Palette().Create(new List<int> { rgbThreshold }), toleranceFactor, invertResults);
             return this;
         }
+
+        public Blob WithThreshold(GlobalThreshold thresholdRGB)
+            => WithThreshold(thresholdRGB.ThresholdPalette, thresholdRGB.ToleranceFactor, thresholdRGB.InvertResults);
+
+        public Blob WithThreshold(BlobConfig blobConfig)
+            => WithThreshold(blobConfig.ThresholdRGB);
 
         public Blob WithProcessing(BlobConnectionModes connectionMode)
         {
-            ConnectionMode = connectionMode;
+            config.WithProcessing(connectionMode);
+            return this;
+        }
+
+        public Blob WithProcessing(BlobConfig blobConfig)
+            => WithProcessing(blobConfig.ConnectionMode);
+
+        public Blob WithColors( int bkgColorRGB)
+        {
+            config.WithColors( bkgColorRGB);
+            return this;
+        }
+
+        public Blob WithColors(BlobConfig blobConfig)
+        { 
+            config.WithColors(blobConfig);
             return this;
         }
 
         public Blob WithFiltering(int minArea, int maxArea, int minWidth, int maxWidth, int minHeight, int maxHeight)
         {
-            MinBlobArea = minArea;
-            MaxBlobArea = maxArea;
-            MinBlobWidth = minWidth;
-            MaxBlobWidth = maxWidth;
-            MinBlobHeight = minHeight;
-            MaxBlobHeight = maxHeight;
+            config.WithFiltering(minWidth, maxWidth, minHeight, maxHeight, minArea, maxArea);
             return this;
         }
+        public Blob WithFiltering(BlobConfig config)
+        {
+            this.config.WithFiltering(config.MinBlobWidth, config.MinBlobHeight, config.MinBlobArea, config.MaxBlobWidth, config.MaxBlobHeight, config.MaxBlobArea);
+            return this;
+        }
+
+       
 
         #endregion
 
@@ -167,7 +179,7 @@ namespace ColourClashProcessing.Blob
                 ImageData.AssertValid(ImageSource);
 
                 // 1. foreground / background split
-                var thresholdResult = threshold.Process(ImageSource, cancellationToken);
+                var thresholdResult = config.ThresholdRGB.Process(ImageSource, cancellationToken);
                 if (!thresholdResult.IsSuccess)
                 {
                     LogMan.Error(sC, sM, $"Threshold processing failed: {thresholdResult.Message}", thresholdResult.Exception);
@@ -190,10 +202,12 @@ namespace ColourClashProcessing.Blob
                     blobs.RemoveAll(b => b.Area < MinBlobArea);
                 if (MaxBlobArea > 0)
                     blobs.RemoveAll(b => b.Area > MaxBlobArea);
+                //
                 if (MinBlobWidth > 0)
                     blobs.RemoveAll(b => b.Width < MinBlobWidth);
                 if (MaxBlobWidth > 0)
                     blobs.RemoveAll(b => b.Width > MaxBlobWidth);
+                //
                 if (MinBlobHeight > 0)
                     blobs.RemoveAll(b => b.Height < MinBlobHeight);
                 if (MaxBlobHeight > 0)
@@ -247,7 +261,7 @@ namespace ColourClashProcessing.Blob
                 throw new InvalidOperationException("Blob image is not available. Call Process() first.");
 
             List<RunLength> allRuns = _connectedComponents!.Values.SelectMany(runs => runs).ToList();
-            var blobImage = RunLength.ToImageData(allRuns, ImageSource, ColorDefaults.DefaultShapeForeColorInt, ColorDefaults.DefaultShapeBkgColorInt);
+            var blobImage = RunLength.ToShapeImageData(allRuns, ImageSource);
             return blobImage;
         }
 
@@ -286,8 +300,9 @@ namespace ColourClashProcessing.Blob
                 return null;
             }
             var matrixDst = MatrixTools.CreateMatrix(blob.Width, blob.Height, 0);
-            var imageMask = RunLength.ToImageData(blob.RunLengths, ColorDefaults.DefaultShapeForeColorInt, ColorDefaults.DefaultShapeBkgColorInt);
+            var imageMask = RunLength.ToShapeImageData(blob.RunLengths);
             MatrixTools.CoockieCut(ImageSource, imageMask, matrixDst, blob.XMin,blob.YMin,0,0, 0, 0, blob.Width, blob.Height);
+            //MatrixTools.Blit(ImageSource, matrixDst, blob.XMin, blob.YMin, 0, 0, blob.Width, blob.Height);
             var imageData = new ImageData().Create(matrixDst);
             return imageData;
         }
@@ -312,7 +327,7 @@ namespace ColourClashProcessing.Blob
             var matrix = MatrixTools.CreateMatrix(ImageSource.Width, ImageSource.Height);
             foreach (var item in BlobList)
             {
-                RunLength.ToMatrix(item.RunLengths, matrix, item.BlobId);
+                RunLength.MergeToMatrix(item.RunLengths, matrix);
             }
             var blobImage = new ImageData().Create(matrix);
             return blobImage;

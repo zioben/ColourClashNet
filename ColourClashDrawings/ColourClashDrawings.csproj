@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ColourClashLib\ColourClashLib.csproj" />
+    <ProjectReference Include="..\ColourClashProcessing\ColourClashProcessing.csproj" />
     <ProjectReference Include="..\ColourClashSupport\ColourClashSupport.csproj" />
   </ItemGroup>
 
@@ -17,7 +18,7 @@
     <Compile Update="Components\BitmapRender.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Update="Components\ColorManager.cs">
+    <Compile Update="Components\ColorTransformManager.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Update="Controls\ColorAnalyzer.cs">

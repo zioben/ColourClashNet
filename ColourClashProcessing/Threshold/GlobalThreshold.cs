@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color;
+﻿using ColourClashNet;
+using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
@@ -33,6 +34,16 @@ namespace ColourClashProcessing.Threshold
             return this;
         }
 
+        public GlobalThreshold Clone()
+        {
+            return new GlobalThreshold()
+            {
+                ThresholdPalette = new Palette().Create(this.ThresholdPalette),
+                ToleranceFactor = this.ToleranceFactor,
+                InvertResults = this.InvertResults
+            };
+        }
+
         public GlobalThreshold WithThreshold(int rgbThreshold, double toleranceFactor = 0.0, bool invertResults = false)
         {
             return WithThreshold(new Palette().Create(new List<int> { rgbThreshold }), toleranceFactor, invertResults);
@@ -44,8 +55,8 @@ namespace ColourClashProcessing.Threshold
             try
             {
                 ImageData.AssertValid(image);
-                var bgCol = InvertResults ? ColorIntExt.FromRGB(255, 255, 255) : ColorIntExt.FromRGB(0, 0, 0);
-                var fgCol = InvertResults ? ColorIntExt.FromRGB(0, 0, 0) : ColorIntExt.FromRGB(255, 255, 255);
+                var bgCol = InvertResults ? ColorDefaults.DefaultShapeForeColorInt : ColorDefaults.DefaultShapeBkgColorInt;
+                var fgCol = InvertResults ? ColorDefaults.DefaultShapeBkgColorInt : ColorDefaults.DefaultShapeForeColorInt;
 
                 var palette = new HistogramRGB().Create(image).ToPalette();
 

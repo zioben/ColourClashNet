@@ -1,8 +1,10 @@
 ﻿using ColourClashLib;
+using ColourClashLib.Color.Transformation.Evolution;
 using ColourClashNet.Color.Conversion;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
+using NLog.Filters;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,34 +19,34 @@ using static ColourClashNet.Color.Transformation.ColorTransformCbm64;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public class ColorTransformClustering : ColorTransformBase
+    public class ColorTransformClusteringTemplate<T> : ColorTransformBase where T : IColorEvolution, new()
     {
-        static string sC = nameof(ColorTransformClustering);
-        public int MaxColorsWanted 
-        { 
+        static string sC = nameof(ColorTransformClusteringTemplate<T>);
+        public int MaxColorsWanted
+        {
             get => config.MaxColorsWanted;
-            set => config.MaxColorsWanted = value;  
+            set => config.MaxColorsWanted = value;
         }
         public ColorSelectionMode ClusterColorSelectionMode
         {
             get => config.ClusterColorSelectionMode;
             set => config.ClusterColorSelectionMode = value;
         }
-      
-        public int TrainingLoop 
+
+        public int TrainingLoop
         {
             get => config.ClusterTrainingLoop;
             set => config.ClusterTrainingLoop = value;
         }
 
 
-        public ColorTransformClustering()
+        public ColorTransformClusteringTemplate()
         {
             Type = ColorTransformType.ColorReductionClustering;
             Description = "K-Means color reduction";
         }
 
-        public ColorTransformClustering WithProcessingParams(int maxColorsWanted, int trainingLoop, ColorSelectionMode clusterColorSelectionMode)
+        public ColorTransformClusteringTemplate<T> WithProcessingParams(int maxColorsWanted, int trainingLoop, ColorSelectionMode clusterColorSelectionMode)
         {
             MaxColorsWanted = maxColorsWanted;
             TrainingLoop = trainingLoop;
@@ -52,7 +54,7 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
-        public ColorTransformClustering WithClustering(ColorTransformConfig cfg) =>
+        public ColorTransformClusteringTemplate<T> WithClustering(ColorTransformConfig cfg) =>
          WithProcessingParams(cfg.MaxColorsWanted, cfg.ClusterTrainingLoop, cfg.ClusterColorSelectionMode);
 
 
@@ -106,14 +108,14 @@ namespace ColourClashNet.Color.Transformation
             var rgbFixedList = ReferencePalette.ToList();
 
             // Prepare the evolutions
-            List<ColorEvolutionList> lEvolutions = new();
+            List<ColorEvolutionList<T>> lEvolutions = new();
             var rgbFixedSet = new HashSet<int>(ReferencePalette);
 
             for (int train = 0; train < TrainingLoop; train++)
             {
                 LogMan.Trace(sC, sMethod, $"{Type} : Training loop {train}");
 
-                var lNextEvolution = new ColorEvolutionList();
+                var lNextEvolution = new ColorEvolutionList<T>();
                 if (lEvolutions.Count == 0)
                 {
                     foreach (var rgb in tempPalette)
@@ -123,7 +125,7 @@ namespace ColourClashNet.Color.Transformation
                 {
                     var lLastEvolution = lEvolutions.Last();
                     var lNextClusterColors = lLastEvolution.ComputeNextEvolution(ReferencePalette, ClusterColorSelectionMode, ColorDistanceEvaluationMode);
-                    foreach (var rgb in lNextClusterColors )
+                    foreach (var rgb in lNextClusterColors)
                     {
                         lNextEvolution.SetClusterColor(rgb);
                     }
@@ -143,8 +145,9 @@ namespace ColourClashNet.Color.Transformation
                     var map = lNextEvolution.CreateTransformationMap(ImageSource, ColorDistanceEvaluationMode);
                     oArgs.ProcessingResults.DataOut = map.Transform(ImageSource, token);
                 }
+
                 RaiseProcessPartialEvent(oArgs);
-            }           
+            }
             TransformationMap = lEvolutions.Last().CreateTransformationMap(ImageSource, ColorDistanceEvaluationMode);
             return ColorTransformResult.CreateValidResult();
         }
@@ -152,13 +155,16 @@ namespace ColourClashNet.Color.Transformation
 
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
-            
-                var ret = TransformationMap.Transform(ImageSource, token);
-                if (ret != null)
-                {
-                    return ColorTransformResult.CreateValidResult(ImageSource, ret);
-                }
-                return new();
+
+            var ret = TransformationMap.Transform(ImageSource, token);
+            if (ret != null)
+            {
+                return ColorTransformResult.CreateValidResult(ImageSource, ret);
+            }
+            return new();
         }
     }
+
+    public class ColorTransformClustering : ColorTransformClusteringTemplate<ColorEvolution>;
+    public class ColorTransformClusteringEHB : ColorTransformClusteringTemplate<ColorEvolutionAmigaEHB>;
 }

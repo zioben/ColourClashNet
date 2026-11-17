@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color;
+﻿using ColourClashNet;
+using ColourClashNet.Color;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 
@@ -63,9 +64,9 @@ namespace ColourClashProcessing.Blob
             return false;
         }
 
-        public static int[,] ToMask(List<RunLength> runLengths, int width, int height, int foreRGB, int bkgRGB)
+        public static int[,] ToShapeMatrix(List<RunLength> runLengths, int width, int height)//, int foreRGB, int bkgRGB)
         {
-            string sM = nameof(ToMask);
+            string sM = nameof(ToShapeMatrix);
             try
             {
                 if (runLengths == null)
@@ -73,12 +74,12 @@ namespace ColourClashProcessing.Blob
                 if (width <= 0 || height <= 0)
                     throw new ArgumentException("Width and Height must be positive.");
 
-                var matrix = MatrixTools.CreateMatrix(width, height, bkgRGB);
+                var matrix = MatrixTools.CreateMatrix(width, height, ColorDefaults.DefaultShapeBkgColorInt);
                 foreach (var rl in runLengths)
                 {
                     for (int c = rl.XS; c <= rl.XE; c++)
                     {
-                        matrix[rl.Y, c] = foreRGB;
+                        matrix[rl.Y, c] = ColorDefaults.DefaultShapeForeColorInt;
                     }
                 }
                 return matrix;
@@ -91,9 +92,9 @@ namespace ColourClashProcessing.Blob
         }
 
 
-        public static int[,] ToMask(List<RunLength> runLengths, int foreRGB, int bkgRGB)
+        public static int[,] ToShapeMatrix(List<RunLength> runLengths)//, int foreRGB, int bkgRGB)
         {
-            string sM = nameof(ToMask);
+            string sM = nameof(ToShapeMatrix);
             try
             {
                 if (runLengths == null)
@@ -106,13 +107,12 @@ namespace ColourClashProcessing.Blob
                 var height= yMax - yMin+1;
                 if (width <= 0 || height <= 0)
                     throw new ArgumentException("Width and Height must be positive.");
-
-                var matrix = MatrixTools.CreateMatrix(width, height, bkgRGB);
+                var matrix = MatrixTools.CreateMatrix(width, height, ColorDefaults.DefaultShapeBkgColorInt);
                 foreach (var rl in runLengths)
                 {
                     for (int c = rl.XS; c <= rl.XE; c++)
                     {
-                        matrix[rl.Y-yMin, c-xMin] = foreRGB;
+                        matrix[rl.Y-yMin, c-xMin] = ColorDefaults.DefaultShapeForeColorInt;
                     }
                 }
                 return matrix;
@@ -125,24 +125,30 @@ namespace ColourClashProcessing.Blob
         }
 
 
-        public static ImageData ToImageData(List<RunLength> runLengths, int width, int height, int foreRGB, int bkgRGB)
-            => new ImageData().Create(ToMask(runLengths, width, height, foreRGB, bkgRGB));
+
+        public static ImageData ToShapeImageData(List<RunLength> runLengths, int width, int height)
+            => new ImageData().Create(ToShapeMatrix(runLengths, width, height));
 
 
-        public static ImageData ToImageData(List<RunLength> runLengths, ImageData referenceImage, int foreRGB, int bkgRGB)
+        public static ImageData ToShapeImageData(List<RunLength> runLengths, ImageData referenceImage)
         {
             ImageData.AssertValid(referenceImage);
-            return ToImageData(runLengths, referenceImage.Width, referenceImage.Height, foreRGB, bkgRGB);
+            return ToShapeImageData(runLengths, referenceImage.Width, referenceImage.Height);
         }
 
+        public static ImageData ToShapeImageData(List<RunLength> runLengths)
+             => new ImageData().Create(ToShapeMatrix(runLengths));
+        
 
-        public static bool ToMatrix(List<RunLength> runLengths, int[,] outputMatrix, int foreRGB)
+
+
+        public static bool MergeToMatrix(List<RunLength> runLengths, int[,] mergedMatrix)
         {
-            string sM = nameof(ToMatrix);
-            if(outputMatrix==null)
-                throw new ArgumentNullException(nameof(outputMatrix));
-            var W = outputMatrix.GetLength(1);
-            var H = outputMatrix.GetLength(0);
+            string sM = nameof(MergeToMatrix);
+            if(mergedMatrix==null)
+                throw new ArgumentNullException(nameof(mergedMatrix));
+            var W = mergedMatrix.GetLength(1);
+            var H = mergedMatrix.GetLength(0);
             var yMin = runLengths.Min(R => R.Y);
             var yMax = runLengths.Max(R => R.Y);
             var xMin = runLengths.Min(R => R.XS);
@@ -156,13 +162,11 @@ namespace ColourClashProcessing.Blob
             {
                 for (int c = rl.XS; c <= rl.XE; c++)
                 {
-                    outputMatrix[rl.Y, c] = foreRGB;
+                    mergedMatrix[rl.Y, c] = ColorDefaults.DefaultShapeForeColorInt;
                 }
             }
             return true;
         }
 
-        public static ImageData ToImageData(List<RunLength> runLengths, int foreRGB, int bkgRGB)
-            => new ImageData().Create(ToMask(runLengths, foreRGB, bkgRGB));
     }
 }

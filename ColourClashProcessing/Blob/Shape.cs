@@ -101,7 +101,7 @@ namespace ColourClashProcessing.Blob
             {
                 throw new InvalidOperationException($"Shape is not valid: SourceWidth={SourceWidth}, SourceHeight={SourceHeight}");
             }
-            return RunLength.ToImageData(RunLengths, SourceWidth, SourceHeight, ColorDefaults.DefaultShapeForeColorInt, ColorDefaults.DefaultShapeBkgColorInt);
+            return RunLength.ToShapeImageData(RunLengths, SourceWidth, SourceHeight);
         }
     }
 }

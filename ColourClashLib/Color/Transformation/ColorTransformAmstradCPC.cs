@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color.Dithering;
+﻿using ColourClashNet.Color;
+using ColourClashNet.Color.Dithering;
 using ColourClashNet.Imaging;
 using System;
 using System.Collections.Generic;

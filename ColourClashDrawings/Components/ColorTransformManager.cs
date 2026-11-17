@@ -4,6 +4,7 @@ using ColourClashNet.Color.Transformation;
 using ColourClashNet.Drawing;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
+using ColourClashProcessing.Blob;
 using ModuleTester;
 using System;
 using System.Collections.Generic;
@@ -12,20 +13,21 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ColourClashNet.Components
 {
-    public partial class ColorManager : Component
+    public partial class ColorTransformManager : Component
     {
 
-        static string sClass = nameof(ColorManager);
+        static string sClass = nameof(ColorTransformManager);
 
-        public ColorManager()
+        public ColorTransformManager()
         {
             InitializeComponent();
         }
 
-        public ColorManager(IContainer container)
+        public ColorTransformManager(IContainer container)
         {
             container.Add(this);
 
@@ -40,9 +42,10 @@ namespace ColourClashNet.Components
 
 
         //        public Dictionary<string, object> DataParameters = new Dictionary<string, object>();
-        [DesignerSerializationVisibility( DesignerSerializationVisibility.Hidden)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [DefaultValue(null)]
         public ColorTransformConfig transformConfig { get; set; } = new ColorTransformConfig();
+
 
         ColorTransformInterface transformSource;
         ColorTransformInterface transformBkgRemover;
@@ -54,7 +57,7 @@ namespace ColourClashNet.Components
         public ImageData DataSourceX { get; set; }
 
         [Browsable(false)]
-        [DefaultValue(null)]    
+        [DefaultValue(null)]
         public ImageData DataBkgRemoved { get; set; }
 
         [Browsable(false)]
@@ -86,6 +89,7 @@ namespace ColourClashNet.Components
         [DefaultValue(true)]
         public bool InvalidatePreProcess { get; set; } = true;
 
+
         #endregion
 
         #region Events
@@ -98,7 +102,7 @@ namespace ColourClashNet.Components
         public event EventHandler<ColorManagerProcessEventArgs> OnProcess;
 
         #endregion
-       
+
 
         public void Reset()
         {
@@ -162,7 +166,7 @@ namespace ColourClashNet.Components
             catch (Exception ex)
             {
                 Reset();
-                return false;   
+                return false;
             }
         }
         public bool Create(ImageData oImageData)
@@ -175,10 +179,10 @@ namespace ColourClashNet.Components
             return true;
         }
 
-        public void Create(System.Drawing.Image oImage) => Create(ImageToolsGDI.GdiImageToMatrix(oImage as Bitmap));    
+        public void Create(System.Drawing.Image oImage) => Create(ImageToolsGDI.GdiImageToMatrix(oImage as Bitmap));
 
 
-        ImageData RemoveBkgAndQuantize(bool bRaiseEvent )
+        ImageData RemoveBkgAndQuantize(bool bRaiseEvent)
         {
             string sMethod = nameof(RemoveBkgAndQuantize);
             if (DataSourceX == null)
@@ -219,7 +223,7 @@ namespace ColourClashNet.Components
                 DataProcessed = new ImageData().Create(DataQuantized);
                 ImageProcessed = ImageToolsGDI.ImageDataToGdiImage(DataProcessed);
                 transformProcessing = transformQuantizer;
-                        
+
                 LogMan.Trace(sClass, sMethod, "Calling Event");
                 if (bRaiseEvent)
                 {
@@ -282,7 +286,12 @@ namespace ColourClashNet.Components
         }
 
         public async Task<ImageData> ProcessColorsAsync(ColorTransformType eTrasformType)
-            => await Task.Run(() => ProcessColors(eTrasformType));  
+            => await Task.Run(() => ProcessColors(eTrasformType));
 
+        internal void InjectOutput(ImageData oDataOut)
+        {
+            DataProcessed = oDataOut;
+            ImageProcessed = ImageToolsGDI.ImageDataToGdiImage(DataProcessed);
+        }
     }
 }

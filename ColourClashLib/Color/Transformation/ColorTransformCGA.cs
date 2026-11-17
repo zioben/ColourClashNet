@@ -26,10 +26,10 @@ namespace ColourClashNet.Color.Transformation
             DebugPalette,
         }
 
-        public enum CGAOutputMode
+        public enum CGACompositeOutputMode
         {
             ProcessedImage,
-            RowImage,
+            RawImage,
         }
 
 
@@ -59,7 +59,7 @@ namespace ColourClashNet.Color.Transformation
         {
             if (e.ProcessingResults.IsSuccess)
             {
-                if (OutputMode == CGAOutputMode.RowImage)
+                if (OutputMode == CGACompositeOutputMode.RawImage)
                 {
                     e.ProcessingResults.DataOut = CreateRowImage(e.ProcessingResults.DataOut, VideoMode);
                 }
@@ -77,13 +77,13 @@ namespace ColourClashNet.Color.Transformation
             set => config.CGAVideoMode = value;
         }
 
-        public CGAOutputMode OutputMode
+        public CGACompositeOutputMode OutputMode
         {
             get => config.CGAOutputMode;
             set => config.CGAOutputMode = value;
         }
 
-        public ColorTransformCGA WithProcessingParams(CGAVideoMode value, CGAOutputMode outputMode)
+        public ColorTransformCGA WithProcessingParams(CGAVideoMode value, CGACompositeOutputMode outputMode)
         {
             OutputMode = outputMode;
             VideoMode = value;

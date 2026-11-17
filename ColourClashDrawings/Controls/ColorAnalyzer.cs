@@ -1,10 +1,12 @@
 ﻿using ColourClashLib;
-using ColourClashNet.Color;
+using ColourClashLib.Color.Transformation;
 using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Drawing;
 using ColourClashNet.Imaging;
+using ColourClashProcessing.Blob;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -65,9 +67,12 @@ namespace ColourClashNet.Controls
         [DefaultValue(ColorDistanceEvaluationMode.RGB)]
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public Blob BlobAnalysis { get; set; } = new Blob();
+
         //public ColorTransformConfig Config => oColorManager.Config;
 
-        public Components.ColorManager ColorManager => oColorManager;
+        public Components.ColorTransformManager ColorManager => oColorManager;
 
         public ColorAnalyzer()
         {
@@ -82,11 +87,15 @@ namespace ColourClashNet.Controls
             CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformCbmAmiga.EnumAmigaVideoMode)).ToList());
             CreateComboBox(cbZxPaletteMode, Enum.GetNames(typeof(ColorTransformZxSpectrum.ZxPaletteMode)).ToList());
             CreateComboBox(cbZxAutotuneMode, Enum.GetNames(typeof(ColorTransformZxSpectrum.ZxAutotuneMode)).ToList());
+            CreateComboBox(cbCgaVideoMode, Enum.GetNames(typeof(ColorTransformCGA.CGAVideoMode)).ToList());
+            CreateComboBox(cbCgaVideoOutput, Enum.GetNames(typeof(ColorTransformCGA.CGACompositeOutputMode)).ToList());
+            CreateComboBox(cbBlobConnectionMode, Enum.GetNames(typeof(BlobConnectionModes)).ToList());
             oBitmapRenderSource.ColorAdded += (s, e) => { BuildBkgPalette(); };
             oBitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };
             oColorManager.OnQuantize += (s, e) => { Invoke(() => RefreshData()); };
             oColorManager.OnProcess += (s, e) => { Invoke(() => { RefreshData(); RebuildParams(e.Transformation); }); };
-        }
+            oBlobManager.OnPreProcess += (s, e) => { oBlobManager.WithProcessingParams(oColorManager.transformConfig.ColorBackgroundPalette, oColorManager.transformConfig.ColorBackgroundReplacementValue); };
+        }                
 
         public void Preprocess()
         {
@@ -287,6 +296,14 @@ namespace ColourClashNet.Controls
                  ColorTransformType.ColorReductionClustering,
                  ColorSelectionMode.UseColorPalette
                  );
+
+            oColorManager.transformConfig.WithCGAScreenMode(
+                (ColorTransformCGA.CGAVideoMode)Enum.Parse(typeof(ColorTransformCGA.CGAVideoMode), cbCgaVideoMode.SelectedItem.ToString()),
+                (ColorTransformCGA.CGACompositeOutputMode)Enum.Parse(typeof(ColorTransformCGA.CGACompositeOutputMode), cbCgaVideoOutput.SelectedItem.ToString())
+                );
+
+
+
         }
 
         private void pbBkColor_DoubleClick(object sender, EventArgs e)
@@ -314,7 +331,6 @@ namespace ColourClashNet.Controls
         {
             SetControlToConfig();
             await oColorManager.ProcessColorsAsync(type);
-            // RefreshData();
         }
 
         private async void btnReduceColors_Click(object sender, EventArgs e)
@@ -330,10 +346,19 @@ namespace ColourClashNet.Controls
         private async void btnReduceColorsZx_Click(object sender, EventArgs e)
             => ReduceColorsAsync(ColorTransformType.ColorReductionZxSpectrum);
 
+        private async void btnReduceColorsHercules_Click(object sender, EventArgs e)
+            => ReduceColorsAsync(ColorTransformType.ColorReductionHercules);
+
+        private async void btnReduceColorsCGA_Click(object sender, EventArgs e)
+            => ReduceColorsAsync(ColorTransformType.ColorReductionCGA);
         private async void btnReduceColorsEga_Click(object sender, EventArgs e)
             => ReduceColorsAsync(ColorTransformType.ColorReductionEGA);
 
-        private async void BtnReduceColorsC64v1_Click(object sender, EventArgs e)
+        private async void btnReduceColorsVGA_Click(object sender, EventArgs e)
+            => ReduceColorsAsync(ColorTransformType.ColorReductionVGA);
+
+
+        private async void btnReduceColorsC64v1_Click(object sender, EventArgs e)
             => ReduceColorsAsync(ColorTransformType.ColorReductionCBM64);
 
 
@@ -366,6 +391,7 @@ namespace ColourClashNet.Controls
             tbDitherStrenght.Value = (int)Math.Max(0, Math.Min(100, nudDitheringStrenght.Value * 100));
             bDitherStrenghtUpdating = false;
         }
+
 
 
 
@@ -446,5 +472,24 @@ namespace ColourClashNet.Controls
             SetRenderPanelLayout(false);
         }
 
+        private async void btnProcessBlob_Click(object sender, EventArgs e)
+        {
+            oBlobManager.blobConfig.WithProcessing((BlobConnectionModes)Enum.Parse(typeof(BlobConnectionModes), cbBlobConnectionMode.SelectedItem?.ToString() ?? string.Empty));
+            oBlobManager.blobConfig.WithFiltering((int)numBlobMinW.Value, (int)numBlobMinH.Value, (int)numBlobMinA.Value, (int)numBlobMaxW.Value, (int)numBlobMaxH.Value, (int)numBlobMaxA.Value);
+            oBlobManager.blobConfig.WithThreshold(ColorManager.transformConfig.ColorBackgroundPalette, (double)numBlobThreshold.Value, chkBlobInvertSelection.Checked);
+            var oDataOut = await oBlobManager.ProcessBlobAsync(oColorManager.DataSourceX);
+            oColorManager.InjectOutput(oDataOut);
+            RefreshData();
+        }
+
+        private void btnBlobSaveFrames_Click(object sender, EventArgs e)
+        {
+            if (saveFileDialogBlobs.ShowDialog() == DialogResult.OK)
+            {
+                var sPath = Path.GetDirectoryName(saveFileDialogBlobs.FileName);
+                var sPrefix = Path.GetFileNameWithoutExtension(saveFileDialogBlobs.FileName);
+                BlobTools.ExportImages(oBlobManager.BlobAnalysis, sPath, sPrefix);
+            }
+        }
     }
 }

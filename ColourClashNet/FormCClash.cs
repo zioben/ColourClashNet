@@ -1,5 +1,4 @@
 using ColourClashNet.Color;
-using ColourClashNet.Color.Transformation;
 using ColourClashNet.Components;
 using ColourClashNet.Controls;
 using ColourClashNet.Drawing;
@@ -8,9 +7,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using static ColourClashNet.Color.Transformation.ColorTransformCbm64;
-using static ColourClashNet.Color.Transformation.ColorTransformAmstradCPC;
-using static ColourClashNet.Color.Transformation.ColorTransformZxSpectrum;
+
 
 namespace ColourClashNet
 {

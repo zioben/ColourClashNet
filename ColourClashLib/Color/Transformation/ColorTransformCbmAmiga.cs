@@ -3,6 +3,7 @@ using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Linq;
@@ -57,7 +58,7 @@ namespace ColourClashNet.Color.Transformation
 
 
 
-        ImageData ToHam(ImageData oDataSource, ImageData oDataPreProcessed, ColorQuantizationMode eQuantization)
+        ImageData ToHam(ImageData oDataSource, ImageData oDataPreProcessed, ColorQuantizationMode eQuantization, CancellationToken token = default)
         {
 
             var oQuantization = new ColorTransformQuantization();
@@ -69,6 +70,7 @@ namespace ColourClashNet.Color.Transformation
             {
                 int iRgbPrev = ColorDefaults.DefaultInvalidColorInt; ;
                 var oPalette = new Palette();
+                token.ThrowIfCancellationRequested();
                 for (int c = 1; c < oDataSource.Columns; c++)
                 {
                     if (iRgbPrev < 0)
@@ -110,65 +112,78 @@ namespace ColourClashNet.Color.Transformation
             return new ImageData().Create( oHamData );
         }
 
-        //int[,]? ToEhb(int[,]? oDataSource, int[,]? oDataPreProcessed, CancellationToken? oToken)
-        //{
-        //    return await Task.Run(() => { return new int[,]; } );
-        //}
 
-        protected  override ColorTransformResult ExecuteTransform(CancellationToken token = default)
+
+        ImageData ToEHB(ImageData oDataSource, ImageData oDataPreProcessed, CancellationToken token = default)
+        {
+
+            var trans = new ColorTransformClustering()
+                .WithClustering(config)
+                .WithColorDistanceEvaluationMode(config)
+                .WithDithering(DitheringConfig) as ColorTransformClustering;
+            trans.MaxColorsWanted = 32;
+            trans.ProcessAdvance += (s,e)=> RaiseProcessPartialEvent(e); 
+            var res = trans.CreateAndProcessColors(oDataPreProcessed, token);            
+            return new ImageData().Create(res.DataOut);
+        }
+
+
+        protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransform);
+
+            ImageData? oAmigaData;
 
             var oQuantization = new ColorTransformQuantization();
             oQuantization.WithQuantization(ColorQuantizationMode.RGB444)
                          .WithReferencePalette(ReferencePalette)
                          .WithDithering(DitheringConfig);
 
-            int iMaxColors = 0;
-
-            switch (AmigaVideoMode)
+            if (AmigaVideoMode == EnumAmigaVideoMode.ExtraHalfBright)
             {
-                case EnumAmigaVideoMode.ExtraHalfBright:
-                    iMaxColors = 64;
-                    oQuantization.WithQuantization(ColorQuantizationMode.RGB444);
-                    break;
-                case EnumAmigaVideoMode.Ham6:
-                    iMaxColors = 16;
-                    oQuantization.WithQuantization(ColorQuantizationMode.RGB444);
-                    break;
-                case EnumAmigaVideoMode.Ham8:
-                    iMaxColors = 64;
-                    oQuantization.WithQuantization(ColorQuantizationMode.RGB666);
-                    break;
-                default:
-                    return null;
+                var oResultQuantized = oQuantization.CreateAndProcessColors(ImageSource, token);
+                oAmigaData = ToEHB(ImageSource, oResultQuantized.DataOut, token);
             }
-
-            var oResultQuantized = oQuantization.CreateAndProcessColors(ImageSource, token);
-
-            var cfg = config.Clone()
-                .WithMaxColorWanted(iMaxColors);
-            var oColorReduction = ColorTransformInternal.Alloc(config, config.AmigaInternalTransformationModel) as ColorTransformBase;
-            oColorReduction.SetProperties(config);
-            var oDataPreprocessedResult = oColorReduction.CreateAndProcessColors(oResultQuantized.DataOut, token);
-            BypassDithering = true;
-
-            ImageData? oAmigaData; 
-            switch (AmigaVideoMode)
+            else
             {
-                case EnumAmigaVideoMode.Ham6:
-                    oAmigaData = ToHam(ImageSource, oDataPreprocessedResult.DataOut, ColorQuantizationMode.RGB444 );
-                    break;
-                case EnumAmigaVideoMode.Ham8:
-                    oAmigaData = ToHam(ImageSource, oDataPreprocessedResult.DataOut, ColorQuantizationMode.RGB666 );
-                    break;
-                case EnumAmigaVideoMode.ExtraHalfBright:
-                    oAmigaData = null;
-                    //oRet = ToEhb(oDataSource, oDataPreprocessed, oToken );
-                    break;
-                default:
-                    oAmigaData = null;
-                    break;
+
+                int iMaxColors = 0;
+
+                switch (AmigaVideoMode)
+                {
+                    case EnumAmigaVideoMode.Ham6:
+                        iMaxColors = 16;
+                        oQuantization.WithQuantization(ColorQuantizationMode.RGB444);
+                        break;
+                    case EnumAmigaVideoMode.Ham8:
+                        iMaxColors = 64;
+                        oQuantization.WithQuantization(ColorQuantizationMode.RGB666);
+                        break;
+                    default:
+                        return null;
+                }
+
+                var oResultQuantized = oQuantization.CreateAndProcessColors(ImageSource, token);
+
+                var cfg = config.Clone()
+                    .WithMaxColorWanted(iMaxColors);
+                var oColorReduction = ColorTransformInternal.Alloc(cfg, cfg.AmigaInternalTransformationModel) as ColorTransformBase;
+                oColorReduction.SetProperties(cfg);
+                var oDataPreprocessedResult = oColorReduction.CreateAndProcessColors(oResultQuantized.DataOut, token);
+                BypassDithering = true;
+
+                switch (AmigaVideoMode)
+                {
+                    case EnumAmigaVideoMode.Ham6:
+                        oAmigaData = ToHam(ImageSource, oDataPreprocessedResult.DataOut, ColorQuantizationMode.RGB444);
+                        break;
+                    case EnumAmigaVideoMode.Ham8:
+                        oAmigaData = ToHam(ImageSource, oDataPreprocessedResult.DataOut, ColorQuantizationMode.RGB666);
+                        break;
+                    default:
+                        oAmigaData = null;
+                        break;
+                }
             }
             if (oAmigaData == null)
             {

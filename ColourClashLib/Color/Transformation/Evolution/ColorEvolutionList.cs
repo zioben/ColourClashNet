@@ -1,83 +1,108 @@
-﻿using ColourClashNet.Imaging;
+﻿using ColourClashLib.Color.Transformation;
+using ColourClashNet.Color;
+using ColourClashNet.Color.Transformation;
+using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System.Collections;
 using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using static ColourClashNet.Color.Transformation.ColorTransformCbm64;
 
-namespace ColourClashNet.Color.Transformation
+
+namespace ColourClashLib.Color.Transformation.Evolution
 {
 
-    internal class ColorEvolution
+
+    /// <summary>
+    /// 
+    /// </summary>
+    internal class ColorEvolutionList<T> where T : IColorEvolution, new()
     {
-        static string sC = nameof(ColorEvolutionList);
+        static string sC = nameof(ColorEvolutionList<T>);
 
-        internal int ClusterColorRGB { get; set; } = ColorDefaults.DefaultInvalidColorInt;
-        internal Dictionary<int, int> HistDictionary { get; set; } = new Dictionary<int, int>();
-        internal int ClusterItems => HistDictionary.Count();
-        internal int GetClusterWeight() => HistDictionary.Sum(X => X.Value);
+        /// <summary>
+        /// The list represents color evolution workflow, step by step, for each cluster.
+        /// </summary>
+        internal List<T> lEvolution = new();
+        internal int ReseedingCount { get; set; } = 0;
 
-        public override string ToString()
-        {
-            return $"0x{ClusterColorRGB:X8} : Count {ClusterItems}";
-        }
-    }
 
-    internal class ColorEvolutionList : IEnumerable<ColorEvolution>
-    {
-        static string sC = nameof(ColorEvolutionList);
 
-        internal List<ColorEvolution> lEvolution = new();
-
+        /// <summary>
+        /// Add a new cluster, set it with initial color and empty histogram.
+        /// </summary>
+        /// <param name="rgb"></param>
         internal void SetClusterColor(int rgb)
         {
-            lEvolution.Add(new ColorEvolution()
-            {
-                ClusterColorRGB = rgb
-            });
+            var evo = new T();
+            evo.SetClusterColor(rgb);
+            lEvolution.Add(evo);
         }
 
-        private ColorEvolution FindBestEvolution(int rgb, ColorDistanceEvaluationMode eMode)
+        /// <summary>
+        /// Get the cluster based on the specified distance evaluation mode.
+        /// </summary>
+        /// <param name="rgb"></param>
+        /// <param name="eMode"></param>
+        /// <returns></returns>
+        private T FindBestCluster(int rgb, ColorDistanceEvaluationMode eMode)
         {
-            ColorEvolution bestEvolution = null;
+            T bestEvolution = new();
             double bestDistance = double.MaxValue;
             foreach (var evo in lEvolution)
             {
-                double d = evo.ClusterColorRGB.Distance(rgb, eMode);
+                double d = evo.Distance(rgb, eMode);
                 if (d < bestDistance)
                 {
                     bestDistance = d;
                     bestEvolution = evo;
                 }
             }
-            return bestEvolution ?? new ColorEvolution();
+            return bestEvolution;
         }
 
+
+
+        /// <summary>
+        /// Create the color transformation map based on the current state of the color evolution clusters.
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="eMode"></param>
+        /// <returns></returns>
         internal ColorTransformationMap CreateTransformationMap(ImageData image, ColorDistanceEvaluationMode eMode)
         {
             ColorTransformationMap map = new ColorTransformationMap();
             foreach (var rgb in image.ColorPalette)
             {
-                var bestEvolution = FindBestEvolution(rgb, eMode);
-                map.Add(rgb, bestEvolution.ClusterColorRGB);
+                var bestCluster = FindBestCluster(rgb, eMode);
+                map.Add(rgb, bestCluster.GetClusterColor(rgb,eMode));
             }
             return map;
         }
 
+        /// <summary>
+        /// Populate cluster data using a color histogram
+        /// </summary>
+        /// <param name="histogram"></param>
+        /// <param name="eMode"></param>
         internal void Clusterize(HistogramRGB histogram, ColorDistanceEvaluationMode eMode)
         {
             foreach (var kvp in histogram.HistogramDictionary)
             {
-                var bestEvolution = FindBestEvolution(kvp.Key, eMode);
+                var bestEvolution = FindBestCluster(kvp.Key, eMode);
                 bestEvolution.HistDictionary.Add(kvp.Key, kvp.Value);
             }
         }
 
+        /// <summary>
+        /// Execute a learning step to compute the next evolution of clusters based on the reference palette and selection mode.
+        /// </summary>
+        /// <param name="referencePalette"></param>
+        /// <param name="mode"></param>
+        /// <param name="eMode"></param>
+        /// <returns></returns>
         internal List<int> ComputeNextEvolution(Palette referencePalette, ColorSelectionMode mode, ColorDistanceEvaluationMode eMode)
         {
             string sMethod = nameof(ComputeNextEvolution);
@@ -89,9 +114,9 @@ namespace ColourClashNet.Color.Transformation
             for (int i = 0; i < n; i++)
             {
                 var evo = lEvolution[i];
-                if (referencePalette.Contains(evo.ClusterColorRGB))
+                if (referencePalette.Contains(evo.GetClusterColor(i, eMode)))
                 {
-                    next[i] = evo.ClusterColorRGB;
+                    next[i] = evo.GetClusterColor(i, eMode);
                 }
                 else if (evo.HistDictionary.Count > 0)
                 {
@@ -108,7 +133,8 @@ namespace ColourClashNet.Color.Transformation
             // flatten all histograms, peek actual color and "error" as (histogram.count * distance (cluster color, hitstogram color))
             var evoCandidates = evoItems.SelectMany(e => e.HistDictionary
                  .Where(kvp => !fixedEntries.Contains(kvp.Key))
-                 .Select(kvp => (Color: kvp.Key, Err: (double)kvp.Value * e.ClusterColorRGB.Distance(kvp.Key, eMode)))).ToList();
+                 .Select(kvp => (Color: kvp.Key, Err: (double)kvp.Value * e.GetClusterColor(kvp.Key, eMode).Distance(kvp.Key, eMode)))).ToList();
+            //     .Select(kvp => (Color: kvp.Key, Err: (double)kvp.Value * e.ClusterRGB.Distance(kvp.Key, eMode)))).ToList();
             // creating a list of selectable candidates ordered by error
             var colorCandidates = evoCandidates.Where(t => t.Err > 0).OrderByDescending(t => t.Err).ToList();
 
@@ -124,7 +150,8 @@ namespace ColourClashNet.Color.Transformation
 
                 if (ci < colorCandidates.Count)
                 {
-                    LogMan.Warning(sC, sMethod, $"Cluster 0x{lEvolution[i].ClusterColorRGB:X8} empty/duplicated, reseed with 0x{colorCandidates[ci].Color:X8}");
+                    //LogMan.Warning(sC, sMethod, $"Cluster 0x{lEvolution[i].ClusterColorRGB:X8} empty/duplicated, reseed with 0x{colorCandidates[ci].Color:X8}");
+                    ReseedingCount++;
                     next[i] = colorCandidates[ci].Color;
                     fixedEntries.Add(colorCandidates[ci].Color);
                     ci++;
@@ -132,22 +159,20 @@ namespace ColourClashNet.Color.Transformation
                 else
                 {
                     // Nessun candidato disponibile: tieni il centro precedente
-                    next[i] = lEvolution[i].ClusterColorRGB;
+                    next[i] = lEvolution[i].GetClusterColor(i, eMode);
                 }
             }
+
+            //if (ReseedingCount > 0)
+            //{
+            //    LogMan.Warning(sC, sMethod, $"Reseeded {ReseedingCount} items during process");
+            //}
+
 
             return next.Select(x => x.Value).ToList();
         }
 
-        public IEnumerator<ColorEvolution> GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
     }
 
 
