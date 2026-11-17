@@ -68,7 +68,7 @@ public partial class TileProcessing
         lock (locker)
         {
             AssertValid(this);
-            var result = transformation.Create(tileItem.TileImage).ProcessColors(token) ?? ColorTransformResult.CreateErrorResult("Invalid processing");
+            var result = transformation.Create(tileItem.TileImage)?.ProcessColors(token) ?? ColorTransformResult.CreateErrorResult("Invalid processing");
             if (!result.IsSuccess)
             {
                 LogMan.Error(sC, sM, $"Tile transformation failed: {result.Message}");

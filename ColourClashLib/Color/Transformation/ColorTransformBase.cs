@@ -126,6 +126,12 @@ namespace ColourClashNet.Color.Transformation
                 bentered = semaphore.Wait(1000);
                 if (!bentered)
                     throw new TimeoutException($"{sC}.{sM} : Cannot create");
+
+                // A previous Create without reference image aliased ImageReference to ImageSource:
+                // detach them, otherwise creating the reference would overwrite the source too.
+                if (ReferenceEquals(ImageReference, ImageSource))
+                    ImageReference = new ImageData();
+
                 Reset();
                 try
                 {
@@ -309,6 +315,8 @@ namespace ColourClashNet.Color.Transformation
                 if (!oTransfRes.IsSuccess)
                 {
                     LogMan.Error(sC, sM, $"{Type} : {nameof(ExecuteTransform)} error");
+                    // Propagate the transformation error (message and exception) to the caller
+                    oRetRes = oTransfRes;
                 }
                 else
                 {
@@ -398,10 +406,23 @@ namespace ColourClashNet.Color.Transformation
             => TransformationError = ColorIntExt.EvaluateError(referenceImage, ImageOutput, ColorDistanceEvaluationMode, token);
 
         public ColorTransformResult CreateAndProcessColors(ImageData sourceImage, ImageData referenceImage,  CancellationToken token = default)
-            => Create(sourceImage,referenceImage).ProcessColors(token);
+        {
+            string sM = nameof(CreateAndProcessColors);
+            try
+            {
+                // Create returns null on failure: report it as an error result instead of throwing NullReferenceException
+                return Create(sourceImage, referenceImage)?.ProcessColors(token)
+                    ?? ColorTransformResult.CreateErrorResult($"{Type} : {nameof(Create)} failed");
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, ex);
+                return ColorTransformResult.CreateErrorResult(ex);
+            }
+        }
 
         public ColorTransformResult CreateAndProcessColors(ImageData sourceImage, CancellationToken token = default)
-            => Create(sourceImage).ProcessColors(token);
+            => CreateAndProcessColors(sourceImage, null, token);
 
         //public async Task<ColorTransformResults> Create(ImageData oDataSource, CancellationToken token = default)
         //   => await Task.Run<ColorTransformResults>(() => Create(oDataSource, token));
