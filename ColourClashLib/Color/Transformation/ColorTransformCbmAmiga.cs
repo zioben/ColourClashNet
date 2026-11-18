@@ -163,10 +163,11 @@ namespace ColourClashNet.Color.Transformation
         ImageData ToEHB(ImageData dataSource, ImageData dataPreProcessed, CancellationToken token = default)
         {
 
-            var transform = new ColorTransformClustering()
+            // EHB clusters: each of the 32 base colors also provides its half-bright copy
+            var transform = new ColorTransformClusteringEHB()
                 .WithClustering(config)
                 .WithColorDistanceEvaluationMode(config)
-                .WithDithering(DitheringConfig) as ColorTransformClustering;
+                .WithDithering(DitheringConfig) as ColorTransformClusteringEHB;
             transform.MaxColorsWanted = 32;
             transform.ProcessAdvance += (s,e)=> RaiseProcessPartialEvent(e);
             var result = transform.CreateAndProcessColors(dataPreProcessed, token);

@@ -8,7 +8,7 @@ using ColourClashNet.Color;
 namespace ColourClashNet.Color.Dithering
 {
     /// <summary>
-    /// Sierra error diffusion dithering.
+    /// Sierra (three rows) error diffusion dithering (weights / 32).
     /// </summary>
     public class DitherSierra : DitherErrorDiffusion
     {

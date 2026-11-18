@@ -23,6 +23,11 @@ namespace ColourClashLib.Color.Transformation.Evolution
         int ClusterItems { get; }
 
         /// <summary>
+        /// Main cluster color (centroid), the value that evolves during training.
+        /// </summary>
+        int ClusterRGB { get; }
+
+        /// <summary>
         /// Sets the cluster color (centroid).
         /// </summary>
         void SetClusterColor(int rgb);

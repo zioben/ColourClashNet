@@ -38,9 +38,9 @@ namespace ColourClashLib.Color.Transformation.Evolution
         /// <inheritdoc/>
         public int ClusterItems => HistDictionary.Count();
         /// <inheritdoc/>
-        public double Distance(int rgb, ColorDistanceEvaluationMode mode) => ClusterRGB.Distance(rgb, mode);
+        public virtual double Distance(int rgb, ColorDistanceEvaluationMode mode) => ClusterRGB.Distance(rgb, mode);
         /// <inheritdoc/>
-        public int GetClusterColor(int rgb, ColorDistanceEvaluationMode mode) => ClusterRGB;
+        public virtual int GetClusterColor(int rgb, ColorDistanceEvaluationMode mode) => ClusterRGB;
         /// <inheritdoc/>
         public void SetClusterColor(int rgb) => ClusterRGB = rgb;
 

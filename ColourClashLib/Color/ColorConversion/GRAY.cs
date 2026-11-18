@@ -83,7 +83,7 @@ namespace ColourClashNet.Color.Conversion
         {
             if (rgb.IsColor())
             {
-                return (int)Math.Min(0, Math.Max(255, (rgb.ToR() * WeightR + rgb.ToG() * WeightG + rgb.ToB() * WeightB)));
+                return (int)Math.Max(0, Math.Min(255, (rgb.ToR() * WeightR + rgb.ToG() * WeightG + rgb.ToB() * WeightB)));
             }
             return ColorDefaults.DefaultInvalidColorInt;
         }
