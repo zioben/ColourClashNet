@@ -80,9 +80,11 @@ namespace ColourClashNet.Color.Transformation
                 token.ThrowIfCancellationRequested();
                 for (int c = 0; c < image.Columns; c++)
                 {
-                    if (!rgbTransformationMap.TryGetValue(image.matrix[r, c], out oDataOut[r, c]))
+                    var rgb = image.matrix[r, c];
+                    if (!rgbTransformationMap.TryGetValue(rgb, out oDataOut[r, c]))
                     {
-                        oDataOut[r, c] = ColorDefaults.DefaultInvalidColorInt;
+                        // Tagged pixels (negative: transparent, mask, ...) not in the map are kept unchanged
+                        oDataOut[r, c] = rgb < 0 ? rgb : ColorDefaults.DefaultInvalidColorInt;
                     }
                 }
             }//);

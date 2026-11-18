@@ -427,7 +427,7 @@ public static class MatrixTools
         {
             for (int c = 0; c < rectClipped.Width; c++)
             {
-                matrixDst[rectClipped.X + r, rectClipped.Y + c] = fillRGB;
+                matrixDst[rectClipped.Y + r, rectClipped.X + c] = fillRGB;
             }
         }
         return true;
@@ -598,7 +598,7 @@ public static class MatrixTools
             throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixDst)} is null");
 
         Rectangle<int> rectSrc = Rectangle<int>.Intersect(new(xSrc, ySrc, width, height), GetRectangle(matrixSrc));
-        Rectangle<int> rectMsk = Rectangle<int>.Intersect(new(xDst, yDst, width, height), GetRectangle(matrixMsk));
+        Rectangle<int> rectMsk = Rectangle<int>.Intersect(new(xMsk, yMsk, width, height), GetRectangle(matrixMsk));
         Rectangle<int> rectDst = Rectangle<int>.Intersect(new(xDst, yDst, width, height), GetRectangle(matrixDst));
 
         if (rectSrc.IsEmpty)
@@ -623,7 +623,7 @@ public static class MatrixTools
         {
             for (int x = 0; x < minWidth; x++)
             {
-                var mskRGB = matrixMsk[y,x];
+                var mskRGB = matrixMsk[rectMsk.Y + y, rectMsk.X + x];
                 if (ColorIntExt.IsColor(mskRGB) && mskRGB != ColorDefaults.DefaultShapeBkgColorInt)
                // if (mskRGB != ColorDefaults.DefaultShapeBkgColorInt)
                 {
@@ -695,7 +695,7 @@ public static class MatrixTools
     /// <param name="srcMatrix"></param>
     /// <returns></returns>
     static public int[,] CreateSafeMatrix(int[,]? srcMatrix)
-        => CreateSafeMatrix(srcMatrix, ColorDefaults.DefaultInvalidColorInt, ColorDefaults.DefaultBkgColorInt);
+        => CreateSafeMatrix(srcMatrix, ColorDefaults.DefaultBkgColorInt, ColorDefaults.DefaultInvalidColorInt);
 
     /// <summary>
     /// 
@@ -724,16 +724,21 @@ public static class MatrixTools
                 break;
             case HalveResolutionMode.EvenPixel:
                 for (int r = 0; r < R; r++)
+                {
                     for (int c = 1, co = 0; c < C; c += 2, co++)
                     {
                         oRet[r, co] = matrixSrc[r, c];
                     }
+                    // Odd width: the last output column has no even source pixel, use the last one
+                    if (C % 2 == 1)
+                        oRet[r, CO - 1] = matrixSrc[r, C - 1];
+                }
                 break;
             case HalveResolutionMode.MeanColor:
                 for (int r = 0; r < R; r++)
-                    for (int c = 1, co = 0; c < C; c += 2, co++)
+                    // Average pixel pairs (0,1), (2,3), ...
+                    for (int c = 0, co = 0; c < C; c += 2, co++)
                     {
-                        oRet[r, co] = matrixSrc[r, c];
                         var a = matrixSrc[r, c];
                         var b = a;
                         if (c < C - 1)

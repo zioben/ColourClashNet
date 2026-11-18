@@ -22,6 +22,8 @@ namespace ColourClashNet.Color.Dithering
                     return ColorDithering.Ordered_2x2;
                 else if (Size <= 4)
                     return ColorDithering.Ordered_4x4;
+                else if (Size == 6)
+                    return ColorDithering.Ordered_6x6;
                 else
                     return ColorDithering.Ordered_8x8;
             }
@@ -70,14 +72,30 @@ namespace ColourClashNet.Color.Dithering
 
         public override DitherInterface Create()
         {
-            int pow = (int)Math.Log2(iSize);
-            int len = (int)Math.Pow(2, pow);
-            oThMat = oBase.Clone() as double[,];
-            dDivider = 4;
-            for (int i = 1; i < pow; i++)
+            if (iSize == 6)
             {
-                oThMat = BuildNextThMatrix(oThMat);
-                dDivider *= 4;
+                // 6x6 is not a power of 2: compose the 3x3 ordered matrix with the 2x2 one (values 0..35)
+                double[,] oBase3 = { { 0, 7, 3 }, { 6, 5, 2 }, { 4, 1, 8 } };
+                oThMat = new double[6, 6];
+                for (int r = 0; r < 6; r++)
+                {
+                    for (int c = 0; c < 6; c++)
+                    {
+                        oThMat[r, c] = 4 * oBase3[r / 2, c / 2] + oBase[r % 2, c % 2];
+                    }
+                }
+                dDivider = 36;
+            }
+            else
+            {
+                int pow = (int)Math.Log2(iSize);
+                oThMat = oBase.Clone() as double[,];
+                dDivider = 4;
+                for (int i = 1; i < pow; i++)
+                {
+                    oThMat = BuildNextThMatrix(oThMat);
+                    dDivider *= 4;
+                }
             }
             int iS = oThMat.GetLength(0);
             double dMean = 0;
@@ -85,7 +103,8 @@ namespace ColourClashNet.Color.Dithering
             {
                 for (int c = 0; c < iS; c++)
                 {
-                    oThMat[r, c] += 1;
+                    // (v + 0.5) / N - 0.5 is zero-mean: (v + 1) / N - 0.5 biased the image brighter
+                    oThMat[r, c] += 0.5;
                     oThMat[r, c] /= dDivider;
                     oThMat[r, c] -= 0.5;
                     dMean += oThMat[r, c];
@@ -132,6 +151,12 @@ namespace ColourClashNet.Color.Dithering
                     for (int c = 0; c < C; c++)
                     {
                         token.ThrowIfCancellationRequested();
+                        // Keep tagged (negative) pixels of the processed image, as error diffusion does
+                        if (oDataProcessed[r, c] < 0)
+                        {
+                            oDataOut[r, c] = oDataProcessed[r, c];
+                            continue;
+                        }
                         int col = oDataOriginal[r, c];
                         var dV = dSpread * dStrenght * oThMat[r % S, c % S];
                         var cr = Math.Max(0, col.ToR() + dV);

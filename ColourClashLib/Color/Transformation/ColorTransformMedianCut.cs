@@ -32,7 +32,7 @@ namespace ColourClashNet.Color.Transformation
         public ColorTransformMedianCut WithProcessingParams(int maxColors, ColorSelectionMode colorSelectionMode )
         {
             MaxColorsWanted = maxColors;
-
+            ColorSelectionMode = colorSelectionMode;
             return this;
         }
 
@@ -118,6 +118,16 @@ namespace ColourClashNet.Color.Transformation
                             hSup.Add(rgb);
                     }
                 }
+                // With ties the median can be the highest value on the channel, leaving one side empty:
+                // in that case split the colors sorted on the selected channel by index.
+                if ((hInf.Count == 0 || hSup.Count == 0) && rgbList.Count > 1)
+                {
+                    Func<int, int> channel = (ird > igd && ird > ibd) ? (rgb => rgb.ToR()) : (igd > ibd) ? (rgb => rgb.ToG()) : (rgb => rgb.ToB());
+                    var sorted = rgbList.OrderBy(channel).ToList();
+                    int half = sorted.Count / 2;
+                    hInf = new Palette().Create(sorted.Take(half));
+                    hSup = new Palette().Create(sorted.Skip(half));
+                }
                 Partition(hInf, iMaxColor / 2);
                 Partition(hSup, iMaxColor / 2);
                 return;
@@ -143,7 +153,7 @@ namespace ColourClashNet.Color.Transformation
         {
             OutputPalette = new Palette();
             var SourceHistogram = new HistogramRGB().Create(ImageSource);
-            if (SourceHistogram.ToPalette().Count < MaxColorsWanted)
+            if (SourceHistogram.ToPalette().Count <= MaxColorsWanted)
             {
                 foreach (var kvp in SourceHistogram.HistogramDictionary)
                 {

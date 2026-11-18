@@ -69,7 +69,7 @@ namespace ColourClashNet.Color.Transformation
                         //           ^^                      
                         int rgb = iRGB & 0x00E0E0E0;
                         rgb |= rgb >> 3;
-                        rgb |= ((rgb >> 6) & 0x00010101);
+                        rgb |= ((rgb >> 6) & 0x00030303);
                         return rgb;
                     }
                 case ColorQuantizationMode.RGB444:

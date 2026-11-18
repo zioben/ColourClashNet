@@ -14,7 +14,7 @@ namespace ColourClashNet.Color.Transformation
 
         public ColorTransformLumSat() 
         {
-            Type = ColorTransformType.ColorReductionEGA;
+            Type = ColorTransformType.ColorReductionSaturation;
             Description = "Expand color crominance";
         }
 
@@ -66,7 +66,8 @@ namespace ColourClashNet.Color.Transformation
                     var hsv = HSV.CreateFromIntRGB(ImageSource.matrix[r, c]);
                     if (hsv.IsValid)
                     {
-                        hsv.H = hsv.H + (float)HueShift;
+                        // Wrap hue into [0,360): HSV.ToIntRGB expects a normalized hue
+                        hsv.H = (float)((((hsv.H + HueShift) % 360.0) + 360.0) % 360.0);
                         hsv.S = (float)Math.Min(100, hsv.S * SaturationMultFactor);
                         hsv.V = (float)Math.Min(100, hsv.V * BrightnessMultFactor);
                         oProcessed[r, c] = hsv.ToIntRGB();
