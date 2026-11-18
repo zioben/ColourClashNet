@@ -7,21 +7,42 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Drawing
 {
+    /// <summary>
+    /// Mouse handler that also converts the tracked positions to image coordinates through a <see cref="Drawing.CoordinateManager"/>.
+    /// </summary>
     public class MouseHandlerCoordinateManagerX : MouseHandler
     {
         static string sClass = nameof(MouseHandlerCoordinateManagerX);
 
+        /// <summary>
+        /// Positions of a drag operation, in image coordinates.
+        /// </summary>
         public class ImageTrack
         {
+            /// <summary>
+            /// Position of the button press.
+            /// </summary>
             public PointF ImagePointClick { get; internal set; }
+            /// <summary>
+            /// Accumulated drag translation.
+            /// </summary>
             public PointF ImagePointTranslation { get; internal set; }
+            /// <summary>
+            /// Current mouse position.
+            /// </summary>
             public PointF ImagePointCurrent { get; internal set; }
 
+            /// <summary>
+            /// Creates a track at the origin.
+            /// </summary>
             public ImageTrack() 
             {
                 Reset();
             }
 
+            /// <summary>
+            /// Moves all the points to the origin.
+            /// </summary>
             public void Reset()
             { 
                 ImagePointClick = ImagePointTranslation = ImagePointCurrent = new PointF();
@@ -29,9 +50,18 @@ namespace ColourClashNet.Drawing
 
         }
 
+        /// <summary>
+        /// Image track of the current drag.
+        /// </summary>
         public ImageTrack ImageTrackCurrentX { get; protected set; } = new ImageTrack();   
+        /// <summary>
+        /// Image track accumulated over all drags.
+        /// </summary>
         public ImageTrack ImageTrackHistoryX { get; protected set; } = new ImageTrack();
 
+        /// <summary>
+        /// Resets control and image tracks.
+        /// </summary>
         public new void Reset()
         { 
             base.Reset();
@@ -40,27 +70,40 @@ namespace ColourClashNet.Drawing
         }
 
 
-        protected CoordinateManager oCMan = new CoordinateManager();
+        /// <summary>
+        /// Control to image coordinate conversion.
+        /// </summary>
+        protected CoordinateManager coordinateManager = new CoordinateManager();
 
+        /// <summary>
+        /// Control to image coordinate conversion; null values are ignored.
+        /// </summary>
         public CoordinateManager CoordinateManager
         {
-            get { return oCMan; }
+            get { return coordinateManager; }
             set 
             {
                 if (value != null)
                 {
-                    oCMan = value;
+                    coordinateManager = value;
                 }
             }
         }
 
-        void UpdateCoordinates(PointTrack oPoint, ImageTrack oImage)
+        /// <summary>
+        /// Converts a control track into an image track.
+        /// </summary>
+        void UpdateCoordinates(PointTrack point, ImageTrack image)
         {
-            oImage.ImagePointClick = oCMan.Transform(oPoint.ControlPointClick);
-            oImage.ImagePointTranslation = oCMan.Transform(oPoint.ControlPointTranslation);
-            oImage.ImagePointCurrent = oCMan.Transform(oPoint.ControlPointCurrent);
+            image.ImagePointClick = coordinateManager.Transform(point.ControlPointClick);
+            image.ImagePointTranslation = coordinateManager.Transform(point.ControlPointTranslation);
+            image.ImagePointCurrent = coordinateManager.Transform(point.ControlPointCurrent);
         }
 
+        /// <summary>
+        /// Converts both tracks.
+        /// </summary>
+        /// <returns>False on error.</returns>
         bool UpdateCoordinates()
         {
             string sMethod = nameof(UpdateCoordinates);
@@ -77,28 +120,31 @@ namespace ColourClashNet.Drawing
             }
         }
 
-        internal override bool OnMouseDown(MouseEventArgs oArgs)
+        /// <inheritdoc/>
+        internal override bool OnMouseDown(MouseEventArgs args)
         {
-            if (base.OnMouseDown(oArgs))
+            if (base.OnMouseDown(args))
             {
                 return UpdateCoordinates();
             }
             return false;
         }
 
-        internal override bool OnMouseUp(MouseEventArgs oArgs)
+        /// <inheritdoc/>
+        internal override bool OnMouseUp(MouseEventArgs args)
         {
-            if (base.OnMouseUp(oArgs))
+            if (base.OnMouseUp(args))
             {
                 return UpdateCoordinates();
             }
             return false;
         }
 
-        internal override bool OnMouseMove(MouseEventArgs oArgs)
+        /// <inheritdoc/>
+        internal override bool OnMouseMove(MouseEventArgs args)
         {
-            // Corretto questo codice, non cambiare la logica
-            if (base.OnMouseMove(oArgs))
+            // Verified logic, do not change: coordinates are refreshed on every move, even when not tracking
+            if (base.OnMouseMove(args))
             {
                 return UpdateCoordinates();
             }
@@ -109,18 +155,24 @@ namespace ColourClashNet.Drawing
             }
         }
 
-        public RectangleF ToImageRectangle(int iCX, int iCY, int iCW, int iCH)
+        /// <summary>
+        /// Converts a control rectangle into an image rectangle.
+        /// </summary>
+        public RectangleF ToImageRectangle(int cx, int cy, int cw, int ch)
         {
-            var P1 = oCMan.Transform(iCX, iCY);
-            var P2 = oCMan.Transform(iCX+iCW, iCY+iCH);
-            return ToRectangleF(P1, P2);
+            var p1 = coordinateManager.Transform(cx, cy);
+            var p2 = coordinateManager.Transform(cx+cw, cy+ch);
+            return ToRectangleF(p1, p2);
         }
 
-        public RectangleF ToControlRectangle(int iCX, int iCY, int iCW, int iCH)
+        /// <summary>
+        /// Converts an image rectangle into a control rectangle.
+        /// </summary>
+        public RectangleF ToControlRectangle(int cx, int cy, int cw, int ch)
         {
-            var P1 = oCMan.InverseTransform(iCX, iCY);
-            var P2 = oCMan.InverseTransform(iCX + iCW, iCY + iCH);
-            return ToRectangleF(P1, P2);
+            var p1 = coordinateManager.InverseTransform(cx, cy);
+            var p2 = coordinateManager.InverseTransform(cx + cw, cy + ch);
+            return ToRectangleF(p1, p2);
         }
     }
 }

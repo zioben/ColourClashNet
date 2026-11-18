@@ -16,44 +16,44 @@ namespace ColourClashLib.Color.Transformation.Evolution
 
 
     /// <summary>
-    /// 
+    /// One training step of the clustering: the set of clusters with their colors and assigned histograms.
     /// </summary>
+    /// <typeparam name="T">Cluster type</typeparam>
     internal class ColorEvolutionList<T> where T : IColorEvolution, new()
     {
         static string sC = nameof(ColorEvolutionList<T>);
 
         /// <summary>
-        /// The list represents color evolution workflow, step by step, for each cluster.
+        /// Clusters of this step.
         /// </summary>
-        internal List<T> lEvolution = new();
+        internal List<T> evolution = new();
+        /// <summary>
+        /// Number of clusters reseeded while computing the next step.
+        /// </summary>
         internal int ReseedingCount { get; set; } = 0;
 
 
 
         /// <summary>
-        /// Add a new cluster, set it with initial color and empty histogram.
+        /// Adds a new cluster with color <paramref name="rgb"/> and an empty histogram.
         /// </summary>
-        /// <param name="rgb"></param>
         internal void SetClusterColor(int rgb)
         {
             var evo = new T();
             evo.SetClusterColor(rgb);
-            lEvolution.Add(evo);
+            evolution.Add(evo);
         }
 
         /// <summary>
-        /// Get the cluster based on the specified distance evaluation mode.
+        /// Returns the cluster nearest to <paramref name="rgb"/>.
         /// </summary>
-        /// <param name="rgb"></param>
-        /// <param name="eMode"></param>
-        /// <returns></returns>
-        private T FindBestCluster(int rgb, ColorDistanceEvaluationMode eMode)
+        private T FindBestCluster(int rgb, ColorDistanceEvaluationMode mode)
         {
             T bestEvolution = new();
             double bestDistance = double.MaxValue;
-            foreach (var evo in lEvolution)
+            foreach (var evo in evolution)
             {
-                double d = evo.Distance(rgb, eMode);
+                double d = evo.Distance(rgb, mode);
                 if (d < bestDistance)
                 {
                     bestDistance = d;
@@ -66,79 +66,76 @@ namespace ColourClashLib.Color.Transformation.Evolution
 
 
         /// <summary>
-        /// Create the color transformation map based on the current state of the color evolution clusters.
+        /// Maps every color of <paramref name="image"/> to the color of its nearest cluster.
         /// </summary>
-        /// <param name="image"></param>
-        /// <param name="eMode"></param>
-        /// <returns></returns>
-        internal ColorTransformationMap CreateTransformationMap(ImageData image, ColorDistanceEvaluationMode eMode)
+        internal ColorTransformationMap CreateTransformationMap(ImageData image, ColorDistanceEvaluationMode mode)
         {
             ColorTransformationMap map = new ColorTransformationMap();
             foreach (var rgb in image.ColorPalette)
             {
-                var bestCluster = FindBestCluster(rgb, eMode);
-                map.Add(rgb, bestCluster.GetClusterColor(rgb,eMode));
+                var bestCluster = FindBestCluster(rgb, mode);
+                map.Add(rgb, bestCluster.GetClusterColor(rgb,mode));
             }
             return map;
         }
 
         /// <summary>
-        /// Populate cluster data using a color histogram
+        /// Assigns every histogram color (with its pixel count) to the nearest cluster.
         /// </summary>
-        /// <param name="histogram"></param>
-        /// <param name="eMode"></param>
-        internal void Clusterize(HistogramRGB histogram, ColorDistanceEvaluationMode eMode)
+        internal void Clusterize(HistogramRGB histogram, ColorDistanceEvaluationMode mode)
         {
             foreach (var kvp in histogram.HistogramDictionary)
             {
-                var bestEvolution = FindBestCluster(kvp.Key, eMode);
+                var bestEvolution = FindBestCluster(kvp.Key, mode);
                 bestEvolution.HistDictionary.Add(kvp.Key, kvp.Value);
             }
         }
 
         /// <summary>
-        /// Execute a learning step to compute the next evolution of clusters based on the reference palette and selection mode.
+        /// Computes the cluster colors of the next training step.
+        /// <para/>
+        /// Fixed (reference palette) clusters keep their color, the others move to their representative color;
+        /// clusters that end up empty or duplicated are reseeded with the worst represented colors.
         /// </summary>
-        /// <param name="referencePalette"></param>
-        /// <param name="mode"></param>
-        /// <param name="eMode"></param>
-        /// <returns></returns>
-        internal List<int> ComputeNextEvolution(Palette referencePalette, ColorSelectionMode mode, ColorDistanceEvaluationMode eMode)
+        /// <param name="referencePalette">Fixed colors</param>
+        /// <param name="mode">How the representative color is selected</param>
+        /// <param name="distanceMode">Distance metric</param>
+        /// <returns>The cluster colors for the next step, in the same order as the current clusters.</returns>
+        internal List<int> ComputeNextEvolution(Palette referencePalette, ColorSelectionMode mode, ColorDistanceEvaluationMode distanceMode)
         {
             string sMethod = nameof(ComputeNextEvolution);
-            int n = lEvolution.Count;
+            int n = evolution.Count;
             var next = new int?[n];
-            var fixedEntries = new HashSet<int>(referencePalette.rgbPalette);
+            var fixedEntries = new HashSet<int>(referencePalette.RgbPalette);
 
-            // Evaluate the fixed cluster evolution
+            // 1. Compute the next color of each cluster: reference palette colors stay fixed,
+            //    the others move to the representative color of their histogram
             for (int i = 0; i < n; i++)
             {
-                var evo = lEvolution[i];
-                if (referencePalette.Contains(evo.GetClusterColor(i, eMode)))
+                var evo = evolution[i];
+                if (referencePalette.Contains(evo.GetClusterColor(i, distanceMode)))
                 {
-                    next[i] = evo.GetClusterColor(i, eMode);
+                    next[i] = evo.GetClusterColor(i, distanceMode);
                 }
                 else if (evo.HistDictionary.Count > 0)
                 {
                     int rgbMean = ColorIntExt.GetColorMean(evo.HistDictionary, mode);
-                    // evaluated RGB mean might coincide with a fixed entry.
-                    // the cluster collapses
+                    // The new color may coincide with an already used color: the cluster collapses
+                    // and is left without color, to be reseeded in step 3
                     if (fixedEntries.Add(rgbMean))
                         next[i] = rgbMean;
                 }
             }
 
-            // Select populate dclusters
-            var evoItems = lEvolution.Where(evo => evo.HistDictionary.Count > 1).ToList();
-            // flatten all histograms, peek actual color and "error" as (histogram.count * distance (cluster color, hitstogram color))
+            // 2. Reseed candidates: colors of populated clusters, ranked by their weighted error
+            //    (pixel count * distance from the cluster color). Badly represented colors come first.
+            var evoItems = evolution.Where(evo => evo.HistDictionary.Count > 1).ToList();
             var evoCandidates = evoItems.SelectMany(e => e.HistDictionary
                  .Where(kvp => !fixedEntries.Contains(kvp.Key))
-                 .Select(kvp => (Color: kvp.Key, Err: (double)kvp.Value * e.GetClusterColor(kvp.Key, eMode).Distance(kvp.Key, eMode)))).ToList();
-            //     .Select(kvp => (Color: kvp.Key, Err: (double)kvp.Value * e.ClusterRGB.Distance(kvp.Key, eMode)))).ToList();
-            // creating a list of selectable candidates ordered by error
+                 .Select(kvp => (Color: kvp.Key, Err: (double)kvp.Value * e.GetClusterColor(kvp.Key, distanceMode).Distance(kvp.Key, distanceMode)))).ToList();
             var colorCandidates = evoCandidates.Where(t => t.Err > 0).OrderByDescending(t => t.Err).ToList();
 
-            // 3. Reseed clusters without centroid
+            // 3. Reseed the clusters left without color with the worst represented colors
             int ci = 0;
             for (int i = 0; i < n; i++)
             {
@@ -150,7 +147,7 @@ namespace ColourClashLib.Color.Transformation.Evolution
 
                 if (ci < colorCandidates.Count)
                 {
-                    //LogMan.Warning(sC, sMethod, $"Cluster 0x{lEvolution[i].ClusterColorRGB:X8} empty/duplicated, reseed with 0x{colorCandidates[ci].Color:X8}");
+                    //LogMan.Warning(sC, sMethod, $"Cluster 0x{evolution[i].ClusterColorRGB:X8} empty/duplicated, reseed with 0x{colorCandidates[ci].Color:X8}");
                     ReseedingCount++;
                     next[i] = colorCandidates[ci].Color;
                     fixedEntries.Add(colorCandidates[ci].Color);
@@ -158,8 +155,8 @@ namespace ColourClashLib.Color.Transformation.Evolution
                 }
                 else
                 {
-                    // Nessun candidato disponibile: tieni il centro precedente
-                    next[i] = lEvolution[i].GetClusterColor(i, eMode);
+                    // No candidate available: keep the previous center
+                    next[i] = evolution[i].GetClusterColor(i, distanceMode);
                 }
             }
 

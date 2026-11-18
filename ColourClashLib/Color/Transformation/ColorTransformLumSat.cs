@@ -8,26 +8,41 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
+    /// <summary>
+    /// Adjusts hue, saturation and brightness in HSV space. Not a color reduction: dithering is always bypassed.
+    /// </summary>
     public class ColorTransformLumSat : ColorTransformBase
     {
         static readonly string sC = nameof(ColorTransformLumSat);
 
+        /// <summary>
+        /// Creates the HSV adjustment.
+        /// </summary>
         public ColorTransformLumSat() 
         {
             Type = ColorTransformType.ColorReductionSaturation;
-            Description = "Expand color crominance";
+            Description = "Expand color chrominance";
         }
 
+        /// <summary>
+        /// Hue rotation in degrees.
+        /// </summary>
         public double HueShift 
         { 
             get => config.HsvHueShift; 
             set => config.HsvHueShift = value;
         }
+        /// <summary>
+        /// Saturation multiplier; the result is capped at 100%.
+        /// </summary>
         public double SaturationMultFactor 
         { 
             get => config.HsvSaturationMultFactor;
             set => config.HsvSaturationMultFactor = value;
         }
+        /// <summary>
+        /// Brightness multiplier; the result is capped at 100%.
+        /// </summary>
         public double BrightnessMultFactor 
         {
             get => config.HsvBrightnessMultFactor;
@@ -35,6 +50,9 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
+        /// <summary>
+        /// Sets the HSV adjustments; <paramref name="hueShift"/> is clamped to [-180, 180] (fluent).
+        /// </summary>
         public ColorTransformLumSat WithHueShiftValue(double hueShift, double saturationMultFactor, double brightnessMultFactor)
         {
             HueShift = ColourTools.Clamp(hueShift, -180, 180);
@@ -43,22 +61,23 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
     
+        /// <summary>
+        /// Sets the HSV adjustments from a configuration (fluent).
+        /// </summary>
         public ColorTransformLumSat WithHueShiftValue(ColorTransformConfig cfg) => WithHueShiftValue(cfg.HsvHueShift, cfg.HsvSaturationMultFactor, cfg.HsvBrightnessMultFactor);
 
 
-        // Not Needed
-        //protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
-
+        /// <summary>
+        /// Applies the adjustments to every pixel in parallel; non-color pixels become black.
+        /// </summary>
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
 
             string sM = nameof(ExecuteTransform);
 
-            var oProcessed = new int[ImageSource.Rows, ImageSource.Columns];
+            var processed = new int[ImageSource.Rows, ImageSource.Columns];
             BypassDithering = true;
 
-            // More Performant without Parallel ?
-            //for (int r = 0; r < SourceData.Rows; r++ )
             Parallel.For(0, ImageSource.Rows, new ParallelOptions { CancellationToken = token }, r =>
             {
                 for (int c = 0; c < ImageSource.Columns; c++)
@@ -70,14 +89,13 @@ namespace ColourClashNet.Color.Transformation
                         hsv.H = (float)((((hsv.H + HueShift) % 360.0) + 360.0) % 360.0);
                         hsv.S = (float)Math.Min(100, hsv.S * SaturationMultFactor);
                         hsv.V = (float)Math.Min(100, hsv.V * BrightnessMultFactor);
-                        oProcessed[r, c] = hsv.ToIntRGB();
+                        processed[r, c] = hsv.ToIntRGB();
                     }
                 }
                 token.ThrowIfCancellationRequested();
             });
-            //}
 
-            return ColorTransformResult.CreateValidResult(ImageSource, new ImageData().Create(oProcessed));
+            return ColorTransformResult.CreateValidResult(ImageSource, new ImageData().Create(processed));
 
         }
     }

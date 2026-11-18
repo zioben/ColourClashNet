@@ -5,7 +5,7 @@ using System.Linq;
 namespace ColourClashNet.Color;
 
 /// <summary>
-/// Static class for palette creation
+/// Static palette helpers.
 /// </summary>
 public partial class Palette
 {
@@ -14,10 +14,9 @@ public partial class Palette
     /// <summary>
     /// Creates a new palette by merging the colors from the specified collection of palettes.
     /// </summary>
-    /// <param name="sourcePalettes">A collection of palettes whose colors will be combined. Null palettes within the collection are ignored. If the
-    /// collection itself is null, an empty palette is returned.</param>
-    /// <returns>A new Palette instance containing all colors from the non-null palettes in the collection. If no palettes are
-    /// provided or all are null, the returned palette will be empty.</returns>
+    /// <param name="sourcePalettes">Palettes to combine; null items are ignored.</param>
+    /// <returns>A new palette with the union of all colors.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="sourcePalettes"/> is null.</exception>
     public static Palette MergePalette(IEnumerable<Palette?> sourcePalettes)
     {
 
@@ -30,7 +29,7 @@ public partial class Palette
             if (palette == null)
                 continue;
 
-            foreach (var color in palette.rgbPalette)
+            foreach (var color in palette.RgbPalette)
                 result.Add(color);
         }
 
@@ -38,14 +37,12 @@ public partial class Palette
     }
     
 
-   /// <summary>
-   /// Merges two palettes into a single palette containing the combined colors from both inputs.
-   /// </summary>
-   /// <remarks>If both palettes contain the same color, the resulting palette may handle duplicates according
-   /// to the implementation of the underlying merge logic.</remarks>
-   /// <param name="paletteA">The first palette to merge. Cannot be null.</param>
-   /// <param name="paletteB">The second palette to merge. Cannot be null.</param>
-   /// <returns>A new Palette instance containing the combined colors from both input palettes.</returns>
+    /// <summary>
+    /// Merges two palettes (set union, no duplicates).
+    /// </summary>
+    /// <param name="paletteA">First palette; may be null.</param>
+    /// <param name="paletteB">Second palette; may be null.</param>
+    /// <returns>A new palette with the colors of both inputs.</returns>
     public static Palette MergePalette(Palette paletteA, Palette paletteB)
     {
         return MergePalette(new[] { paletteA, paletteB });

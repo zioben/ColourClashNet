@@ -7,21 +7,36 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
+    /// <summary>
+    /// Median cut color reduction (Heckbert).
+    /// <para/>
+    /// The color set is recursively split in two along the channel with the widest range, at the median value,
+    /// until the requested number of boxes is reached; each box is then mapped to its representative color.
+    /// </summary>
     public class ColorTransformMedianCut : ColorTransformBase
     {
 
+        /// <summary>
+        /// Creates the median cut reduction.
+        /// </summary>
         public ColorTransformMedianCut()
         {
             Type = ColorTransformType.ColorReductionMedianCut;
             Description = "Median partition color reduction";
         }
 
+        /// <summary>
+        /// Maximum number of output colors (rounded to a power of two, max 256).
+        /// </summary>
         public int MaxColorsWanted 
         { 
             get => config.MaxColorsWanted;
             set => config.MaxColorsWanted = value;
         }
 
+        /// <summary>
+        /// How the representative color of each box is selected.
+        /// </summary>
         public ColorSelectionMode ColorSelectionMode
         {
             get => config.MedianCutColorSelectionMode;
@@ -29,6 +44,9 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
+        /// <summary>
+        /// Sets the processing parameters (fluent).
+        /// </summary>
         public ColorTransformMedianCut WithProcessingParams(int maxColors, ColorSelectionMode colorSelectionMode )
         {
             MaxColorsWanted = maxColors;
@@ -36,146 +54,168 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
+        /// <summary>
+        /// Sets the processing parameters from a configuration (fluent).
+        /// </summary>
         public ColorTransformMedianCut WithProcessingParams(ColorTransformConfig cfg) => WithProcessingParams(cfg.MaxColorsWanted, cfg.MedianCutColorSelectionMode );
 
 
 
 
 
-        int GetMedian(List<int> lList)
+        /// <summary>
+        /// Returns the index of the histogram median (first bin where the cumulative count exceeds half of the total).
+        /// </summary>
+        int GetMedian(List<int> list)
         {
-            float fLim = lList.Sum() / 2f;
-            if (fLim <= 0) return 0;
+            float limit = list.Sum() / 2f;
+            if (limit <= 0) return 0;
 
-            float fSum = 0;
-            for (int i = 0; i < lList.Count; i++)
+            float sum = 0;
+            for (int i = 0; i < list.Count; i++)
             {
-                fSum += lList[i];
-                if (fSum > fLim) return i;
+                sum += list[i];
+                if (sum > limit) return i;
             }
-            return lList.Count - 1;
+            return list.Count - 1;
         }
 
 
-        int GetRange(List<int> lList)
+        /// <summary>
+        /// Returns the distance between the first and the last non-empty bin of a histogram.
+        /// </summary>
+        int GetRange(List<int> list)
         {
-            int first = lList.FindIndex(x => x != 0);
-            if (first < 0) return 0; // lista tutta a zero
-            int last = lList.FindLastIndex(x => x != 0);
+            int first = list.FindIndex(x => x != 0);
+            if (first < 0) return 0; // all zero histogram
+            int last = list.FindLastIndex(x => x != 0);
             return last - first;
         }
 
-        void Partition(Palette oPalette, int iMaxColor)
+        /// <summary>
+        /// Recursively splits <paramref name="palette"/>; when <paramref name="maxColor"/> reaches zero the box is a leaf
+        /// and its colors are added to the transformation map.
+        /// </summary>
+        void Partition(Palette palette, int maxColor)
         {
-            var rgbList = oPalette.ToList();
-            if (iMaxColor > 0)
+            var rgbList = palette.ToList();
+            if (maxColor > 0)
             {
 
-                var lR = new int[256].ToList();
-                var lG = new int[256].ToList();
-                var lB = new int[256].ToList();
+                var histR = new int[256].ToList();
+                var histG = new int[256].ToList();
+                var histB = new int[256].ToList();
                 foreach (var rgb in rgbList)
                 {
-                    lR[rgb.ToR()]++;
-                    lG[rgb.ToG()]++;
-                    lB[rgb.ToB()]++;
+                    histR[rgb.ToR()]++;
+                    histG[rgb.ToG()]++;
+                    histB[rgb.ToB()]++;
                 }
-                int ird = GetRange(lR);
-                int igd = GetRange(lG);
-                int ibd = GetRange(lB);
-                Palette hInf = new Palette();
-                Palette hSup = new Palette();
-                if (ird > igd && ird > ibd)
+                // Split along the channel with the widest range, at its median
+                int rangeR = GetRange(histR);
+                int rangeG = GetRange(histG);
+                int rangeB = GetRange(histB);
+                Palette lowerHalf = new Palette();
+                Palette upperHalf = new Palette();
+                if (rangeR > rangeG && rangeR > rangeB)
                 {
-                    var irm = GetMedian(lR);
+                    var medianR = GetMedian(histR);
                     foreach (var rgb in rgbList)
                     {
-                        if (rgb.ToR() <= irm)
-                            hInf.Add(rgb);
+                        if (rgb.ToR() <= medianR)
+                            lowerHalf.Add(rgb);
                         else
-                            hSup.Add(rgb);
+                            upperHalf.Add(rgb);
                     }
                 }
-                else if (igd > ibd)
+                else if (rangeG > rangeB)
                 {
-                    var igm = GetMedian(lG);
+                    var medianG = GetMedian(histG);
                     foreach (var rgb in rgbList)
                     {
-                        if (rgb.ToG() <= igm)
-                            hInf.Add(rgb);
+                        if (rgb.ToG() <= medianG)
+                            lowerHalf.Add(rgb);
                         else
-                            hSup.Add(rgb);
+                            upperHalf.Add(rgb);
                     }
                 }
                 else
                 {
-                    var ibm = GetMedian(lB);
+                    var medianB = GetMedian(histB);
                     foreach (var rgb in rgbList)
                     {
-                        if (rgb.ToB() <= ibm)
-                            hInf.Add(rgb);
+                        if (rgb.ToB() <= medianB)
+                            lowerHalf.Add(rgb);
                         else
-                            hSup.Add(rgb);
+                            upperHalf.Add(rgb);
                     }
                 }
                 // With ties the median can be the highest value on the channel, leaving one side empty:
                 // in that case split the colors sorted on the selected channel by index.
-                if ((hInf.Count == 0 || hSup.Count == 0) && rgbList.Count > 1)
+                if ((lowerHalf.Count == 0 || upperHalf.Count == 0) && rgbList.Count > 1)
                 {
-                    Func<int, int> channel = (ird > igd && ird > ibd) ? (rgb => rgb.ToR()) : (igd > ibd) ? (rgb => rgb.ToG()) : (rgb => rgb.ToB());
+                    Func<int, int> channel = (rangeR > rangeG && rangeR > rangeB) ? (rgb => rgb.ToR()) : (rangeG > rangeB) ? (rgb => rgb.ToG()) : (rgb => rgb.ToB());
                     var sorted = rgbList.OrderBy(channel).ToList();
                     int half = sorted.Count / 2;
-                    hInf = new Palette().Create(sorted.Take(half));
-                    hSup = new Palette().Create(sorted.Skip(half));
+                    lowerHalf = new Palette().Create(sorted.Take(half));
+                    upperHalf = new Palette().Create(sorted.Skip(half));
                 }
-                Partition(hInf, iMaxColor / 2);
-                Partition(hSup, iMaxColor / 2);
+                Partition(lowerHalf, maxColor / 2);
+                Partition(upperHalf, maxColor / 2);
                 return;
             }
             else
             {
-                if (oPalette.Count == 0)
+                // Leaf box: all its colors map to the representative color
+                if (palette.Count == 0)
                     return;
-                var iRGB = ColorIntExt.GetColorMean(oPalette, ColorSelectionMode);
+                var meanColor = ColorIntExt.GetColorMean(palette, ColorSelectionMode);
                 foreach (var rgb in rgbList)
                 {
-                    if (!TransformationMap.rgbTransformationMap.ContainsKey(rgb))
+                    if (!TransformationMap.RgbTransformationMap.ContainsKey(rgb))
                     {
-                        TransformationMap.Add(rgb, iRGB);
+                        TransformationMap.Add(rgb, meanColor);
                     }
                 }
             }
         }
 
-        Palette OutputPalette = new Palette();
+        Palette outputPalette = new Palette();
 
-        protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken=default)
+        /// <summary>
+        /// Builds the map: identity when the image already fits, median cut partition otherwise.
+        /// </summary>
+        protected override ColorTransformResult CreateTransformationMap(CancellationToken token=default)
         {
-            OutputPalette = new Palette();
-            var SourceHistogram = new HistogramRGB().Create(ImageSource);
-            if (SourceHistogram.ToPalette().Count <= MaxColorsWanted)
+            outputPalette = new Palette();
+            var sourceHistogram = new HistogramRGB().Create(ImageSource);
+            if (sourceHistogram.ToPalette().Count <= MaxColorsWanted)
             {
-                foreach (var kvp in SourceHistogram.HistogramDictionary)
+                foreach (var kvp in sourceHistogram.HistogramDictionary)
                 {
-                    TransformationMap.rgbTransformationMap[kvp.Key] = kvp.Key;
+                    TransformationMap.RgbTransformationMap[kvp.Key] = kvp.Key;
                 }
-                OutputPalette = TransformationMap.GetOutputPalette();
+                outputPalette = TransformationMap.GetOutputPalette();
             }
             else
             {
-                int iColorsMax = Math.Min(256, Math.Max(2, MaxColorsWanted));
-                Partition(SourceHistogram.ToPalette(), iColorsMax / 2);
-                OutputPalette = TransformationMap.GetOutputPalette();
+                // Partition(maxColor) produces 2 * maxColor leaf boxes
+                int colorsMax = Math.Min(256, Math.Max(2, MaxColorsWanted));
+                Partition(sourceHistogram.ToPalette(), colorsMax / 2);
+                outputPalette = TransformationMap.GetOutputPalette();
             }
             return ColorTransformResult.CreateValidResult();
         }
 
-        protected override ColorTransformResult ExecuteTransform(CancellationToken oToken)
+        /// <summary>
+        /// Applies the transformation map.
+        /// </summary>
+        protected override ColorTransformResult ExecuteTransform(CancellationToken token)
         {
-            var ret = TransformationMap.Transform(ImageSource, oToken);
-            if (ret != null)
+            var outputImage = TransformationMap.Transform(ImageSource, token);
+            if (outputImage != null)
             {
-                return ColorTransformResult.CreateValidResult(ImageSource, ret);
+                return ColorTransformResult.CreateValidResult(ImageSource, outputImage);
             }
             return new();
         }

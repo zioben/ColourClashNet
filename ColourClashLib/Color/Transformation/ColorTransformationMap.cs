@@ -10,38 +10,55 @@ using System.Threading.Tasks;
 namespace ColourClashNet.Color.Transformation
 {
     /// <summary>
-    /// Class to transform palette colors.
+    /// Source color to destination color lookup table used to apply a palette reduction to an image.
     /// </summary>
     public partial class ColorTransformationMap
     {
         static string sC = nameof(ColorTransformationMap);
-        public ConcurrentDictionary<int, int> rgbTransformationMap { get; private init; } = new();
+        /// <summary>
+        /// Source color (key) to output color (value) map.
+        /// </summary>
+        public ConcurrentDictionary<int, int> RgbTransformationMap { get; private init; } = new();
 
+        /// <summary>
+        /// Removes all mappings.
+        /// </summary>
         public void Reset()
         {
-            rgbTransformationMap.Clear();
+            RgbTransformationMap.Clear();
         }
 
-        public int Colors => rgbTransformationMap.Count;
+        /// <summary>
+        /// Number of mapped source colors.
+        /// </summary>
+        public int Colors => RgbTransformationMap.Count;
 
-        public bool Create(Palette oPalette)
+        /// <summary>
+        /// Initializes an identity map (each color maps to itself) from a palette.
+        /// </summary>
+        /// <returns>False when <paramref name="palette"/> is null.</returns>
+        public bool Create(Palette palette)
         {
             Reset();
-            if (oPalette == null)
+            if (palette == null)
             {
                 return false;
             }
-            var rgbList = oPalette.ToList();
+            var rgbList = palette.ToList();
             foreach (var rgb in rgbList)
             {
                 if ( rgb>=0 )
                 {
-                    rgbTransformationMap[rgb] = rgb;
+                    RgbTransformationMap[rgb] = rgb;
                 }
             }
             return true;
         }
 
+        /// <summary>
+        /// Initializes an identity map from the colors of an image.
+        /// </summary>
+        /// <returns>False when the image is null or has no colors.</returns>
         public bool Create(ImageData image)
         {           
             Reset();
@@ -52,28 +69,40 @@ namespace ColourClashNet.Color.Transformation
             return Create(image.ColorPalette);
         }
 
+        /// <summary>
+        /// Adds or replaces a mapping; negative (non-color) values are ignored.
+        /// </summary>
         public void Add(int sourceRGB, int destRGB)
         {
             if (sourceRGB < 0 || destRGB < 0)
             {
                 return;
             }
-            rgbTransformationMap[sourceRGB] = destRGB;
+            RgbTransformationMap[sourceRGB] = destRGB;
         }
 
+        /// <summary>
+        /// Removes the mapping of <paramref name="sourceRGB"/>.
+        /// </summary>
         public void Remove(int sourceRGB)
         {
-            if (rgbTransformationMap.ContainsKey(sourceRGB))
+            if (RgbTransformationMap.ContainsKey(sourceRGB))
             {
-                rgbTransformationMap.TryRemove(sourceRGB, out int Removed);
+                RgbTransformationMap.TryRemove(sourceRGB, out int removed);
             }
         }
 
+        /// <summary>
+        /// Applies the map to every pixel of <paramref name="image"/>.
+        /// <para/>
+        /// Unmapped tagged pixels are kept; unmapped real colors become <see cref="ColorDefaults.DefaultInvalidColorInt"/>.
+        /// </summary>
+        /// <returns>A new transformed image.</returns>
         public ImageData Transform(ImageData image, CancellationToken token=default )
         {
             string sM = nameof(Transform);
             ImageData.AssertValid(image);
-            var oDataOut = new int[image.Rows,image.Columns];
+            var dataOut = new int[image.Rows,image.Columns];
             //Parallel.For(0, image.Height, r =>
             for( int r =0; r<image.Rows; r++)
             {
@@ -81,39 +110,45 @@ namespace ColourClashNet.Color.Transformation
                 for (int c = 0; c < image.Columns; c++)
                 {
                     var rgb = image.matrix[r, c];
-                    if (!rgbTransformationMap.TryGetValue(rgb, out oDataOut[r, c]))
+                    if (!RgbTransformationMap.TryGetValue(rgb, out dataOut[r, c]))
                     {
                         // Tagged pixels (negative: transparent, mask, ...) not in the map are kept unchanged
-                        oDataOut[r, c] = rgb < 0 ? rgb : ColorDefaults.DefaultInvalidColorInt;
+                        dataOut[r, c] = rgb < 0 ? rgb : ColorDefaults.DefaultInvalidColorInt;
                     }
                 }
             }//);
-            return new ImageData().Create(oDataOut);
+            return new ImageData().Create(dataOut);
         }
 
 
+        /// <summary>
+        /// Returns the palette of the destination colors.
+        /// </summary>
         public Palette GetOutputPalette()
         {
-            var oCP = new Palette();
-            foreach (var kvp in rgbTransformationMap)
+            var newPalette = new Palette();
+            foreach (var kvp in RgbTransformationMap)
             {
                 if (kvp.Value < 0)
                     continue;
-                oCP.Add(kvp.Value);
+                newPalette.Add(kvp.Value);
             }
-            return oCP; 
+            return newPalette; 
         }
 
+        /// <summary>
+        /// Returns the palette of the source colors.
+        /// </summary>
         public Palette GetInputPalette()
         {
-            var oCP = new Palette();
-            foreach (var kvp in rgbTransformationMap)
+            var newPalette = new Palette();
+            foreach (var kvp in RgbTransformationMap)
             {
                 if (kvp.Key < 0)
                     continue;
-                oCP.Add(kvp.Key);
+                newPalette.Add(kvp.Key);
             }
-            return oCP;
+            return newPalette;
         }
     }
 }

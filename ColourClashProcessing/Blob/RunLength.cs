@@ -5,38 +5,60 @@ using ColourClashNet.Log;
 
 namespace ColourClashProcessing.Blob
 {
+    /// <summary>
+    /// Horizontal run of consecutive foreground pixels on a single row.
+    /// </summary>
     public class RunLength
     {
         static string sC = nameof(RunLength);
 
-        int _y = -1;
-        int _xs = -1;
-        int _xe = -1;
+        int row = -1;
+        int xStart = -1;
+        int xEnd = -1;
 
-        bool IsValid => _y >= 0 && _xs >= 0 && _xe >= 0;
-        public int Y => _y;
-        public int XS => _xs;
-        public int XE => _xe;
+        bool IsValid => row >= 0 && xStart >= 0 && xEnd >= 0;
+
+        /// <summary>Row of the run.</summary>
+        public int Y => row;
+        /// <summary>First column of the run (inclusive).</summary>
+        public int XS => xStart;
+        /// <summary>Last column of the run (inclusive).</summary>
+        public int XE => xEnd;
+        /// <summary>Row of the run (alias of <see cref="Y"/>).</summary>
         public int R => Y;
+        /// <summary>First column (alias of <see cref="XS"/>).</summary>
         public int CS => XS;
+        /// <summary>Last column (alias of <see cref="XE"/>).</summary>
         public int CE => XE;
 
-        public int Length => _xe - _xs + 1;
-        public int Width => _xe - _xs;
+        /// <summary>Number of pixels in the run.</summary>
+        public int Length => xEnd - xStart + 1;
+        /// <summary>Distance between the first and the last column (<see cref="Length"/> - 1).</summary>
+        public int Width => xEnd - xStart;
 
+        /// <summary>
+        /// Creates a run covering columns <paramref name="xs"/>..<paramref name="xe"/> of row <paramref name="y"/>.
+        /// </summary>
         public RunLength(int y, int xs, int xe)
         {
-            _y = y;
-            _xs = xs;
-            _xe = xe;
+            row = y;
+            xStart = xs;
+            xEnd = xe;
         }
 
-
+        /// <summary>
+        /// Creates a run covering columns <paramref name="xs"/>..<paramref name="xe"/> of row <paramref name="y"/>.
+        /// </summary>
         static public RunLength Create(int y, int xs, int xe)
         {
             return new RunLength(y, xs, xe);
         }
 
+        /// <summary>
+        /// Returns true when two runs on the same or adjacent rows touch.
+        /// <para/>
+        /// With 8-connectivity runs on adjacent rows also touch diagonally (one pixel tolerance).
+        /// </summary>
         static public bool Connected(RunLength a, RunLength b, BlobConnectionModes mode)
         {
             if (a == null || b == null) return false;
@@ -64,7 +86,12 @@ namespace ColourClashProcessing.Blob
             return false;
         }
 
-        public static int[,] ToShapeMatrix(List<RunLength> runLengths, int width, int height)//, int foreRGB, int bkgRGB)
+        /// <summary>
+        /// Draws the runs on a <paramref name="width"/> x <paramref name="height"/> matrix using the default shape colors.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="runLengths"/> is null.</exception>
+        /// <exception cref="ArgumentException">Invalid size.</exception>
+        public static int[,] ToShapeMatrix(List<RunLength> runLengths, int width, int height)
         {
             string sM = nameof(ToShapeMatrix);
             try
@@ -92,17 +119,21 @@ namespace ColourClashProcessing.Blob
         }
 
 
-        public static int[,] ToShapeMatrix(List<RunLength> runLengths)//, int foreRGB, int bkgRGB)
+        /// <summary>
+        /// Draws the runs on a matrix as large as their bounding box.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="runLengths"/> is null.</exception>
+        public static int[,] ToShapeMatrix(List<RunLength> runLengths)
         {
             string sM = nameof(ToShapeMatrix);
             try
             {
                 if (runLengths == null)
                     throw new ArgumentNullException(nameof(runLengths));
-                int xMin = runLengths.Min(R => R.XS);
-                int xMax = runLengths.Max(R => R.XE);
-                int yMin = runLengths.Min(R => R.Y);
-                int yMax = runLengths.Max(R => R.Y);
+                int xMin = runLengths.Min(run => run.XS);
+                int xMax = runLengths.Max(run => run.XE);
+                int yMin = runLengths.Min(run => run.Y);
+                int yMax = runLengths.Max(run => run.Y);
                 var width = xMax - xMin+1;
                 var height= yMax - yMin+1;
                 if (width <= 0 || height <= 0)
@@ -126,36 +157,49 @@ namespace ColourClashProcessing.Blob
 
 
 
+        /// <summary>
+        /// Draws the runs on a new image of the given size.
+        /// </summary>
         public static ImageData ToShapeImageData(List<RunLength> runLengths, int width, int height)
             => new ImageData().Create(ToShapeMatrix(runLengths, width, height));
 
 
+        /// <summary>
+        /// Draws the runs on a new image as large as <paramref name="referenceImage"/>.
+        /// </summary>
         public static ImageData ToShapeImageData(List<RunLength> runLengths, ImageData referenceImage)
         {
             ImageData.AssertValid(referenceImage);
             return ToShapeImageData(runLengths, referenceImage.Width, referenceImage.Height);
         }
 
+        /// <summary>
+        /// Draws the runs on a new image as large as their bounding box.
+        /// </summary>
         public static ImageData ToShapeImageData(List<RunLength> runLengths)
              => new ImageData().Create(ToShapeMatrix(runLengths));
         
 
 
 
+        /// <summary>
+        /// Draws the runs (foreground color) on an existing matrix.
+        /// </summary>
+        /// <returns>False when the runs exceed the matrix bounds.</returns>
         public static bool MergeToMatrix(List<RunLength> runLengths, int[,] mergedMatrix)
         {
             string sM = nameof(MergeToMatrix);
             if(mergedMatrix==null)
                 throw new ArgumentNullException(nameof(mergedMatrix));
-            var W = mergedMatrix.GetLength(1);
-            var H = mergedMatrix.GetLength(0);
-            var yMin = runLengths.Min(R => R.Y);
-            var yMax = runLengths.Max(R => R.Y);
-            var xMin = runLengths.Min(R => R.XS);
-            var xMax = runLengths.Max(R => R.XE);
-            if (yMin < 0 || yMax >= H || xMin < 0 || xMax >= W)
+            var width = mergedMatrix.GetLength(1);
+            var height = mergedMatrix.GetLength(0);
+            var yMin = runLengths.Min(run => run.Y);
+            var yMax = runLengths.Max(run => run.Y);
+            var xMin = runLengths.Min(run => run.XS);
+            var xMax = runLengths.Max(run => run.XE);
+            if (yMin < 0 || yMax >= height || xMin < 0 || xMax >= width)
             {
-                LogMan.Error(sC, sM, $"Run length dimensions [{xMin},{yMin};{xMax},{yMax}] exceeded matrix dimension [0,0;{W},{H}]");
+                LogMan.Error(sC, sM, $"Run length dimensions [{xMin},{yMin};{xMax},{yMax}] exceeded matrix dimension [0,0;{width},{height}]");
                 return false;
             }
             foreach (var rl in runLengths)

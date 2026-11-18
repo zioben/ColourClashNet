@@ -10,6 +10,12 @@ using System.Threading.Tasks;
 namespace ColourClashNet.Imaging;
 
 
+/// <summary>
+/// Image stored as a matrix of packed integer colors [rows, columns], with its color palette.
+/// <para/>
+/// The palette is recomputed every time the matrix is replaced; <see cref="GetMatrix"/> returns a copy,
+/// so the image is effectively immutable from the outside.
+/// </summary>
 public partial class ImageData
 {
     static string sC = nameof(ImageData);
@@ -17,23 +23,23 @@ public partial class ImageData
     object locker = new object();
 
     /// <summary>
-    /// Gets or sets the name associated with the object.
+    /// Gets or sets a descriptive name of the image.
     /// </summary>
     public string Name { get; set; } = "";
 
     /// <summary>
-    /// Gets the two-dimensional array of integer data associated with this instance.
+    /// Pixel matrix [row, column]; each value is a packed color (see <see cref="ColorIntExt"/>).
     /// </summary>
     internal protected int[,]? matrix;
 
     /// <summary>
-    /// Gets the Color palette used for rendering visual elements.
+    /// Gets the set of distinct colors used by the image.
     /// </summary>
     public Palette ColorPalette { get; private set; } = new Palette();
 
 
     /// <summary>
-    /// Gets the Width (number of columns) in the data set as image.
+    /// Gets the width (number of columns) of the image.
     /// </summary>
     public int Width
     {
@@ -44,11 +50,14 @@ public partial class ImageData
         }
     }
 
+    /// <summary>Number of rows (same as <see cref="Height"/>).</summary>
     public int Rows => Height;
+
+    /// <summary>Number of columns (same as <see cref="Width"/>).</summary>
     public int Columns => Width;
 
     /// <summary>
-    /// gets the Height (number of rows) in the data set as image.
+    /// Gets the height (number of rows) of the image.
     /// </summary>
     public int Height
     {
@@ -71,19 +80,15 @@ public partial class ImageData
     }
 
     /// <summary>
-    /// Gets the number of Colors in the current Color palette.
+    /// Gets the number of distinct colors in the image.
     /// </summary>
     public int Colors => ColorPalette.Count;
 
-
-   
-
-
     /// <summary>
-    /// 
+    /// Returns a copy of the pixel matrix.
     /// </summary>
-    /// <returns></returns>
-    /// <exception cref="NullReferenceException"></exception>
+    /// <returns>A clone of the matrix; changes do not affect this image.</returns>
+    /// <exception cref="ArgumentNullException">The image has no data.</exception>
     public int[,] GetMatrix()
     {
         AssertValid(this);
@@ -92,12 +97,9 @@ public partial class ImageData
 
 
     /// <summary>
-    /// Resets the object's data and Color palette to their default states.
+    /// Clears the pixel data and the palette (thread-safe).
     /// </summary>
-    /// <remarks>This method is thread-safe. If an error occurs during the reset process, the method
-    /// logs the exception and returns false.</remarks>
-    /// <returns>The current <see cref="ImageData"/> instance with updated data and Color palette if <paramref name="oData"/>
-    /// is not null; otherwise, the instance remains unchanged.</returns>
+    /// <returns>This instance.</returns>
     public ImageData Reset()
     {
         string sM = nameof(Reset);
@@ -110,13 +112,12 @@ public partial class ImageData
     }
 
 
-   /// <summary>
-   /// Initializes the image data and Color palette using the specified two-dimensional array of pixel values.
-   /// </summary>
-   /// <param name="matrixSrc">A two-dimensional array of integers representing pixel data. If null, the existing image data is not
-   /// modified.</param>
-   /// <returns>The current <see cref="ImageData"/> instance with updated data and Color palette if <paramref name="matrixSrc"/>
-   /// is not null; otherwise, the instance remains unchanged.</returns>
+    /// <summary>
+    /// Initializes the image with a copy of <paramref name="matrixSrc"/> and computes its palette.
+    /// </summary>
+    /// <param name="matrixSrc">Pixel matrix [rows, columns]</param>
+    /// <returns>This instance.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="matrixSrc"/> is null.</exception>
     public ImageData Create(int[,] matrixSrc)
     {
         string sM = nameof(Create);
@@ -133,14 +134,11 @@ public partial class ImageData
 
 
     /// <summary>
-    /// Initializes the image data with the specified width and height, resetting any existing data.
+    /// Initializes a black (all zero) image of the given size.
     /// </summary>
-    /// <remarks>This method resets any existing image data before initializing the new data. The
-    /// Color palette is also regenerated based on the new dimensions. This method is not thread-safe; external
-    /// synchronization is required if accessed concurrently.</remarks>
-    /// <param name="width">The number of columns for the image data. Must be greater than zero.</param>
-    /// <param name="height">The number of rows for the image data. Must be greater than zero.</param>
-    /// <returns>The current instance of <see cref="ImageData"/> with the data initialized to the specified dimensions.</returns>
+    /// <param name="width">Number of columns</param>
+    /// <param name="height">Number of rows</param>
+    /// <returns>This instance.</returns>
     public ImageData Create(int width, int height )
     {
         lock (locker)
@@ -153,13 +151,13 @@ public partial class ImageData
     }
 
     /// <summary>
-    /// 
+    /// Copies a rectangular area into a new image. Parts outside this image are left black.
     /// </summary>
-    /// <param name="x"></param>
-    /// <param name="y"></param>
-    /// <param name="width"></param>
-    /// <param name="height"></param>
-    /// <returns></returns>
+    /// <param name="xStart">Left coordinate</param>
+    /// <param name="yStart">Top coordinate</param>
+    /// <param name="width">Area width</param>
+    /// <param name="height">Area height</param>
+    /// <returns>A new image of <paramref name="width"/> x <paramref name="height"/>.</returns>
     public ImageData Extract(int xStart, int yStart, int width, int height )
     {
         string sM = nameof(Extract);
@@ -174,11 +172,11 @@ public partial class ImageData
 
 
     /// <summary>
-    /// Creates a new image based on the data contained in the specified <see cref="ImageData"/> instance.
+    /// Initializes the image as a deep copy of <paramref name="imageSrc"/> (the name is not copied).
     /// </summary>
-    /// <param name="imageSrc">An <see cref="ImageData"/> object containing the source data for the new image. Can be null.</param>
-    /// <returns>An <see cref="ImageData"/> instance representing the newly created image, or null if <paramref
-    /// name="imageSrc"/> is null or contains no data.</returns>
+    /// <param name="imageSrc">Source image</param>
+    /// <returns>This instance.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="imageSrc"/> or its matrix is null.</exception>
     public ImageData Create(ImageData imageSrc)
     {
         string sM = nameof (Create);
@@ -190,10 +188,8 @@ public partial class ImageData
 
 
     /// <summary>
-    /// Returns a string that represents the current image, including its name, dimensions, and Color count.
+    /// Returns the image name, size and number of colors.
     /// </summary>
-    /// <returns>A string containing the image name, width, height, and number of Colors in the format: "ImageData: {Name},
-    /// {Width}x{Height}, Colors: {Colors}".</returns>
     public override string ToString()
     {
         return $"ImageData: {Name} (Size: {Width}x{Height}, Colors: {Colors} )";

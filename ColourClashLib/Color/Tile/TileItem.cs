@@ -13,6 +13,9 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Tile;
 
+/// <summary>
+/// Rectangular portion of a source image, with its origin coordinates.
+/// </summary>
 public partial class TileItem
 {
     static readonly string sC =nameof(TileItem);
@@ -20,7 +23,7 @@ public partial class TileItem
     object locker = new object();
 
     /// <summary>
-    /// Original image reference
+    /// Copy of the source image area covered by the tile.
     /// </summary>
     public ImageData TileImage { get; internal set; } = new();
 
@@ -35,29 +38,23 @@ public partial class TileItem
     public int TileH => TileImage?.Height ?? 0;
 
     /// <summary>
-    /// Original position in source
+    /// Left coordinate of the tile in the source image.
     /// </summary>
     public int OriginX { get; private set; } = 0;
 
     /// <summary>
-    /// Original position in source
+    /// Top coordinate of the tile in the source image.
     /// </summary>
     public int OriginY { get; private set; } = 0;
 
     /// <summary>
-    /// Gets the number of colors in the source image.
+    /// Gets the number of colors in the tile image.
     /// </summary>
     public int SourceColors { get => TileImage?.Colors ?? 0; }
-    ///// <summary>
-    ///// Gets a value indicating whether the current image source is valid.
-    ///// </summary>
-    //bool IsValid => TileImage?.IsValid ?? false;
 
     /// <summary>
-    /// Resets the origin coordinates and image source to their default values.
+    /// Resets the origin to zero and the tile image to an empty image.
     /// </summary>
-    /// <remarks>This method sets the origin coordinates to zero and reinitializes the image source. Use this
-    /// method to restore the object's state to its initial configuration.</remarks>
     public void Reset()
     {
         lock (locker)
@@ -70,14 +67,15 @@ public partial class TileItem
 
 
     /// <summary>
-    /// 
+    /// Extracts the tile from <paramref name="sourceImage"/>.
     /// </summary>
-    /// <param name="sourceImage"></param>
-    /// <param name="sourceX"></param>
-    /// <param name="sourceY"></param>
-    /// <param name="tileWidth"></param>
-    /// <param name="tileHeight"></param>
-    /// <returns></returns>
+    /// <param name="sourceImage">Source image</param>
+    /// <param name="sourceX">Tile left coordinate</param>
+    /// <param name="sourceY">Tile top coordinate</param>
+    /// <param name="tileWidth">Tile width (must be positive)</param>
+    /// <param name="tileHeight">Tile height (must be positive)</param>
+    /// <returns>This instance.</returns>
+    /// <exception cref="InvalidConstraintException">Invalid tile size.</exception>
     public TileItem Create(ImageData sourceImage, int sourceX, int sourceY, int tileWidth, int tileHeight)
     {
         string sM = nameof(Create);
@@ -97,9 +95,8 @@ public partial class TileItem
     }
 
     /// <summary>
-    /// 
+    /// Returns the tile position and size.
     /// </summary>
-    /// <returns></returns>
     public override string ToString()
     {
         return $"R={OriginY}:C={OriginX}:H={TileH}:W={TileW}";

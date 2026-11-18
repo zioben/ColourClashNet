@@ -11,67 +11,72 @@ namespace ColourClashNet.Color.Tile;
 
 public partial class TileProcessing
 {
-    public static void AssertValid(TileProcessing tileProc)
+    /// <summary>
+    /// Throws if the tile processing is null or its tile is invalid.
+    /// </summary>
+    public static void AssertValid(TileProcessing tileProcessing)
     {
-        if (tileProc == null)
-            throw new ArgumentNullException($"{nameof(tileProc) is null}");
-        TileItem.AssertValid(tileProc.tileItem);
+        if (tileProcessing == null)
+            throw new ArgumentNullException($"{nameof(tileProcessing) is null}");
+        TileItem.AssertValid(tileProcessing.tileItem);
     }
   
     /// <summary>
-    /// Copy the best tile (lower color error) on destination data
+    /// Copies the better of two tiles (lower transformation error) into the destination matrix.
+    /// <para/>
+    /// If one tile is null, the other one is copied.
     /// </summary>
-    /// <param name="oDestinationData"></param>
-    /// <param name="oTileA"></param>
-    /// <param name="oTileB"></param>
-    /// <returns>true if data</returns>
-    public static bool MergeData(int[,] oDestinationData, TileProcessing oTileA, TileProcessing oTileB)
+    /// <param name="destinationData">Destination matrix</param>
+    /// <param name="tileA">First candidate</param>
+    /// <param name="tileB">Second candidate</param>
+    /// <returns>True if a tile was copied.</returns>
+    public static bool MergeData(int[,] destinationData, TileProcessing tileA, TileProcessing tileB)
     {
-        if (oDestinationData == null)
-            throw new ArgumentNullException(nameof(oDestinationData));
-        if (oTileA == null && oTileB == null)
-            throw new ArgumentNullException($"{nameof(oTileA)} or {nameof(oTileB)}");
-        if (oTileA != null && oTileB == null)
+        if (destinationData == null)
+            throw new ArgumentNullException(nameof(destinationData));
+        if (tileA == null && tileB == null)
+            throw new ArgumentNullException($"{nameof(tileA)} or {nameof(tileB)}");
+        if (tileA != null && tileB == null)
         {
-            return oTileA.MergeData(oDestinationData);
+            return tileA.MergeData(destinationData);
         }
-        if (oTileA == null && oTileB != null)
+        if (tileA == null && tileB != null)
         {
-            return oTileB.MergeData(oDestinationData);
+            return tileB.MergeData(destinationData);
         }
-        double dErrorA = oTileA.TransformationError;
-        double dErrorB = oTileB.TransformationError;
-        if (dErrorA <= dErrorB)
+        double errorA = tileA.TransformationError;
+        double errorB = tileB.TransformationError;
+        if (errorA <= errorB)
         {
-            return oTileA.MergeData(oDestinationData);
+            return tileA.MergeData(destinationData);
         }
         else
         {
-            return oTileB.MergeData(oDestinationData);
+            return tileB.MergeData(destinationData);
         }
     }
 
     /// <summary>
-    /// Copy the best tile (lower color error) on destination data
+    /// Copies the tile with the lowest transformation error into the destination matrix.
     /// </summary>
-    /// <param name="oDestinationData"></param>
-    /// <param name="lTiles">List to tiles to compare</param>
-    /// <returns></returns>
-    public static bool MergeData(int[,]? oDestinationData, IEnumerable<TileProcessing> lTiles)
+    /// <param name="destinationData">Destination matrix</param>
+    /// <param name="tiles">Candidate tiles covering the same area</param>
+    /// <returns>True if a tile was copied.</returns>
+    public static bool MergeData(int[,]? destinationData, IEnumerable<TileProcessing> tiles)
     {
-        if (oDestinationData == null)
+        if (destinationData == null)
         {
             return false;
         }
-        if (lTiles == null)
+        if (tiles == null)
         {
             return false;
         }
-        var oTile = lTiles.Where(X => X.TransformationError == lTiles.Min(Y => Y.TransformationError)).FirstOrDefault();
-        if (oTile == null)
+        var tile = tiles.Where(x => x.TransformationError == tiles.Min(y => y.TransformationError)).FirstOrDefault();
+        if (tile == null)
         {
             return false;
         }
-        return oTile.MergeData(oDestinationData);
+        return tile.MergeData(destinationData);
     }
 }

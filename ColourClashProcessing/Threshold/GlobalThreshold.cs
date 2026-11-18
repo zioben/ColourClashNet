@@ -14,18 +14,39 @@ using System.Text;
 
 namespace ColourClashProcessing.Threshold
 {
+    /// <summary>
+    /// Global color threshold: converts an image to a binary shape image.
+    /// <para/>
+    /// Colors close to one of the <see cref="ThresholdPalette"/> colors become background, the others foreground
+    /// (or the opposite when <see cref="InvertResults"/> is set).
+    /// </summary>
     public class GlobalThreshold
     {
         static string sC = nameof(GlobalThreshold);
+        /// <summary>
+        /// Background reference colors (magenta by default).
+        /// </summary>
         public Palette ThresholdPalette { get; set; } = new();
+        /// <summary>
+        /// Maximum (squared RGB) distance from a threshold color to be considered background.
+        /// </summary>
         public double ToleranceFactor { get; set; } = 0.0;
+        /// <summary>
+        /// Swaps foreground and background.
+        /// </summary>
         public bool InvertResults { get; set; } = false;
 
+        /// <summary>
+        /// Creates a threshold on the default magenta background.
+        /// </summary>
         public GlobalThreshold()
         {
             ThresholdPalette.Create(new List<int>() { ColorIntExt.FromRGB(255, 0, 255) });
         }
 
+        /// <summary>
+        /// Sets the threshold parameters (fluent).
+        /// </summary>
         public GlobalThreshold WithThreshold(Palette thresholdPalette, double toleranceFactor = 0.0, bool invertResults = false)
         {
             ThresholdPalette = new Palette().Create(thresholdPalette);
@@ -34,6 +55,9 @@ namespace ColourClashProcessing.Threshold
             return this;
         }
 
+        /// <summary>
+        /// Creates a deep copy.
+        /// </summary>
         public GlobalThreshold Clone()
         {
             return new GlobalThreshold()
@@ -44,33 +68,41 @@ namespace ColourClashProcessing.Threshold
             };
         }
 
+        /// <summary>
+        /// Sets a single threshold color and the parameters (fluent).
+        /// </summary>
         public GlobalThreshold WithThreshold(int rgbThreshold, double toleranceFactor = 0.0, bool invertResults = false)
         {
             return WithThreshold(new Palette().Create(new List<int> { rgbThreshold }), toleranceFactor, invertResults);
         }
 
+        /// <summary>
+        /// Applies the threshold.
+        /// </summary>
+        /// <returns>A result whose output is the binary image (shape colors).</returns>
         public ColorTransformResult Process(ImageData image, CancellationToken cancellationToken = default)
         {
             string sM = nameof(Process);
             try
             {
                 ImageData.AssertValid(image);
-                var bgCol = InvertResults ? ColorDefaults.DefaultShapeForeColorInt : ColorDefaults.DefaultShapeBkgColorInt;
-                var fgCol = InvertResults ? ColorDefaults.DefaultShapeBkgColorInt : ColorDefaults.DefaultShapeForeColorInt;
+                var backgroundColor = InvertResults ? ColorDefaults.DefaultShapeForeColorInt : ColorDefaults.DefaultShapeBkgColorInt;
+                var foregroundColor = InvertResults ? ColorDefaults.DefaultShapeBkgColorInt : ColorDefaults.DefaultShapeForeColorInt;
 
+                // Colors within ToleranceFactor of any threshold color are background, all the others foreground
                 var palette = new HistogramRGB().Create(image).ToPalette();
 
-                var bkgColList = palette.Where(x => ThresholdPalette.Where(y => x.Distance(y, ColorDistanceEvaluationMode.RGB) <= ToleranceFactor).Any()).ToList();
-                var foreColList = palette.Where(x => !bkgColList.Contains(x)).ToList();
+                var backgroundColors = palette.Where(x => ThresholdPalette.Where(y => x.Distance(y, ColorDistanceEvaluationMode.RGB) <= ToleranceFactor).Any()).ToList();
+                var foregroundColors = palette.Where(x => !backgroundColors.Contains(x)).ToList();
 
                 var colorTransformationMap = new ColorTransformationMap();
-                foreach (var col in bkgColList)
+                foreach (var color in backgroundColors)
                 {
-                    colorTransformationMap.Add(col, bgCol);
+                    colorTransformationMap.Add(color, backgroundColor);
                 }
-                foreach (var col in foreColList)
+                foreach (var color in foregroundColors)
                 {
-                    colorTransformationMap.Add(col, fgCol);
+                    colorTransformationMap.Add(color, foregroundColor);
                 }
 
                 var imageOut =colorTransformationMap.Transform(image, cancellationToken);

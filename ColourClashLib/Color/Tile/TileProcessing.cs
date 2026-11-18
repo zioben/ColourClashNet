@@ -10,35 +10,61 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Tile;
 
+/// <summary>
+/// A single tile of a <see cref="TileManager"/> grid together with the color transformation that reduces it.
+/// </summary>
 public partial class TileProcessing 
 {
     static readonly string sC = nameof(TileProcessing);
 
     object locker = new object();
 
+    /// <summary>Tile image and its position in the source image.</summary>
     protected TileItem? tileItem =  null;
 
+    /// <summary>Color reduction applied to the tile (clustering by default).</summary>
     protected ColorTransformInterface? transformation = null;
 
+    /// <summary>Row (Y) of the tile origin in the source image.</summary>
     public int OriginRow => tileItem?.OriginY ?? 0; 
+
+    /// <summary>Column (X) of the tile origin in the source image.</summary>
     public int OriginColoumn => tileItem?.OriginX ?? 0; 
+
+    /// <summary>Tile width in pixels.</summary>
     public int TileW => tileItem?.TileW ?? 0;       
+
+    /// <summary>Tile height in pixels.</summary>
     public int TileH => tileItem?.TileH ?? 0;
+
+    /// <summary>Divider applied to the tile error by <see cref="RecalculateTransformationError(ImageData, CancellationToken)"/>.</summary>
     public double NormalizationError { get; private set; } = 1.0;
     
     double transformationError = double.NaN;
 
+    /// <summary>
+    /// Last recalculated tile error; falls back to the transformation's own error when not recalculated yet.
+    /// </summary>
     public double TransformationError => !double.IsNaN(transformationError) ? transformationError : transformation?.TransformationError ?? double.NaN;
 
-
+    /// <summary>Original tile image.</summary>
     public ImageData? TileSourceImage => tileItem?.TileImage;
+
+    /// <summary>Color-reduced tile image; null until processed.</summary>
     public ImageData? TileProcessedImage => transformation?.ImageOutput;
 
+    /// <summary>Number of colors of the original tile.</summary>
     public int TileSourceColors => tileItem?.SourceColors ?? 0;
+
+    /// <summary>Number of colors of the processed tile.</summary>
     public int TileProcessedColors => transformation?.ImageOutput?.Colors ?? 0;
 
+    /// <summary>Distance metric used by the tile transformation.</summary>
     public ColorDistanceEvaluationMode ColorDistanceEvaluationMode => transformation?.ColorDistanceEvaluationMode ?? ColorDistanceEvaluationMode.RGB;
 
+    /// <summary>
+    /// Clears tile, transformation and errors.
+    /// </summary>
     public void Reset()
     {
         lock (locker)
@@ -50,6 +76,17 @@ public partial class TileProcessing
         }
     }
 
+    /// <summary>
+    /// Extracts the tile from <paramref name="sourceImage"/> and allocates its clustering transformation.
+    /// </summary>
+    /// <param name="sourceImage">Full source image</param>
+    /// <param name="sourceX">Tile left coordinate</param>
+    /// <param name="sourceY">Tile top coordinate</param>
+    /// <param name="tileWidth">Tile width</param>
+    /// <param name="tileHeight">Tile height</param>
+    /// <param name="normalizationError">Divider applied to the tile error</param>
+    /// <param name="colorTransformConfig">Transformation settings</param>
+    /// <returns>This instance.</returns>
     public TileProcessing Create(ImageData sourceImage, int sourceX, int sourceY, int tileWidth, int tileHeight, double normalizationError, ColorTransformConfig colorTransformConfig)
     {
         lock (locker)
@@ -62,6 +99,9 @@ public partial class TileProcessing
         }
     }
 
+    /// <summary>
+    /// Runs the color reduction on the tile.
+    /// </summary>
     public ColorTransformResult ProcessTile(CancellationToken token = default)
     {
         string sM = nameof(ProcessTile);
@@ -78,10 +118,12 @@ public partial class TileProcessing
     }
 
     /// <summary>
-    /// Copy tile processed data on destination data
-    /// <para>No data will be copied on error</para>
+    /// Copies the processed tile into <paramref name="mergeMatrix"/> at the tile origin.
+    /// <para/>
+    /// Nothing is copied on error.
     /// </summary>
-    /// <param name="oDestinationData">Data to be overweritten</param>
+    /// <param name="mergeMatrix">Destination matrix, overwritten in the tile area</param>
+    /// <returns>True if the tile was copied.</returns>
     internal bool MergeData(int[,] mergeMatrix)
     {
         string sM = nameof(MergeData);
@@ -96,7 +138,14 @@ public partial class TileProcessing
         }
     }
 
-    public double RecalculateTransformationError(ImageData rferenceImage, ColorDistanceEvaluationMode colorDistanceEvaluationMode, CancellationToken token)
+    /// <summary>
+    /// Recalculates the mean color error between the processed tile and the same area of <paramref name="referenceImage"/>.
+    /// </summary>
+    /// <param name="referenceImage">Full size reference image</param>
+    /// <param name="colorDistanceEvaluationMode">Distance metric</param>
+    /// <param name="token">Cancellation token</param>
+    /// <returns>The error divided by <see cref="NormalizationError"/>.</returns>
+    public double RecalculateTransformationError(ImageData referenceImage, ColorDistanceEvaluationMode colorDistanceEvaluationMode, CancellationToken token)
     {
         string sM = nameof(RecalculateTransformationError);
         lock (locker)
@@ -104,14 +153,17 @@ public partial class TileProcessing
             AssertValid(this);
             ColorTransformBase.AssertValid(transformation);
             ImageData.AssertValid(transformation.ImageOutput);
-            var refTile = rferenceImage.Extract( tileItem.OriginX, tileItem.OriginY, tileItem.TileW, tileItem.TileH);
+            var refTile = referenceImage.Extract( tileItem.OriginX, tileItem.OriginY, tileItem.TileW, tileItem.TileH);
             transformationError = ColorIntExt.EvaluateError(refTile, TileProcessedImage, colorDistanceEvaluationMode, token);
             return transformationError/NormalizationError;
         }
     }
 
-    public double RecalculateTransformationError(ImageData rferenceImage, CancellationToken token)
-        => RecalculateTransformationError(rferenceImage, ColorDistanceEvaluationMode, token );
+    /// <summary>
+    /// Recalculates the tile error using the transformation distance metric.
+    /// </summary>
+    public double RecalculateTransformationError(ImageData referenceImage, CancellationToken token)
+        => RecalculateTransformationError(referenceImage, ColorDistanceEvaluationMode, token );
 
     public override string ToString()
     {

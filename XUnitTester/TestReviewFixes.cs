@@ -37,7 +37,7 @@ namespace XUnitTester
             return set;
         }
 
-        static readonly int[] C64Palette =
+        static readonly int[] c64Palette =
         {
             0x000000, 0xFFFFFF, 0x894036, 0x7ABFC7, 0x8A46AE, 0x68A941, 0x3E31A2, 0xD0DC71,
             0x905F25, 0x5C4700, 0xBB776D, 0x555555, 0x808080, 0xACEA88, 0x7C70DA, 0xABABAB,
@@ -56,7 +56,7 @@ namespace XUnitTester
 
             Assert.True(res.IsSuccess, res.Message);
             var m = t.ImageOutput.GetMatrix();
-            Assert.All(Colors(t.ImageOutput), rgb => Assert.Contains(rgb, C64Palette));
+            Assert.All(Colors(t.ImageOutput), rgb => Assert.Contains(rgb, c64Palette));
             for (int tr = 0; tr < 2; tr++)
                 for (int tc = 0; tc < 2; tc++)
                 {
@@ -275,12 +275,12 @@ namespace XUnitTester
         [Fact]
         public void OrderedDither2x2_MidGray_IsHalfWhite()
         {
-            int W = 8, H = 8;
-            var reference = Solid(W, H, 0x808080);
+            int width = 8, height = 8;
+            var reference = Solid(width, height, 0x808080);
             // Processed image only provides the output palette (black and white)
-            var pm = new int[H, W];
-            for (int r = 0; r < H; r++)
-                for (int c = 0; c < W; c++)
+            var pm = new int[height, width];
+            for (int r = 0; r < height; r++)
+                for (int c = 0; c < width; c++)
                     pm[r, c] = (r + c) % 2 == 0 ? 0x000000 : 0xFFFFFF;
             var processed = new ImageData().Create(pm);
 
@@ -289,7 +289,7 @@ namespace XUnitTester
 
             Assert.True(res.IsSuccess, res.Message);
             int whites = res.DataOut.GetMatrix().Cast<int>().Count(x => x == 0xFFFFFF);
-            Assert.Equal(W * H / 2, whites);
+            Assert.Equal(width * height / 2, whites);
         }
 
         // ---------------------------------------------------------------- Blob

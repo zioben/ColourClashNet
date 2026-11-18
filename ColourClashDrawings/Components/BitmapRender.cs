@@ -17,12 +17,16 @@ namespace ColourClashNet.Components
 {
 
 
+    /// <summary>
+    /// Designer component that draws an image on any <see cref="System.Windows.Forms.Control"/> with zoom and mouse panning,
+    /// and lets the user pick colors from the image through a context menu.
+    /// </summary>
     public partial class BitmapRender : Component
     {
         #region Enums
 
         /// <summary>
-        /// Zoom modes
+        /// Zoom modes.
         /// </summary>
         public enum EnumZoom
         {
@@ -40,7 +44,7 @@ namespace ColourClashNet.Components
         }
 
         /// <summary>
-        /// Operative mode
+        /// Mouse operation modes.
         /// </summary>
         public enum EnumOperation
         {
@@ -54,44 +58,80 @@ namespace ColourClashNet.Components
 
         #endregion
 
+        /// <summary>
+        /// Event data for the color selection events.
+        /// </summary>
         public class ColorEventArgs : EventArgs
         {
+            /// <summary>
+            /// Selected color.
+            /// </summary>
             public System.Drawing.Color Color { get; internal set; } = System.Drawing.Color.Transparent;
+            /// <summary>
+            /// Mouse position in control coordinates.
+            /// </summary>
             public Point ComponentCoordinates { get; internal set; } = new Point();
+            /// <summary>
+            /// Mouse position in image coordinates.
+            /// </summary>
             public Point ImageCoordinates { get; internal set; } = new Point();
         }
 
       
         #region Events
 
+        /// <summary>
+        /// Raised after the image has been painted on the control.
+        /// </summary>
         [Browsable(true), Category("Appearance")]
         [Description("Raised when Image Control needs repaint")]
         public event PaintEventHandler Paint;
 
+        /// <summary>
+        /// Raised when a mouse button is released on the control.
+        /// </summary>
         [Browsable(true), Category("Mouse")]
         [Description("Raised when a mouse button is released in Image Control")]
         public event MouseEventHandler MouseUp;
 
+        /// <summary>
+        /// Raised when a mouse button is pressed on the control.
+        /// </summary>
         [Browsable(true), Category("Mouse")]
         [Description("Raised when a mouse button is released in Image Control")]
         public event MouseEventHandler MouseDown;
 
+        /// <summary>
+        /// Raised when the mouse moves on the control.
+        /// </summary>
         [Browsable(true), Category("Mouse")]
         [Description("Raised when mouse is moved in Image Control")]
         public event MouseEventHandler MouseMove;
 
+        /// <summary>
+        /// Raised when a color is picked.
+        /// </summary>
         [Browsable(true), Category("Color")]
         [Description("Raised when a Color is selected by operation")]
         public event EventHandler<ColorEventArgs> ColorSelected;
 
+        /// <summary>
+        /// Raised when a color is added to <see cref="SelectedColors"/>.
+        /// </summary>
         [Browsable(true), Category("Color")]
         [Description("Raised when a Color is added on ColorList")]
         public event EventHandler<ColorEventArgs> ColorAdded;
 
+        /// <summary>
+        /// Raised when a color is removed from <see cref="SelectedColors"/>.
+        /// </summary>
         [Browsable(true), Category("Color")]
         [Description("Raised when a Color is removed from ColorList")]
         public event EventHandler<ColorEventArgs> ColorRemoved;
 
+        /// <summary>
+        /// Raised when <see cref="SelectedColors"/> is cleared.
+        /// </summary>
         [Browsable(true), Category("Color")]
         [Description("Raised when a Color list is cleared()")]
         public event EventHandler ColorReset;
@@ -100,119 +140,173 @@ namespace ColourClashNet.Components
 
         #region Fields/Properties
 
+        /// <summary>
+        /// Synchronization object.
+        /// </summary>
         public object locker = new object();
 
+        /// <summary>
+        /// Disables the programmatic scrolling (<see cref="WorldOriginMove(double, double)"/>).
+        /// </summary>
         [Browsable(true), Category("Appearance")]
         [DefaultValue(false)]
         public Boolean ImageBlockScroll { get; set; } = false;
 
+        /// <summary>
+        /// Current zoom mode.
+        /// </summary>
         [Browsable(true), Category("Appearance")]
         [DefaultValue(EnumZoom.Stretch)]
         public EnumZoom ImageZoomMode { get; set; } = EnumZoom.Stretch;
 
+        /// <summary>
+        /// Allows the image to be dragged beyond the control borders.
+        /// </summary>
         [Browsable(true), Category("Appearance")]
         [DefaultValue(true)]
         public Boolean ImageMoveOverControlBorder { get; set; } = true;
 
 
-        float fRoiZoomM = 1.0f;
+        float manualZoom = 1.0f;
 
+        /// <summary>
+        /// Zoom factor used in <see cref="EnumZoom.Manual"/> mode.
+        /// </summary>
         [Browsable(true), Category("Appearance")]
         [DefaultValue(1.0f)]
         public float ImageZoomManual
         {
-            get { return fRoiZoomM; }
-            set { if (value > 0 && value != fRoiZoomM) fRoiZoomM = value; ForceRefresh(); }
+            get { return manualZoom; }
+            set { if (value > 0 && value != manualZoom) manualZoom = value; ForceRefresh(); }
         }
 
+        /// <summary>
+        /// Mouse button used to drag the image.
+        /// </summary>
         [Browsable(true), Category("Behavior")]
         [Description("Define mouse button for dragging")]
         [DefaultValue(MouseButtons.Left)]
         public MouseButtons MouseMovingButton { get; set; } = MouseButtons.Left;    
 
+        /// <summary>
+        /// Mouse button used for selections.
+        /// </summary>
         [Browsable(true), Category("Behavior")]
         [Description("Define mouse button for selection")]
         [DefaultValue(MouseButtons.Right)]
         public MouseButtons MouseSelectButton { get; set; } = MouseButtons.Right;
 
+        /// <summary>
+        /// When true the drag translation accumulates over successive drags.
+        /// </summary>
         [Browsable(true), Category("Behavior")]
         [Description("Continuous Image Dragging Mode.")]
         [DefaultValue(true)]
         public bool MouseImageFollowing { get; set; } = true;
 
-        MouseHandler.PointTrack MouseControlTrack => MouseImageFollowing ? oMouseManager.PointTrackHistory : oMouseManager.PointTrackCurrent;
+        /// <summary>
+        /// Mouse track used for panning.
+        /// </summary>
+        MouseHandler.PointTrack MouseControlTrack => MouseImageFollowing ? mouseManager.PointTrackHistory : mouseManager.PointTrackCurrent;
 
+        /// <summary>
+        /// Mouse position in control coordinates.
+        /// </summary>
         [Browsable(true), Category("Appearance")]
         public Point MouseControlCoordinates => MouseControlTrack.ControlPointCurrent;
 
 
+        /// <summary>
+        /// Mouse position in control coordinates, (0,0) when outside the control.
+        /// </summary>
         [Browsable(true), Category("Appearance")]
         public Point MouseControlCoordinatesClip => MouseControlCoordinates.Clip( Control?.Width ?? 0, Control?.Height ?? 0);
 
+        /// <summary>
+        /// Mouse position in image coordinates.
+        /// </summary>
         [Browsable(true), Category("Appearance")]
-        public PointF MouseImageCoordinates => oCoordinateManager.InverseTransform(MouseControlCoordinates);
+        public PointF MouseImageCoordinates => coordinateManager.InverseTransform(MouseControlCoordinates);
 
         
+        /// <summary>
+        /// Mouse position in image coordinates, (0,0) when outside the image.
+        /// </summary>
         [Browsable(true), Category("Appearance")]
         public PointF MouseImageCoordinatesClip => MouseImageCoordinates.Clip(Image?.Width ?? 0, Image?.Height ?? 0);
 
+        /// <summary>
+        /// Image color under the mouse; transparent when outside the image or while dragging.
+        /// </summary>
         [Browsable(true), Category("Appearance")]
         public System.Drawing.Color MouseImageColor { get; private set; }
 
             
 
 
+        /// <summary>
+        /// Current operation mode.
+        /// </summary>
         [Browsable(true), Category("Behavior")]
         public EnumOperation ComponentOperationMode { get; private set; }
 
-        Control oControl;
+        Control control;
+        /// <summary>
+        /// Control the image is drawn on; mouse and paint events are hooked automatically.
+        /// </summary>
         [Browsable(true), Category("Appearance")]
         [DefaultValue(null)]
         public Control Control
         {
-            get { return oControl; }
+            get { return control; }
             set
             {
-                if (oControl != value)
+                if (control != value)
                 {
                     UnregisterControlEvents(); 
-                    oControl = value;
+                    control = value;
                     RegisterControlEvents();
                 }
             }
         }
 
-        Image oImage;
+        Image image;
+        /// <summary>
+        /// Image to draw.
+        /// </summary>
         [Browsable(true), Category("Appearance")]
         [DefaultValue(null)]
         public Image Image
         {
-            get { return oImage; }
+            get { return image; }
             set
             {
-                if (oImage != value)
+                if (image != value)
                 {
-                    oImage = value;
-                    oMouseManager.Reset();
-                    oControl?.Refresh();
+                    image = value;
+                    mouseManager.Reset();
+                    control?.Refresh();
                 }
             }
         }
 
 
-        MouseHandler oMouseManager= new MouseHandler();
-        CoordinateManager oCoordinateManager = new CoordinateManager();
+        MouseHandler mouseManager= new MouseHandler();
+        CoordinateManager coordinateManager = new CoordinateManager();
 
-        List<System.Drawing.Color> lSelectedColors = new List<System.Drawing.Color>();  
+        List<System.Drawing.Color> selectedColors = new List<System.Drawing.Color>();  
+        /// <summary>
+        /// Colors picked by the user.
+        /// </summary>
         [DefaultValue(null)]
         public List<System.Drawing.Color> SelectedColors 
         {
-            get { return lSelectedColors; }
+            get { return selectedColors; }
             protected set
             { 
-                if( value != lSelectedColors)
+                if( value != selectedColors)
                 {
-                    lSelectedColors = value;
+                    selectedColors = value;
                     RebuildMouseColorToolStripItems();
                 }
             }
@@ -242,7 +336,7 @@ namespace ColourClashNet.Components
         }
 
         /// <summary>
-        /// Common create code
+        /// Common initialization of the constructors.
         /// </summary>
         protected void Create()
         {
@@ -254,22 +348,34 @@ namespace ColourClashNet.Components
             SetOperationMode(EnumOperation.TrackMouse);
         }
       
+        /// <summary>
+        /// Initializes the context menu state.
+        /// </summary>
         void InitializeGUI()
         {
             toolStripMenuItemBlockMoving.Checked = ImageBlockScroll;
         }
 
+        /// <summary>
+        /// Sets the zoom mode from the context menu.
+        /// </summary>
         void SetClickZoom(EnumZoom z)
         {
             ImageZoomMode = z;
-            oControl?.Refresh();
+            control?.Refresh();
         }
+        /// <summary>
+        /// Toggles <see cref="ImageBlockScroll"/> from the context menu.
+        /// </summary>
         void SetClickScroll()
         {
             ImageBlockScroll = !ImageBlockScroll; 
             toolStripMenuItemBlockMoving.Checked = ImageBlockScroll;
         }
 
+        /// <summary>
+        /// Wires the context menu items.
+        /// </summary>
         void RegisterToolStripItems()
         {
 
@@ -292,11 +398,14 @@ namespace ColourClashNet.Components
         #endregion
 
 
-        public void SetOperationMode(EnumOperation eOperationMode)
+        /// <summary>
+        /// Sets the operation mode.
+        /// </summary>
+        public void SetOperationMode(EnumOperation operationMode)
         {
             lock (locker)
             {
-                ComponentOperationMode = eOperationMode;
+                ComponentOperationMode = operationMode;
                 switch (ComponentOperationMode)
                 {
                     case EnumOperation.None:
@@ -316,29 +425,35 @@ namespace ColourClashNet.Components
             }
         }
 
+        /// <summary>
+        /// Hooks paint and mouse events of <see cref="Control"/>.
+        /// </summary>
         void RegisterControlEvents()
         {
-            if (oControl != null)
+            if (control != null)
             {
-                oControl.Paint += OnPaint;
-                oControl.MouseUp += OnMouseUp;
-                oControl.MouseDown += OnMouseDown;
-                oControl.MouseMove += OnMouseMove;
-                oControl.MouseWheel += OnMouseWheel;
-                oControl.ContextMenuStrip = oContextMenuStrip;
+                control.Paint += OnPaint;
+                control.MouseUp += OnMouseUp;
+                control.MouseDown += OnMouseDown;
+                control.MouseMove += OnMouseMove;
+                control.MouseWheel += OnMouseWheel;
+                control.ContextMenuStrip = contextMenuStrip;
             }
         }
 
+        /// <summary>
+        /// Unhooks paint and mouse events of <see cref="Control"/>.
+        /// </summary>
         void UnregisterControlEvents()
         {
-            if (oControl != null)
+            if (control != null)
             {
-                oControl.ContextMenuStrip = null;
-                oControl.Paint -= OnPaint;
-                oControl.MouseUp -= OnMouseUp;
-                oControl.MouseDown -= OnMouseDown;
-                oControl.MouseMove -= OnMouseMove;
-                oControl.MouseWheel -= OnMouseWheel;
+                control.ContextMenuStrip = null;
+                control.Paint -= OnPaint;
+                control.MouseUp -= OnMouseUp;
+                control.MouseDown -= OnMouseDown;
+                control.MouseMove -= OnMouseMove;
+                control.MouseWheel -= OnMouseWheel;
             }
         }
 
@@ -347,7 +462,10 @@ namespace ColourClashNet.Components
         #region Event codes - core of the component 
 
 
-        protected void OnMouseWheel(object Sender, MouseEventArgs args)
+        /// <summary>
+        /// Changes the zoom step (or the manual zoom factor) with the mouse wheel.
+        /// </summary>
+        protected void OnMouseWheel(object sender, MouseEventArgs args)
         {
             if (args.Delta != 0)
             {
@@ -370,22 +488,25 @@ namespace ColourClashNet.Components
             }
         }
 
+        /// <summary>
+        /// Updates <see cref="MouseImageColor"/> from the pixel under the mouse.
+        /// </summary>
         void UpdateMouseImageColor()
         {
-            if (oMouseManager.MouseState == MouseHandler.EnumMouseState.tracking)
+            if (mouseManager.MouseState == MouseHandler.EnumMouseState.tracking)
             {
                 return;
             }
-            if (Image is Bitmap oBmp)
+            if (Image is Bitmap bmp)
             {
-                var oPointI = MouseImageCoordinates;
-                if (oPointI.IsClipped(new Rectangle(0, 0, oBmp.Width, oBmp.Height)))
+                var imagePoint = MouseImageCoordinates;
+                if (imagePoint.IsClipped(new Rectangle(0, 0, bmp.Width, bmp.Height)))
                 {
                     MouseImageColor = System.Drawing.Color.Transparent;
                 }
                 else
                 {
-                    MouseImageColor = oBmp.GetPixel((int)oPointI.X, (int)oPointI.Y);
+                    MouseImageColor = bmp.GetPixel((int)imagePoint.X, (int)imagePoint.Y);
                 }
             }
             else
@@ -394,64 +515,79 @@ namespace ColourClashNet.Components
             }   
         }
 
-        public PointF oImageOrigin = new PointF(0, 0);
+        /// <summary>
+        /// Image origin at the start of the current drag.
+        /// </summary>
+        public PointF imageOrigin = new PointF(0, 0);
 
-        bool bFirstCLick = true;
+        bool firstClick = true;
 
-        protected void OnMouseDown(object Sender, MouseEventArgs args)
+        /// <summary>
+        /// Starts a drag.
+        /// </summary>
+        protected void OnMouseDown(object sender, MouseEventArgs args)
         {
-            if (oMouseManager.OnMouseDown(args))
+            if (mouseManager.OnMouseDown(args))
             {
-                if (bFirstCLick)
+                // Keep the image where it is: the new drag starts from the current translation
+                if (firstClick)
                 {
-                    bFirstCLick = false;
-                    oImageOrigin = oImageOrigin.Sub(MouseControlTrack.ControlPointTranslation);
+                    firstClick = false;
+                    imageOrigin = imageOrigin.Sub(MouseControlTrack.ControlPointTranslation);
                 }
                 else
                 {
-                    oImageOrigin = oImageOrigin.Sub(MouseControlTrack.ControlPointClick);
+                    imageOrigin = imageOrigin.Sub(MouseControlTrack.ControlPointClick);
                 }
-                oCoordinateManager.TransfOrigin = oImageOrigin.Add(MouseControlTrack.ControlPointTranslation);
+                coordinateManager.TransfOrigin = imageOrigin.Add(MouseControlTrack.ControlPointTranslation);
                 UpdateMouseImageColor();
                 ForceRefresh();
             }
-            MouseDown?.Invoke(Sender, args);
+            MouseDown?.Invoke(sender, args);
         }
 
-        protected void OnMouseMove(object Sender, MouseEventArgs args)
+        /// <summary>
+        /// Pans the image while dragging and updates the color under the mouse.
+        /// </summary>
+        protected void OnMouseMove(object sender, MouseEventArgs args)
         {
-            if (oMouseManager.OnMouseMove(args))
+            if (mouseManager.OnMouseMove(args))
             {
-                if (oMouseManager.MouseState == MouseHandler.EnumMouseState.tracking)
+                if (mouseManager.MouseState == MouseHandler.EnumMouseState.tracking)
                 {
-                    oCoordinateManager.TransfOrigin = oImageOrigin.Add(MouseControlTrack.ControlPointTranslation);
+                    coordinateManager.TransfOrigin = imageOrigin.Add(MouseControlTrack.ControlPointTranslation);
                 }
                 UpdateMouseImageColor();
                 ForceRefresh();
             }
-            MouseMove?.Invoke(Sender, args);
+            MouseMove?.Invoke(sender, args);
         }
 
-        protected void OnMouseUp(object Sender, MouseEventArgs args)
+        /// <summary>
+        /// Ends a drag.
+        /// </summary>
+        protected void OnMouseUp(object sender, MouseEventArgs args)
         {
-            if (oMouseManager.OnMouseUp(args))
+            if (mouseManager.OnMouseUp(args))
             {
                 UpdateMouseImageColor();
                 ForceRefresh();
-                oImageOrigin = new PointF(0, 0);
+                imageOrigin = new PointF(0, 0);
             }
-            MouseUp?.Invoke(Sender, args);
+            MouseUp?.Invoke(sender, args);
         }
 
        
 
+        /// <summary>
+        /// Draws the image with the current zoom and translation.
+        /// </summary>
         public void OnPaint(object sender, PaintEventArgs e)
         {
             if (Control != null && Image != null)
             {
                 UpdateControlAndImageRoi();
-                //oCoordinateManager.WorldRotationAngle += 1;
-                oCoordinateManager.DrawImage(e.Graphics, Image);
+                coordinateManager.DrawImage(e.Graphics, Image);
             }
             Paint?.Invoke(sender, e);
         }
@@ -460,28 +596,37 @@ namespace ColourClashNet.Components
 
         #region Selected Colors Management
 
-        public void AddMouseSelectedColor(System.Drawing.Color c)
+        /// <summary>
+        /// Adds a color to <see cref="SelectedColors"/> if not present.
+        /// </summary>
+        public void AddMouseSelectedColor(System.Drawing.Color color)
         {
             lock (locker)
             {
-                if (!SelectedColors.Contains(c))
+                if (!SelectedColors.Contains(color))
                 {
-                    SelectedColors.Add(c);
+                    SelectedColors.Add(color);
                 }
             }
         }
 
-        public void RemoveMouseSelectedColor(System.Drawing.Color c)
+        /// <summary>
+        /// Removes a color from <see cref="SelectedColors"/>.
+        /// </summary>
+        public void RemoveMouseSelectedColor(System.Drawing.Color color)
         {
             lock (locker)
             {
-                if (SelectedColors.Contains(c))
+                if (SelectedColors.Contains(color))
                 {
-                    SelectedColors.Remove(c);
+                    SelectedColors.Remove(color);
                 }
             }
         }
 
+        /// <summary>
+        /// Clears <see cref="SelectedColors"/>.
+        /// </summary>
         public void ResetMouseSelectedColors()
         {
             lock (locker)
@@ -490,26 +635,32 @@ namespace ColourClashNet.Components
             }
         }
 
+        /// <summary>
+        /// Rebuilds the context menu list of selected colors; clicking an item removes the color.
+        /// </summary>
         void RebuildMouseColorToolStripItems()
         {
             toolStripMenuItemColors.DropDownItems.Clear();
-            foreach (var c in SelectedColors)
+            foreach (var color in SelectedColors)
             {
-                var tsi = new ToolStripMenuItem();
-                tsi.Text = $"RGB : 0x00_{c.R:X2}_{c.G:X2}_{c.B:X2}";
-                tsi.BackColor = c;
-                tsi.ForeColor = (c.R + c.G + c.B) / 3 < 128 ? System.Drawing.Color.White : System.Drawing.Color.Black;
-                tsi.Click += (s, e) =>
+                var menuItem = new ToolStripMenuItem();
+                menuItem.Text = $"RGB : 0x00_{color.R:X2}_{color.G:X2}_{color.B:X2}";
+                menuItem.BackColor = color;
+                menuItem.ForeColor = (color.R + color.G + color.B) / 3 < 128 ? System.Drawing.Color.White : System.Drawing.Color.Black;
+                menuItem.Click += (s, e) =>
                 {
-                    RemoveMouseSelectedColor(c);
+                    RemoveMouseSelectedColor(color);
                     RebuildMouseColorToolStripItems();
-                    ColorRemoved?.Invoke(this, new ColorEventArgs() {  Color  = tsi.BackColor } );
+                    ColorRemoved?.Invoke(this, new ColorEventArgs() {  Color  = menuItem.BackColor } );
                 };
-                toolStripMenuItemColors.DropDownItems.Add(tsi);
+                toolStripMenuItemColors.DropDownItems.Add(menuItem);
             }
             toolStripMenuItemColors.Enabled = SelectedColors.Count > 0;
         }
 
+        /// <summary>
+        /// Adds the color under the mouse to the selection.
+        /// </summary>
         void OnAddColor(object sender, EventArgs e)
         {
             if (MouseImageColor != System.Drawing.Color.Transparent)
@@ -519,6 +670,9 @@ namespace ColourClashNet.Components
             RebuildMouseColorToolStripItems();
             ColorAdded?.Invoke(this, new ColorEventArgs() { Color = MouseImageColor });
         }
+        /// <summary>
+        /// Clears the color selection.
+        /// </summary>
         void OnResetColors(object sender, EventArgs e)
         {
             ResetMouseSelectedColors();
@@ -536,104 +690,114 @@ namespace ColourClashNet.Components
 
         #region Clip and Zoom Code
 
+        /// <summary>
+        /// Horizontal image to control scale (inverse of the zoom).
+        /// </summary>
         [Browsable(true), Category("Appearance")]
         public float ZoomImageX
         {
-            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.TransfZoom.X != 0 ? 1.0f / oCoordinateManager.TransfZoom.X : 0); }
+            get { UpdateControlAndImageRoi(); return (float)(coordinateManager.TransfZoom.X != 0 ? 1.0f / coordinateManager.TransfZoom.X : 0); }
         }
 
+        /// <summary>
+        /// Vertical image to control scale (inverse of the zoom).
+        /// </summary>
         [Browsable(true), Category("Appearance")]
         public float ZoomImageY
         {
-            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.TransfZoom.Y != 0 ? 1.0f / oCoordinateManager.TransfZoom.Y : 0); }
+            get { UpdateControlAndImageRoi(); return (float)(coordinateManager.TransfZoom.Y != 0 ? 1.0f / coordinateManager.TransfZoom.Y : 0); }
         }
 
+        /// <summary>
+        /// Horizontal zoom factor.
+        /// </summary>
         [Browsable(true), Category("Appearance")]
         public float ZoomControlX
         {
-            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.TransfZoom.X); }
+            get { UpdateControlAndImageRoi(); return (float)(coordinateManager.TransfZoom.X); }
         }
 
+        /// <summary>
+        /// Vertical zoom factor.
+        /// </summary>
         [Browsable(true), Category("Appearance")]
         public float ZoomControY
         {
-            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.TransfZoom.Y); }
+            get { UpdateControlAndImageRoi(); return (float)(coordinateManager.TransfZoom.Y); }
         }
 
 
       
+        /// <summary>
+        /// Computes the zoom factors from <see cref="ImageZoomMode"/> and the control and image sizes.
+        /// </summary>
         void UpdateControlAndImageRoi()
         {
 
-            float RoiZoomX = 0;
-            float RoiZoomY = 0;
-            if (oControl == null || Control.Size.Width <= 0 || Control.Size.Height <= 0)
+            float roiZoomX = 0;
+            float roiZoomY = 0;
+            if (control == null || Control.Size.Width <= 0 || Control.Size.Height <= 0)
             {
                 return;
             }
-            var oBmp = Image as Bitmap;
-            if (oBmp is null)
+            var bmp = Image as Bitmap;
+            if (bmp is null)
             {
                 return;
             }
-            if (oBmp.Width <= 0 && oBmp.Height <= 0)
+            if (bmp.Width <= 0 && bmp.Height <= 0)
             {
                 return;
             }
-            // Il + facile
-            // Determina la roi da disegnare
-            oCoordinateManager.SetTransfZoom(1);
-            float fcw = Math.Max(1,Control.Size.Width);
-            float fch = Math.Max(1, Control.Size.Height);
-            float fiw = Math.Max(1, Image.Size.Width);
-            float fih = Math.Max(1, Image.Size.Height);
-            //// Stretch Zoom
-            //RoiZoomX = (float)Image.Size.Width / fiw;
-            //RoiZoomY = (float)Image.Size.Height / fih;
+            // Compute the zoom factors of the area to draw, according to the zoom mode
+            coordinateManager.SetTransfZoom(1);
+            float controlWidth = Math.Max(1,Control.Size.Width);
+            float controlHeight = Math.Max(1, Control.Size.Height);
+            float imageWidth = Math.Max(1, Image.Size.Width);
+            float imageHeight = Math.Max(1, Image.Size.Height);
             switch (ImageZoomMode)
             {
-                // Zoom: restringe o allarga la roi
-                case EnumZoom.ZoomQ: RoiZoomX = RoiZoomY = 1.0f / 4; break;
-                case EnumZoom.ZoomH: RoiZoomX = RoiZoomY = 1.0f / 2; break;
-                case EnumZoom.Zoom1: RoiZoomX = RoiZoomY = 1.0f * 1; break;
-                case EnumZoom.Zoom2: RoiZoomX = RoiZoomY = 1.0f * 2; break;
-                case EnumZoom.Zoom3: RoiZoomX = RoiZoomY = 1.0f * 3; break;
-                case EnumZoom.Zoom4: RoiZoomX = RoiZoomY = 1.0f * 4; break;
-                // Stretch: 
+                // Fixed zoom: shrinks or enlarges the image
+                case EnumZoom.ZoomQ: roiZoomX = roiZoomY = 1.0f / 4; break;
+                case EnumZoom.ZoomH: roiZoomX = roiZoomY = 1.0f / 2; break;
+                case EnumZoom.Zoom1: roiZoomX = roiZoomY = 1.0f * 1; break;
+                case EnumZoom.Zoom2: roiZoomX = roiZoomY = 1.0f * 2; break;
+                case EnumZoom.Zoom3: roiZoomX = roiZoomY = 1.0f * 3; break;
+                case EnumZoom.Zoom4: roiZoomX = roiZoomY = 1.0f * 4; break;
+                // Stretch: fills the control, aspect ratio not preserved
                 case EnumZoom.Stretch:
                     {
-                        RoiZoomX = fcw / fiw;
-                        RoiZoomY = fch / fih;
+                        roiZoomX = controlWidth / imageWidth;
+                        roiZoomY = controlHeight / imageHeight;
                     }
                     break;
-                // Fit w e h
-                // w : 100 = h : x
+                // Fit width or height, aspect ratio preserved
                 case EnumZoom.FitW:
-                    RoiZoomX = fcw / fiw;
-                    RoiZoomY = RoiZoomX;
+                    roiZoomX = controlWidth / imageWidth;
+                    roiZoomY = roiZoomX;
                     break;
                 case EnumZoom.FitH:
-                    RoiZoomY = fch / fih;
-                    RoiZoomX = RoiZoomY;
+                    roiZoomY = controlHeight / imageHeight;
+                    roiZoomX = roiZoomY;
                     break;
-                // Fit è il + cancaro
+                // Fit: the whole image is visible, aspect ratio preserved (smaller of the two factors)
                 case EnumZoom.Fit:
                     {
-                        RoiZoomX = fcw / fiw;
-                        RoiZoomY = fch / fih;
-                        if (RoiZoomX < RoiZoomY)
+                        roiZoomX = controlWidth / imageWidth;
+                        roiZoomY = controlHeight / imageHeight;
+                        if (roiZoomX < roiZoomY)
                         {
-                            RoiZoomY = RoiZoomX;
+                            roiZoomY = roiZoomX;
                         }
                         else
                         {
-                            RoiZoomX = RoiZoomY;
+                            roiZoomX = roiZoomY;
                         }
                     }
                     break;
-                case EnumZoom.Manual: RoiZoomX = RoiZoomY = fRoiZoomM; break;
+                case EnumZoom.Manual: roiZoomX = roiZoomY = manualZoom; break;
             }
-            oCoordinateManager.SetTrasfZoom(RoiZoomX, RoiZoomY);
+            coordinateManager.SetTrasfZoom(roiZoomX, roiZoomY);
         }
 
 
@@ -643,37 +807,49 @@ namespace ColourClashNet.Components
 
         #region Moving Origin Point
 
+        /// <summary>
+        /// Invalidates the control.
+        /// </summary>
         protected void ForceRefresh()
         {
-            oControl?.Invalidate();
+            control?.Invalidate();
         }
 
    
+        /// <summary>
+        /// Scrolls the image by (<paramref name="deltaX"/>, <paramref name="deltaY"/>), unless <see cref="ImageBlockScroll"/> is set.
+        /// </summary>
         public void WorldOriginMove(double deltaX, double deltaY)
         {
             if (!ImageBlockScroll)
             {
                 UpdateControlAndImageRoi();
-                //--------------------------------------------------------------------------
-                oCoordinateManager.TranslateTrasformationOrigin(deltaX, deltaY);
+                coordinateManager.TranslateTrasformationOrigin(deltaX, deltaY);
                 ForceRefresh();
             }
         }
 
-        public void WorldOriginMove(Point Delta)
+        /// <summary>
+        /// Scrolls the image by <paramref name="delta"/>.
+        /// </summary>
+        public void WorldOriginMove(Point delta)
         {
-            WorldOriginMove(Delta.X, Delta.Y);
+            WorldOriginMove(delta.X, delta.Y);
         }
 
-        public void WorldOriginMove(PointF Delta)
+        /// <summary>
+        /// Scrolls the image by <paramref name="delta"/>.
+        /// </summary>
+        public void WorldOriginMove(PointF delta)
         {
-            WorldOriginMove(Delta.X, Delta.Y);
+            WorldOriginMove(delta.X, delta.Y);
         }
 
+        /// <summary>
+        /// Refreshes the control (origin reset not implemented).
+        /// </summary>
         public void OriginZero()
         {
-            //--------------------------------------------------------------------------
-            //oCoordinateManager.LocalOrigin = new PointF(0, 0);
             ForceRefresh();
         }
 
@@ -684,20 +860,23 @@ namespace ColourClashNet.Components
 
       
 
-        protected Boolean MouseMovePushed = false;
-        protected Boolean MouseRoiPushed = false;
-        protected Point MousePushedPoint = new Point();
-        protected Point MousePushedPointLast = new Point();
+        protected Boolean mouseMovePushed = false;
+        protected Boolean mouseRoiPushed = false;
+        protected Point mousePushedPoint = new Point();
+        protected Point mousePushedPointLast = new Point();
 
        
 
         #endregion
 
-        private static Image MakeColorSwatch(System.Drawing.Color Color, int size = 12, int border = 1)
+        /// <summary>
+        /// Creates a small square image filled with <paramref name="color"/>, used as menu icon.
+        /// </summary>
+        private static Image MakeColorSwatch(System.Drawing.Color color, int size = 12, int border = 1)
         {
             var bmp = new Bitmap(size, size);
             using (var g = Graphics.FromImage(bmp))
-            using (var brush = new SolidBrush(Color))
+            using (var brush = new SolidBrush(color))
             using (var pen = new Pen(System.Drawing.Color.FromArgb(120, System.Drawing.Color.Black), border))
             {
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
@@ -708,9 +887,11 @@ namespace ColourClashNet.Components
             return bmp;
         }
 
-        private void oContextMenuStrip_Opening(object sender, CancelEventArgs e)
+        /// <summary>
+        /// Updates the "add color" menu icon with the color under the mouse.
+        /// </summary>
+        private void contextMenuStrip_Opening(object sender, CancelEventArgs e)
         {
-            //oContextMenuColor = HandleMouseColorPick(MouseCoordinates);
             toolStripMenuItemAddColor.Image?.Dispose();
             toolStripMenuItemAddColor.Image = MakeColorSwatch(MouseImageColor, 16, 2);
         }

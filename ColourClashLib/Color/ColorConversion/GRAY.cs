@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 namespace ColourClashNet.Color.Conversion
 {
     /// <summary>
-    /// Represents a color in CIELAB color space.
+    /// Represents a color as a single gray (luminance) value computed with configurable channel weights.
     /// </summary>
     public class GRAY : ColorConverterInterface
     {
@@ -26,40 +26,59 @@ namespace ColourClashNet.Color.Conversion
         public float WeightB { get; set; } = 1.0f / 3;
 
         /// <summary>
-        /// Grayscale Value 
+        /// Grayscale value [0..255]; negative when invalid.
         /// </summary>
         public int Y { get; set; }
-        public GRAY(float wr, float wg, float wb, int rgb)
+
+        /// <summary>
+        /// Creates a gray value from an integer RGB color using custom channel weights.
+        /// </summary>
+        public GRAY(float weightR, float weightG, float weightB, int rgb)
         {
-            WeightR = wr;
-            WeightG = wg;
-            WeightB = wb;
+            WeightR = weightR;
+            WeightG = weightG;
+            WeightB = weightB;
             Y = GetGray(rgb);
         }
 
-        public GRAY(float wr, float wg, float wb, int r, int g, int b)
+        /// <summary>
+        /// Creates a gray value from RGB components using custom channel weights.
+        /// </summary>
+        public GRAY(float weightR, float weightG, float weightB, int r, int g, int b)
         {
-            WeightR = wr;
-            WeightG = wg;
-            WeightB = wb;
+            WeightR = weightR;
+            WeightG = weightG;
+            WeightB = weightB;
             Y = GetGray(ColorIntExt.FromRGB(r, g, b));
         }
 
+        /// <summary>
+        /// Creates a gray value from RGB components using equal channel weights.
+        /// </summary>
         public GRAY(int r, int g, int b)
         {
             Y = GetGray(ColorIntExt.FromRGB(r, g, b));
         }
 
-
+        /// <summary>
+        /// Creates a gray value from an integer RGB color using equal channel weights.
+        /// </summary>
         public GRAY(int rgb)
         {
             Y = GetGray(rgb);
         }
+
+        /// <summary>
+        /// Creates an invalid gray value.
+        /// </summary>
         public GRAY()
         {
             Y = -1;
         }
 
+        /// <summary>
+        /// Weighted sum of the RGB channels, or an invalid value if <paramref name="rgb"/> is not a color.
+        /// </summary>
         int GetGray(int rgb)
         {
             if (rgb.IsColor())
@@ -69,11 +88,12 @@ namespace ColourClashNet.Color.Conversion
             return ColorDefaults.DefaultInvalidColorInt;
         }
 
+        /// <inheritdoc/>
         public bool FromIntRGB(int rgb)
         {
             Y = GetGray(rgb);
             return IsValid;
-        }   
+        }
 
 
         /// <summary>
@@ -81,12 +101,13 @@ namespace ColourClashNet.Color.Conversion
         /// </summary>
         public int ToIntRGB() => ColorIntExt.FromRGB(Y, Y, Y);
 
+        /// <inheritdoc/>
         public bool IsValid => Y >= 0;
 
         /// <summary>
-        /// Converts an RGB color (int) to GRAY
+        /// Converts an RGB color (int) to GRAY using custom channel weights.
         /// </summary>
-        public static GRAY CreateFromIntRGB(float wr, float wg, float wb, int rgb) => new GRAY(wr, wg, wb, rgb);
+        public static GRAY CreateFromIntRGB(float weightR, float weightG, float weightB, int rgb) => new GRAY(weightR, weightG, weightB, rgb);
 
         /// <summary>
         /// Converts an RGB color (int) to GRAY
@@ -95,7 +116,7 @@ namespace ColourClashNet.Color.Conversion
             => new GRAY(rgb);
 
         /// <summary>
-        /// Calculates Euclidean distance between two GRAY.
+        /// Calculates the absolute difference between two gray values.
         /// </summary>
         public static double Distance(GRAY grayA, GRAY grayB)
         {

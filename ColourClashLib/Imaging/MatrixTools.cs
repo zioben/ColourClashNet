@@ -16,6 +16,10 @@ using System.Xml.Xsl;
 
 namespace ColourClashNet.Imaging;
 
+/// <summary>
+/// Low level helpers on color matrices (<c>int[rows, columns]</c>): width alignment, palette indexing,
+/// indexed BMP export, cropping, blitting, cookie-cut masking and horizontal resolution changes.
+/// </summary>
 public static class MatrixTools
 {
     static string sC = nameof(MatrixTools);
@@ -23,16 +27,11 @@ public static class MatrixTools
     #region Width Alignment
 
     /// <summary>
-    /// Calculates the adjusted image width based on the specified pixel alignment mode.
+    /// Rounds <paramref name="currentWidth"/> up to the next multiple required by <paramref name="widthAlignMode"/>.
     /// </summary>
-    /// <remarks>Use this method to ensure that image widths conform to hardware or format
-    /// requirements that mandate alignment to specific pixel multiples, such as 16, 32, or 64 pixels. If an
-    /// unrecognized alignment mode is specified, the original width is returned without adjustment.</remarks>
-    /// <param name="currentWidth">The original width of the image, in pixels. Must be greater than 0.</param>
-    /// <param name="widthAlignMode">The alignment mode that determines how the width should be adjusted. Specifies the pixel boundary to which
-    /// the width will be aligned.</param>
-    /// <returns>The image width aligned to the specified pixel boundary. Returns 0 if the original width is less than or
-    /// equal to 0.</returns>
+    /// <param name="currentWidth">Original width in pixels</param>
+    /// <param name="widthAlignMode">Required alignment</param>
+    /// <returns>The aligned width; 0 if <paramref name="currentWidth"/> is not positive.</returns>
     static public int GetNewWidthAlign(int currentWidth, WidthAlignMode widthAlignMode)
     {
         if (currentWidth <= 0)
@@ -67,11 +66,9 @@ public static class MatrixTools
 
 
     /// <summary>
-    /// Calculates the new width of an image, adjusted according to the specified pixel width alignment mode.
+    /// Returns the aligned width of a matrix.
     /// </summary>
-    /// <param name="oImage">The image data for which to calculate the aligned width. If null, a width of 0 is used.</param>
-    /// <param name="widthAlignMode">The alignment mode that determines how the image width should be adjusted.</param>
-    /// <returns>The width of the image, aligned according to the specified alignment mode.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="matrixSrc"/> is null.</exception>
     static int GetNewWidthAlign<T>(T[,] matrixSrc, WidthAlignMode widthAlignMode)
     {
         string sM = nameof(GetNewWidthAlign);
@@ -81,20 +78,14 @@ public static class MatrixTools
     }
 
     /// <summary>
-    /// 
+    /// Returns the aligned width of a color matrix.
     /// </summary>
-    /// <param name="matrix"></param>
-    /// <param name="widthAlignMode"></param>
-    /// <returns></returns>
     static public int GetNewWidthAlign(int[,] matrix, WidthAlignMode widthAlignMode)
         => GetNewWidthAlign<int>(matrix, widthAlignMode);
 
     /// <summary>
-    /// 
+    /// Returns the aligned width of an index matrix.
     /// </summary>
-    /// <param name="matrix"></param>
-    /// <param name="widthAlignMode"></param>
-    /// <returns></returns>
     static public int GetNewWidthAlign(byte[,] matrix, WidthAlignMode widthAlignMode)
         => GetNewWidthAlign<byte>(matrix, widthAlignMode);
 
@@ -103,23 +94,19 @@ public static class MatrixTools
     #region base
 
     /// <summary>
-    /// 
+    /// Creates a <paramref name="width"/> x <paramref name="height"/> matrix filled with <paramref name="fillRGB"/>.
     /// </summary>
-    /// <param name="width"></param>
-    /// <param name="height"></param>
-    /// <param name="rgbFill"></param>
-    /// <returns></returns>
     static public int[,] CreateMatrix(int width, int height, int fillRGB)
     {
-        var m = new int[height, width];
+        var matrix = new int[height, width];
         for(int r = 0; r < height; r++)
         {
             for (int c = 0; c < width; c++)
             {
-                m[r, c] = fillRGB;
+                matrix[r, c] = fillRGB;
             }
         }
-        return m;
+        return matrix;
     }
 
     /// <summary>
@@ -129,6 +116,9 @@ public static class MatrixTools
     /// <param name="height"></param>
     /// <returns></returns>
 
+    /// <summary>
+    /// Creates a <paramref name="width"/> x <paramref name="height"/> matrix filled with black.
+    /// </summary>
     static public int[,] CreateMatrix(int width, int height) => CreateMatrix(width, height, 0);
 
     #endregion
@@ -136,21 +126,17 @@ public static class MatrixTools
 
         #region Indexed Data Manipulation
 
-        /// <summary>
-        /// Creates a two-dimensional byte array representing indexed image data, mapping each Color value in the source
-        /// matrix to its corresponding palette index.
-        /// </summary>
-        /// <remarks>If a Color value in the source matrix does not exist in the palette or the palette
-        /// contains fewer than 256 Colors, the corresponding output value is set to 255; otherwise, it is set to 0. The
-        /// width of each row in the output array may be increased to satisfy the specified alignment mode.</remarks>
-        /// <param name="rgbMatrix">A two-dimensional array containing the source Color values to be indexed. Each element represents a Color
-        /// value to be mapped to the palette.</param>
-        /// <param name="palette">A list of integer Color values representing the palette. Each unique Color in the palette is assigned an
-        /// index used in the output array.</param>
-        /// <param name="widthAlignMode">Specifies the alignment mode to use for the width of the output image data. Determines how the width of each
-        /// row in the output array is aligned.</param>
-        /// <returns>A two-dimensional byte array where each element contains the palette index corresponding to the Color value
-        /// in the source matrix. Returns null if the input data or palette is null, or if an error occurs.</returns>
+    /// <summary>
+    /// Maps every color of <paramref name="rgbMatrix"/> to its index in <paramref name="paletteList"/>.
+    /// <para/>
+    /// Colors missing from the palette, and the padding columns added by the alignment, get index 255
+    /// (or 0 when the palette already uses all 256 entries). Only the first 256 palette colors are indexed.
+    /// </summary>
+    /// <param name="rgbMatrix">Source color matrix</param>
+    /// <param name="paletteList">Palette; when null it is rebuilt from the matrix (slow)</param>
+    /// <param name="widthAlignMode">Alignment of the output width</param>
+    /// <returns>Index matrix [rows, aligned columns].</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="rgbMatrix"/> is null.</exception>
     public static byte[,] CreateIndexedMatrix(int[,] rgbMatrix, List<int> paletteList, WidthAlignMode widthAlignMode)
     {
         string sM = nameof(CreateIndexedMatrix);
@@ -165,9 +151,9 @@ public static class MatrixTools
             return CreateIndexedMatrix(rgbMatrix, palette.ToList(), widthAlignMode);
         }
 
-        int R = rgbMatrix.GetLength(0);
-        int C = rgbMatrix.GetLength(1);
-        int CO = GetNewWidthAlign(C, widthAlignMode);
+        int rows = rgbMatrix.GetLength(0);
+        int columns = rgbMatrix.GetLength(1);
+        int alignedColumns = GetNewWidthAlign(columns, widthAlignMode);
 
         Dictionary<int, byte> converter = new Dictionary<int, byte>();
         for (int i = 0; i < Math.Min(paletteList.Count, 256); i++)
@@ -175,27 +161,27 @@ public static class MatrixTools
             converter[paletteList[i]] = (byte)i;
         }
 
-        // FIX: era "< 255" — con palette da 255 colori sbagliava ramo
+        // Use 255 for unmapped colors unless the palette needs that index itself
         byte invalidColorIndex = (byte)(paletteList.Count < 256 ? 255 : 0);
 
-        var oRet = new byte[R, CO];
-        for (int y = 0; y < R; y++)
+        var indexMatrix = new byte[rows, alignedColumns];
+        for (int y = 0; y < rows; y++)
         {
-            for (int x = 0; x < C; x++)
+            for (int x = 0; x < columns; x++)
             {
-                var col = rgbMatrix[y, x];
-                if (converter.TryGetValue(col, out var paletteIndex))
-                    oRet[y, x] = paletteIndex;
+                var color = rgbMatrix[y, x];
+                if (converter.TryGetValue(color, out var paletteIndex))
+                    indexMatrix[y, x] = paletteIndex;
                 else
-                    oRet[y, x] = invalidColorIndex;
+                    indexMatrix[y, x] = invalidColorIndex;
             }
 
-            for (int x = C; x < CO; x++)
+            for (int x = columns; x < alignedColumns; x++)
             {
-                oRet[y, x] = invalidColorIndex;
+                indexMatrix[y, x] = invalidColorIndex;
             }
         }
-        return oRet;
+        return indexMatrix;
     }
 
     /// <summary>
@@ -204,11 +190,11 @@ public static class MatrixTools
     /// </summary>
     /// <param name="rgbMatrix">A two-dimensional array of integers representing the source pixel data to be converted to indexed format.</param>
     /// <param name="palette">The palette to use for mapping source pixel values to palette indices. Cannot be null.</param>
-    /// <param name="ePixelWidthAlign">Specifies how the width of each image row is aligned in the resulting indexed data.</param>
+    /// <param name="pixelWidthAlign">Specifies how the width of each image row is aligned in the resulting indexed data.</param>
     /// <returns>A two-dimensional byte array containing the indexed image data, where each value corresponds to a palette
     /// index.</returns>
-    public static byte[,] CreateIndexedMatrix(int[,] rgbMatrix, Palette palette, WidthAlignMode ePixelWidthAlign)
-        => CreateIndexedMatrix(rgbMatrix, palette?.ToList(), ePixelWidthAlign);
+    public static byte[,] CreateIndexedMatrix(int[,] rgbMatrix, Palette palette, WidthAlignMode pixelWidthAlign)
+        => CreateIndexedMatrix(rgbMatrix, palette?.ToList(), pixelWidthAlign);
 
     /// <summary>
     /// Converts a two-dimensional array of Color values to an indexed byte array using the specified palette.
@@ -221,14 +207,19 @@ public static class MatrixTools
 
 
     /// <summary>
-    /// 
+    /// Writes a color matrix as an uncompressed 8 bit indexed BMP file.
+    /// <para/>
+    /// The ".bmp" extension is appended when missing. A full 256 entry palette is always written;
+    /// rows are stored bottom-up and padded to 4 bytes, as required by the BMP format.
     /// </summary>
-    /// <param name="rgbMatrix"></param>
-    /// <param name="fileName"></param>
-    /// <param name="palette"></param>
-    /// <param name="ePixelWidthAlign"></param>
-    /// <returns></returns>
-    public static bool SaveIndexedMatrixAsImage(int[,] rgbMatrix, string fileName, List<int> paletteList, WidthAlignMode ePixelWidthAlign)
+    /// <param name="rgbMatrix">Source color matrix</param>
+    /// <param name="fileName">Destination file</param>
+    /// <param name="paletteList">Palette (max 256 colors)</param>
+    /// <param name="pixelWidthAlign">Alignment of the image width</param>
+    /// <returns>True when the file has been written.</returns>
+    /// <exception cref="ArgumentNullException">Null matrix or palette.</exception>
+    /// <exception cref="ArgumentException">Too many colors or invalid file name.</exception>
+    public static bool SaveIndexedMatrixAsImage(int[,] rgbMatrix, string fileName, List<int> paletteList, WidthAlignMode pixelWidthAlign)
     {
         string sM = nameof(SaveIndexedMatrixAsImage);
 
@@ -247,12 +238,12 @@ public static class MatrixTools
         if (!fileName.ToLower().EndsWith(".bmp"))
             fileName += ".bmp";
 
-        var idxMatrix = CreateIndexedMatrix(rgbMatrix, paletteList, ePixelWidthAlign);
-        var width = idxMatrix.GetLength(1);
-        var height = idxMatrix.GetLength(0);
-        using (BinaryWriter bw = new BinaryWriter(File.Create(fileName)))
+        var indexMatrix = CreateIndexedMatrix(rgbMatrix, paletteList, pixelWidthAlign);
+        var width = indexMatrix.GetLength(1);
+        var height = indexMatrix.GetLength(0);
+        using (BinaryWriter writer = new BinaryWriter(File.Create(fileName)))
         {
-            // Ogni riga deve essere allineata a 4 byte
+            // Each pixel row must be aligned to 4 bytes
             int rowSize = ((width + 3) / 4) * 4;
             int pixelDataSize = rowSize * height;
 
@@ -267,26 +258,26 @@ public static class MatrixTools
             //----------------------------------
             // BITMAPFILEHEADER (14 byte)
             //----------------------------------
-            bw.Write((ushort)0x4D42);          // Signature "BM"
-            bw.Write(fileSize);                // FileSize
-            bw.Write((uint)0);                 // FIX: Reserved1+Reserved2 = 4 byte, non 8
-            bw.Write(14 + 40 + paletteSize);   // FIX: offset basato sulla palette REALMENTE scritta (256*4), non su paletteList.Count
+            writer.Write((ushort)0x4D42);          // Signature "BM"
+            writer.Write(fileSize);                // FileSize
+            writer.Write((uint)0);                 // Reserved1 + Reserved2 (4 bytes in total)
+            writer.Write(14 + 40 + paletteSize);   // Pixel data offset: based on the palette actually written (256*4), not on paletteList.Count
 
             //----------------------------------
             // BITMAPINFOHEADER (40 byte)
             //----------------------------------
 
-            bw.Write(40);             // Header size
-            bw.Write(width);          // Width
-            bw.Write(height);         // Height
-            bw.Write((ushort)1);      // Planes
-            bw.Write((ushort)8);      // 8-bit indexed
-            bw.Write(0);              // BI_RGB no compression
-            bw.Write(pixelDataSize);  // Raw data size
-            bw.Write(2835);           // X ppm
-            bw.Write(2835);           // Y ppm
-            bw.Write(256);            // Colors used
-            bw.Write(0);              // Important colors
+            writer.Write(40);             // Header size
+            writer.Write(width);          // Width
+            writer.Write(height);         // Height
+            writer.Write((ushort)1);      // Planes
+            writer.Write((ushort)8);      // 8-bit indexed
+            writer.Write(0);              // BI_RGB no compression
+            writer.Write(pixelDataSize);  // Raw data size
+            writer.Write(2835);           // X ppm
+            writer.Write(2835);           // Y ppm
+            writer.Write(256);            // Colors used
+            writer.Write(0);              // Important colors
 
             //----------------------------------
             // Palette
@@ -294,43 +285,53 @@ public static class MatrixTools
 
             for (int i = 0; i < paletteList.Count; i++)
             {
-                bw.Write((byte)ColorIntExt.ToB(paletteList[i])); // Blue
-                bw.Write((byte)ColorIntExt.ToG(paletteList[i])); // Green
-                bw.Write((byte)ColorIntExt.ToR(paletteList[i])); // Red
-                bw.Write((byte)255); // Reserved
+                writer.Write((byte)ColorIntExt.ToB(paletteList[i])); // Blue
+                writer.Write((byte)ColorIntExt.ToG(paletteList[i])); // Green
+                writer.Write((byte)ColorIntExt.ToR(paletteList[i])); // Red
+                writer.Write((byte)255); // Reserved
             }
             for (int i = paletteList.Count; i < 256; i++)
             {
-                bw.Write((byte)0); // Blue
-                bw.Write((byte)0); // Green
-                bw.Write((byte)0); // Red
-                bw.Write((byte)0); // Reserved
+                writer.Write((byte)0); // Blue
+                writer.Write((byte)0); // Green
+                writer.Write((byte)0); // Red
+                writer.Write((byte)0); // Reserved
             }
             //----------------------------------
-            // Pixel data
+            // Pixel data (bottom-up rows)
             //----------------------------------
 
             for (int y = height - 1; y >= 0; y--)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    bw.Write((byte)idxMatrix[y, x]);
+                    writer.Write((byte)indexMatrix[y, x]);
                 }
                 for (int x = width; x < rowSize; x++)
                 {
-                    bw.Write((byte)0);
+                    writer.Write((byte)0);
                 }
             }
 
             return true;
         }
     }
+
+    /// <summary>
+    /// Writes an 8 bit indexed BMP with the width aligned to 4 pixels.
+    /// </summary>
     public static bool SaveIndexedMatrixAsImage(int[,] rgbMatrix, string fileName, List<int>paletteList)
     => SaveIndexedMatrixAsImage(rgbMatrix, fileName, paletteList, WidthAlignMode.Multiple004);
 
+    /// <summary>
+    /// Writes an 8 bit indexed BMP using a <see cref="Palette"/>.
+    /// </summary>
     public static bool SaveIndexedMatrixAsImage(int[,] rgbMatrix, string fileName, Palette palette, WidthAlignMode pixelWidthAlignment)
         => SaveIndexedMatrixAsImage(rgbMatrix, fileName, palette.ToList(), pixelWidthAlignment);
 
+    /// <summary>
+    /// Writes an 8 bit indexed BMP using a <see cref="Palette"/>, with the width aligned to 4 pixels.
+    /// </summary>
     public static bool SaveIndexedMatrixAsImage(int[,] rgbMatrix, string fileName, Palette palette)
     => SaveIndexedMatrixAsImage(rgbMatrix, fileName, palette.ToList(),  WidthAlignMode.Multiple004);
 
@@ -340,51 +341,43 @@ public static class MatrixTools
     #region Matrix Manipulation
 
     /// <summary>
-    /// Extracts a rectangular submatrix from the specified two-dimensional array.
+    /// Copies a rectangular area of <paramref name="matrixSrc"/> into a new matrix.
     /// </summary>
-    /// <remarks>If the specified crop area extends beyond the bounds of the source matrix, the method returns
-    /// null. The returned array has the specified height and width, with elements copied from the corresponding region
-    /// of the source matrix.</remarks>
-    /// <param name="matrixSrc">The source two-dimensional array from which to crop a submatrix. Cannot be null.</param>
-    /// <param name="xs">The zero-based column index of the upper-left corner of the crop area within the source matrix. Must be within
-    /// the bounds of the matrix.</param>
-    /// <param name="ys">The zero-based row index of the upper-left corner of the crop area within the source matrix. Must be within the
-    /// bounds of the matrix.</param>
-    /// <param name="width">The width, in columns, of the submatrix to extract. Must be greater than zero and the crop area must not exceed
-    /// the bounds of the source matrix.</param>
-    /// <param name="height">The height, in rows, of the submatrix to extract. Must be greater than zero and the crop area must not exceed
-    /// the bounds of the source matrix.</param>
-    /// <returns>A new two-dimensional array containing the cropped submatrix, or null if the source matrix is null or the
-    /// specified crop area is out of bounds.</returns>
+    /// <param name="matrixSrc">Source matrix</param>
+    /// <param name="xs">Left coordinate</param>
+    /// <param name="ys">Top coordinate</param>
+    /// <param name="width">Area width</param>
+    /// <param name="height">Area height</param>
+    /// <returns>A new <paramref name="height"/> x <paramref name="width"/> matrix.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="matrixSrc"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">The area is not fully inside the source matrix.</exception>
     static public int[,] Crop(int[,] matrixSrc, int xs, int ys, int width, int height)
     {
         string sM = nameof(Crop);
         if (matrixSrc == null)
             throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixSrc)} is null");
 
-        int R = matrixSrc.GetLength(0);
-        int C = matrixSrc.GetLength(1);
-        if (ys < 0 || ys >= R || xs < 0 || xs >= C || width <= 0 || height <= 0 || ys + height > R || xs + width > C)
+        int rows = matrixSrc.GetLength(0);
+        int columns = matrixSrc.GetLength(1);
+        if (ys < 0 || ys >= rows || xs < 0 || xs >= columns || width <= 0 || height <= 0 || ys + height > rows || xs + width > columns)
             throw new ArgumentOutOfRangeException($"{sC}.{sM} : Crop rectangle out of bounds");
 
-        var oRet = new int[height, width];
+        var result = new int[height, width];
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                oRet[y, x] = matrixSrc[ys + y, xs + x];
+                result[y, x] = matrixSrc[ys + y, xs + x];
             }
         }
-        return oRet;
+        return result;
     }
 
     /// <summary>
-    /// Clears all elements in the specified two-dimensional integer array by setting them to zero.
+    /// Sets every element of <paramref name="matrixDst"/> to zero (black).
     /// </summary>
-    /// <remarks>If the array is null or an exception occurs during the operation, the method returns false
-    /// and does not modify the array.</remarks>
-    /// <param name="matrixDst">The two-dimensional array of integers to clear. Cannot be null.</param>
-    /// <returns>true if the array was successfully cleared; otherwise, false.</returns>
+    /// <returns>Always true.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="matrixDst"/> is null.</exception>
     static public bool Clear(int[,] matrixDst)
     {
         string sM = nameof(Clear);
@@ -394,6 +387,9 @@ public static class MatrixTools
         return true;
     }
 
+    /// <summary>
+    /// Returns the bounds of a matrix as a rectangle at (0,0).
+    /// </summary>
     static Rectangle<int> GetRectangle(int[,] matrixSrc)
     {
         string sM = nameof(GetRectangle);
@@ -403,15 +399,9 @@ public static class MatrixTools
     }
 
     /// <summary>
-    /// 
+    /// Fills a rectangular area with <paramref name="fillRGB"/>; the area is clipped to the matrix bounds.
     /// </summary>
-    /// <param name="matrixDst"></param>
-    /// <param name="xs"></param>
-    /// <param name="ys"></param>
-    /// <param name="width"></param>
-    /// <param name="height"></param>
-    /// <param name="fillRGB"></param>
-    /// <returns></returns>
+    /// <returns>False when the area is completely outside the matrix.</returns>
     static public bool Clear(int[,] matrixDst, int xs, int ys, int width, int height, int fillRGB = 0)
     {
         string sM = nameof(Clear);
@@ -434,20 +424,19 @@ public static class MatrixTools
     }
 
     /// <summary>
-    /// Copies a rectangular region of elements from the source matrix to the destination matrix.
+    /// Copies a rectangular area from <paramref name="matrixSrc"/> to <paramref name="matrixDst"/>.
+    /// <para/>
+    /// Both areas are clipped to their matrix bounds; only the common part is copied.
     /// </summary>
-    /// <remarks>If the specified regions in the source or destination matrices do not overlap or are out of
-    /// bounds, no elements are copied and the method returns false. Only the overlapping portion of the specified
-    /// regions is copied.</remarks>
-    /// <param name="matrixSrc">The two-dimensional source matrix from which elements are copied. Cannot be null.</param>
-    /// <param name="matrixDst">The two-dimensional destination matrix to which elements are copied. Cannot be null.</param>
-    /// <param name="xSrc">The starting column index in the source matrix for the region to copy.</param>
-    /// <param name="ySrc">The starting row index in the source matrix for the region to copy.</param>
-    /// <param name="xDst">The starting column index in the destination matrix where the region will be placed.</param>
-    /// <param name="yDst">The starting row index in the destination matrix where the region will be placed.</param>
-    /// <param name="columnLenght">The width, in elements, of the region to copy.</param>
-    /// <param name="rowLenght">The height, in elements, of the region to copy.</param>
-    /// <returns>true if the region was successfully copied; otherwise, false.</returns>
+    /// <param name="matrixSrc">Source matrix</param>
+    /// <param name="matrixDst">Destination matrix</param>
+    /// <param name="xSrc">Source left coordinate</param>
+    /// <param name="ySrc">Source top coordinate</param>
+    /// <param name="xDst">Destination left coordinate</param>
+    /// <param name="yDst">Destination top coordinate</param>
+    /// <param name="width">Area width</param>
+    /// <param name="height">Area height</param>
+    /// <returns>False when the source or destination area is completely out of bounds.</returns>
     static public bool Blit(int[,] matrixSrc, int[,] matrixDst, int xSrc, int ySrc, int xDst, int yDst, int width, int height)
     {
         string sM = nameof(Blit);
@@ -482,18 +471,9 @@ public static class MatrixTools
     }
 
     /// <summary>
-    /// 
+    /// Copies a rectangular area of an image into <paramref name="matrixDst"/>.
     /// </summary>
-    /// <param name="imageSrc"></param>
-    /// <param name="matrixDst"></param>
-    /// <param name="xSrc"></param>
-    /// <param name="ySrc"></param>
-    /// <param name="xDst"></param>
-    /// <param name="yDst"></param>
-    /// <param name="width"></param>
-    /// <param name="height"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="InvalidDataException"><paramref name="matrixDst"/> is the image's own matrix.</exception>
     static public bool Blit(ImageData imageSrc, int[,] matrixDst, int xSrc, int ySrc, int xDst, int yDst, int width, int height)
     {
         string sM = nameof(Blit);
@@ -506,48 +486,38 @@ public static class MatrixTools
     }
 
     /// <summary>
-    /// 
+    /// Copies <paramref name="rectangleSource"/> from <paramref name="matrixSrc"/> to (<paramref name="xDst"/>, <paramref name="yDst"/>).
     /// </summary>
-    /// <param name="matrixSrc"></param>
-    /// <param name="matrixDst"></param>
-    /// <param name="rectangleSource"></param>
-    /// <param name="rowDest"></param>
-    /// <param name="columnDest"></param>
-    /// <returns></returns>
     static public void Blit(int[,] matrixSrc, int[,] matrixDst, Rectangle<int> rectangleSource, int xDst, int yDst)
        => Blit(matrixSrc, matrixDst, rectangleSource.X, rectangleSource.Y, xDst, yDst, rectangleSource.Width, rectangleSource.Height);
 
     /// <summary>
-    /// 
+    /// Copies <paramref name="rectangleSource"/> of an image to (<paramref name="xDst"/>, <paramref name="yDst"/>).
     /// </summary>
-    /// <param name="imageSrc"></param>
-    /// <param name="matrixDst"></param>
-    /// <param name="rectangleSource"></param>
-    /// <param name="xDst"></param>
-    /// <param name="yDst"></param>
     static public void Blit(ImageData imageSrc, int[,] matrixDst, Rectangle<int> rectangleSource, int xDst, int yDst)
        => Blit(imageSrc, matrixDst, rectangleSource.X, rectangleSource.Y, xDst, yDst, rectangleSource.Width, rectangleSource.Height);
 
 
     /// <summary>
-    /// 
+    /// Returns a copy of the matrix that contains only displayable colors.
+    /// <para/>
+    /// Transparent, mask and alpha values become <paramref name="bkgRGB"/>, invalid values become <paramref name="invalidRGB"/>.
     /// </summary>
-    /// <param name="srcMatrix"></param>
-    /// <param name="bkgRGB"></param>
-    /// <param name="invalidRGB"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
+    /// <param name="srcMatrix">Source matrix</param>
+    /// <param name="bkgRGB">Replacement for transparent and tagged values</param>
+    /// <param name="invalidRGB">Replacement for invalid values</param>
+    /// <exception cref="ArgumentNullException"><paramref name="srcMatrix"/> is null.</exception>
     static public int[,] CreateSafeMatrix(int[,]? srcMatrix, int bkgRGB, int invalidRGB)
     {
-        string sM = nameof(DoubleMatrixColumns);
+        string sM = nameof(CreateSafeMatrix);
         if (srcMatrix == null)
             throw new ArgumentNullException($"{sC}.{sM} : Null matrix source");
-        var R = srcMatrix.GetLength(0);
-        var C = srcMatrix.GetLength(1);
-        var dstMatrix = new int[R, C];
-        for (int r = 0; r < R; r++)
+        var rows = srcMatrix.GetLength(0);
+        var columns = srcMatrix.GetLength(1);
+        var dstMatrix = new int[rows, columns];
+        for (int r = 0; r < rows; r++)
         {
-            for (int c = 0; c < C; c++)
+            for (int c = 0; c < columns; c++)
             {
                 int rgb = srcMatrix[r, c];
                 switch (ColorIntExt.GetColorInfo(rgb))
@@ -574,19 +544,23 @@ public static class MatrixTools
 
 
     /// <summary>
-    /// 
+    /// Copies the pixels of <paramref name="matrixSrc"/> into <paramref name="matrixDst"/> only where the mask is set.
+    /// <para/>
+    /// A mask pixel is set when it is a real color different from <see cref="ColorDefaults.DefaultShapeBkgColorInt"/>.
+    /// All three areas are clipped to their matrix bounds.
     /// </summary>
-    /// <param name="matrixSrc"></param>
-    /// <param name="matrixMsk"></param>
-    /// <param name="matrixDst"></param>
-    /// <param name="xSrc"></param>
-    /// <param name="ySrc"></param>
-    /// <param name="xDst"></param>
-    /// <param name="yDst"></param>
-    /// <param name="width"></param>
-    /// <param name="height"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
+    /// <param name="matrixSrc">Source matrix</param>
+    /// <param name="matrixMsk">Mask matrix</param>
+    /// <param name="matrixDst">Destination matrix</param>
+    /// <param name="xSrc">Source left coordinate</param>
+    /// <param name="ySrc">Source top coordinate</param>
+    /// <param name="xMsk">Mask left coordinate</param>
+    /// <param name="yMsk">Mask top coordinate</param>
+    /// <param name="xDst">Destination left coordinate</param>
+    /// <param name="yDst">Destination top coordinate</param>
+    /// <param name="width">Area width</param>
+    /// <param name="height">Area height</param>
+    /// <returns>False when any area is completely out of bounds.</returns>
     static public bool CoockieCut(int[,] matrixSrc, int[,] matrixMsk, int[,] matrixDst, int xSrc, int ySrc, int xMsk, int yMsk, int xDst, int yDst, int width, int height)
     {
         string sM = nameof(CoockieCut);
@@ -623,9 +597,8 @@ public static class MatrixTools
         {
             for (int x = 0; x < minWidth; x++)
             {
-                var mskRGB = matrixMsk[rectMsk.Y + y, rectMsk.X + x];
-                if (ColorIntExt.IsColor(mskRGB) && mskRGB != ColorDefaults.DefaultShapeBkgColorInt)
-               // if (mskRGB != ColorDefaults.DefaultShapeBkgColorInt)
+                var maskColor = matrixMsk[rectMsk.Y + y, rectMsk.X + x];
+                if (ColorIntExt.IsColor(maskColor) && maskColor != ColorDefaults.DefaultShapeBkgColorInt)
                 {
                     matrixDst[rectDst.Y + y, rectDst.X + x] = matrixSrc[rectSrc.Y + y, rectSrc.X + x];
                 }
@@ -635,20 +608,8 @@ public static class MatrixTools
     }
 
     /// <summary>
-    /// 
+    /// Cookie-cut copy from an image using a mask matrix.
     /// </summary>
-    /// <param name="imageSrc"></param>
-    /// <param name="matrixMsk"></param>
-    /// <param name="matrixDst"></param>
-    /// <param name="xSrc"></param>
-    /// <param name="ySrc"></param>
-    /// <param name="xDst"></param>
-    /// <param name="yDst"></param>
-    /// <param name="width"></param>
-    /// <param name="height"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="InvalidDataException"></exception>
     static public bool CoockieCut(ImageData imageSrc, int[,] matrixMsk, int[,] matrixDst, int xSrc, int ySrc, int xMsk, int yMsk, int xDst, int yDst, int width, int height)
     {
         string sM = nameof(CoockieCut);
@@ -661,20 +622,8 @@ public static class MatrixTools
     }
 
     /// <summary>
-    /// 
+    /// Cookie-cut copy from an image using a mask image.
     /// </summary>
-    /// <param name="imageSrc"></param>
-    /// <param name="matrixMsk"></param>
-    /// <param name="matrixDst"></param>
-    /// <param name="xSrc"></param>
-    /// <param name="ySrc"></param>
-    /// <param name="xDst"></param>
-    /// <param name="yDst"></param>
-    /// <param name="width"></param>
-    /// <param name="height"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="InvalidDataException"></exception>
     static public bool CoockieCut(ImageData imageSrc, ImageData imageMsk, int[,] matrixDst, int xSrc, int ySrc, int xMsk, int yMsk, int xDst, int yDst, int width, int height)
     {
         string sM = nameof(CoockieCut);
@@ -690,74 +639,71 @@ public static class MatrixTools
 
 
     /// <summary>
-    /// 
+    /// Returns a displayable copy of the matrix using the default background and invalid colors.
     /// </summary>
-    /// <param name="srcMatrix"></param>
-    /// <returns></returns>
     static public int[,] CreateSafeMatrix(int[,]? srcMatrix)
         => CreateSafeMatrix(srcMatrix, ColorDefaults.DefaultBkgColorInt, ColorDefaults.DefaultInvalidColorInt);
 
     /// <summary>
-    /// 
+    /// Halves the number of columns, merging each pair of adjacent pixels according to <paramref name="halveResolutionMode"/>.
     /// </summary>
-    /// <param name="matrixSrc"></param>
-    /// <param name="keepEvenColumns"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
+    /// <param name="matrixSrc">Source matrix</param>
+    /// <param name="halveResolutionMode">Pixel merge strategy</param>
+    /// <returns>A matrix with (columns + 1) / 2 columns.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="matrixSrc"/> is null.</exception>
     static public int[,] HalveMatrixColumns(int[,]? matrixSrc, HalveResolutionMode halveResolutionMode)
     {
         string sM = nameof(HalveMatrixColumns);
         if (matrixSrc == null)
             throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixSrc)} is null");
-        var R = matrixSrc.GetLength(0);
-        var C = matrixSrc.GetLength(1);
-        var CO = (C + 1) / 2;
-        var oRet = new int[R, CO];
+        var rows = matrixSrc.GetLength(0);
+        var columns = matrixSrc.GetLength(1);
+        var packedColumns = (columns + 1) / 2;
+        var result = new int[rows, packedColumns];
         switch (halveResolutionMode)
         {
             case HalveResolutionMode.OddPixel:
-                for (int r = 0; r < R; r++)
-                    for (int c = 0, co = 0; c < C; c += 2, co++)
+                for (int r = 0; r < rows; r++)
+                    for (int c = 0, columnOut = 0; c < columns; c += 2, columnOut++)
                     {
-                        oRet[r, co] = matrixSrc[r, c];
+                        result[r, columnOut] = matrixSrc[r, c];
                     }
                 break;
             case HalveResolutionMode.EvenPixel:
-                for (int r = 0; r < R; r++)
+                for (int r = 0; r < rows; r++)
                 {
-                    for (int c = 1, co = 0; c < C; c += 2, co++)
+                    for (int c = 1, columnOut = 0; c < columns; c += 2, columnOut++)
                     {
-                        oRet[r, co] = matrixSrc[r, c];
+                        result[r, columnOut] = matrixSrc[r, c];
                     }
                     // Odd width: the last output column has no even source pixel, use the last one
-                    if (C % 2 == 1)
-                        oRet[r, CO - 1] = matrixSrc[r, C - 1];
+                    if (columns % 2 == 1)
+                        result[r, packedColumns - 1] = matrixSrc[r, columns - 1];
                 }
                 break;
             case HalveResolutionMode.MeanColor:
-                for (int r = 0; r < R; r++)
+                for (int r = 0; r < rows; r++)
                     // Average pixel pairs (0,1), (2,3), ...
-                    for (int c = 0, co = 0; c < C; c += 2, co++)
+                    for (int c = 0, columnOut = 0; c < columns; c += 2, columnOut++)
                     {
                         var a = matrixSrc[r, c];
                         var b = a;
-                        if (c < C - 1)
+                        if (c < columns - 1)
                         {
                             b = matrixSrc[r, c + 1];
                         }
-                        oRet[r, co] = ColorIntExt.GetColorMean(a, b);
+                        result[r, columnOut] = ColorIntExt.GetColorMean(a, b);
                     }
                 break;
             default: throw new ArgumentException($"{sC}.{sM} : unsupported halve mode : '{halveResolutionMode}'", nameof(HalveResolutionMode));
         }
-        return oRet;
+        return result;
     }
 
     /// <summary>
-    /// 
+    /// Doubles the number of columns by duplicating every pixel horizontally.
     /// </summary>
-    /// <param name="matrixSrc"></param>
-    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"><paramref name="matrixSrc"/> is null.</exception>
     public static int[,] DoubleMatrixColumns(int[,] matrixSrc)
     {
         string sM = nameof(DoubleMatrixColumns);
@@ -765,21 +711,21 @@ public static class MatrixTools
         if (matrixSrc == null)
             throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixSrc)} is null");
 
-        var R = matrixSrc.GetLength(0);
-        var C = matrixSrc.GetLength(1);
-        var oRet = new int[R, C * 2];
+        var rows = matrixSrc.GetLength(0);
+        var columns = matrixSrc.GetLength(1);
+        var result = new int[rows, columns * 2];
 
-        //Parallel.For(0, R, r =>
-        for (int r = 0; r < R; r++)
+        //Parallel.For(0, rows, r =>
+        for (int r = 0; r < rows; r++)
         {
-            for (int c = 0, co = 0; c < C; c++)
+            for (int c = 0, columnOut = 0; c < columns; c++)
             {
                 var a = matrixSrc[r, c];
-                oRet[r, co++] = a;
-                oRet[r, co++] = a;
+                result[r, columnOut++] = a;
+                result[r, columnOut++] = a;
             }
         }//);
-        return oRet;
+        return result;
     }
 
 

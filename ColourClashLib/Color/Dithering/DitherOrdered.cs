@@ -11,9 +11,20 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Dithering
 {
+    /// <summary>
+    /// Ordered (Bayer) dithering with a scalable threshold matrix.
+    /// <para/>
+    /// A threshold matrix of <see cref="Size"/> x <see cref="Size"/> is tiled over the image; each pixel is
+    /// offset by its zero-mean threshold before being mapped to the nearest palette color.
+    /// Power of two sizes are built recursively from the 2x2 Bayer matrix, 6x6 combines a 3x3 and a 2x2 matrix.
+    /// </summary>
     public class DitherOrdered : DitherBase
     {
         static string sC = nameof(DitherOrdered);
+
+        /// <summary>
+        /// Algorithm identifier, derived from <see cref="Size"/>.
+        /// </summary>
         public new ColorDithering Type
         {
             get
@@ -29,99 +40,117 @@ namespace ColourClashNet.Color.Dithering
             }
         }
 
-        int iSize = 2;
+        int size = 2;
+
+        /// <summary>
+        /// Threshold matrix size (minimum 2). Supported values are 2, 4, 6 and 8.
+        /// </summary>
         public int Size
         {
             get
             {
-                return iSize;
+                return size;
             }
             set
             {
-                iSize = Math.Max(2, value);
+                size = Math.Max(2, value);
             }
         }
 
 
+        /// <summary>
+        /// Creates the ordered ditherer.
+        /// </summary>
         public DitherOrdered()
         {
             Description = "2^P Scalable ordered dithering";
         }
 
+        // 2x2 Bayer matrix: the seed of every threshold matrix
+        double[,] baseMatrix2 = { { 0, 2 }, { 3, 1 } };
+        // Number of threshold levels of the current matrix (Size * Size)
+        double divider = 4;
+        double[,] thresholdMatrix = null;
 
-
-        double[,] oBase = { { 0, 2 }, { 3, 1 } };
-        double dDivider = 4;
-        double[,] oThMat = null;
-
-
-
-        double[,] BuildNextThMatrix(double[,] oMatrix)
+        /// <summary>
+        /// Doubles the size of a Bayer matrix: M(2n)[r,c] = M(n)[r/2,c/2] + 4 * M(2)[r%2,c%2].
+        /// </summary>
+        /// <param name="matrix">Bayer matrix of size n</param>
+        /// <returns>Bayer matrix of size 2n.</returns>
+        double[,] BuildNextThMatrix(double[,] matrix)
         {
-            int iSize = oMatrix.GetLength(0) * 2;
-            double[,] oMat = new double[iSize, iSize];
-            for (int r = 0; r < iSize; r++)
+            int matrixSize = matrix.GetLength(0) * 2;
+            double[,] nextMatrix = new double[matrixSize, matrixSize];
+            for (int r = 0; r < matrixSize; r++)
             {
-                for (int c = 0; c < iSize; c++)
+                for (int c = 0; c < matrixSize; c++)
                 {
-                    oMat[r, c] = oMatrix[r / 2, c / 2] + 4 * oMatrix[r % 2, c % 2];
+                    nextMatrix[r, c] = matrix[r / 2, c / 2] + 4 * matrix[r % 2, c % 2];
                 }
             }
-            return oMat;
+            return nextMatrix;
         }
 
+        /// <summary>
+        /// Builds the zero-mean threshold matrix for the current <see cref="Size"/>.
+        /// </summary>
+        /// <returns>This instance.</returns>
         public override DitherInterface Create()
         {
-            if (iSize == 6)
+            if (size == 6)
             {
                 // 6x6 is not a power of 2: compose the 3x3 ordered matrix with the 2x2 one (values 0..35)
-                double[,] oBase3 = { { 0, 7, 3 }, { 6, 5, 2 }, { 4, 1, 8 } };
-                oThMat = new double[6, 6];
+                double[,] baseMatrix3 = { { 0, 7, 3 }, { 6, 5, 2 }, { 4, 1, 8 } };
+                thresholdMatrix = new double[6, 6];
                 for (int r = 0; r < 6; r++)
                 {
                     for (int c = 0; c < 6; c++)
                     {
-                        oThMat[r, c] = 4 * oBase3[r / 2, c / 2] + oBase[r % 2, c % 2];
+                        thresholdMatrix[r, c] = 4 * baseMatrix3[r / 2, c / 2] + baseMatrix2[r % 2, c % 2];
                     }
                 }
-                dDivider = 36;
+                divider = 36;
             }
             else
             {
-                int pow = (int)Math.Log2(iSize);
-                oThMat = oBase.Clone() as double[,];
-                dDivider = 4;
+                int pow = (int)Math.Log2(size);
+                thresholdMatrix = baseMatrix2.Clone() as double[,];
+                divider = 4;
                 for (int i = 1; i < pow; i++)
                 {
-                    oThMat = BuildNextThMatrix(oThMat);
-                    dDivider *= 4;
+                    thresholdMatrix = BuildNextThMatrix(thresholdMatrix);
+                    divider *= 4;
                 }
             }
-            int iS = oThMat.GetLength(0);
-            double dMean = 0;
-            for (int r = 0; r < iS; r++)
+            // Normalize the integer levels to [-0.5, 0.5)
+            int matrixSize = thresholdMatrix.GetLength(0);
+            double mean = 0;
+            for (int r = 0; r < matrixSize; r++)
             {
-                for (int c = 0; c < iS; c++)
+                for (int c = 0; c < matrixSize; c++)
                 {
                     // (v + 0.5) / N - 0.5 is zero-mean: (v + 1) / N - 0.5 biased the image brighter
-                    oThMat[r, c] += 0.5;
-                    oThMat[r, c] /= dDivider;
-                    oThMat[r, c] -= 0.5;
-                    dMean += oThMat[r, c];
+                    thresholdMatrix[r, c] += 0.5;
+                    thresholdMatrix[r, c] /= divider;
+                    thresholdMatrix[r, c] -= 0.5;
+                    mean += thresholdMatrix[r, c];
                 }
             }
-            //dMean /= iS * iS;
-            //for (int r = 0; r < iS; r++)
+            //mean /= matrixSize * matrixSize;
+            //for (int r = 0; r < matrixSize; r++)
             //{
-            //    for (int c = 0; c < iS; c++)
+            //    for (int c = 0; c < matrixSize; c++)
             //    {
-            //        oThMat[r, c] -= dMean;
+            //        thresholdMatrix[r, c] -= mean;
             //    }
             //}
 
             return this;
         }
 
+        /// <summary>
+        /// Applies the threshold matrix to every pixel and maps it to the nearest color of the processed image palette.
+        /// </summary>
         protected override ColorTransformResult DitherImplementation(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
         {
 
@@ -131,43 +160,44 @@ namespace ColourClashNet.Color.Dithering
             {
                 ImageData.AssertValidAndDimension(imageReference, imageProcessed);
 
-                var oDataOriginal = imageReference.matrix;
-                var oDataProcessed = imageProcessed.matrix;
-                var oDataProcessedPalette = imageProcessed.ColorPalette;
+                var dataOriginal = imageReference.matrix;
+                var dataProcessed = imageProcessed.matrix;
+                var dataProcessedPalette = imageProcessed.ColorPalette;
 
                 Create();
 
                 LogMan.Trace(sC, sM, $"{Type} : Dithering");
-                int S = oThMat.GetLength(0);
+                int thresholdSize = thresholdMatrix.GetLength(0);
 
-                double dSpread = 127.0;
-                int R = oDataOriginal.GetLength(0);
-                int C = oDataOriginal.GetLength(1);
-                var oDataOut = new int[R, C];
-                var dStrenght = DitheringStrenght;// / 100.0;
-                for (int r = 0; r < R; r++)
-                //    Parallel.For(0, R, r =>
+                // Maximum offset applied to each channel at full strength
+                double spread = 127.0;
+                int rows = dataOriginal.GetLength(0);
+                int columns = dataOriginal.GetLength(1);
+                var dataOut = new int[rows, columns];
+                var strength = DitheringStrenght;// / 100.0;
+                for (int r = 0; r < rows; r++)
+                //    Parallel.For(0, rows, r =>
                 {
-                    for (int c = 0; c < C; c++)
+                    for (int c = 0; c < columns; c++)
                     {
                         token.ThrowIfCancellationRequested();
                         // Keep tagged (negative) pixels of the processed image, as error diffusion does
-                        if (oDataProcessed[r, c] < 0)
+                        if (dataProcessed[r, c] < 0)
                         {
-                            oDataOut[r, c] = oDataProcessed[r, c];
+                            dataOut[r, c] = dataProcessed[r, c];
                             continue;
                         }
-                        int col = oDataOriginal[r, c];
-                        var dV = dSpread * dStrenght * oThMat[r % S, c % S];
-                        var cr = Math.Max(0, col.ToR() + dV);
-                        var cg = Math.Max(0, col.ToG() + dV);
-                        var cb = Math.Max(0, col.ToB() + dV);
-                        var iCol = ColorIntExt.FromRGB(cr, cg, cb);
-                        oDataOut[r, c] = ColorIntExt.GetNearestColor(iCol, oDataProcessedPalette, colorEvaluationMode);
+                        int originalColor = dataOriginal[r, c];
+                        var offset = spread * strength * thresholdMatrix[r % thresholdSize, c % thresholdSize];
+                        var cr = Math.Max(0, originalColor.ToR() + offset);
+                        var cg = Math.Max(0, originalColor.ToG() + offset);
+                        var cb = Math.Max(0, originalColor.ToB() + offset);
+                        var ditheredColor = ColorIntExt.FromRGB(cr, cg, cb);
+                        dataOut[r, c] = ColorIntExt.GetNearestColor(ditheredColor, dataProcessedPalette, colorEvaluationMode);
                     }
                 }//);
                 LogMan.Trace(sC, sM, $"{Type} : Dithering completed");
-                var ditheredImage = new ImageData().Create(oDataOut);
+                var ditheredImage = new ImageData().Create(dataOut);
                 return ColorTransformResult.CreateValidResult(imageReference, ditheredImage);
             }
             catch (TaskCanceledException et)

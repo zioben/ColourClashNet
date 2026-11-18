@@ -22,62 +22,114 @@ using System.Windows.Forms;
 
 namespace ColourClashNet.Controls
 {
+    /// <summary>
+    /// Main working control: shows the source and the processed image side by side and exposes
+    /// the settings and the commands of every color transformation and of the blob extraction.
+    /// </summary>
     public partial class ColorAnalyzer : UserControl
     {
 
 
 
 
+        /// <summary>
+        /// Event data raised when the current result is copied to a new container.
+        /// </summary>
         public class CopyDataEventArgs : EventArgs
         {
+            /// <summary>Image name.</summary>
             public string Name { get; set; }
+            /// <summary>Source image.</summary>
             public Image SourceBitmap { get; set; }
+            /// <summary>
+            /// Processed image.
+            /// </summary>
             public Image DestBitmap { get; set; }
+            /// <summary>
+            /// Area of the processed image to copy.
+            /// </summary>
             public Rectangle DestBitmapRoi { get; set; }
         }
 
+        /// <summary>
+        /// Event data raised when a new source image is loaded.
+        /// </summary>
         public class DataSourceEventArgs : EventArgs
         {
+            /// <summary>Image name.</summary>
             public String Name { get; set; }
+            /// <summary>Loaded image.</summary>
             public Image SourceBitmap { get; set; }
+            /// <summary>
+            /// Source file, if any.
+            /// </summary>
             public FileInfo SourceFile { get; set; }
         }
 
 
+        /// <summary>
+        /// Raised when the user copies the current result to a new container.
+        /// </summary>
         public event EventHandler<CopyDataEventArgs> ImageCopied;
+        /// <summary>
+        /// Raised when a new source image is loaded.
+        /// </summary>
         public event EventHandler<DataSourceEventArgs> ImageCreated;
 
-        int iPanel1MaxWidth = 400;
+        int panel1MaxWidth = 400;
 
-        FileInfo oFileInfo = null;
-        String oName = "";
+        FileInfo currentFileInfo = null;
+        String currentName = "";
 
+        /// <summary>
+        /// Target resolution: the source image is resized to it when loaded (null = keep the original size).
+        /// </summary>
         [DefaultValue(null)]
         public GraphicsResolution WantedRes { get; set; } = null;
 
+        /// <summary>
+        /// Quantization applied in the pre-processing.
+        /// </summary>
         [DefaultValue(ColorQuantizationMode.RGB888)]
         public ColorQuantizationMode QuantizationMode { get; set; } = ColorQuantizationMode.RGB888;
 
+        /// <summary>
+        /// Dithering algorithm.
+        /// </summary>
         [DefaultValue(ColorDithering.FloydSteinberg)]
         public ColorDithering DitheringType { get; set; } = ColorDithering.FloydSteinberg;
 
+        /// <summary>
+        /// Post-dithering effect.
+        /// </summary>
         [DefaultValue(ColorDitheringFx.None)]
         public ColorDitheringFx DitheringFx { get; set; } = ColorDitheringFx.None;
 
+        /// <summary>
+        /// Color distance metric.
+        /// </summary>
         [DefaultValue(ColorDistanceEvaluationMode.RGB)]
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
 
+        /// <summary>
+        /// Blob detector.
+        /// </summary>
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Blob BlobAnalysis { get; set; } = new Blob();
 
-        //public ColorTransformConfig Config => oColorManager.Config;
 
-        public Components.ColorTransformManager ColorManager => oColorManager;
+        /// <summary>
+        /// Processing pipeline of this control.
+        /// </summary>
+        public Components.ColorTransformManager ColorManager => colorManager;
 
+        /// <summary>
+        /// Creates the control and initializes combo boxes and event wiring.
+        /// </summary>
         public ColorAnalyzer()
         {
             InitializeComponent();
-            oColorManager.transformConfig
+            colorManager.TransformConfig
                 .WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt)
                 .WithQuantizationMode(QuantizationMode)
                 .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
@@ -90,135 +142,167 @@ namespace ColourClashNet.Controls
             CreateComboBox(cbCgaVideoMode, Enum.GetNames(typeof(ColorTransformCGA.CGAVideoMode)).ToList());
             CreateComboBox(cbCgaVideoOutput, Enum.GetNames(typeof(ColorTransformCGA.CGACompositeOutputMode)).ToList());
             CreateComboBox(cbBlobConnectionMode, Enum.GetNames(typeof(BlobConnectionModes)).ToList());
-            oBitmapRenderSource.ColorAdded += (s, e) => { BuildBkgPalette(); };
-            oBitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };
-            oColorManager.OnQuantize += (s, e) => { Invoke(() => RefreshData()); };
-            oColorManager.OnProcess += (s, e) => { Invoke(() => { RefreshData(); RebuildParams(e.Transformation); }); };
-            oBlobManager.OnPreProcess += (s, e) => { oBlobManager.WithProcessingParams(oColorManager.transformConfig.ColorBackgroundPalette, oColorManager.transformConfig.ColorBackgroundReplacementValue); };
+            bitmapRenderSource.ColorAdded += (s, e) => { BuildBkgPalette(); };
+            bitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };
+            colorManager.OnQuantize += (s, e) => { Invoke(() => RefreshData()); };
+            colorManager.OnProcess += (s, e) => { Invoke(() => { RefreshData(); RebuildParams(e.Transformation); }); };
+            blobManager.OnPreProcess += (s, e) => { blobManager.WithProcessingParams(colorManager.TransformConfig.ColorBackgroundPalette, colorManager.TransformConfig.ColorBackgroundReplacementValue); };
         }                
 
+        /// <summary>
+        /// Applies the UI settings and runs the pre-processing again.
+        /// </summary>
         public void Preprocess()
         {
             SetControlToConfig();
-            oColorManager.PreProcess();
+            colorManager.PreProcess();
         }
 
-        void CreateComboBox(ComboBox ocb, List<string> lItems)
+        /// <summary>
+        /// Fills a combo box and selects the first item.
+        /// </summary>
+        void CreateComboBox(ComboBox comboBox, List<string> items)
         {
-            ocb.Items.Clear();
-            lItems.ForEach(X => ocb.Items.Add(X));
-            ocb.SelectedIndex = 0;
+            comboBox.Items.Clear();
+            items.ForEach(x => comboBox.Items.Add(x));
+            comboBox.SelectedIndex = 0;
         }
 
 
+        /// <summary>
+        /// Updates the UI with the parameters found by a transformation (e.g. ZX autotune seeds).
+        /// </summary>
         private void RebuildParams(object sender)
         {
-            if (sender is ColorTransformZxSpectrum oZX)
+            if (sender is ColorTransformZxSpectrum zxTransform)
             {
-                nudZxColorLO.Value = oZX.ZxPaletteInColorSeedLow;
-                nudZxColorHI.Value = oZX.ZxPaletteInColorSeedHigh;
+                nudZxColorLO.Value = zxTransform.ZxPaletteInColorSeedLow;
+                nudZxColorHI.Value = zxTransform.ZxPaletteInColorSeedHigh;
             }
         }
 
 
 
 
+        /// <summary>
+        /// Rebuilds the background color swatches from the colors picked on the source image and reprocesses.
+        /// </summary>
         void BuildBkgPalette()
         {
             pbBkColor.Image = null;
-            var lBkgColor = oBitmapRenderSource.SelectedColors;
-            if (lBkgColor.Count > 0)
+            var bkgColors = bitmapRenderSource.SelectedColors;
+            if (bkgColors.Count > 0)
             {
-                Bitmap oBmp = new Bitmap((int)lBkgColor.Count * 16, (int)16);
-                using (var g = Graphics.FromImage(oBmp))
+                Bitmap bmp = new Bitmap((int)bkgColors.Count * 16, (int)16);
+                // Draw one 16x16 swatch per background color
+                using (var g = Graphics.FromImage(bmp))
                 {
-                    int index = 0;
-                    for (int i = 0; i < lBkgColor.Count; i++)
+                    for (int i = 0; i < bkgColors.Count; i++)
                     {
-                        var item = lBkgColor[i];
-                        using (var oBrush = new SolidBrush(item))
+                        var item = bkgColors[i];
+                        using (var brush = new SolidBrush(item))
                         {
-                            g.FillRectangle(oBrush, i * 16, 0, 16, 16);
+                            g.FillRectangle(brush, i * 16, 0, 16, 16);
                         }
-                        index++;
                     }
-                    ;
                 }
                 pbBkColor.SizeMode = PictureBoxSizeMode.StretchImage;
-                pbBkColor.Image = oBmp;
+                pbBkColor.Image = bmp;
             }
-            oColorManager.transformConfig.WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt);
-            oColorManager.PreProcess();
+            colorManager.TransformConfig.WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt);
+            colorManager.PreProcess();
         }
 
+        /// <summary>
+        /// Shows copies of the source and processed images.
+        /// </summary>
         void ShowImage()
         {
-            oBitmapRenderSource.Image = oColorManager.ImageSource?.Clone() as Image;
-            oBitmapRenderDest.Image = oColorManager.ImageProcessed?.Clone() as Image;
+            bitmapRenderSource.Image = colorManager.ImageSource?.Clone() as Image;
+            bitmapRenderDest.Image = colorManager.ImageProcessed?.Clone() as Image;
             Invalidate();
         }
 
+        /// <summary>
+        /// Refreshes property grids and images.
+        /// </summary>
         void RefreshData()
         {
-            pgColorProcessor.SelectedObject = oColorManager;
-            pgColorProcessorConfig.SelectedObject = oColorManager?.transformConfig;
+            pgColorProcessor.SelectedObject = colorManager;
+            pgColorProcessorConfig.SelectedObject = colorManager?.TransformConfig;
             ShowImage();
         }
 
-        Bitmap oLoadedBmp;
+        Bitmap loadedBmp;
 
-        public Bitmap ResizeBitmap(Bitmap oSrcBmp)
+        /// <summary>
+        /// Resizes a bitmap to <see cref="WantedRes"/>.
+        /// </summary>
+        /// <returns>The resized bitmap, or <paramref name="srcBmp"/> when no resolution is set.</returns>
+        public Bitmap ResizeBitmap(Bitmap srcBmp)
         {
-            if (oSrcBmp == null)
+            if (srcBmp == null)
             {
                 return null;
             }
             if (WantedRes == null)
             {
-                return oSrcBmp;
+                return srcBmp;
             }
             else
             {
-                var oBmp2 = new Bitmap(WantedRes.Width, WantedRes.Height);
-                using (var oG = Graphics.FromImage(oBmp2))
+                var resizedBmp = new Bitmap(WantedRes.Width, WantedRes.Height);
+                using (var graphics = Graphics.FromImage(resizedBmp))
                 {
-                    oG.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-                    oG.DrawImage(oSrcBmp, new Rectangle(0, 0, oBmp2.Width, oBmp2.Height), new Rectangle(0, 0, oSrcBmp.Width, oSrcBmp.Height), GraphicsUnit.Pixel);
+                    graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+                    graphics.DrawImage(srcBmp, new Rectangle(0, 0, resizedBmp.Width, resizedBmp.Height), new Rectangle(0, 0, srcBmp.Width, srcBmp.Height), GraphicsUnit.Pixel);
                 }
-                return oBmp2;
+                return resizedBmp;
             }
         }
 
+        /// <summary>
+        /// Reloads the current bitmap into the pipeline.
+        /// </summary>
         public void Create()
         {
-            oBitmapRenderDest.ResetMouseSelectedColors();
-            oBitmapRenderDest.OriginZero();
-            oBitmapRenderSource.ResetMouseSelectedColors();
-            oBitmapRenderSource.OriginZero();
+            bitmapRenderDest.ResetMouseSelectedColors();
+            bitmapRenderDest.OriginZero();
+            bitmapRenderSource.ResetMouseSelectedColors();
+            bitmapRenderSource.OriginZero();
             //
-            oColorManager.transformConfig.WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt);
-            oColorManager.Create(ResizeBitmap(oLoadedBmp));
+            colorManager.TransformConfig.WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt);
+            colorManager.Create(ResizeBitmap(loadedBmp));
             ImageCreated?.Invoke(this, new DataSourceEventArgs()
             {
-                Name = oName,
-                SourceBitmap = oLoadedBmp,
+                Name = currentName,
+                SourceBitmap = loadedBmp,
             });
         }
 
+        /// <summary>
+        /// Loads an image into the control.
+        /// </summary>
         public void Create(ImageData image, string name)
         {
-            oLoadedBmp = ImageToolsGDI.ImageDataToGdiImage(image) as Bitmap;
-            oName = name;
+            loadedBmp = ImageToolsGDI.ImageDataToGdiImage(image) as Bitmap;
+            currentName = name;
             Create();
         }
 
+        /// <summary>
+        /// Loads an image into the control.
+        /// </summary>
         public void Create(Image image, string name)
         {
-            oLoadedBmp = image as Bitmap;
-            oName = name;
+            loadedBmp = image as Bitmap;
+            currentName = name;
             Create();
         }
 
+        /// <summary>
+        /// Loads an image file into the control.
+        /// </summary>
         public void Create(FileInfo fileInfo)
         {
             var image = ImageTools.LoadImage(fileInfo.FullName);
@@ -227,77 +311,83 @@ namespace ColourClashNet.Controls
 
 
 
+        /// <summary>
+        /// Returns the background colors picked on the source image.
+        /// </summary>
         Palette GetBkgColors()
         {
-            var oRet = new List<int>();
-            foreach (var item in oBitmapRenderSource.SelectedColors)
-                oRet.Add(ColorIntExtGdi.FromDrawingColor(item));
-            return new Palette().Create(oRet);
+            var colors = new List<int>();
+            foreach (var item in bitmapRenderSource.SelectedColors)
+                colors.Add(ColorIntExtGdi.FromDrawingColor(item));
+            return new Palette().Create(colors);
         }
 
 
 
 
+        /// <summary>
+        /// Copies all the UI settings into the transformation configuration.
+        /// </summary>
         private void SetControlToConfig()
         {
-            oColorManager.transformConfig.WithBackgroundColorReplacement(
+            colorManager.TransformConfig.WithBackgroundColorReplacement(
                 GetBkgColors(),
                 ColorDefaults.DefaultBkgColorInt);
             //
-            oColorManager.transformConfig.WithQuantizationMode(QuantizationMode);
+            colorManager.TransformConfig.WithQuantizationMode(QuantizationMode);
             //
-            oColorManager.transformConfig.WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
+            colorManager.TransformConfig.WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
             //
-            oColorManager.transformConfig.WithScanline(
+            colorManager.TransformConfig.WithScanline(
                 (int)numLinesPerBlock.Value,
                 chkScanlineSharedPal.Checked ? ColorTransformScanLine.ScanlinePaletteMode.SharedChunksPalette : ColorTransformScanLine.ScanlinePaletteMode.IndependentChunkPalette,
                 (int)nudColorsWanted.Value,
                 (int)nudScanlineLineColors.Value,
                 ColorTransformType.ColorReductionClustering);
             //
-            oColorManager.transformConfig.WithClustering(
+            colorManager.TransformConfig.WithClustering(
                 (int)nudColorsWanted.Value,
                 (int)nudClusterLoop.Value,
                 ColorSelectionMode.UseColorPalette);
-            // Dithering viene settato dalla form
-            oColorManager.transformConfig.WithDithering(
+            // Dithering type and effect are set by the hosting form
+            colorManager.TransformConfig.WithDithering(
                 DitheringType,
                 (double)nudDitheringStrenght.Value,
                 DitheringFx);
             //
-            oColorManager.transformConfig.WithHSV(
+            colorManager.TransformConfig.WithHSV(
                 (double)nudSat.Value,
                 (double)nudBright.Value,
                 (double)nudHue.Value);
             //
-            oColorManager.transformConfig.WithC64ScreenMode(
+            colorManager.TransformConfig.WithC64ScreenMode(
                (ColorTransformCbm64.C64VideoMode)Enum.Parse(typeof(ColorTransformCbm64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString()),
                ColorTransformCbm64.C64DitheringMode.PreDitherImage,
                chkShowTileBorders.Checked);
             //
-            oColorManager.transformConfig.WithCpcVideoMode(
+            colorManager.TransformConfig.WithCpcVideoMode(
                 (ColorTransformAmstradCPC.CPCVideoMode)Enum.Parse(typeof(ColorTransformAmstradCPC.CPCVideoMode), cbCpcVideoMode.SelectedItem.ToString()));
             //
-            oColorManager.transformConfig.WithZxScreenMode(
+            colorManager.TransformConfig.WithZxScreenMode(
                  (ColorTransformZxSpectrum.ZxPaletteMode)Enum.Parse(typeof(ColorTransformZxSpectrum.ZxPaletteMode), cbZxPaletteMode.SelectedItem.ToString()),
                  (int)nudZxColorLO.Value,
                  (int)nudZxColorHI.Value);
             //
-            oColorManager.transformConfig.WithZxProcessing(
+            colorManager.TransformConfig.WithZxProcessing(
                  (ColorTransformZxSpectrum.ZxAutotuneMode)Enum.Parse(typeof(ColorTransformZxSpectrum.ZxAutotuneMode), cbZxAutotuneMode.SelectedItem.ToString()),
                  chkZxBlackHI.Checked,
                  chkZxDitherHI.Checked,
                  chkZxBlackHI.Checked,
                  chkShowTileBorders.Checked);
             //
-            oColorManager.transformConfig.WithAmigaScreenMode(
+            colorManager.TransformConfig.WithAmigaScreenMode(
                 (ColorTransformCbmAmiga.EnumAmigaVideoMode)Enum.Parse(typeof(ColorTransformCbmAmiga.EnumAmigaVideoMode),
                  cbAmigaVideoMode.SelectedItem.ToString()),
                  ColorTransformType.ColorReductionClustering,
                  ColorSelectionMode.UseColorPalette
                  );
 
-            oColorManager.transformConfig.WithCGAScreenMode(
+            colorManager.TransformConfig.WithCGAScreenMode(
                 (ColorTransformCGA.CGAVideoMode)Enum.Parse(typeof(ColorTransformCGA.CGAVideoMode), cbCgaVideoMode.SelectedItem.ToString()),
                 (ColorTransformCGA.CGACompositeOutputMode)Enum.Parse(typeof(ColorTransformCGA.CGACompositeOutputMode), cbCgaVideoOutput.SelectedItem.ToString())
                 );
@@ -308,29 +398,27 @@ namespace ColourClashNet.Controls
 
         private void pbBkColor_DoubleClick(object sender, EventArgs e)
         {
-            //if (lBkgColor.Count > 0)
-            //{
-            //    lBkgColor.RemoveAt(lBkgColor.Count - 1);
-            //    Reprocess();
-            //}
         }
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            oColorManager.Reset();
+            colorManager.Reset();
         }
 
 
-        private void oColorManager_OnReset(object sender, EventArgs e)
+        private void colorManager_OnReset(object sender, EventArgs e)
         {
             RefreshData();
         }
 
 
+        /// <summary>
+        /// Applies the UI settings and runs the transformation <paramref name="type"/> asynchronously.
+        /// </summary>
         private async void ReduceColorsAsync(ColorTransformType type)
         {
             SetControlToConfig();
-            await oColorManager.ProcessColorsAsync(type);
+            await colorManager.ProcessColorsAsync(type);
         }
 
         private async void btnReduceColors_Click(object sender, EventArgs e)
@@ -373,23 +461,23 @@ namespace ColourClashNet.Controls
             => ReduceColorsAsync(ColorTransformType.ColorReductionHam);
 
 
-        bool bDitherStrenghtUpdating = false;
+        bool ditherStrengthUpdating = false;
         private void tbDitherStrenght_Scroll(object sender, EventArgs e)
         {
-            if (bDitherStrenghtUpdating)
+            if (ditherStrengthUpdating)
                 return;
-            bDitherStrenghtUpdating = true;
+            ditherStrengthUpdating = true;
             nudDitheringStrenght.Value = (decimal)tbDitherStrenght.Value / 100.0M;
-            bDitherStrenghtUpdating = false;
+            ditherStrengthUpdating = false;
         }
 
         private void nudDitheringStrenght_ValueChanged(object sender, EventArgs e)
         {
-            if (bDitherStrenghtUpdating)
+            if (ditherStrengthUpdating)
                 return;
-            bDitherStrenghtUpdating = true;
+            ditherStrengthUpdating = true;
             tbDitherStrenght.Value = (int)Math.Max(0, Math.Min(100, nudDitheringStrenght.Value * 100));
-            bDitherStrenghtUpdating = false;
+            ditherStrengthUpdating = false;
         }
 
 
@@ -397,35 +485,35 @@ namespace ColourClashNet.Controls
 
         private void scMain_SplitterMoved(object sender, SplitterEventArgs e)
         {
-            if (splitMainA_BC.Panel1.Width > iPanel1MaxWidth)
+            if (splitMainA_BC.Panel1.Width > panel1MaxWidth)
             {
-                splitMainA_BC.SplitterDistance = iPanel1MaxWidth;
+                splitMainA_BC.SplitterDistance = panel1MaxWidth;
             }
-            if (splitMainB_C.Panel2.Width > iPanel1MaxWidth)
+            if (splitMainB_C.Panel2.Width > panel1MaxWidth)
             {
-                splitMainB_C.SplitterDistance = iPanel1MaxWidth;
+                splitMainB_C.SplitterDistance = panel1MaxWidth;
             }
         }
 
         private void scMain_SizeChanged(object sender, EventArgs e)
         {
-            if (splitMainA_BC.Panel1.Width > iPanel1MaxWidth)
+            if (splitMainA_BC.Panel1.Width > panel1MaxWidth)
             {
-                splitMainA_BC.SplitterDistance = iPanel1MaxWidth;
+                splitMainA_BC.SplitterDistance = panel1MaxWidth;
             }
-            if (splitMainB_C.Panel2.Width > iPanel1MaxWidth)
+            if (splitMainB_C.Panel2.Width > panel1MaxWidth)
             {
-                splitMainB_C.SplitterDistance = iPanel1MaxWidth;
+                splitMainB_C.SplitterDistance = panel1MaxWidth;
             }
         }
 
-        private void oBitmapRenderSource_MouseMove(object sender, MouseEventArgs e)
+        private void bitmapRenderSource_MouseMove(object sender, MouseEventArgs e)
         {
-            var oPointC = oBitmapRenderSource.MouseControlCoordinates;
-            tsMouseCoord.Text = $"X:{oPointC.X} Y:{oPointC.Y}";
-            var oPointI = oBitmapRenderSource.MouseImageCoordinatesClip;
-            tsImageCoord.Text = $"X:{oPointI.X:f2} Y:{oPointI.Y:f2}";
-            tsColorData.BackColor = oBitmapRenderSource.MouseImageColor;
+            var controlPoint = bitmapRenderSource.MouseControlCoordinates;
+            tsMouseCoord.Text = $"X:{controlPoint.X} Y:{controlPoint.Y}";
+            var imagePoint = bitmapRenderSource.MouseImageCoordinatesClip;
+            tsImageCoord.Text = $"X:{imagePoint.X:f2} Y:{imagePoint.Y:f2}";
+            tsColorData.BackColor = bitmapRenderSource.MouseImageColor;
         }
 
         private void zxBtnReset_Click(object sender, EventArgs e)
@@ -439,26 +527,29 @@ namespace ColourClashNet.Controls
 
         private void newContainerToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var oS = this.oColorManager.ImageSource;
-            var oD = this.oColorManager.ImageProcessed;
-            if (oS == null || oD == null)
+            var source = this.colorManager.ImageSource;
+            var processed = this.colorManager.ImageProcessed;
+            if (source == null || processed == null)
             {
                 return;
             }
             ImageCopied?.Invoke(this, new CopyDataEventArgs()
             {
-                Name = oName,
-                SourceBitmap = oS,
-                DestBitmap = oD,
-                DestBitmapRoi = new Rectangle(0, 0, oD.Width, oD.Height)
+                Name = currentName,
+                SourceBitmap = source,
+                DestBitmap = processed,
+                DestBitmapRoi = new Rectangle(0, 0, processed.Width, processed.Height)
             });
         }
 
-        void SetRenderPanelLayout(bool bHorizonalLayout)
+        /// <summary>
+        /// Arranges the source and processed views horizontally or vertically.
+        /// </summary>
+        void SetRenderPanelLayout(bool horizontalLayout)
         {
-            splitRenderLayout.Orientation = bHorizonalLayout ? Orientation.Horizontal : Orientation.Vertical;
-            horizontalToolStripMenuItem.Checked = bHorizonalLayout;
-            verticalToolStripMenuItem.Checked = !bHorizonalLayout;
+            splitRenderLayout.Orientation = horizontalLayout ? Orientation.Horizontal : Orientation.Vertical;
+            horizontalToolStripMenuItem.Checked = horizontalLayout;
+            verticalToolStripMenuItem.Checked = !horizontalLayout;
         }
 
         private void horizontalToolStripMenuItem_Click(object sender, EventArgs e)
@@ -474,11 +565,11 @@ namespace ColourClashNet.Controls
 
         private async void btnProcessBlob_Click(object sender, EventArgs e)
         {
-            oBlobManager.blobConfig.WithProcessing((BlobConnectionModes)Enum.Parse(typeof(BlobConnectionModes), cbBlobConnectionMode.SelectedItem?.ToString() ?? string.Empty));
-            oBlobManager.blobConfig.WithFiltering((int)numBlobMinW.Value, (int)numBlobMinH.Value, (int)numBlobMinA.Value, (int)numBlobMaxW.Value, (int)numBlobMaxH.Value, (int)numBlobMaxA.Value);
-            oBlobManager.blobConfig.WithThreshold(ColorManager.transformConfig.ColorBackgroundPalette, (double)numBlobThreshold.Value, chkBlobInvertSelection.Checked);
-            var oDataOut = await oBlobManager.ProcessBlobAsync(oColorManager.DataSourceX);
-            oColorManager.InjectOutput(oDataOut);
+            blobManager.BlobConfig.WithProcessing((BlobConnectionModes)Enum.Parse(typeof(BlobConnectionModes), cbBlobConnectionMode.SelectedItem?.ToString() ?? string.Empty));
+            blobManager.BlobConfig.WithFiltering((int)numBlobMinW.Value, (int)numBlobMinH.Value, (int)numBlobMinA.Value, (int)numBlobMaxW.Value, (int)numBlobMaxH.Value, (int)numBlobMaxA.Value);
+            blobManager.BlobConfig.WithThreshold(ColorManager.TransformConfig.ColorBackgroundPalette, (double)numBlobThreshold.Value, chkBlobInvertSelection.Checked);
+            var dataOut = await blobManager.ProcessBlobAsync(colorManager.DataSourceX);
+            colorManager.InjectOutput(dataOut);
             RefreshData();
         }
 
@@ -486,9 +577,9 @@ namespace ColourClashNet.Controls
         {
             if (saveFileDialogBlobs.ShowDialog() == DialogResult.OK)
             {
-                var sPath = Path.GetDirectoryName(saveFileDialogBlobs.FileName);
-                var sPrefix = Path.GetFileNameWithoutExtension(saveFileDialogBlobs.FileName);
-                BlobTools.ExportImages(oBlobManager.BlobAnalysis, sPath, sPrefix);
+                var path = Path.GetDirectoryName(saveFileDialogBlobs.FileName);
+                var prefix = Path.GetFileNameWithoutExtension(saveFileDialogBlobs.FileName);
+                BlobTools.ExportImages(blobManager.BlobAnalysis, path, prefix);
             }
         }
     }

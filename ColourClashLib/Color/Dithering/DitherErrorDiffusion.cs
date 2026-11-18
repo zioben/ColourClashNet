@@ -13,51 +13,75 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Dithering;
 
+/// <summary>
+/// Base class for error diffusion dithering (Floyd-Steinberg, Atkinson, Stucki, ...).
+/// <para/>
+/// Pixels are scanned left to right, top to bottom. Each pixel is replaced by the nearest palette color
+/// and the quantization error is distributed to the not yet processed neighbours, weighted by
+/// <see cref="errorDiffusionMatrix"/>. Derived classes only provide the kernel.
+/// </summary>
 public abstract class DitherErrorDiffusion : DitherBase
 {
 
     static string sC = nameof(DitherErrorDiffusion);
 
-    protected double[,] matErrorDiffusion = null;
+    /// <summary>
+    /// Error diffusion kernel. The first row is aligned with the current pixel, which sits in the
+    /// middle column; weights on the left of (and including) the current pixel in the first row must be zero.
+    /// </summary>
+    protected double[,] errorDiffusionMatrix = null;
 
-
-    protected void Normalize(double dN)
+    /// <summary>
+    /// Divides every kernel weight by <paramref name="n"/>.
+    /// </summary>
+    /// <param name="n">Divider; ignored when zero.</param>
+    protected void Normalize(double n)
     {
-        if (matErrorDiffusion == null)
+        if (errorDiffusionMatrix == null)
         {
             return;
         }
-        if (dN == 0)
+        if (n == 0)
         {
             return;
         }
-        int R = matErrorDiffusion.GetLength(0);
-        int C = matErrorDiffusion.GetLength(1);
-        for (int r = 0; r < R; r++)
+        int rows = errorDiffusionMatrix.GetLength(0);
+        int columns = errorDiffusionMatrix.GetLength(1);
+        for (int r = 0; r < rows; r++)
         {
-            for (int c = 0; c < C; c++)
+            for (int c = 0; c < columns; c++)
             {
-                matErrorDiffusion[r, c] /= dN;
+                errorDiffusionMatrix[r, c] /= n;
             }
         }
     }
 
+    /// <summary>
+    /// Normalizes the kernel so that its weights sum to 1 (the whole error is diffused).
+    /// </summary>
     protected void Normalize()
     {
-        if (matErrorDiffusion == null)
+        if (errorDiffusionMatrix == null)
         {
             return;
         }
-        var dN = 0.0;
-        foreach (var d in matErrorDiffusion)
+        var n = 0.0;
+        foreach (var d in errorDiffusionMatrix)
         {
-            dN += d;
+            n += d;
         }
-        Normalize(dN);
+        Normalize(n);
     }
 
+    /// <inheritdoc/>
     public override DitherInterface Create() => this;
 
+    /// <summary>
+    /// Runs the error diffusion over the whole image.
+    /// <para/>
+    /// The output palette is the palette of <paramref name="imageProcessed"/>; tagged (negative) pixels
+    /// of the processed image are copied unchanged to the output.
+    /// </summary>
     protected override ColorTransformResult DitherImplementation(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
     {
 
@@ -75,88 +99,92 @@ public abstract class DitherErrorDiffusion : DitherBase
 
             LogMan.Trace(sC, sM, $"{Type} : Dithering");
 
-            int R = dataOriginal.GetLength(0);
-            int C = dataOriginal.GetLength(1);
-            int RR = matErrorDiffusion.GetLength(0);
-            int CC = matErrorDiffusion.GetLength(1);
-            int CO = CC / 2;
+            int rows = dataOriginal.GetLength(0);
+            int columns = dataOriginal.GetLength(1);
+            int kernelRows = errorDiffusionMatrix.GetLength(0);
+            int kernelColumns = errorDiffusionMatrix.GetLength(1);
+            int kernelCenter = kernelColumns / 2;
 
-            var oRO = new double[R, C];
-            var oGO = new double[R, C];
-            var oBO = new double[R, C];
-            var oRP = new double[R, C];
-            var oGP = new double[R, C];
-            var oBP = new double[R, C];
+            // Work on per-channel double buffers: the accumulated error must not be clamped or truncated
+            var redOriginal = new double[rows, columns];
+            var greenOriginal = new double[rows, columns];
+            var blueOriginal = new double[rows, columns];
+            var redProcessed = new double[rows, columns];
+            var greenProcessed = new double[rows, columns];
+            var blueProcessed = new double[rows, columns];
 
-            for(int r = 0; r < R; r++)
-            //Parallel.For(0, R, r =>
+            for(int r = 0; r < rows; r++)
+            //Parallel.For(0, rows, r =>
             {
                 token.ThrowIfCancellationRequested();
-                for (int c = 0; c < C; c++)
+                for (int c = 0; c < columns; c++)
                 {
-                    var oDatOrig = dataOriginal[r, c];
-                    oRO[r, c] = oDatOrig.ToR();
-                    oGO[r, c] = oDatOrig.ToG();
-                    oBO[r, c] = oDatOrig.ToB();
-                    var oDataProc = dataProcessed[r, c];
-                    oRP[r, c] = oDataProc.ToR();
-                    oGP[r, c] = oDataProc.ToG();
-                    oBP[r, c] = oDataProc.ToB();
+                    var originalColor = dataOriginal[r, c];
+                    redOriginal[r, c] = originalColor.ToR();
+                    greenOriginal[r, c] = originalColor.ToG();
+                    blueOriginal[r, c] = originalColor.ToB();
+                    var processedColor = dataProcessed[r, c];
+                    redProcessed[r, c] = processedColor.ToR();
+                    greenProcessed[r, c] = processedColor.ToG();
+                    blueProcessed[r, c] = processedColor.ToB();
                 }
             }//);
 
-            var dataOut = new int[R, C];
+            var dataOut = new int[rows, columns];
 
-            var dStrenght = DitheringStrenght;// / 100.0;
+            var strength = DitheringStrenght;// / 100.0;
 
-            for (int r = 0; r < R; r++)
+            for (int r = 0; r < rows; r++)
             {
                 token.ThrowIfCancellationRequested();
-                for (int c = 0; c < C; c++)
+                for (int c = 0; c < columns; c++)
                 {
                     token.ThrowIfCancellationRequested();
 
-                    var OldPixelR = Math.Max(0, Math.Min(255, oRO[r, c]));
-                    var OldPixelG = Math.Max(0, Math.Min(255, oGO[r, c]));
-                    var OldPixelB = Math.Max(0, Math.Min(255, oBO[r, c]));
+                    // Original color plus the error received so far, clamped to a valid range
+                    var oldPixelR = Math.Max(0, Math.Min(255, redOriginal[r, c]));
+                    var oldPixelG = Math.Max(0, Math.Min(255, greenOriginal[r, c]));
+                    var oldPixelB = Math.Max(0, Math.Min(255, blueOriginal[r, c]));
 
-                    var OldPixel = ColorIntExt.FromRGB(OldPixelR, OldPixelG, OldPixelB);
-                    var NewPixel = ColorIntExt.GetNearestColor(OldPixel, dataProcessedPalette, colorEvaluationMode);
-                    dataOut[r, c] = NewPixel;
+                    var oldPixel = ColorIntExt.FromRGB(oldPixelR, oldPixelG, oldPixelB);
+                    var newPixel = ColorIntExt.GetNearestColor(oldPixel, dataProcessedPalette, colorEvaluationMode);
+                    dataOut[r, c] = newPixel;
 
-                    var NewPixelR = NewPixel.ToR();
-                    var NewPixelG = NewPixel.ToG();
-                    var NewPixelB = NewPixel.ToB();
-                    var ErrorR = OldPixelR - NewPixelR;
-                    var ErrorG = OldPixelG - NewPixelG;
-                    var ErrorB = OldPixelB - NewPixelB;
+                    var newPixelR = newPixel.ToR();
+                    var newPixelG = newPixel.ToG();
+                    var newPixelB = newPixel.ToB();
+                    var errorR = oldPixelR - newPixelR;
+                    var errorG = oldPixelG - newPixelG;
+                    var errorB = oldPixelB - newPixelB;
 
-                    for (int rr = 0; rr < RR; rr++)
+                    // Spread the error over the neighbours covered by the kernel, centered on the current column
+                    for (int rr = 0; rr < kernelRows; rr++)
                     {
                         int rOffset = rr + r;
-                        if (rOffset >= R)
+                        if (rOffset >= rows)
                             break;
-                        for (int cc = 0; cc < CC; cc++)
+                        for (int cc = 0; cc < kernelColumns; cc++)
                         {
-                            int cOffset = c + cc - CO;
-                            if (cOffset < 0)
+                            int colOffset = c + cc - kernelCenter;
+                            if (colOffset < 0)
                                 continue;
-                            //if (c == CO)
+                            //if (c == kernelCenter)
                              //   continue;
-                            if (cOffset >= C)
+                            if (colOffset >= columns)
                                 break;
-                            oRO[rOffset, cOffset] += ErrorR * matErrorDiffusion[rr, cc] * dStrenght;
-                            oGO[rOffset, cOffset] += ErrorG * matErrorDiffusion[rr, cc] * dStrenght;
-                            oBO[rOffset, cOffset] += ErrorB * matErrorDiffusion[rr, cc] * dStrenght;
+                            redOriginal[rOffset, colOffset] += errorR * errorDiffusionMatrix[rr, cc] * strength;
+                            greenOriginal[rOffset, colOffset] += errorG * errorDiffusionMatrix[rr, cc] * strength;
+                            blueOriginal[rOffset, colOffset] += errorB * errorDiffusionMatrix[rr, cc] * strength;
                         }
                     }
                 }
             }
 
-            for (int r = 0; r < R; r++)
+            // Restore tagged pixels (masks, tiles, ...) from the processed image
+            for (int r = 0; r < rows; r++)
             {
                 token.ThrowIfCancellationRequested();
-                for (int c = 0; c < C; c++)
+                for (int c = 0; c < columns; c++)
                 {
                     if (dataProcessed[r, c] < 0)
                     {

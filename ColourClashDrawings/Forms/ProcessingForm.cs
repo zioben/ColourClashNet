@@ -13,12 +13,21 @@ using System.Windows.Forms;
 
 namespace ModuleTester
 {
+    /// <summary>
+    /// Progress window of a running transformation: message history, preview image, percentage and abort button.
+    /// </summary>
     public partial class ProcessingForm : Form
     {
 
+        /// <summary>
+        /// Transformation being monitored.
+        /// </summary>
         public ColorTransformInterface? Transformation { get; private set; }
         CancellationTokenSource cts = null;
 
+        /// <summary>
+        /// Creates the form; <paramref name="cancellationTokenSource"/> is cancelled by the abort button.
+        /// </summary>
         public ProcessingForm(CancellationTokenSource cancellationTokenSource)
         {
             InitializeComponent();
@@ -27,34 +36,36 @@ namespace ModuleTester
             cts = cancellationTokenSource;
         }
 
-        void AppendData(ColorProcessingEventArgs oArgs)
+        /// <summary>
+        /// Shows the message, preview and progress of a processing event (UI thread safe).
+        /// </summary>
+        void AppendData(ColorProcessingEventArgs args)
         {
-            if (oArgs == null)
+            if (args == null)
             {
                 return;
             }
             Invoke(() =>
             {
-                //if (oArgs.CancellationTokenSource != null)
-                //{
-                //    cts = oArgs.CancellationTokenSource;
-                //}
-                if (oArgs?.ProcessingResults?.Message != null)
+                if (args?.ProcessingResults?.Message != null)
                 {
-                    lbHistory.Items.Insert(0, oArgs.ProcessingResults.Message);
+                    lbHistory.Items.Insert(0, args.ProcessingResults.Message);
                 }
-                if (oArgs?.ProcessingResults?.DataOut != null)
+                if (args?.ProcessingResults?.DataOut != null)
                 {
-                    picImageTemp.Image = ImageToolsGDI.ImageDataToGdiImage(oArgs.ProcessingResults.DataOut);
+                    picImageTemp.Image = ImageToolsGDI.ImageDataToGdiImage(args.ProcessingResults.DataOut);
                 }
-                if (!double.IsNaN(oArgs.CompletedPercent))
+                if (!double.IsNaN(args.CompletedPercent))
                 {
-                    lblPerc.Text = $"{oArgs.CompletedPercent:f1} %";
-                    pbarComplete.Value = (int)Math.Min(pbarComplete.Maximum, Math.Max(pbarComplete.Minimum, oArgs.CompletedPercent));
+                    lblPerc.Text = $"{args.CompletedPercent:f1} %";
+                    pbarComplete.Value = (int)Math.Min(pbarComplete.Maximum, Math.Max(pbarComplete.Minimum, args.CompletedPercent));
                 }
             });
         }
 
+        /// <summary>
+        /// Clears history, preview and progress.
+        /// </summary>
         void Reset()
         {
             try
@@ -75,54 +86,66 @@ namespace ModuleTester
             Close();
         }
 
+        /// <summary>
+        /// Detaches the form from the monitored transformation.
+        /// </summary>
         void UnregisterEvents()
         {
             if (Transformation != null)
             {
-                Transformation.Processing -= transf_Processing;
-                Transformation.ProcessPartial -= transf_ProcessPartial;
-                Transformation.Processed -= transf_Processed;
+                Transformation.Processing -= transform_Processing;
+                Transformation.ProcessPartial -= transform_ProcessPartial;
+                Transformation.Processed -= transform_Processed;
             }
             Transformation = null;
         }
 
-        public void RegisterEvents(ColorTransformInterface transf)
+        /// <summary>
+        /// Attaches the form to the processing events of a transformation.
+        /// </summary>
+        public void RegisterEvents(ColorTransformInterface transform)
         {
             UnregisterEvents();
-            Transformation = transf;
-            Transformation.Processing += transf_Processing;
-            Transformation.ProcessPartial += transf_ProcessPartial;
-            Transformation.Processed += transf_Processed;
+            Transformation = transform;
+            Transformation.Processing += transform_Processing;
+            Transformation.ProcessPartial += transform_ProcessPartial;
+            Transformation.Processed += transform_Processed;
         }
 
-        private void transf_Processed(object? sender, ColorProcessingEventArgs e)
+        private void transform_Processed(object? sender, ColorProcessingEventArgs e)
         {
-            //AppendData(e);
             Invoke(()=> Close());
         }
 
-        private void transf_ProcessPartial(object? sender, ColorProcessingEventArgs e)
+        private void transform_ProcessPartial(object? sender, ColorProcessingEventArgs e)
         {
             AppendData(e);
         }
 
-        private void transf_Processing(object? sender, ColorProcessingEventArgs e)
+        private void transform_Processing(object? sender, ColorProcessingEventArgs e)
         {
             Invoke(()=>Show());
             cts = e.CancellationTokenSource;
             AppendData(e);
         }
 
-        static public void CreateProcessingForm(ColorTransformInterface transf, CancellationTokenSource cancellationTokenSource)
+        /// <summary>
+        /// Opens a progress form for <paramref name="transform"/> on a dedicated UI thread.
+        /// <para/>
+        /// The form closes automatically when the transformation ends.
+        /// </summary>
+        static public void CreateProcessingForm(ColorTransformInterface transform, CancellationTokenSource cancellationTokenSource)
         {
-            var t = new Thread(() =>
+            // The form runs on its own STA thread with a dedicated message loop,
+            // so it stays responsive while the transformation keeps the caller busy
+            var thread = new Thread(() =>
             {
-                var f = new ProcessingForm(cancellationTokenSource);
-                f.RegisterEvents(transf);
-                Application.Run(f); // crea un message loop dedicato
+                var form = new ProcessingForm(cancellationTokenSource);
+                form.RegisterEvents(transform);
+                Application.Run(form);
             });
-            t.SetApartmentState(ApartmentState.STA);
-            t.Start();
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
         }
     }
 }

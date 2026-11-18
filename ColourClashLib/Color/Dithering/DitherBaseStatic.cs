@@ -10,6 +10,13 @@ namespace ColourClashNet.Color.Dithering
 {
     public abstract partial class DitherBase
     {
+        /// <summary>
+        /// Creates and configures the ditherer that implements <paramref name="ditheringModel"/>.
+        /// </summary>
+        /// <param name="ditheringModel">Dithering algorithm</param>
+        /// <param name="ditheringStrength">Strength multiplier</param>
+        /// <param name="extraFxMode">Post-dithering effect</param>
+        /// <returns>A ditherer instance; <see cref="DitherIdentity"/> for unknown models.</returns>
         static DitherInterface CreateDitherInterface(ColorDithering ditheringModel, double ditheringStrength, ColorDitheringFx extraFxMode)
         {
             switch (ditheringModel)
@@ -43,9 +50,18 @@ namespace ColourClashNet.Color.Dithering
             }
         }
 
+        /// <summary>
+        /// Creates the ditherer described by a <see cref="DitherConfig"/>.
+        /// </summary>
         public static DitherInterface CreateDitherInterface(DitherConfig ditherConfig)
             => CreateDitherInterface(ditherConfig.DitheringType, ditherConfig.DitheringStrength, ditherConfig.DitheringFx);
 
+        /// <summary>
+        /// Creates the ditherer described by a generic property bag.
+        /// <para/>
+        /// Missing keys fall back to: no dithering, strength 100, no effect.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="properties"/> is null.</exception>
         public static DitherInterface CreateDitherInterface( Dictionary<ColorTransformProperties,object> properties )
         {
             if( properties == null ) 

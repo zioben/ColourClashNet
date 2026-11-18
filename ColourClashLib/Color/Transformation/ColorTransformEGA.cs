@@ -6,8 +6,14 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
+    /// <summary>
+    /// Maps the image to the 16 color IBM EGA default palette.
+    /// </summary>
     public class ColorTransformEGA : ColorTransformFixedPalette
     {
+        /// <summary>
+        /// Creates the EGA transformation.
+        /// </summary>
         public ColorTransformEGA()
         {
             Type = ColorTransformType.ColorReductionEGA;
@@ -15,6 +21,9 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
+        /// <summary>
+        /// Loads the EGA palette.
+        /// </summary>
         protected override void RebuildReferencePalette()     
         {
             WithFixedPalette(

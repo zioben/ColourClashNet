@@ -5,23 +5,24 @@ using System.Collections;
 namespace ColourClashNet.Color
 {
     /// <summary>
-    /// Represents a collection of distinct RGB colors.
-    /// Only valid colors (ColorIntType.IsColor) are stored.
+    /// Represents a set of distinct RGB colors.
+    /// <para/>
+    /// Only real colors (<see cref="ColorInfo.IsColor"/>) are stored; tagged values are silently discarded.
     /// </summary>
     public partial class Palette : IEnumerable<int>
     {
         /// <summary>
         /// Internal storage for unique colors.
         /// </summary>
-        protected internal HashSet<int> rgbPalette { get; private init; } = new HashSet<int>();
-
-       /// <summary>
-       /// Gets the number of colors contained in the palette.
-       /// </summary>
-        public int Count => rgbPalette.Count;
+        protected internal HashSet<int> RgbPalette { get; private init; } = new HashSet<int>();
 
         /// <summary>
-        /// Gets a value indicating whether the collection contains one or more elements.
+        /// Gets the number of colors contained in the palette.
+        /// </summary>
+        public int Count => RgbPalette.Count;
+
+        /// <summary>
+        /// Gets a value indicating whether the palette contains at least one color.
         /// </summary>
         public bool IsValid => Count > 0;
 
@@ -29,29 +30,29 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Adds the specified RGB color value to the palette if it represents a valid color.
         /// </summary>
-        /// <param name="iRGB">The integer value representing an RGB color to add to the palette. Must satisfy the color validation
+        /// <param name="rgb">The integer value representing an RGB color to add to the palette. Must satisfy the color validation
         /// criteria defined by IsColor().</param>
-        public void Add(int iRGB)
+        public void Add(int rgb)
         {
-            if (iRGB.IsColor())
-                rgbPalette.Add(iRGB);
+            if (rgb.IsColor())
+                RgbPalette.Add(rgb);
         }
 
         /// <summary>
         /// Removes the color with the specified RGB value from the palette.
         /// </summary>
-        /// <param name="iRGB">The RGB value of the color to remove from the palette.</param>
-        public void Remove(int iRGB) => rgbPalette.Remove(iRGB);
+        /// <param name="rgb">The RGB value of the color to remove from the palette.</param>
+        public void Remove(int rgb) => RgbPalette.Remove(rgb);
 
         /// <summary>
         /// Removes all items from the palette, resetting it to an empty state.
         /// </summary>
-        public void Reset() => rgbPalette.Clear();
+        public void Reset() => RgbPalette.Clear();
 
         /// <summary>
-        /// 
+        /// Initializes the palette as empty.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>This instance.</returns>
         public Palette Create()
         {
             Reset();
@@ -59,15 +60,11 @@ namespace ColourClashNet.Color
         }
 
         /// <summary>
-        /// Creates a palette by adding colors from the specified collection of RGB values.
+        /// Resets the palette and fills it with the distinct real colors of <paramref name="rgbData"/>.
         /// </summary>
-        /// <remarks>If the provided collection is null, the palette is reset and no colors are added. In
-        /// case of an exception during processing, a new empty palette is returned instead of the current
-        /// instance.</remarks>
-        /// <param name="rgbData">An enumerable collection of integers representing RGB color values to add to the palette. Each integer
-        /// should encode a color in 0xRRGGBB format. Cannot be null.</param>
-        /// <returns>The current palette instance with the specified colors added. If an error occurs, a new empty palette is
-        /// returned.</returns>
+        /// <param name="rgbData">Packed RGB colors; duplicates and tagged values are ignored.</param>
+        /// <returns>This instance.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="rgbData"/> is null.</exception>
         public Palette Create( IEnumerable<int> rgbData ) 
         {
             Reset();
@@ -79,38 +76,36 @@ namespace ColourClashNet.Color
         }
 
         /// <summary>
-        /// Creates a new Palette instance from a two-dimensional array of integer color data.
+        /// Fills the palette with the distinct colors of a color matrix.
         /// </summary>
-        /// <param name="oData">A two-dimensional array containing color data, where each element represents a color value. Cannot be null.</param>
-        /// <returns>A Palette instance initialized with the specified color data.</returns>
-        internal Palette Create( int[,] oData)
-            => Create(oData?.Cast<int>());
+        /// <param name="data">Color matrix. Cannot be null.</param>
+        /// <returns>This instance.</returns>
+        internal Palette Create( int[,] data)
+            => Create(data?.Cast<int>());
 
 
         /// <summary>
-        /// Creates a new palette from the specified image data.
+        /// Fills the palette with the distinct colors of an image.
         /// </summary>
-        /// <param name="oImageData">The image data from which to generate the palette. Can be null, in which case the result depends on the
-        /// implementation of the underlying Create method.</param>
-        /// <returns>A Palette instance generated from the provided image data.</returns>
-        public Palette Create(ImageData oImageData)
-            => Create(oImageData?.matrix);
+        /// <param name="imageData">Source image. Cannot be null.</param>
+        /// <returns>This instance.</returns>
+        public Palette Create(ImageData imageData)
+            => Create(imageData?.matrix);
 
         /// <summary>
-        /// Creates a new palette from the specified palette
+        /// Copies the colors of another palette.
         /// </summary>
-        /// <param name="palette">The image data from which to generate the palette. Can be null, in which case the result depends on the
-        /// implementation of the underlying Create method.</param>
-        /// <returns>A Palette instance generated from the provided image data.</returns>
+        /// <param name="palette">Source palette; null produces an empty palette.</param>
+        /// <returns>This instance.</returns>
         public Palette Create(Palette palette)
-            => Create(palette?.rgbPalette ?? new HashSet<int>());
+            => Create(palette?.RgbPalette ?? new HashSet<int>());
 
         /// <summary>
         /// Returns a list containing all color values in the palette.
         /// </summary>
         /// <returns>A list of integers representing the color values in the palette. The list will be empty if the palette
         /// contains no colors.</returns>
-        public List<int> ToList() => rgbPalette.ToList();
+        public List<int> ToList() => RgbPalette.ToList();
 
 
         /// <summary>
@@ -120,15 +115,16 @@ namespace ColourClashNet.Color
         public override string ToString()
             => $"Palette(Colors: {Count})";
 
+        /// <inheritdoc/>
         public IEnumerator<int> GetEnumerator()
         {
-            return ((IEnumerable<int>)rgbPalette).GetEnumerator();
+            return ((IEnumerable<int>)RgbPalette).GetEnumerator();
         }
 
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ((IEnumerable)rgbPalette).GetEnumerator();
+            return ((IEnumerable)RgbPalette).GetEnumerator();
         }
     }
 }

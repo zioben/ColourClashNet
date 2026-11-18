@@ -9,29 +9,62 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
+    /// <summary>
+    /// Amstrad CPC video modes on the 27 color hardware palette (3 levels per channel).
+    /// <para/>
+    /// The image is mapped to the CPC palette, reduced to the number of colors of the mode and, for the
+    /// wide-pixel modes, processed at half horizontal resolution and then doubled back.
+    /// </summary>
     public class ColorTransformAmstradCPC : ColorTransformFixedPalette
     {
 
+        /// <summary>
+        /// Amstrad CPC video modes.
+        /// </summary>
         public enum CPCVideoMode
         {
+            /// <summary>
+            /// 160x200, 16 colors, wide pixels.
+            /// </summary>
             Mode0,
+            /// <summary>
+            /// 320x200, 4 colors.
+            /// </summary>
             Mode1,
+            /// <summary>
+            /// 640x200, 2 colors.
+            /// </summary>
             Mode2,
+            /// <summary>
+            /// 160x200, 4 colors, wide pixels (undocumented mode).
+            /// </summary>
             Mode3,
+            /// <summary>
+            /// Only maps the image to the full 27 color palette.
+            /// </summary>
             DebugPalette
         }
 
+        /// <summary>
+        /// Target video mode.
+        /// </summary>
         public CPCVideoMode VideoMode 
         { 
             get => config.CPCVideoMode;
             set => config.CPCVideoMode = value;
         }
+        /// <summary>
+        /// Creates the CPC transformation.
+        /// </summary>
         public ColorTransformAmstradCPC()
         {
             Type = ColorTransformType.ColorReductionCPC;
             Description = "Reduce color to Amstrad CPC palette";
         }
 
+        /// <summary>
+        /// Loads the 27 color CPC hardware palette.
+        /// </summary>
         protected override void RebuildReferencePalette()
         {
             WithReferencePalette(
@@ -79,102 +112,130 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
+        /// <summary>
+        /// Sets the video mode (fluent).
+        /// </summary>
         public ColorTransformAmstradCPC WithCpcVideoMode(CPCVideoMode videoMode)
         { 
             this.VideoMode = videoMode;
             return this;
         }
 
+        /// <summary>
+        /// Sets the video mode from a configuration (fluent).
+        /// </summary>
         public ColorTransformAmstradCPC WithCpcVideoMode(ColorTransformConfig cfg) => WithCpcVideoMode(cfg.CPCVideoMode);
 
        
 
 
-        ImageData? PreProcess(bool bHalveRes, CancellationToken oToken=default)
+        /// <summary>
+        /// Maps the image (optionally at half horizontal resolution) to the CPC palette.
+        /// </summary>
+        ImageData? PreProcess(bool halveRes, CancellationToken token=default)
         {           
-            var oTmpData = bHalveRes ? ImageTools.HalveXResolution(ImageSource, HalveResolutionMode.OddPixel) : ImageSource;
-            var oTmpDataProc = TransformationMap.Transform(oTmpData, oToken);
-            return oTmpDataProc;
+            var workImage = halveRes ? ImageTools.HalveXResolution(ImageSource, HalveResolutionMode.OddPixel) : ImageSource;
+            var mappedImage = TransformationMap.Transform(workImage, token);
+            return mappedImage;
         }
 
-        ImageData? PostProcess(ImageData image, int iMaxColors, bool bDoubleRes, CancellationToken oToken)
+        /// <summary>
+        /// Reduces the mapped image to <paramref name="maxColors"/>, applies dithering and restores the horizontal resolution.
+        /// </summary>
+        ImageData? PostProcess(ImageData image, int maxColors, bool doubleRes, CancellationToken token)
         {
-            var oRes = new ColorTransformFast()
-                .WithProcessingParams(iMaxColors)
+            // Keep only the colors allowed by the video mode among the mapped CPC colors
+            var result = new ColorTransformFast()
+                .WithProcessingParams(maxColors)
                 .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
-                .CreateAndProcessColors(image, oToken);
+                .CreateAndProcessColors(image, token);
 
             BypassDithering = true;
 
             if (DitheringConfig.DitheringType != ColorDithering.None)
             {
-                var imageRef = bDoubleRes ? ImageTools.HalveXResolution(ImageSource,  HalveResolutionMode.OddPixel) : ImageSource;
+                var imageRef = doubleRes ? ImageTools.HalveXResolution(ImageSource,  HalveResolutionMode.OddPixel) : ImageSource;
                 var dithering = DitherBase.CreateDitherInterface(DitheringConfig);
-                var ditherRes = dithering.Dither(imageRef, oRes.DataOut, ColorDistanceEvaluationMode, oToken);
-                return bDoubleRes ? ImageTools.DoubleXResolution(ditherRes.DataOut) : ditherRes.DataOut;
+                var ditheredResult = dithering.Dither(imageRef, result.DataOut, ColorDistanceEvaluationMode, token);
+                return doubleRes ? ImageTools.DoubleXResolution(ditheredResult.DataOut) : ditheredResult.DataOut;
             }
             else
             {
-                return bDoubleRes ? ImageTools.DoubleXResolution(oRes.DataOut) : oRes.DataOut;
+                return doubleRes ? ImageTools.DoubleXResolution(result.DataOut) : result.DataOut;
             }
         }
         
 
-        ImageData? ToMode0( CancellationToken oToken)
+        /// <summary>
+        /// Mode 0: 16 colors, wide pixels.
+        /// </summary>
+        ImageData? ToMode0( CancellationToken token)
         {
-            var imagePre = PreProcess(true, oToken);
-            var imagePost = PostProcess(imagePre, 16, true, oToken);
+            var imagePre = PreProcess(true, token);
+            var imagePost = PostProcess(imagePre, 16, true, token);
             return imagePost;
         }
-        ImageData? ToMode1( CancellationToken oToken)
+        /// <summary>
+        /// Mode 1: 4 colors.
+        /// </summary>
+        ImageData? ToMode1( CancellationToken token)
         {
-            var imagePre = PreProcess(false, oToken);
-            var imagePost = PostProcess(imagePre, 4, false, oToken);
-            return imagePost;
-        }
-
-        ImageData? ToMode2( CancellationToken oToken)
-        {
-            var imagePre = PreProcess(false, oToken);
-            var imagePost = PostProcess(imagePre, 2, false, oToken);
-            return imagePost;
-        }
-
-        ImageData? ToMode3( CancellationToken oToken)
-        {
-            var imagePre = PreProcess(true, oToken);
-            var imagePost = PostProcess(imagePre, 4, true, oToken);
+            var imagePre = PreProcess(false, token);
+            var imagePost = PostProcess(imagePre, 4, false, token);
             return imagePost;
         }
 
-        protected override ColorTransformResult ExecuteTransform(CancellationToken oToken)
+        /// <summary>
+        /// Mode 2: 2 colors.
+        /// </summary>
+        ImageData? ToMode2( CancellationToken token)
         {
-            ImageData? ret = null;
+            var imagePre = PreProcess(false, token);
+            var imagePost = PostProcess(imagePre, 2, false, token);
+            return imagePost;
+        }
+
+        /// <summary>
+        /// Mode 3: 4 colors, wide pixels.
+        /// </summary>
+        ImageData? ToMode3( CancellationToken token)
+        {
+            var imagePre = PreProcess(true, token);
+            var imagePost = PostProcess(imagePre, 4, true, token);
+            return imagePost;
+        }
+
+        /// <summary>
+        /// Runs the conversion for the selected video mode.
+        /// </summary>
+        protected override ColorTransformResult ExecuteTransform(CancellationToken token)
+        {
+            ImageData? outputImage = null;
             BypassDithering = true;
 
             switch (VideoMode)
             {
                 case CPCVideoMode.Mode0:
-                        ret= ToMode0(oToken );
+                        outputImage= ToMode0(token );
                     break;
                 case CPCVideoMode.Mode1:
-                        ret = ToMode1(oToken);
+                        outputImage = ToMode1(token);
                     break;
                 case CPCVideoMode.Mode2:
-                        ret = ToMode2(oToken);
+                        outputImage = ToMode2(token);
                     break;
                 case CPCVideoMode.Mode3:
-                        ret = ToMode3(oToken);
+                        outputImage = ToMode3(token);
                     break;
                 case CPCVideoMode.DebugPalette:
-                        ret = PreProcess(false, oToken);
+                        outputImage = PreProcess(false, token);
                     break;
                 default:
                     break;
             }
-            if (ret != null)
+            if (outputImage != null)
             { 
-                return ColorTransformResult.CreateValidResult(ImageSource, ret);
+                return ColorTransformResult.CreateValidResult(ImageSource, outputImage);
             }
             return new ColorTransformResult();
         }

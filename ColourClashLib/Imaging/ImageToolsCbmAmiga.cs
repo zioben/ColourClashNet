@@ -12,180 +12,215 @@ namespace ColourClashNet.Imaging
 {
     public static partial class ImageTools
     {
-        static int BitplaneGetPlanes(int iPaletteEntries)
+        /// <summary>
+        /// Returns the number of bitplanes needed to index <paramref name="paletteEntries"/> colors (1..8),
+        /// or 0 when the palette is empty or larger than 256 colors.
+        /// </summary>
+        static int BitplaneGetPlanes(int paletteEntries)
         {
-            if (iPaletteEntries > 256)
+            if (paletteEntries > 256)
                 return 0;
-            if (iPaletteEntries > 128)
+            if (paletteEntries > 128)
                 return 8;
-            if (iPaletteEntries > 64)
+            if (paletteEntries > 64)
                 return 7;
-            if (iPaletteEntries > 32)
+            if (paletteEntries > 32)
                 return 6;
-            if (iPaletteEntries > 16)
+            if (paletteEntries > 16)
                 return 5;
-            if (iPaletteEntries > 8)
+            if (paletteEntries > 8)
                 return 4;
-            if (iPaletteEntries > 4)
+            if (paletteEntries > 4)
                 return 3;
-            if (iPaletteEntries > 2)
+            if (paletteEntries > 2)
                 return 2;
-            if (iPaletteEntries > 1)
+            if (paletteEntries > 1)
                 return 1;
             return 0;
         }
 
-        static public byte[,] BitplaneCreateData(byte[,] mDataIndex, bool bInterleavedData, int MaxColors)
+        /// <summary>
+        /// Converts an indexed (chunky) image into Amiga planar bitplane data (C2P conversion).
+        /// <para/>
+        /// Each output row holds one bitplane line, 8 pixels per byte. With <paramref name="interleavedData"/>
+        /// the planes of each image line are consecutive (ILBM style); otherwise all lines of plane 0
+        /// come first, then plane 1, and so on.
+        /// </summary>
+        /// <param name="indexMatrix">Palette index per pixel; width must be a multiple of 8</param>
+        /// <param name="interleavedData">True for interleaved, false for sequential planes</param>
+        /// <param name="maxColors">Number of palette entries, used to compute the plane count</param>
+        /// <returns>Bitplane matrix [rows * planes, columns / 8], or null if <paramref name="indexMatrix"/> is null.</returns>
+        static public byte[,] BitplaneCreateData(byte[,] indexMatrix, bool interleavedData, int maxColors)
         {
-            if (mDataIndex == null)
+            if (indexMatrix == null)
                 return null;
 
-            var R = mDataIndex.GetLength(0);
-            var C = mDataIndex.GetLength(1);
-            var Bytes = C / 8;
-            var Planes = BitplaneGetPlanes(MaxColors);// llPaletteSrc.Max(X => X.Count));
-            var oRet = new byte[R * Planes, Bytes];
+            var rows = indexMatrix.GetLength(0);
+            var columns = indexMatrix.GetLength(1);
+            var bytes = columns / 8;
+            var planes = BitplaneGetPlanes(maxColors);// linePalettes.Max(x => x.Count));
+            var bitplaneData = new byte[rows * planes, bytes];
 
             byte[] chunky = new byte[8];
             byte[] planar = new byte[8];
             //----------------------------
             // C2P conversion
             //----------------------------
-            for (int r = 0; r < R; r++)
+            for (int r = 0; r < rows; r++)
             {
-                for (int c = 0, w = 0; c < C; c += 8, w++)
+                for (int c = 0, w = 0; c < columns; c += 8, w++)
                 {
                     for (int k = 0; k < 8; k++)
                     {
-                        chunky[k] = mDataIndex[r, c + k];
+                        chunky[k] = indexMatrix[r, c + k];
                         //a7a6a5a4a3a2a1a0-b7b6b5b4b3b2b1b0-.....-g7g6g5g4g3g2g1g0
                         //a0b0..........g0-a1b1..........g1-.....-a7b7..........g7
                     }
+                    // Transpose the 8x8 bit block: bit k of the 8 pixel indexes becomes byte k (plane k)
                     for (int k = 0; k < 8; k++)
                     {
-                        int bpl = 0;
+                        int planeByte = 0;
                         for (int j = 0; j < 8; j++)
-                            bpl |= (chunky[j] & 0x01) << (8 - j);
-                        planar[k] = (byte)bpl;
+                            planeByte |= (chunky[j] & 0x01) << (8 - j);
+                        planar[k] = (byte)planeByte;
                         for (int j = 0; j < 8; j++)
                             chunky[j] >>= 1;
                     }
-                    if (bInterleavedData)
+                    if (interleavedData)
                     {
-                        for (int k = 0; k < Planes; k++)
+                        for (int k = 0; k < planes; k++)
                         {
-                            oRet[r * Planes + k, w] = planar[k];
+                            bitplaneData[r * planes + k, w] = planar[k];
                         }
                     }
                     else
                     {
-                        for (int k = 0; k < Planes; k++)
+                        for (int k = 0; k < planes; k++)
                         {
-                            oRet[r + k * R, w] = planar[k];
+                            bitplaneData[r + k * rows, w] = planar[k];
                         }
                     }
                 }
             }
-            return oRet;
+            return bitplaneData;
         }
 
-        //static public byte[,] BitplaneCreateData(int[,] mDataSrc, List<List<int>> llPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
+        //static public byte[,] BitplaneCreateData(int[,] sourceMatrix, List<List<int>> linePalettes, ImageWidthAlignMode pixelWidthAlign, bool interleavedData)
         //{
-        //    var mDataIndex = CreateIndexedData(mDataSrc, llPaletteSrc, ePixelWidthAlign);
-        //    return BitplaneCreateData(mDataIndex, bInterleavedData, llPaletteSrc.Max(X => X.Count));
+        //    var indexMatrix = CreateIndexedData(sourceMatrix, linePalettes, pixelWidthAlign);
+        //    return BitplaneCreateData(indexMatrix, interleavedData, linePalettes.Max(x => x.Count));
           
         //}
 
-        static public byte[,] BitplaneCreateData(int[,] mDataSrc, List<int> lPaletteSrc, WidthAlignMode ePixelWidthAlign, bool bInterleavedData)
+        /// <summary>
+        /// Indexes a color matrix with <paramref name="paletteSrc"/> and converts it to bitplane data.
+        /// </summary>
+        static public byte[,] BitplaneCreateData(int[,] sourceMatrix, List<int> paletteSrc, WidthAlignMode pixelWidthAlign, bool interleavedData)
         {
-            var mDataIndex = MatrixTools.CreateIndexedMatrix(mDataSrc, lPaletteSrc, ePixelWidthAlign);
-            return BitplaneCreateData(mDataIndex, bInterleavedData, lPaletteSrc.Count);
+            var indexMatrix = MatrixTools.CreateIndexedMatrix(sourceMatrix, paletteSrc, pixelWidthAlign);
+            return BitplaneCreateData(indexMatrix, interleavedData, paletteSrc.Count);
         }
 
-        //static public Bitmap BitplaneCreateIndexedBitmap(int[,] mDataSrc, List<List<int>> llPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
+        //static public Bitmap BitplaneCreateIndexedBitmap(int[,] sourceMatrix, List<List<int>> linePalettes, ImageWidthAlignMode pixelWidthAlign, bool interleavedData)
         //{
-        //    var mDtaBpl = BitplaneCreateData(mDataSrc, llPaletteSrc, ePixelWidthAlign, bInterleavedData);
-        //    var oBmp = CreateIndexedBitmap(mDtaBpl);
-        //    BitmapSetPalette(oBmp, llPaletteSrc);
-        //    return oBmp;
+        //    var bitplaneData = BitplaneCreateData(sourceMatrix, linePalettes, pixelWidthAlign, interleavedData);
+        //    var bmp = CreateIndexedBitmap(bitplaneData);
+        //    BitmapSetPalette(bmp, linePalettes);
+        //    return bmp;
         //}
 
-        //static public Bitmap BitplaneCreateIndexedBitmap(int[,] mDataSrc, List<int> lPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
+        //static public Bitmap BitplaneCreateIndexedBitmap(int[,] sourceMatrix, List<int> paletteSrc, ImageWidthAlignMode pixelWidthAlign, bool interleavedData)
         //{
-        //    var mDtaBpl = BitplaneCreateData(mDataSrc, lPaletteSrc, ePixelWidthAlign, bInterleavedData);
-        //    var oBmp = CreateIndexedBitmap(mDtaBpl);
-        //    BitmapSetPalette(oBmp, lPaletteSrc);
-        //    return oBmp;
+        //    var bitplaneData = BitplaneCreateData(sourceMatrix, paletteSrc, pixelWidthAlign, interleavedData);
+        //    var bmp = CreateIndexedBitmap(bitplaneData);
+        //    BitmapSetPalette(bmp, paletteSrc);
+        //    return bmp;
         //}
 
 
-        public static void BitplaneWriteFileBpl(string sFile, byte[,] mDataIndex, int iMaxColors, bool bInterleavedData)
+        /// <summary>
+        /// Writes raw bitplane data to a <c>.bpl</c> file. Size, plane count and layout are encoded in the file name.
+        /// </summary>
+        /// <param name="file">File name prefix</param>
+        /// <param name="indexMatrix">Bitplane data</param>
+        /// <param name="maxColors">Number of palette entries</param>
+        /// <param name="interleavedData">Layout tag written in the file name ("il" or "pr")</param>
+        public static void BitplaneWriteFileBpl(string file, byte[,] indexMatrix, int maxColors, bool interleavedData)
         {
-            if (mDataIndex == null)
+            if (indexMatrix == null)
                 return;
-            var R = mDataIndex.GetLength(0);
-            var C = mDataIndex.GetLength(1);
-            var W = C / 2;
-            var Planes = BitplaneGetPlanes(iMaxColors);
-            var s = bInterleavedData ? "il" : "pr";
-            var sFileName = $"{sFile}_r{R/4:D4}_w{W:D4}_p{Planes}_{s}.bpl";
+            var rows = indexMatrix.GetLength(0);
+            var columns = indexMatrix.GetLength(1);
+            var halfColumns = columns / 2;
+            var planes = BitplaneGetPlanes(maxColors);
+            var layoutTag = interleavedData ? "il" : "pr";
+            var fileName = $"{file}_r{rows/4:D4}_w{halfColumns:D4}_p{planes}_{layoutTag}.planeByte";
 
-            using (var oFileDat = File.OpenWrite(sFileName))
+            using (var dataFile = File.OpenWrite(fileName))
             {
-                for (int r = 0; r < R; r++)
+                for (int r = 0; r < rows; r++)
                 {
-                    for (int c = 0; c < C; c++)
+                    for (int c = 0; c < columns; c++)
                     {
-                        oFileDat.WriteByte(mDataIndex[r, c]);
+                        dataFile.WriteByte(indexMatrix[r, c]);
                     }
                 }
             }
         }
 
-        public static void BitplaneWriteFilePalette(string sFile, List<List<int>> llPaletteSrc)
+        /// <summary>
+        /// Writes the palettes in two raw formats: <c>.rgb24</c> (3 bytes per color) and
+        /// <c>.rgb12</c> (Amiga OCS 0x0RGB word, 2 bytes per color).
+        /// </summary>
+        /// <param name="file">File name prefix</param>
+        /// <param name="linePalettes">One palette per line (a single palette for static images)</param>
+        public static void BitplaneWriteFilePalette(string file, List<List<int>> linePalettes)
         {
-            if (llPaletteSrc == null || llPaletteSrc.Count == 0)
+            if (linePalettes == null || linePalettes.Count == 0)
                 return;
-            var sFileName = $"{sFile}_{llPaletteSrc.Count}_{llPaletteSrc.Max(X=>X.Count)}";
-            using (var oFilePal = File.OpenWrite(sFileName + ".rgb24"))
+            var fileName = $"{file}_{linePalettes.Count}_{linePalettes.Max(x=>x.Count)}";
+            using (var rgb24File = File.OpenWrite(fileName + ".rgb24"))
             {
-                llPaletteSrc.ForEach(X=>
+                linePalettes.ForEach(linePalette=>
                     {
-                        X.ForEach(Y => 
+                        linePalette.ForEach(color =>
                         {
-                            oFilePal.WriteByte((byte)Y.ToR());
-                            oFilePal.WriteByte((byte)Y.ToG());
-                            oFilePal.WriteByte((byte)Y.ToB());
+                            rgb24File.WriteByte((byte)color.ToR());
+                            rgb24File.WriteByte((byte)color.ToG());
+                            rgb24File.WriteByte((byte)color.ToB());
                         });
                 });
             }
-            using (var oFilePal = File.OpenWrite(sFileName + ".rgb12"))
+            using (var rgb12File = File.OpenWrite(fileName + ".rgb12"))
             {
-                llPaletteSrc.ForEach(X =>
+                linePalettes.ForEach(linePalette =>
                 {
-                    X.ForEach(Y =>
+                    linePalette.ForEach(color =>
                     {
-                        var R = (byte)Y.ToR();
-                        var G = (byte)Y.ToG();
-                        var B = (byte)Y.ToB();
-                        oFilePal.WriteByte((byte)(R>>4));
-                        oFilePal.WriteByte((byte)((G & 0xF0) | (B>>4)));
+                        var r = (byte)color.ToR();
+                        var g = (byte)color.ToG();
+                        var b = (byte)color.ToB();
+                        rgb12File.WriteByte((byte)(r>>4));
+                        rgb12File.WriteByte((byte)((g & 0xF0) | (b>>4)));
                     });
                 });
             }
         }
 
-        //public static void BitplaneWriteFile(string sFile, int[,] mDataSrc, List<List<int>> llPaletteSrc, ImageWidthAlignMode ePixelWidthAlign, bool bInterleavedData)
+        //public static void BitplaneWriteFile(string file, int[,] sourceMatrix, List<List<int>> linePalettes, ImageWidthAlignMode pixelWidthAlign, bool interleavedData)
         //{
-        //    var mDataIndex = BitplaneCreateData( mDataSrc,llPaletteSrc,ePixelWidthAlign,bInterleavedData);
-        //    BitplaneWriteFileBpl(sFile, mDataIndex, llPaletteSrc.Max(X => X.Count),bInterleavedData);
-        //    BitplaneWriteFilePalette(sFile, llPaletteSrc);
+        //    var indexMatrix = BitplaneCreateData( sourceMatrix,linePalettes,pixelWidthAlign,interleavedData);
+        //    BitplaneWriteFileBpl(file, indexMatrix, linePalettes.Max(x => x.Count),interleavedData);
+        //    BitplaneWriteFilePalette(file, linePalettes);
         //}
-        public static void BitplaneWriteFile(string sFile, int[,] mDataSrc, List<int> lPaletteSrc, WidthAlignMode ePixelWidthAlign, bool bInterleavedData)
+        /// <summary>
+        /// Converts an image to bitplanes and writes both the bitplane file and the palette files.
+        /// </summary>
+        public static void BitplaneWriteFile(string file, int[,] sourceMatrix, List<int> paletteSrc, WidthAlignMode pixelWidthAlign, bool interleavedData)
         {
-            var mDataIndex = BitplaneCreateData(mDataSrc, lPaletteSrc, ePixelWidthAlign, bInterleavedData);
-            BitplaneWriteFileBpl(sFile, mDataIndex, lPaletteSrc.Count, bInterleavedData);
-            BitplaneWriteFilePalette(sFile, new List<List<int>>() { lPaletteSrc });
+            var indexMatrix = BitplaneCreateData(sourceMatrix, paletteSrc, pixelWidthAlign, interleavedData);
+            BitplaneWriteFileBpl(file, indexMatrix, paletteSrc.Count, interleavedData);
+            BitplaneWriteFilePalette(file, new List<List<int>>() { paletteSrc });
         }
 
     }

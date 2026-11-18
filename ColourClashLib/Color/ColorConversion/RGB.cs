@@ -8,15 +8,23 @@ using System.Threading.Tasks;
 namespace ColourClashNet.Color.Conversion
 {
     /// <summary>
-    /// Represents a color in HSV (Hue, Saturation, Value) color space.
+    /// Represents a color with separate red, green and blue components [0..255].
     /// </summary>
     public class RGB : ColorConverterInterface
     {
+        /// <summary>Red component; negative when invalid.</summary>
         public int R { get; set; }
+        /// <summary>Green component; negative when invalid.</summary>
         public int G { get; set; }
+        /// <summary>Blue component; negative when invalid.</summary>
         public int B { get; set; }
 
+        /// <inheritdoc/>
         public bool IsValid => R >= 0 && B >= 0 && G >= 0;
+
+        /// <summary>
+        /// Creates an RGB color from its components.
+        /// </summary>
         public RGB(int r, int g, int b)
         {
             R = r;
@@ -25,7 +33,7 @@ namespace ColourClashNet.Color.Conversion
         }
 
         /// <summary>
-        /// Converts an RGB color (int representation) to HSV.
+        /// Splits an integer RGB color into its components; non-color values become invalid (-1).
         /// </summary>
         public bool FromIntRGB(int rgb)
         {
@@ -43,31 +51,31 @@ namespace ColourClashNet.Color.Conversion
         }
 
         /// <summary>
-        /// Converts an RGB color (int representation) to HSV.
+        /// Creates an RGB instance from an integer RGB representation.
         /// </summary>
         public static RGB CreateFromIntRGB(int rgb)
         {
-            var RGB = new RGB(-1, -1, -1);
-            RGB.FromIntRGB(rgb);
-            return RGB;
+            var result = new RGB(-1, -1, -1);
+            result.FromIntRGB(rgb);
+            return result;
         }
 
         /// <summary>
-        /// Converts HSV to an integer RGB representation.
+        /// Packs the components into an integer RGB representation.
         /// </summary>
         public int ToIntRGB() => ColorIntExt.FromRGB(R, G, B);
 
         /// <summary>
-        /// Calculates Euclidean distance between two RGB colors.
+        /// Calculates the Euclidean distance between two RGB colors.
         /// </summary>
         public static double Distance(RGB rgbA, RGB rgbB)
         {
             if (!rgbA.IsValid || !rgbB.IsValid)
                 return double.NaN;                
-            double dL = rgbA.R - rgbB.R;
-            double dA = rgbA.G - rgbB.G;
-            double dB = rgbA.B - rgbB.B;
-            return Math.Sqrt(dL * dL + dA * dA + dB * dB);
+            double deltaR = rgbA.R - rgbB.R;
+            double deltaG = rgbA.G - rgbB.G;
+            double deltaB = rgbA.B - rgbB.B;
+            return Math.Sqrt(deltaR * deltaR + deltaG * deltaG + deltaB * deltaB);
         }
 
 

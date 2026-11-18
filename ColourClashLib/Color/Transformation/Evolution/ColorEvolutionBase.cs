@@ -17,7 +17,7 @@ namespace ColourClashLib.Color.Transformation.Evolution
 {
 
     /// <summary>
-    /// Represents a color evolution cluster.
+    /// Standard cluster with a single color.
     /// </summary>
     public class ColorEvolution : IColorEvolution
     {
@@ -35,12 +35,13 @@ namespace ColourClashLib.Color.Transformation.Evolution
         /// </summary>
         public Dictionary<int, int> HistDictionary { get; set; } = new Dictionary<int, int>();
 
-        /// <summary>
-        /// The number of items (colors) in the cluster, derived from the histogram dictionary.
-        /// </summary>
+        /// <inheritdoc/>
         public int ClusterItems => HistDictionary.Count();
-        public double Distance(int rgb, ColorDistanceEvaluationMode eMode) => ClusterRGB.Distance(rgb, eMode);
-        public int GetClusterColor(int rgb, ColorDistanceEvaluationMode eMode) => ClusterRGB;
+        /// <inheritdoc/>
+        public double Distance(int rgb, ColorDistanceEvaluationMode mode) => ClusterRGB.Distance(rgb, mode);
+        /// <inheritdoc/>
+        public int GetClusterColor(int rgb, ColorDistanceEvaluationMode mode) => ClusterRGB;
+        /// <inheritdoc/>
         public void SetClusterColor(int rgb) => ClusterRGB = rgb;
 
         public override string ToString()

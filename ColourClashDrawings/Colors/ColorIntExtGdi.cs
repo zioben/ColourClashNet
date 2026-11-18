@@ -17,22 +17,17 @@ namespace ColourClashNet.Color
 
 
     /// <summary>
-    /// Provides extension methods and default values for working with integer-based Color representations.
+    /// Conversions between packed integer colors and <see cref="System.Drawing.Color"/>.
     /// </summary>
-    /// <remarks>This static class includes methods for converting integers to and from Color representations,
-    /// manipulating Color components, and calculating Color distances and means. It also defines default  Colors for
-    /// specific use cases, such as background, mask, and transparency.  The integer-based Color representation assumes
-    /// a 32-bit structure where the lower 24 bits represent  the RGB components, and the upper 8 bits may encode
-    /// additional metadata (e.g., Color type).</remarks>
     public static class ColorIntExtGdi
     {
-
-
         /// <summary>
-        /// Converts an integer representation of a Color to a <see cref="System.Drawing.Color"/>. 
+        /// Converts a packed integer color to an opaque <see cref="System.Drawing.Color"/>.
+        /// <para/>
+        /// Mask and tile values are shown with their default colors; other non-color values become transparent.
         /// </summary>
-        /// <param name="rgb"></param>
-        /// <returns></returns>
+        /// <param name="rgb">Packed color</param>
+        /// <returns>The GDI+ color.</returns>
         public static System.Drawing.Color ToDrawingColor(this int rgb)
         {
             switch (ColorIntExt.GetColorInfo(rgb))
@@ -44,10 +39,7 @@ namespace ColourClashNet.Color
                             return System.Drawing.Color.FromArgb(rgb | (int)0xFF_00_00_00);
                         }
                     }
-                //case ColorIntType.IsBkg:
-                //    {
-                //        return DefaultBkgColor;
-                //    }
+
                 case ColorInfo.IsMask:
                     {
                         return ColorDefaults.DefaultMaskColorInt.ToDrawingColor();
@@ -65,16 +57,16 @@ namespace ColourClashNet.Color
 
       
         /// <summary>
-        /// Converts a <see cref="System.Drawing.Color"/> to its integer representation.
+        /// Converts a <see cref="System.Drawing.Color"/> to a packed integer color (alpha is ignored).
         /// </summary>
-        /// <param name="oColor"></param>
-        /// <returns></returns>
-        public static int FromDrawingColor(System.Drawing.Color oColor)
+        /// <param name="color">GDI+ color</param>
+        /// <returns>The packed color, or an invalid color for <see cref="System.Drawing.Color.Transparent"/>.</returns>
+        public static int FromDrawingColor(System.Drawing.Color color)
         {
-            if (oColor == System.Drawing.Color.Transparent)
+            if (color == System.Drawing.Color.Transparent)
                 return ColorDefaults.DefaultInvalidColorInt;
 
-            return ColorIntExt.FromRGB(oColor.R, oColor.G, oColor.B);
+            return ColorIntExt.FromRGB(color.R, color.G, color.B);
         }
 
     }

@@ -12,8 +12,14 @@ using System.Windows.Forms;
 
 namespace ColourClashNet.Controls
 {
+    /// <summary>
+    /// Embedded progress view of a running transformation: message history, preview image, percentage and abort button.
+    /// </summary>
     public partial class ProcessingViewer : UserControl
     {
+        /// <summary>
+        /// Creates the viewer.
+        /// </summary>
         public ProcessingViewer()
         {
             InitializeComponent();
@@ -22,34 +28,40 @@ namespace ColourClashNet.Controls
 
         CancellationTokenSource? cts = null;
 
-        void AppendData(ColorProcessingEventArgs oArgs)
+        /// <summary>
+        /// Shows the message, preview and progress of a processing event (UI thread safe).
+        /// </summary>
+        void AppendData(ColorProcessingEventArgs args)
         {
-            if (oArgs == null)
+            if (args == null)
             {
                 return;
             }
             Invoke(() =>
             {
-                if (oArgs.CancellationTokenSource != null)
+                if (args.CancellationTokenSource != null)
                 {
-                    cts = oArgs.CancellationTokenSource;
+                    cts = args.CancellationTokenSource;
                 }
-                if (oArgs.ProcessingResults.Message != null)
+                if (args.ProcessingResults.Message != null)
                 {
-                    lbHistory.Items.Insert(0, oArgs.ProcessingResults.Message);
+                    lbHistory.Items.Insert(0, args.ProcessingResults.Message);
                 }
-                if (oArgs?.ProcessingResults?.DataOut != null)
+                if (args?.ProcessingResults?.DataOut != null)
                 {
-                    picImageTemp.Image = ImageToolsGDI.ImageDataToGdiImage(oArgs.ProcessingResults.DataOut);
+                    picImageTemp.Image = ImageToolsGDI.ImageDataToGdiImage(args.ProcessingResults.DataOut);
                 }
-                if (!double.IsNaN(oArgs.CompletedPercent))
+                if (!double.IsNaN(args.CompletedPercent))
                 {
-                    lblPerc.Text = $"{oArgs.CompletedPercent:f1} %";
-                    pbarComplete.Value = (int)Math.Min(0,Math.Max(0,oArgs.CompletedPercent));
+                    lblPerc.Text = $"{args.CompletedPercent:f1} %";
+                    pbarComplete.Value = (int)Math.Min(0,Math.Max(0,args.CompletedPercent));
                 }
             });
         }
 
+        /// <summary>
+        /// Clears history, preview and progress.
+        /// </summary>
         void Reset()
         {
             Invoke(() =>
@@ -67,33 +79,38 @@ namespace ColourClashNet.Controls
             Hide();
         }
 
-        void UnregisterEvents(ColorTransformInterface transf)
+        /// <summary>
+        /// Detaches the viewer from a transformation.
+        /// </summary>
+        void UnregisterEvents(ColorTransformInterface transform)
         {
-            transf.Processing -= transf_Processing;
-            transf.ProcessPartial -= transf_ProcessPartial;
-            transf.Processed -= transf_Processed;
+            transform.Processing -= transform_Processing;
+            transform.ProcessPartial -= transform_ProcessPartial;
+            transform.Processed -= transform_Processed;
         }
 
-        public void RegisterEvents(ColorTransformInterface transf)
+        /// <summary>
+        /// Attaches the viewer to the processing events of a transformation.
+        /// </summary>
+        public void RegisterEvents(ColorTransformInterface transform)
         {
-            UnregisterEvents(transf);
-            transf.Processing += transf_Processing;
-            transf.ProcessPartial += transf_ProcessPartial;
-            transf.Processed += transf_Processed;
+            UnregisterEvents(transform);
+            transform.Processing += transform_Processing;
+            transform.ProcessPartial += transform_ProcessPartial;
+            transform.Processed += transform_Processed;
         }
 
-        private void transf_Processed(object? sender, ColorProcessingEventArgs e)
+        private void transform_Processed(object? sender, ColorProcessingEventArgs e)
         {
-            //AppendData(e);
             Hide();
         }
 
-        private void transf_ProcessPartial(object? sender, ColorProcessingEventArgs e)
+        private void transform_ProcessPartial(object? sender, ColorProcessingEventArgs e)
         {
             AppendData(e);
         }
 
-        private void transf_Processing(object? sender, ColorProcessingEventArgs e)
+        private void transform_Processing(object? sender, ColorProcessingEventArgs e)
         {
             Show();
             cts = e.CancellationTokenSource;

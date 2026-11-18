@@ -6,40 +6,36 @@ using System.Text;
 
 namespace ColourClashLib.Color.Transformation.Evolution
 {
+    /// <summary>
+    /// A single cluster of the K-means color reduction.
+    /// </summary>
     public interface IColorEvolution
     {
 
         /// <summary>
-        /// The Histogram dictionary that maps colors to their respective counts within the cluster.
+        /// Colors assigned to the cluster, with their pixel counts.
         /// </summary>
         Dictionary<int, int> HistDictionary { get; set; }
 
         /// <summary>
-        /// The number of items (colors) in the cluster, derived from the histogram dictionary.
+        /// Number of distinct colors assigned to the cluster.
         /// </summary>
         int ClusterItems { get; }
 
         /// <summary>
-        /// 
+        /// Sets the cluster color (centroid).
         /// </summary>
-        /// <param name="rgb"></param>
         void SetClusterColor(int rgb);
 
         /// <summary>
-        /// 
+        /// Returns the cluster output color for <paramref name="rgb"/>; a cluster may expose more than one color (e.g. Amiga EHB).
         /// </summary>
-        /// <param name="rgb"></param>
-        /// <param name="eMode"></param>
-        /// <returns></returns>
-        int GetClusterColor(int rgb, ColorDistanceEvaluationMode eMode);
+        int GetClusterColor(int rgb, ColorDistanceEvaluationMode mode);
 
         /// <summary>
-        /// 
+        /// Returns the distance between <paramref name="rgb"/> and the nearest color of the cluster.
         /// </summary>
-        /// <param name="rgb"></param>
-        /// <param name="eMode"></param>
-        /// <returns></returns>
-        double Distance(int rgb, ColorDistanceEvaluationMode eMode);
+        double Distance(int rgb, ColorDistanceEvaluationMode mode);
 
     }
 }

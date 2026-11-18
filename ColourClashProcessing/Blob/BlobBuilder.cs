@@ -20,8 +20,12 @@ namespace ColourClashProcessing.Blob
     /// </summary>
     public static class BlobBuilder
     {
+        /// <summary>
+        /// Groups the run lengths into connected blobs.
+        /// </summary>
         /// <param name="runLengths">Run lengths of the foreground; any order is accepted.</param>
         /// <param name="mode">4 or 8 connectivity.</param>
+        /// <param name="token">Cancellation token.</param>
         /// <returns>
         /// Blobs ordered by the scan position of their first run (top-most, then left-most),
         /// with BlobId numbered 1..N after filtering.
@@ -82,7 +86,7 @@ namespace ColourClashProcessing.Blob
                 blob.Add(runs[k]);
             }
 
-           
+            // 4. number the blobs in scan order
             for (int k = 0; k < blobs.Count; k++)
                 blobs[k].BlobId = k + 1;
 
@@ -124,41 +128,44 @@ namespace ColourClashProcessing.Blob
         /// <summary>Disjoint-set (union-find) with path halving and union by size.</summary>
         sealed class DisjointSet
         {
-            readonly int[] _parent;
-            readonly int[] _size;
+            readonly int[] parent;
+            readonly int[] size;
 
+            /// <summary>Creates <paramref name="count"/> singleton sets.</summary>
             public DisjointSet(int count)
             {
-                _parent = new int[count];
-                _size = new int[count];
+                parent = new int[count];
+                size = new int[count];
                 for (int i = 0; i < count; i++)
                 {
-                    _parent[i] = i;
-                    _size[i] = 1;
+                    parent[i] = i;
+                    size[i] = 1;
                 }
             }
 
+            /// <summary>Returns the root of the set containing <paramref name="x"/>.</summary>
             public int Find(int x)
             {
-                while (_parent[x] != x)
+                while (parent[x] != x)
                 {
-                    _parent[x] = _parent[_parent[x]];   // path halving
-                    x = _parent[x];
+                    parent[x] = parent[parent[x]];   // path halving
+                    x = parent[x];
                 }
                 return x;
             }
 
+            /// <summary>Merges the sets containing <paramref name="a"/> and <paramref name="b"/>.</summary>
             public void Union(int a, int b)
             {
-                int ra = Find(a);
-                int rb = Find(b);
-                if (ra == rb) return;
+                int rootA = Find(a);
+                int rootB = Find(b);
+                if (rootA == rootB) return;
 
-                if (_size[ra] < _size[rb])
-                    (ra, rb) = (rb, ra);
+                if (size[rootA] < size[rootB])
+                    (rootA, rootB) = (rootB, rootA);
 
-                _parent[rb] = ra;
-                _size[ra] += _size[rb];
+                parent[rootB] = rootA;
+                size[rootA] += size[rootB];
             }
         }
     }

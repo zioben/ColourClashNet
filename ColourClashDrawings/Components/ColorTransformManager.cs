@@ -17,16 +17,28 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ColourClashNet.Components
 {
+    /// <summary>
+    /// Designer component that drives the processing pipeline of the UI.
+    /// <para/>
+    /// Pipeline: source image, background removal, quantization (pre-processing, cached until <see cref="InvalidatePreProcess"/>),
+    /// then the selected color transformation. Every stage is kept both as <see cref="ImageData"/> and as GDI+ image for display.
+    /// </summary>
     public partial class ColorTransformManager : Component
     {
 
         static string sClass = nameof(ColorTransformManager);
 
+        /// <summary>
+        /// Creates the component.
+        /// </summary>
         public ColorTransformManager()
         {
             InitializeComponent();
         }
 
+        /// <summary>
+        /// Creates the component, adds it to <paramref name="container"/> and resets it.
+        /// </summary>
         public ColorTransformManager(IContainer container)
         {
             container.Add(this);
@@ -41,10 +53,12 @@ namespace ColourClashNet.Components
         #region Properties
 
 
-        //        public Dictionary<string, object> DataParameters = new Dictionary<string, object>();
+        /// <summary>
+        /// Settings applied to every stage.
+        /// </summary>
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [DefaultValue(null)]
-        public ColorTransformConfig transformConfig { get; set; } = new ColorTransformConfig();
+        public ColorTransformConfig TransformConfig { get; set; } = new ColorTransformConfig();
 
 
         ColorTransformInterface transformSource;
@@ -52,39 +66,78 @@ namespace ColourClashNet.Components
         ColorTransformInterface transformQuantizer;
         ColorTransformInterface transformProcessing;
 
+        /// <summary>
+        /// Source image.
+        /// </summary>
         [Browsable(false)]
         [DefaultValue(null)]
         public ImageData DataSourceX { get; set; }
 
+        /// <summary>
+        /// Image after background removal.
+        /// </summary>
         [Browsable(false)]
         [DefaultValue(null)]
         public ImageData DataBkgRemoved { get; set; }
 
+        /// <summary>
+        /// Image after quantization.
+        /// </summary>
         [Browsable(false)]
         [DefaultValue(null)]
         public ImageData DataQuantized { get; set; }
 
+        /// <summary>
+        /// Final processed image.
+        /// </summary>
         [Browsable(false)]
         [DefaultValue(null)]
         public ImageData DataProcessed { get; set; }
 
+        /// <summary>
+        /// Display bitmap of <see cref="DataSourceX"/>.
+        /// </summary>
         [DefaultValue(null)]
         public Image ImageSource { get; protected set; }
 
+        /// <summary>
+        /// Display bitmap of <see cref="DataBkgRemoved"/>.
+        /// </summary>
         [DefaultValue(null)]
         public Image ImageBkgRemoved { get; protected set; }
 
+        /// <summary>
+        /// Display bitmap of <see cref="DataQuantized"/>.
+        /// </summary>
         [DefaultValue(null)]
         public Image ImageQuantized { get; protected set; }
 
+        /// <summary>
+        /// Display bitmap of <see cref="DataProcessed"/>.
+        /// </summary>
         [DefaultValue(null)]
         public Image ImageProcessed { get; protected set; }
 
+        /// <summary>
+        /// Number of colors of the source image.
+        /// </summary>
         public int ImageSourceColors => transformSource?.ImageOutput?.Colors ?? 0;
+        /// <summary>
+        /// Number of colors after background removal.
+        /// </summary>
         public int ImageBkgRemovedColors => transformBkgRemover?.ImageOutput?.Colors ?? 0;
+        /// <summary>
+        /// Number of colors after quantization.
+        /// </summary>
         public int ImageQuantizedColors => transformQuantizer?.ImageOutput?.Colors ?? 0;
+        /// <summary>
+        /// Number of colors of the processed image.
+        /// </summary>
         public int ImageProcessedColors => transformProcessing?.ImageOutput?.Colors ?? 0;
 
+        /// <summary>
+        /// When true the pre-processing is run again before the next transformation.
+        /// </summary>
         [Browsable(false)]
         [DefaultValue(true)]
         public bool InvalidatePreProcess { get; set; } = true;
@@ -94,22 +147,43 @@ namespace ColourClashNet.Components
 
         #region Events
 
+        /// <summary>
+        /// Raised after a source image is loaded.
+        /// </summary>
         public event EventHandler OnCreate;
+        /// <summary>
+        /// Raised after a reset.
+        /// </summary>
         public event EventHandler OnReset;
+        /// <summary>
+        /// Raised before a transformation starts.
+        /// </summary>
         public event EventHandler<ColorManagerProcessEventArgs> OnPreProcess;
+        /// <summary>
+        /// Raised after background removal (reserved).
+        /// </summary>
         public event EventHandler<ColorManagerProcessEventArgs> OnBkgRemoved;
+        /// <summary>
+        /// Raised after the pre-processing (background removal and quantization).
+        /// </summary>
         public event EventHandler<ColorManagerProcessEventArgs> OnQuantize;
+        /// <summary>
+        /// Raised after a transformation completes.
+        /// </summary>
         public event EventHandler<ColorManagerProcessEventArgs> OnProcess;
 
         #endregion
 
 
+        /// <summary>
+        /// Clears configuration, images and transformations.
+        /// </summary>
         public void Reset()
         {
             string sMethod = nameof(Reset);
             try
             {
-                transformConfig = new ColorTransformConfig();
+                TransformConfig = new ColorTransformConfig();
                 transformSource = new ColorTransformIdentity();
                 transformBkgRemover = new ColorTransformBkgRemover();
                 transformQuantizer = new ColorTransformQuantization();
@@ -128,6 +202,9 @@ namespace ColourClashNet.Components
             }
         }
 
+        /// <summary>
+        /// Clears the pre-processed and processed images.
+        /// </summary>
         void ResetProcessingData()
         {
             InvalidatePreProcess = true;
@@ -146,18 +223,22 @@ namespace ColourClashNet.Components
         }
 
 
-        public bool Create(int[,] oData)
+        /// <summary>
+        /// Loads a source color matrix and runs the pre-processing.
+        /// </summary>
+        /// <returns>False when the data is null or invalid.</returns>
+        public bool Create(int[,] data)
         {
             string sMethod = nameof(Create);
             Reset();
-            if (oData == null)
+            if (data == null)
             {
                 LogMan.Error(sClass, sMethod, "No source data");
                 return false;
             }
             try
             {
-                DataSourceX = new ImageData().Create(oData);
+                DataSourceX = new ImageData().Create(data);
                 ImageSource = ImageToolsGDI.ImageDataToGdiImage(DataSourceX);
                 OnCreate?.Invoke(this, EventArgs.Empty);
                 PreProcess();
@@ -169,9 +250,16 @@ namespace ColourClashNet.Components
                 return false;
             }
         }
-        public bool Create(ImageData oImageData)
-            => Create(oImageData?.GetMatrix());
+        /// <summary>
+        /// Loads a source image and runs the pre-processing.
+        /// </summary>
+        public bool Create(ImageData imageData)
+            => Create(imageData?.GetMatrix());
 
+        /// <summary>
+        /// Runs background removal and quantization.
+        /// </summary>
+        /// <returns>Always true.</returns>
         public bool PreProcess()
         {
             RemoveBkgAndQuantize(true);
@@ -179,10 +267,18 @@ namespace ColourClashNet.Components
             return true;
         }
 
-        public void Create(System.Drawing.Image oImage) => Create(ImageToolsGDI.GdiImageToMatrix(oImage as Bitmap));
+        /// <summary>
+        /// Loads a GDI+ image and runs the pre-processing.
+        /// </summary>
+        public void Create(System.Drawing.Image image) => Create(ImageToolsGDI.GdiImageToMatrix(image as Bitmap));
 
 
-        ImageData RemoveBkgAndQuantize(bool bRaiseEvent)
+        /// <summary>
+        /// Runs background removal and quantization (without dithering); the quantized image becomes the current output.
+        /// </summary>
+        /// <param name="raiseEvent">Raises <see cref="OnQuantize"/> at the end</param>
+        /// <returns>The quantized image, or null on error.</returns>
+        ImageData RemoveBkgAndQuantize(bool raiseEvent)
         {
             string sMethod = nameof(RemoveBkgAndQuantize);
             if (DataSourceX == null)
@@ -200,14 +296,15 @@ namespace ColourClashNet.Components
 
                 CancellationTokenSource cts = new CancellationTokenSource();
 
-                var noDitherConfig = transformConfig.Clone().WithDithering(ColorDithering.None, 1, ColorDitheringFx.None);
+                // Pre-processing steps must not dither: dithering is applied only by the final transformation
+                var noDitherConfig = TransformConfig.Clone().WithDithering(ColorDithering.None, 1, ColorDitheringFx.None);
 
                 LogMan.Trace(sClass, sMethod, "Process Bkg Remover");
                 transformBkgRemover
                     .SetProperties(noDitherConfig)
                     .Create(DataSourceX);
-                var DataBkgRemovedRes = transformBkgRemover.ProcessColors(cts.Token);
-                DataBkgRemoved = DataBkgRemovedRes.DataOut;
+                var bkgRemovedResult = transformBkgRemover.ProcessColors(cts.Token);
+                DataBkgRemoved = bkgRemovedResult.DataOut;
                 ImageBkgRemoved = ImageToolsGDI.ImageDataToGdiImage(DataBkgRemoved);
 
                 LogMan.Trace(sClass, sMethod, "Process Quantizer");
@@ -215,8 +312,8 @@ namespace ColourClashNet.Components
                     .SetProperties(noDitherConfig)
                     .Create(DataBkgRemoved);
 
-                var DataQuantizedRes = transformQuantizer.ProcessColors(cts.Token);
-                DataQuantized = DataQuantizedRes.DataOut;
+                var quantizedResult = transformQuantizer.ProcessColors(cts.Token);
+                DataQuantized = quantizedResult.DataOut;
                 ImageQuantized = ImageToolsGDI.ImageDataToGdiImage(DataQuantized);
 
                 LogMan.Trace(sClass, sMethod, "Cloning Quantizer Output");
@@ -225,7 +322,7 @@ namespace ColourClashNet.Components
                 transformProcessing = transformQuantizer;
 
                 LogMan.Trace(sClass, sMethod, "Calling Event");
-                if (bRaiseEvent)
+                if (raiseEvent)
                 {
                     OnQuantize?.Invoke(this, new ColorManagerProcessEventArgs
                     {
@@ -246,7 +343,11 @@ namespace ColourClashNet.Components
         }
 
 
-        public ImageData ProcessColors(ColorTransformType eTrasformType)
+        /// <summary>
+        /// Runs the transformation <paramref name="transformType"/> on the quantized image, showing a progress form.
+        /// </summary>
+        /// <returns>The processed image, or null on error.</returns>
+        public ImageData ProcessColors(ColorTransformType transformType)
         {
             string sMethod = nameof(ProcessColors);
             try
@@ -262,12 +363,12 @@ namespace ColourClashNet.Components
                 {
                     PreProcess();
                 }
-                transformProcessing = ColorTransformBase.CreateColorTransformInterface(eTrasformType, transformConfig);
+                transformProcessing = ColorTransformBase.CreateColorTransformInterface(transformType, TransformConfig);
                 CancellationTokenSource cts = new CancellationTokenSource();
                 ProcessingForm.CreateProcessingForm(transformProcessing, cts);
                 transformProcessing.Create(DataQuantized);
-                var DataProcessedRes = transformProcessing.ProcessColors(cts.Token);
-                DataProcessed = DataProcessedRes.DataOut;
+                var processedResult = transformProcessing.ProcessColors(cts.Token);
+                DataProcessed = processedResult.DataOut;
                 ImageProcessed = ImageToolsGDI.ImageDataToGdiImage(DataProcessed);
                 OnProcess?.Invoke(this, new ColorManagerProcessEventArgs
                 {
@@ -285,12 +386,18 @@ namespace ColourClashNet.Components
             return DataProcessed;
         }
 
-        public async Task<ImageData> ProcessColorsAsync(ColorTransformType eTrasformType)
-            => await Task.Run(() => ProcessColors(eTrasformType));
+        /// <summary>
+        /// Runs <see cref="ProcessColors"/> on a worker thread.
+        /// </summary>
+        public async Task<ImageData> ProcessColorsAsync(ColorTransformType transformType)
+            => await Task.Run(() => ProcessColors(transformType));
 
-        internal void InjectOutput(ImageData oDataOut)
+        /// <summary>
+        /// Replaces the processed image with an externally computed one (e.g. a partial result).
+        /// </summary>
+        internal void InjectOutput(ImageData dataOut)
         {
-            DataProcessed = oDataOut;
+            DataProcessed = dataOut;
             ImageProcessed = ImageToolsGDI.ImageDataToGdiImage(DataProcessed);
         }
     }

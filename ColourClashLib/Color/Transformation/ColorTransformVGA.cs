@@ -13,55 +13,73 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
+    /// <summary>
+    /// IBM VGA 256 color mode: quantizes the image to RGB666, then reduces it to <see cref="MaxColorUsed"/> colors by clustering.
+    /// </summary>
     public class ColorTransformVGA : ColorTransformBase
     {
         static string sC = nameof(ColorTransformVGA);
 
+        /// <summary>
+        /// Creates the VGA transformation.
+        /// </summary>
         public ColorTransformVGA()
         {
             Type = ColorTransformType.ColorReductionVGA;
-            Description = "Commododre Amiga specific color reduction";
+            Description = "Reduce colors to a VGA 256 color palette (RGB666)";
         }
 
 
+        /// <summary>
+        /// Maximum number of output colors.
+        /// </summary>
         public int MaxColorUsed
         {
             get => config.MaxColorsWanted;
             set => config.MaxColorsWanted = value;
         }   
 
-        public ColorTransformVGA WithProperties(int iMaxColors)
+        /// <summary>
+        /// Sets the maximum number of output colors (fluent).
+        /// </summary>
+        public ColorTransformVGA WithProperties(int maxColors)
         {
-            MaxColorUsed = iMaxColors;
+            MaxColorUsed = maxColors;
             return this;
         }
 
+        /// <summary>
+        /// Sets the maximum number of output colors from a configuration (fluent).
+        /// </summary>
         public ColorTransformVGA WithProperties(ColorTransformConfig cfg) => WithProperties(cfg.MaxColorsWanted);
 
 
 
+        /// <summary>
+        /// Runs the RGB666 quantization followed by the clustering reduction.
+        /// </summary>
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransform);
 
-            var oQuantization = new ColorTransformQuantization();
-            oQuantization.WithQuantization(ColorQuantizationMode.RGB666)
+            var quantization = new ColorTransformQuantization();
+            quantization.WithQuantization(ColorQuantizationMode.RGB666)
                          .WithReferencePalette(ReferencePalette)
                          .WithDithering( ColorDithering.None);
-            var oResultQuantized = oQuantization.CreateAndProcessColors(ImageSource, token);
+            var resultQuantized = quantization.CreateAndProcessColors(ImageSource, token);
 
-            var oCluster = new ColorTransformClustering()
+            var cluster = new ColorTransformClustering()
             .WithProcessingParams(MaxColorUsed, 10, ColorSelectionMode.EvaluateColorMean)
             .WithColorDistanceEvaluationMode(config)
             .WithDithering(config)
             .WithReferencePalette(config);
 
-            oCluster.ProcessPartial += (_, args) => RaiseProcessPartialEvent(args);
+            cluster.ProcessPartial += (_, args) => RaiseProcessPartialEvent(args);
 
-            var oClusterResult = oCluster.CreateAndProcessColors(oResultQuantized.DataOut, token);
-            if(oClusterResult.IsSuccess)
+            var clusterResult = cluster.CreateAndProcessColors(resultQuantized.DataOut, token);
+            if(clusterResult.IsSuccess)
             {
-                 return ColorTransformResult.CreateValidResult(ImageSource, oClusterResult.DataOut);
+                 return ColorTransformResult.CreateValidResult(ImageSource, clusterResult.DataOut);
             }
             return ColorTransformResult.CreateErrorResult("Processing error");
         }
