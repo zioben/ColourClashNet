@@ -165,9 +165,9 @@ public static class MatrixTools
             return CreateIndexedMatrix(rgbMatrix, palette.ToList(), widthAlignMode);
         }
 
-        int R = rgbMatrix.GetLength(0);
-        int C = rgbMatrix.GetLength(1);
-        int CO = GetNewWidthAlign(C, widthAlignMode);
+        int rows = rgbMatrix.GetLength(0);
+        int columns = rgbMatrix.GetLength(1);
+        int alignedColumns = GetNewWidthAlign(columns, widthAlignMode);
 
         Dictionary<int, byte> converter = new Dictionary<int, byte>();
         for (int i = 0; i < Math.Min(paletteList.Count, 256); i++)
@@ -178,24 +178,24 @@ public static class MatrixTools
         // FIX: era "< 255" — con palette da 255 colori sbagliava ramo
         byte invalidColorIndex = (byte)(paletteList.Count < 256 ? 255 : 0);
 
-        var oRet = new byte[R, CO];
-        for (int y = 0; y < R; y++)
+        var ret = new byte[rows, alignedColumns];
+        for (int y = 0; y < rows; y++)
         {
-            for (int x = 0; x < C; x++)
+            for (int x = 0; x < columns; x++)
             {
                 var col = rgbMatrix[y, x];
                 if (converter.TryGetValue(col, out var paletteIndex))
-                    oRet[y, x] = paletteIndex;
+                    ret[y, x] = paletteIndex;
                 else
-                    oRet[y, x] = invalidColorIndex;
+                    ret[y, x] = invalidColorIndex;
             }
 
-            for (int x = C; x < CO; x++)
+            for (int x = columns; x < alignedColumns; x++)
             {
-                oRet[y, x] = invalidColorIndex;
+                ret[y, x] = invalidColorIndex;
             }
         }
-        return oRet;
+        return ret;
     }
 
     /// <summary>
@@ -204,11 +204,11 @@ public static class MatrixTools
     /// </summary>
     /// <param name="rgbMatrix">A two-dimensional array of integers representing the source pixel data to be converted to indexed format.</param>
     /// <param name="palette">The palette to use for mapping source pixel values to palette indices. Cannot be null.</param>
-    /// <param name="ePixelWidthAlign">Specifies how the width of each image row is aligned in the resulting indexed data.</param>
+    /// <param name="pixelWidthAlign">Specifies how the width of each image row is aligned in the resulting indexed data.</param>
     /// <returns>A two-dimensional byte array containing the indexed image data, where each value corresponds to a palette
     /// index.</returns>
-    public static byte[,] CreateIndexedMatrix(int[,] rgbMatrix, Palette palette, WidthAlignMode ePixelWidthAlign)
-        => CreateIndexedMatrix(rgbMatrix, palette?.ToList(), ePixelWidthAlign);
+    public static byte[,] CreateIndexedMatrix(int[,] rgbMatrix, Palette palette, WidthAlignMode pixelWidthAlign)
+        => CreateIndexedMatrix(rgbMatrix, palette?.ToList(), pixelWidthAlign);
 
     /// <summary>
     /// Converts a two-dimensional array of Color values to an indexed byte array using the specified palette.
@@ -226,9 +226,9 @@ public static class MatrixTools
     /// <param name="rgbMatrix"></param>
     /// <param name="fileName"></param>
     /// <param name="palette"></param>
-    /// <param name="ePixelWidthAlign"></param>
+    /// <param name="pixelWidthAlign"></param>
     /// <returns></returns>
-    public static bool SaveIndexedMatrixAsImage(int[,] rgbMatrix, string fileName, List<int> paletteList, WidthAlignMode ePixelWidthAlign)
+    public static bool SaveIndexedMatrixAsImage(int[,] rgbMatrix, string fileName, List<int> paletteList, WidthAlignMode pixelWidthAlign)
     {
         string sM = nameof(SaveIndexedMatrixAsImage);
 
@@ -247,7 +247,7 @@ public static class MatrixTools
         if (!fileName.ToLower().EndsWith(".bmp"))
             fileName += ".bmp";
 
-        var idxMatrix = CreateIndexedMatrix(rgbMatrix, paletteList, ePixelWidthAlign);
+        var idxMatrix = CreateIndexedMatrix(rgbMatrix, paletteList, pixelWidthAlign);
         var width = idxMatrix.GetLength(1);
         var height = idxMatrix.GetLength(0);
         using (BinaryWriter bw = new BinaryWriter(File.Create(fileName)))
@@ -362,20 +362,20 @@ public static class MatrixTools
         if (matrixSrc == null)
             throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixSrc)} is null");
 
-        int R = matrixSrc.GetLength(0);
-        int C = matrixSrc.GetLength(1);
-        if (ys < 0 || ys >= R || xs < 0 || xs >= C || width <= 0 || height <= 0 || ys + height > R || xs + width > C)
+        int rows = matrixSrc.GetLength(0);
+        int columns = matrixSrc.GetLength(1);
+        if (ys < 0 || ys >= rows || xs < 0 || xs >= columns || width <= 0 || height <= 0 || ys + height > rows || xs + width > columns)
             throw new ArgumentOutOfRangeException($"{sC}.{sM} : Crop rectangle out of bounds");
 
-        var oRet = new int[height, width];
+        var ret = new int[height, width];
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                oRet[y, x] = matrixSrc[ys + y, xs + x];
+                ret[y, x] = matrixSrc[ys + y, xs + x];
             }
         }
-        return oRet;
+        return ret;
     }
 
     /// <summary>
@@ -542,12 +542,12 @@ public static class MatrixTools
         string sM = nameof(DoubleMatrixColumns);
         if (srcMatrix == null)
             throw new ArgumentNullException($"{sC}.{sM} : Null matrix source");
-        var R = srcMatrix.GetLength(0);
-        var C = srcMatrix.GetLength(1);
-        var dstMatrix = new int[R, C];
-        for (int r = 0; r < R; r++)
+        var rows = srcMatrix.GetLength(0);
+        var columns = srcMatrix.GetLength(1);
+        var dstMatrix = new int[rows, columns];
+        for (int r = 0; r < rows; r++)
         {
-            for (int c = 0; c < C; c++)
+            for (int c = 0; c < columns; c++)
             {
                 int rgb = srcMatrix[r, c];
                 switch (ColorIntExt.GetColorInfo(rgb))
@@ -709,48 +709,48 @@ public static class MatrixTools
         string sM = nameof(HalveMatrixColumns);
         if (matrixSrc == null)
             throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixSrc)} is null");
-        var R = matrixSrc.GetLength(0);
-        var C = matrixSrc.GetLength(1);
-        var CO = (C + 1) / 2;
-        var oRet = new int[R, CO];
+        var rows = matrixSrc.GetLength(0);
+        var columns = matrixSrc.GetLength(1);
+        var packedColumns = (columns + 1) / 2;
+        var ret = new int[rows, packedColumns];
         switch (halveResolutionMode)
         {
             case HalveResolutionMode.OddPixel:
-                for (int r = 0; r < R; r++)
-                    for (int c = 0, co = 0; c < C; c += 2, co++)
+                for (int r = 0; r < rows; r++)
+                    for (int c = 0, co = 0; c < columns; c += 2, co++)
                     {
-                        oRet[r, co] = matrixSrc[r, c];
+                        ret[r, co] = matrixSrc[r, c];
                     }
                 break;
             case HalveResolutionMode.EvenPixel:
-                for (int r = 0; r < R; r++)
+                for (int r = 0; r < rows; r++)
                 {
-                    for (int c = 1, co = 0; c < C; c += 2, co++)
+                    for (int c = 1, co = 0; c < columns; c += 2, co++)
                     {
-                        oRet[r, co] = matrixSrc[r, c];
+                        ret[r, co] = matrixSrc[r, c];
                     }
                     // Odd width: the last output column has no even source pixel, use the last one
-                    if (C % 2 == 1)
-                        oRet[r, CO - 1] = matrixSrc[r, C - 1];
+                    if (columns % 2 == 1)
+                        ret[r, packedColumns - 1] = matrixSrc[r, columns - 1];
                 }
                 break;
             case HalveResolutionMode.MeanColor:
-                for (int r = 0; r < R; r++)
+                for (int r = 0; r < rows; r++)
                     // Average pixel pairs (0,1), (2,3), ...
-                    for (int c = 0, co = 0; c < C; c += 2, co++)
+                    for (int c = 0, co = 0; c < columns; c += 2, co++)
                     {
                         var a = matrixSrc[r, c];
                         var b = a;
-                        if (c < C - 1)
+                        if (c < columns - 1)
                         {
                             b = matrixSrc[r, c + 1];
                         }
-                        oRet[r, co] = ColorIntExt.GetColorMean(a, b);
+                        ret[r, co] = ColorIntExt.GetColorMean(a, b);
                     }
                 break;
             default: throw new ArgumentException($"{sC}.{sM} : unsupported halve mode : '{halveResolutionMode}'", nameof(HalveResolutionMode));
         }
-        return oRet;
+        return ret;
     }
 
     /// <summary>
@@ -765,21 +765,21 @@ public static class MatrixTools
         if (matrixSrc == null)
             throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrixSrc)} is null");
 
-        var R = matrixSrc.GetLength(0);
-        var C = matrixSrc.GetLength(1);
-        var oRet = new int[R, C * 2];
+        var rows = matrixSrc.GetLength(0);
+        var columns = matrixSrc.GetLength(1);
+        var ret = new int[rows, columns * 2];
 
-        //Parallel.For(0, R, r =>
-        for (int r = 0; r < R; r++)
+        //Parallel.For(0, rows, r =>
+        for (int r = 0; r < rows; r++)
         {
-            for (int c = 0, co = 0; c < C; c++)
+            for (int c = 0, co = 0; c < columns; c++)
             {
                 var a = matrixSrc[r, c];
-                oRet[r, co++] = a;
-                oRet[r, co++] = a;
+                ret[r, co++] = a;
+                ret[r, co++] = a;
             }
         }//);
-        return oRet;
+        return ret;
     }
 
 

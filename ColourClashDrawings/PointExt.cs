@@ -46,12 +46,12 @@ namespace ColourClashNet.Drawing
         public static System.Drawing.Point Clip(this Point pa, Rectangle roi)
            => pa.IsClipped(roi) ? new Point() : pa;
 
-        public static System.Drawing.Point Clip(this Point pa, int MaxW, int MaxH )
-            => pa.Clip(new Rectangle(0,0,MaxW,MaxH));
-        public static System.Drawing.Point Clip(this Point pa, float MaxW, float MaxH)
-            => pa.Clip(new Rectangle(0, 0, (int)MaxW, (int)MaxH));
-        public static System.Drawing.Point Clip(this Point pa, double MaxW, double MaxH)
-            => pa.Clip(new Rectangle(0, 0, (int)MaxW, (int)MaxH));
+        public static System.Drawing.Point Clip(this Point pa, int maxW, int maxH )
+            => pa.Clip(new Rectangle(0,0,maxW,maxH));
+        public static System.Drawing.Point Clip(this Point pa, float maxW, float maxH)
+            => pa.Clip(new Rectangle(0, 0, (int)maxW, (int)maxH));
+        public static System.Drawing.Point Clip(this Point pa, double maxW, double maxH)
+            => pa.Clip(new Rectangle(0, 0, (int)maxW, (int)maxH));
         public static System.Drawing.Point Clip(this Point pa, Size s)
             => pa.Clip(new Rectangle(0, 0, s.Width,s.Height));
         public static System.Drawing.Point Clip(this Point pa, SizeF s)

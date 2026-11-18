@@ -158,11 +158,11 @@
             pgColorProcessor = new PropertyGrid();
             gbConfig = new GroupBox();
             pgColorProcessorConfig = new PropertyGrid();
-            oBitmapRenderSource = new ColourClashNet.Components.BitmapRender(components);
-            oBitmapRenderDest = new ColourClashNet.Components.BitmapRender(components);
-            oColorManager = new ColourClashNet.Components.ColorTransformManager(components);
+            bitmapRenderSource = new ColourClashNet.Components.BitmapRender(components);
+            bitmapRenderDest = new ColourClashNet.Components.BitmapRender(components);
+            colorManager = new ColourClashNet.Components.ColorTransformManager(components);
             saveFileDialogBlobs = new SaveFileDialog();
-            oBlobManager = new ColourClashNet.Components.BlobManager(components);
+            blobManager = new ColourClashNet.Components.BlobManager(components);
             ((System.ComponentModel.ISupportInitialize)splitMainA_BC).BeginInit();
             splitMainA_BC.Panel1.SuspendLayout();
             splitMainA_BC.Panel2.SuspendLayout();
@@ -1611,16 +1611,16 @@
             pgColorProcessorConfig.Size = new Size(180, 351);
             pgColorProcessorConfig.TabIndex = 0;
             // 
-            // oBitmapRenderSource
+            // bitmapRenderSource
             // 
-            oBitmapRenderSource.Control = pictureBoxSrc;
-            oBitmapRenderSource.ImageZoomMode = Components.BitmapRender.EnumZoom.Zoom1;
-            oBitmapRenderSource.MouseMove += oBitmapRenderSource_MouseMove;
+            bitmapRenderSource.Control = pictureBoxSrc;
+            bitmapRenderSource.ImageZoomMode = Components.BitmapRender.EnumZoom.Zoom1;
+            bitmapRenderSource.MouseMove += oBitmapRenderSource_MouseMove;
             // 
-            // oBitmapRenderDest
+            // bitmapRenderDest
             // 
-            oBitmapRenderDest.Control = pictureBoxProc;
-            oBitmapRenderDest.ImageZoomMode = Components.BitmapRender.EnumZoom.Zoom1;
+            bitmapRenderDest.Control = pictureBoxProc;
+            bitmapRenderDest.ImageZoomMode = Components.BitmapRender.EnumZoom.Zoom1;
             // 
             // ColorAnalyzer
             // 
@@ -1712,11 +1712,11 @@
         #endregion
         private SplitContainer splitMainA_BC;
         private PictureBox pictureBoxSrc;
-        private Components.BitmapRender oBitmapRenderSource;
-        private Components.ColorTransformManager oColorManager;
+        private Components.BitmapRender bitmapRenderSource;
+        private Components.ColorTransformManager colorManager;
         private SplitContainer splitRenderLayout;
         private PictureBox pictureBoxProc;
-        private Components.BitmapRender oBitmapRenderDest;
+        private Components.BitmapRender bitmapRenderDest;
         private TableLayoutPanel layoutConfig;
         private Panel panelSelectColors;
         private NumericUpDown nudColorsWanted;
@@ -1843,6 +1843,6 @@
         private Button btnBlobSaveFrames;
         private CheckBox chkBlobInvertSelection;
         private SaveFileDialog saveFileDialogBlobs;
-        private Components.BlobManager oBlobManager;
+        private Components.BlobManager blobManager;
     }
 }

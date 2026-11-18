@@ -47,8 +47,8 @@ namespace ColourClashNet
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
 
-            if (Enum.TryParse<T>(value.ToString(), out var eVal))
-                return eVal;
+            if (Enum.TryParse<T>(value.ToString(), out var val))
+                return val;
 
             throw new ArgumentException($"Invalid value for enum conversion to {typeof(T).Name}: {value}", nameof(value));
         }

@@ -25,7 +25,7 @@ namespace ColourClashLib.Color.Transformation.Evolution
         /// <summary>
         /// The list represents color evolution workflow, step by step, for each cluster.
         /// </summary>
-        internal List<T> lEvolution = new();
+        internal List<T> evolution = new();
         internal int ReseedingCount { get; set; } = 0;
 
 
@@ -38,22 +38,22 @@ namespace ColourClashLib.Color.Transformation.Evolution
         {
             var evo = new T();
             evo.SetClusterColor(rgb);
-            lEvolution.Add(evo);
+            evolution.Add(evo);
         }
 
         /// <summary>
         /// Get the cluster based on the specified distance evaluation mode.
         /// </summary>
         /// <param name="rgb"></param>
-        /// <param name="eMode"></param>
+        /// <param name="mode"></param>
         /// <returns></returns>
-        private T FindBestCluster(int rgb, ColorDistanceEvaluationMode eMode)
+        private T FindBestCluster(int rgb, ColorDistanceEvaluationMode mode)
         {
             T bestEvolution = new();
             double bestDistance = double.MaxValue;
-            foreach (var evo in lEvolution)
+            foreach (var evo in evolution)
             {
-                double d = evo.Distance(rgb, eMode);
+                double d = evo.Distance(rgb, mode);
                 if (d < bestDistance)
                 {
                     bestDistance = d;
@@ -69,15 +69,15 @@ namespace ColourClashLib.Color.Transformation.Evolution
         /// Create the color transformation map based on the current state of the color evolution clusters.
         /// </summary>
         /// <param name="image"></param>
-        /// <param name="eMode"></param>
+        /// <param name="mode"></param>
         /// <returns></returns>
-        internal ColorTransformationMap CreateTransformationMap(ImageData image, ColorDistanceEvaluationMode eMode)
+        internal ColorTransformationMap CreateTransformationMap(ImageData image, ColorDistanceEvaluationMode mode)
         {
             ColorTransformationMap map = new ColorTransformationMap();
             foreach (var rgb in image.ColorPalette)
             {
-                var bestCluster = FindBestCluster(rgb, eMode);
-                map.Add(rgb, bestCluster.GetClusterColor(rgb,eMode));
+                var bestCluster = FindBestCluster(rgb, mode);
+                map.Add(rgb, bestCluster.GetClusterColor(rgb,mode));
             }
             return map;
         }
@@ -86,12 +86,12 @@ namespace ColourClashLib.Color.Transformation.Evolution
         /// Populate cluster data using a color histogram
         /// </summary>
         /// <param name="histogram"></param>
-        /// <param name="eMode"></param>
-        internal void Clusterize(HistogramRGB histogram, ColorDistanceEvaluationMode eMode)
+        /// <param name="mode"></param>
+        internal void Clusterize(HistogramRGB histogram, ColorDistanceEvaluationMode mode)
         {
             foreach (var kvp in histogram.HistogramDictionary)
             {
-                var bestEvolution = FindBestCluster(kvp.Key, eMode);
+                var bestEvolution = FindBestCluster(kvp.Key, mode);
                 bestEvolution.HistDictionary.Add(kvp.Key, kvp.Value);
             }
         }
@@ -101,22 +101,22 @@ namespace ColourClashLib.Color.Transformation.Evolution
         /// </summary>
         /// <param name="referencePalette"></param>
         /// <param name="mode"></param>
-        /// <param name="eMode"></param>
+        /// <param name="distanceMode"></param>
         /// <returns></returns>
-        internal List<int> ComputeNextEvolution(Palette referencePalette, ColorSelectionMode mode, ColorDistanceEvaluationMode eMode)
+        internal List<int> ComputeNextEvolution(Palette referencePalette, ColorSelectionMode mode, ColorDistanceEvaluationMode distanceMode)
         {
             string sMethod = nameof(ComputeNextEvolution);
-            int n = lEvolution.Count;
+            int n = evolution.Count;
             var next = new int?[n];
-            var fixedEntries = new HashSet<int>(referencePalette.rgbPalette);
+            var fixedEntries = new HashSet<int>(referencePalette.RgbPalette);
 
             // Evaluate the fixed cluster evolution
             for (int i = 0; i < n; i++)
             {
-                var evo = lEvolution[i];
-                if (referencePalette.Contains(evo.GetClusterColor(i, eMode)))
+                var evo = evolution[i];
+                if (referencePalette.Contains(evo.GetClusterColor(i, distanceMode)))
                 {
-                    next[i] = evo.GetClusterColor(i, eMode);
+                    next[i] = evo.GetClusterColor(i, distanceMode);
                 }
                 else if (evo.HistDictionary.Count > 0)
                 {
@@ -129,12 +129,12 @@ namespace ColourClashLib.Color.Transformation.Evolution
             }
 
             // Select populate dclusters
-            var evoItems = lEvolution.Where(evo => evo.HistDictionary.Count > 1).ToList();
+            var evoItems = evolution.Where(evo => evo.HistDictionary.Count > 1).ToList();
             // flatten all histograms, peek actual color and "error" as (histogram.count * distance (cluster color, hitstogram color))
             var evoCandidates = evoItems.SelectMany(e => e.HistDictionary
                  .Where(kvp => !fixedEntries.Contains(kvp.Key))
-                 .Select(kvp => (Color: kvp.Key, Err: (double)kvp.Value * e.GetClusterColor(kvp.Key, eMode).Distance(kvp.Key, eMode)))).ToList();
-            //     .Select(kvp => (Color: kvp.Key, Err: (double)kvp.Value * e.ClusterRGB.Distance(kvp.Key, eMode)))).ToList();
+                 .Select(kvp => (Color: kvp.Key, Err: (double)kvp.Value * e.GetClusterColor(kvp.Key, distanceMode).Distance(kvp.Key, distanceMode)))).ToList();
+            //     .Select(kvp => (Color: kvp.Key, Err: (double)kvp.Value * e.ClusterRGB.Distance(kvp.Key, mode)))).ToList();
             // creating a list of selectable candidates ordered by error
             var colorCandidates = evoCandidates.Where(t => t.Err > 0).OrderByDescending(t => t.Err).ToList();
 
@@ -150,7 +150,7 @@ namespace ColourClashLib.Color.Transformation.Evolution
 
                 if (ci < colorCandidates.Count)
                 {
-                    //LogMan.Warning(sC, sMethod, $"Cluster 0x{lEvolution[i].ClusterColorRGB:X8} empty/duplicated, reseed with 0x{colorCandidates[ci].Color:X8}");
+                    //LogMan.Warning(sC, sMethod, $"Cluster 0x{evolution[i].ClusterColorRGB:X8} empty/duplicated, reseed with 0x{colorCandidates[ci].Color:X8}");
                     ReseedingCount++;
                     next[i] = colorCandidates[ci].Color;
                     fixedEntries.Add(colorCandidates[ci].Color);
@@ -159,7 +159,7 @@ namespace ColourClashLib.Color.Transformation.Evolution
                 else
                 {
                     // Nessun candidato disponibile: tieni il centro precedente
-                    next[i] = lEvolution[i].GetClusterColor(i, eMode);
+                    next[i] = evolution[i].GetClusterColor(i, distanceMode);
                 }
             }
 

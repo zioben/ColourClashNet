@@ -62,7 +62,7 @@ public partial class TileManager
     }
 
 
-    public TileManager Create(int tileWidth, int tileHeight, ImageData image, double normalizationError, ColorTransformConfig colorTransformConfig , CancellationToken oToken=default)
+    public TileManager Create(int tileWidth, int tileHeight, ImageData image, double normalizationError, ColorTransformConfig colorTransformConfig , CancellationToken token=default)
     {
 
         string sM = nameof(Create);
@@ -91,7 +91,7 @@ public partial class TileManager
                 {
                     for (int c = 0; c < TileColumns; c++)
                     {
-                        oToken.ThrowIfCancellationRequested();
+                        token.ThrowIfCancellationRequested();
                         int ys = r * TileH;
                         int xs = c * TileW;
                         tileProcessingMatrix[r, c] = new TileProcessing().Create(
@@ -146,7 +146,7 @@ public partial class TileManager
                     }
                 };
             }//);
-            var dError = RecalcGlobalTransformationError();
+            var error = RecalcGlobalTransformationError();
             return ColorTransformResult.CreateValidResult();
         }
         catch (OperationCanceledException ex)

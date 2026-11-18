@@ -27,7 +27,7 @@ namespace ColourClashNet.Color.Transformation
             
         }
 
-        protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken = default)
+        protected override ColorTransformResult CreateTransformationMap(CancellationToken token = default)
         {
             TransformationMap.Reset();
             RebuildReferencePalette();
@@ -39,7 +39,7 @@ namespace ColourClashNet.Color.Transformation
                 TransformationMap.Add(rgb, ColorIntExt.GetNearestColor(rgb, ReferencePalette, this.ColorDistanceEvaluationMode));
             }//);
             //Verified OK
-            //var t = TransformationMap.rgbTransformationMap.Values.Distinct().ToList();
+            //var t = TransformationMap.RgbTransformationMap.Values.Distinct().ToList();
             return ColorTransformResult.CreateValidResult();
         }
     }

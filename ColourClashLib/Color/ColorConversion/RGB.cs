@@ -25,7 +25,7 @@ namespace ColourClashNet.Color.Conversion
         }
 
         /// <summary>
-        /// Converts an RGB color (int representation) to HSV.
+        /// Converts an result color (int representation) to HSV.
         /// </summary>
         public bool FromIntRGB(int rgb)
         {
@@ -43,31 +43,31 @@ namespace ColourClashNet.Color.Conversion
         }
 
         /// <summary>
-        /// Converts an RGB color (int representation) to HSV.
+        /// Converts an result color (int representation) to HSV.
         /// </summary>
         public static RGB CreateFromIntRGB(int rgb)
         {
-            var RGB = new RGB(-1, -1, -1);
-            RGB.FromIntRGB(rgb);
-            return RGB;
+            var result = new RGB(-1, -1, -1);
+            result.FromIntRGB(rgb);
+            return result;
         }
 
         /// <summary>
-        /// Converts HSV to an integer RGB representation.
+        /// Converts HSV to an integer result representation.
         /// </summary>
         public int ToIntRGB() => ColorIntExt.FromRGB(R, G, B);
 
         /// <summary>
-        /// Calculates Euclidean distance between two RGB colors.
+        /// Calculates Euclidean distance between two result colors.
         /// </summary>
         public static double Distance(RGB rgbA, RGB rgbB)
         {
             if (!rgbA.IsValid || !rgbB.IsValid)
                 return double.NaN;                
-            double dL = rgbA.R - rgbB.R;
-            double dA = rgbA.G - rgbB.G;
-            double dB = rgbA.B - rgbB.B;
-            return Math.Sqrt(dL * dL + dA * dA + dB * dB);
+            double deltaR = rgbA.R - rgbB.R;
+            double deltaG = rgbA.G - rgbB.G;
+            double deltaB = rgbA.B - rgbB.B;
+            return Math.Sqrt(deltaR * deltaR + deltaG * deltaG + deltaB * deltaB);
         }
 
 

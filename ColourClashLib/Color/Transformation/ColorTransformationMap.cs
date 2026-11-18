@@ -15,28 +15,28 @@ namespace ColourClashNet.Color.Transformation
     public partial class ColorTransformationMap
     {
         static string sC = nameof(ColorTransformationMap);
-        public ConcurrentDictionary<int, int> rgbTransformationMap { get; private init; } = new();
+        public ConcurrentDictionary<int, int> RgbTransformationMap { get; private init; } = new();
 
         public void Reset()
         {
-            rgbTransformationMap.Clear();
+            RgbTransformationMap.Clear();
         }
 
-        public int Colors => rgbTransformationMap.Count;
+        public int Colors => RgbTransformationMap.Count;
 
-        public bool Create(Palette oPalette)
+        public bool Create(Palette palette)
         {
             Reset();
-            if (oPalette == null)
+            if (palette == null)
             {
                 return false;
             }
-            var rgbList = oPalette.ToList();
+            var rgbList = palette.ToList();
             foreach (var rgb in rgbList)
             {
                 if ( rgb>=0 )
                 {
-                    rgbTransformationMap[rgb] = rgb;
+                    RgbTransformationMap[rgb] = rgb;
                 }
             }
             return true;
@@ -58,14 +58,14 @@ namespace ColourClashNet.Color.Transformation
             {
                 return;
             }
-            rgbTransformationMap[sourceRGB] = destRGB;
+            RgbTransformationMap[sourceRGB] = destRGB;
         }
 
         public void Remove(int sourceRGB)
         {
-            if (rgbTransformationMap.ContainsKey(sourceRGB))
+            if (RgbTransformationMap.ContainsKey(sourceRGB))
             {
-                rgbTransformationMap.TryRemove(sourceRGB, out int Removed);
+                RgbTransformationMap.TryRemove(sourceRGB, out int removed);
             }
         }
 
@@ -73,7 +73,7 @@ namespace ColourClashNet.Color.Transformation
         {
             string sM = nameof(Transform);
             ImageData.AssertValid(image);
-            var oDataOut = new int[image.Rows,image.Columns];
+            var dataOut = new int[image.Rows,image.Columns];
             //Parallel.For(0, image.Height, r =>
             for( int r =0; r<image.Rows; r++)
             {
@@ -81,39 +81,39 @@ namespace ColourClashNet.Color.Transformation
                 for (int c = 0; c < image.Columns; c++)
                 {
                     var rgb = image.matrix[r, c];
-                    if (!rgbTransformationMap.TryGetValue(rgb, out oDataOut[r, c]))
+                    if (!RgbTransformationMap.TryGetValue(rgb, out dataOut[r, c]))
                     {
                         // Tagged pixels (negative: transparent, mask, ...) not in the map are kept unchanged
-                        oDataOut[r, c] = rgb < 0 ? rgb : ColorDefaults.DefaultInvalidColorInt;
+                        dataOut[r, c] = rgb < 0 ? rgb : ColorDefaults.DefaultInvalidColorInt;
                     }
                 }
             }//);
-            return new ImageData().Create(oDataOut);
+            return new ImageData().Create(dataOut);
         }
 
 
         public Palette GetOutputPalette()
         {
-            var oCP = new Palette();
-            foreach (var kvp in rgbTransformationMap)
+            var newPalette = new Palette();
+            foreach (var kvp in RgbTransformationMap)
             {
                 if (kvp.Value < 0)
                     continue;
-                oCP.Add(kvp.Value);
+                newPalette.Add(kvp.Value);
             }
-            return oCP; 
+            return newPalette; 
         }
 
         public Palette GetInputPalette()
         {
-            var oCP = new Palette();
-            foreach (var kvp in rgbTransformationMap)
+            var newPalette = new Palette();
+            foreach (var kvp in RgbTransformationMap)
             {
                 if (kvp.Key < 0)
                     continue;
-                oCP.Add(kvp.Key);
+                newPalette.Add(kvp.Key);
             }
-            return oCP;
+            return newPalette;
         }
     }
 }

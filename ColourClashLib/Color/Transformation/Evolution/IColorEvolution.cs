@@ -29,17 +29,17 @@ namespace ColourClashLib.Color.Transformation.Evolution
         /// 
         /// </summary>
         /// <param name="rgb"></param>
-        /// <param name="eMode"></param>
+        /// <param name="mode"></param>
         /// <returns></returns>
-        int GetClusterColor(int rgb, ColorDistanceEvaluationMode eMode);
+        int GetClusterColor(int rgb, ColorDistanceEvaluationMode mode);
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="rgb"></param>
-        /// <param name="eMode"></param>
+        /// <param name="mode"></param>
         /// <returns></returns>
-        double Distance(int rgb, ColorDistanceEvaluationMode eMode);
+        double Distance(int rgb, ColorDistanceEvaluationMode mode);
 
     }
 }

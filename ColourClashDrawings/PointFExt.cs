@@ -47,12 +47,12 @@ namespace ColourClashNet.Drawing
             => pa.IsClipped(roi) ? new PointF() : pa;
         public static PointF Clip(this PointF pa, Rectangle roi)
             => pa.Clip(new RectangleF(roi.X, roi.Y, roi.Width, roi.Height));
-        public static PointF Clip(this PointF pa, int MaxW, int MaxH)
-            => pa.Clip(new Rectangle(0, 0, MaxW, MaxH));
-        public static PointF Clip(this PointF pa, float MaxW, float MaxH)
-            => pa.Clip(new Rectangle(0, 0, (int)MaxW, (int)MaxH));
-        public static PointF Clip(this PointF pa, double MaxW, double MaxH)
-            => pa.Clip(new Rectangle(0, 0, (int)MaxW, (int)MaxH));
+        public static PointF Clip(this PointF pa, int maxW, int maxH)
+            => pa.Clip(new Rectangle(0, 0, maxW, maxH));
+        public static PointF Clip(this PointF pa, float maxW, float maxH)
+            => pa.Clip(new Rectangle(0, 0, (int)maxW, (int)maxH));
+        public static PointF Clip(this PointF pa, double maxW, double maxH)
+            => pa.Clip(new Rectangle(0, 0, (int)maxW, (int)maxH));
         public static PointF Clip(this PointF pa, Size s)
             => pa.Clip(new Rectangle(0, 0, s.Width, s.Height));
         public static PointF Clip(this PointF pa, SizeF s)

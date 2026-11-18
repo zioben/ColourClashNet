@@ -30,9 +30,9 @@ namespace ColourClashNet.Color.Transformation
             set => config.MaxColorsWanted = value;
         }   
 
-        public ColorTransformVGA WithProperties(int iMaxColors)
+        public ColorTransformVGA WithProperties(int maxColors)
         {
-            MaxColorUsed = iMaxColors;
+            MaxColorUsed = maxColors;
             return this;
         }
 
@@ -44,24 +44,24 @@ namespace ColourClashNet.Color.Transformation
         {
             string sM = nameof(ExecuteTransform);
 
-            var oQuantization = new ColorTransformQuantization();
-            oQuantization.WithQuantization(ColorQuantizationMode.RGB666)
+            var quantization = new ColorTransformQuantization();
+            quantization.WithQuantization(ColorQuantizationMode.RGB666)
                          .WithReferencePalette(ReferencePalette)
                          .WithDithering( ColorDithering.None);
-            var oResultQuantized = oQuantization.CreateAndProcessColors(ImageSource, token);
+            var resultQuantized = quantization.CreateAndProcessColors(ImageSource, token);
 
-            var oCluster = new ColorTransformClustering()
+            var cluster = new ColorTransformClustering()
             .WithProcessingParams(MaxColorUsed, 10, ColorSelectionMode.EvaluateColorMean)
             .WithColorDistanceEvaluationMode(config)
             .WithDithering(config)
             .WithReferencePalette(config);
 
-            oCluster.ProcessPartial += (_, args) => RaiseProcessPartialEvent(args);
+            cluster.ProcessPartial += (_, args) => RaiseProcessPartialEvent(args);
 
-            var oClusterResult = oCluster.CreateAndProcessColors(oResultQuantized.DataOut, token);
-            if(oClusterResult.IsSuccess)
+            var clusterResult = cluster.CreateAndProcessColors(resultQuantized.DataOut, token);
+            if(clusterResult.IsSuccess)
             {
-                 return ColorTransformResult.CreateValidResult(ImageSource, oClusterResult.DataOut);
+                 return ColorTransformResult.CreateValidResult(ImageSource, clusterResult.DataOut);
             }
             return ColorTransformResult.CreateErrorResult("Processing error");
         }

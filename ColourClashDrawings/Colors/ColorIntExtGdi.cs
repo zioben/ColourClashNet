@@ -67,14 +67,14 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Converts a <see cref="System.Drawing.Color"/> to its integer representation.
         /// </summary>
-        /// <param name="oColor"></param>
+        /// <param name="color"></param>
         /// <returns></returns>
-        public static int FromDrawingColor(System.Drawing.Color oColor)
+        public static int FromDrawingColor(System.Drawing.Color color)
         {
-            if (oColor == System.Drawing.Color.Transparent)
+            if (color == System.Drawing.Color.Transparent)
                 return ColorDefaults.DefaultInvalidColorInt;
 
-            return ColorIntExt.FromRGB(oColor.R, oColor.G, oColor.B);
+            return ColorIntExt.FromRGB(color.R, color.G, color.B);
         }
 
     }

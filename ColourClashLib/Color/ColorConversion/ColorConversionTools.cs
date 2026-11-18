@@ -18,10 +18,10 @@ namespace ColourClashNet.Color.Conversion
             };
         }
 
-        public static ColorConverterInterface CreateConverter(ColorMode colorMode, int iRGB)
+        public static ColorConverterInterface CreateConverter(ColorMode colorMode, int rgb)
         {
             var converter = CreateConverter(colorMode);
-            converter.FromIntRGB(iRGB);
+            converter.FromIntRGB(rgb);
             return converter;
         }
     }

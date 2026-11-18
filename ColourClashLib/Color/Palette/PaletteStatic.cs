@@ -30,7 +30,7 @@ public partial class Palette
             if (palette == null)
                 continue;
 
-            foreach (var color in palette.rgbPalette)
+            foreach (var color in palette.RgbPalette)
                 result.Add(color);
         }
 

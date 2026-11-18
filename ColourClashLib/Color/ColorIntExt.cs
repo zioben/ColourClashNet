@@ -120,27 +120,27 @@ namespace ColourClashNet.Color
         /// </summary>
         /// <param name="rgbA"></param>
         /// <param name="rgbB"></param>
-        /// <param name="eMode"></param>
+        /// <param name="mode"></param>
         /// <returns></returns>
-        public static double Distance(this int rgbA, int rgbB, ColorDistanceEvaluationMode eMode)
+        public static double Distance(this int rgbA, int rgbB, ColorDistanceEvaluationMode mode)
         {
             if (rgbA.IsInvalid() || rgbB.IsInvalid())
                 return double.NaN;
-            switch (eMode)
+            switch (mode)
             {
                 case ColorDistanceEvaluationMode.RGB:
                     {
-                        int R = rgbA.ToR() - rgbB.ToR();
-                        int G = rgbA.ToG() - rgbB.ToG();
-                        int B = rgbA.ToB() - rgbB.ToB();
-                        return R * R + G * G + B * B; // + (R-G)*(R-G) + (R-B)*(R-B) + (G-B)*(G-B);
+                        int r = rgbA.ToR() - rgbB.ToR();
+                        int g = rgbA.ToG() - rgbB.ToG();
+                        int b = rgbA.ToB() - rgbB.ToB();
+                        return r * r + g * g + b * b; // + (r-g)*(r-g) + (r-b)*(r-b) + (g-b)*(g-b);
                     }
                 case ColorDistanceEvaluationMode.RGBalt:
                     {
-                        int R = rgbA.ToR() - rgbB.ToR();
-                        int G = rgbA.ToG() - rgbB.ToG();
-                        int B = rgbA.ToB() - rgbB.ToB();
-                        return (R * R + G * G + B * B + (R - G) * (R - G) + (R - B) * (R - B) + (G - B) * (G - B));
+                        int r = rgbA.ToR() - rgbB.ToR();
+                        int g = rgbA.ToG() - rgbB.ToG();
+                        int b = rgbA.ToB() - rgbB.ToB();
+                        return (r * r + g * g + b * b + (r - g) * (r - g) + (r - b) * (r - b) + (g - b) * (g - b));
                     }
                 case ColorDistanceEvaluationMode.HSV:
                     {
@@ -173,13 +173,13 @@ namespace ColourClashNet.Color
         /// <param name="r"></param>
         /// <param name="g"></param>
         /// <param name="b"></param>
-        /// <param name="eType"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
-        public static int FromRGB(int r, int g, int b, ColorInfo eType)
+        public static int FromRGB(int r, int g, int b, ColorInfo type)
         {
             if (r < 0 || g < 0 || b < 0)
                 return ((int)ColorInfo.Invalid << 24);
-            return ((int)eType << 24) | (Math.Min(255, r) << 16) | (Math.Min(255, g) << 8) | (Math.Min(255, b));
+            return ((int)type << 24) | (Math.Min(255, r) << 16) | (Math.Min(255, g) << 8) | (Math.Min(255, b));
         }
 
 
@@ -206,20 +206,20 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Finds the nearest color in the provided color palette to the specified color, based on the given color distance evaluation mode.
         /// </summary>
-        /// <param name="iColor"></param>
-        /// <param name="oPalette"></param>
-        /// <param name="eMode"></param>
+        /// <param name="color"></param>
+        /// <param name="palette"></param>
+        /// <param name="mode"></param>
         /// <returns></returns>
-        public static int GetNearestColor(int iColor, Palette oPalette, ColorDistanceEvaluationMode eMode)
+        public static int GetNearestColor(int color, Palette palette, ColorDistanceEvaluationMode mode)
         {
-            if (oPalette == null || oPalette.Count == 0)
+            if (palette == null || palette.Count == 0)
             {
                 return ColorDefaults.DefaultInvalidColorInt;
             }
 
-            var rgbList = oPalette.ToList();
+            var rgbList = palette.ToList();
             var bestCol = rgbList
-            .Select(c => (Color: c, Dist: c.Distance(iColor, eMode)))
+            .Select(c => (Color: c, Dist: c.Distance(color, mode)))
             .OrderBy(x => x.Dist)
             .First();
 
@@ -229,41 +229,41 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Calculates the mean color from a histogram of colors, based on the specified mean mode.
         /// </summary>
-        /// <param name="lColorHistogram"></param>
-        /// <param name="eMeanMode"></param>
+        /// <param name="colorHistogram"></param>
+        /// <param name="meanMode"></param>
         /// <returns></returns>
-        public static int GetColorMean(Dictionary<int, int> lColorHistogram, ColorSelectionMode eMeanMode)
+        public static int GetColorMean(Dictionary<int, int> colorHistogram, ColorSelectionMode meanMode)
         {
-            if (lColorHistogram == null || lColorHistogram.Count == 0)
+            if (colorHistogram == null || colorHistogram.Count == 0)
                 return ColorDefaults.DefaultInvalidColorInt;
-            switch (eMeanMode)
+            switch (meanMode)
             {
                 case ColorSelectionMode.UseColorPalette:
                     {
-                        var max = lColorHistogram.Max(X => X.Value);
-                        var kvp = lColorHistogram.FirstOrDefault(X => X.Value == max);
+                        var max = colorHistogram.Max(x => x.Value);
+                        var kvp = colorHistogram.FirstOrDefault(x => x.Value == max);
                         return kvp.Key;
                     }
                 case ColorSelectionMode.EvaluateColorMean:
                     {
-                        int Count = 0;
-                        double R = 0;
-                        double G = 0;
-                        double B = 0;
-                        foreach (var kvp in lColorHistogram)
+                        int count = 0;
+                        double r = 0;
+                        double g = 0;
+                        double b = 0;
+                        foreach (var kvp in colorHistogram)
                         {
-                            Count += kvp.Value;
-                            R += kvp.Value * kvp.Key.ToR();
-                            G += kvp.Value * kvp.Key.ToG();
-                            B += kvp.Value * kvp.Key.ToB();
+                            count += kvp.Value;
+                            r += kvp.Value * kvp.Key.ToR();
+                            g += kvp.Value * kvp.Key.ToG();
+                            b += kvp.Value * kvp.Key.ToB();
                         }
                         ;
-                        if (Count <= 0)
+                        if (count <= 0)
                             return ColorDefaults.DefaultInvalidColorInt;
-                        R /= Count;
-                        G /= Count;
-                        B /= Count;
-                        return ColorIntExt.FromRGB(R, G, B);
+                        r /= count;
+                        g /= count;
+                        b /= count;
+                        return ColorIntExt.FromRGB(r, g, b);
                     }
                 default:
                     return ColorDefaults.DefaultInvalidColorInt;
@@ -273,34 +273,34 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Calculates the mean color from a color palette, based on the specified mean mode.
         /// </summary>
-        /// <param name="oPalette"></param>
-        /// <param name="eMeanMode"></param>
+        /// <param name="palette"></param>
+        /// <param name="meanMode"></param>
         /// <returns></returns>
-        public static int GetColorMean(Palette oPalette, ColorSelectionMode eMeanMode)
+        public static int GetColorMean(Palette palette, ColorSelectionMode meanMode)
         {
-            if (oPalette == null || oPalette.Count == 0)
+            if (palette == null || palette.Count == 0)
                 return ColorDefaults.DefaultInvalidColorInt;
-            double R = 0;
-            double G = 0;
-            double B = 0;
-            var rgbList = oPalette.ToList();
+            double r = 0;
+            double g = 0;
+            double b = 0;
+            var rgbList = palette.ToList();
             foreach (var rgb in rgbList)
             {
-                R += rgb.ToR();
-                G += rgb.ToG();
-                B += rgb.ToB();
+                r += rgb.ToR();
+                g += rgb.ToG();
+                b += rgb.ToB();
             }
             ;
-            R /= rgbList.Count;
-            G /= rgbList.Count;
-            B /= rgbList.Count;
-            var iMean = ColorIntExt.FromRGB(R, G, B);
-            switch (eMeanMode)
+            r /= rgbList.Count;
+            g /= rgbList.Count;
+            b /= rgbList.Count;
+            var mean = ColorIntExt.FromRGB(r, g, b);
+            switch (meanMode)
             {
                 case ColorSelectionMode.EvaluateColorMean:
-                    return iMean;
+                    return mean;
                 case ColorSelectionMode.UseColorPalette:
-                    return GetNearestColor(iMean, oPalette, ColorDistanceEvaluationMode.RGB);
+                    return GetNearestColor(mean, palette, ColorDistanceEvaluationMode.RGB);
                 default:
                     return ColorDefaults.DefaultInvalidColorInt;
             }
@@ -318,13 +318,13 @@ namespace ColourClashNet.Color
             {
                 return ColorDefaults.DefaultInvalidColorInt;
             }
-            int R = (rgbA.ToR() + rgbB.ToR()) / 2;
-            int G = (rgbA.ToG() + rgbB.ToG()) / 2;
-            int B = (rgbA.ToB() + rgbB.ToB()) / 2;
-            return FromRGB(R, G, B);
+            int r = (rgbA.ToR() + rgbB.ToR()) / 2;
+            int g = (rgbA.ToG() + rgbB.ToG()) / 2;
+            int b = (rgbA.ToB() + rgbB.ToB()) / 2;
+            return FromRGB(r, g, b);
         }
 
-        static public double EvaluateError(int rgbA, int rgbB, ColorDistanceEvaluationMode eMode) => Distance(rgbA, rgbB, eMode);
+        static public double EvaluateError(int rgbA, int rgbB, ColorDistanceEvaluationMode mode) => Distance(rgbA, rgbB, mode);
 
         static public double EvaluateError(ImageData imageA, ImageData imageB, ColorDistanceEvaluationMode evalMode, CancellationToken token = default)
         {
@@ -361,7 +361,7 @@ namespace ColourClashNet.Color
             if( rgbCollection.Count()== 0)
                 return double.NaN;
 
-            double maxDistance = rgbCollection.Max(Y => rgbCollection.Max(X => Distance(Y, X, evalMode)));
+            double maxDistance = rgbCollection.Max(y => rgbCollection.Max(x => Distance(y, x, evalMode)));
 
             return maxDistance;
         }

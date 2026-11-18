@@ -115,14 +115,14 @@ namespace ColourClashNet.Components
         public Boolean ImageMoveOverControlBorder { get; set; } = true;
 
 
-        float fRoiZoomM = 1.0f;
+        float roiZoomM = 1.0f;
 
         [Browsable(true), Category("Appearance")]
         [DefaultValue(1.0f)]
         public float ImageZoomManual
         {
-            get { return fRoiZoomM; }
-            set { if (value > 0 && value != fRoiZoomM) fRoiZoomM = value; ForceRefresh(); }
+            get { return roiZoomM; }
+            set { if (value > 0 && value != roiZoomM) roiZoomM = value; ForceRefresh(); }
         }
 
         [Browsable(true), Category("Behavior")]
@@ -140,7 +140,7 @@ namespace ColourClashNet.Components
         [DefaultValue(true)]
         public bool MouseImageFollowing { get; set; } = true;
 
-        MouseHandler.PointTrack MouseControlTrack => MouseImageFollowing ? oMouseManager.PointTrackHistory : oMouseManager.PointTrackCurrent;
+        MouseHandler.PointTrack MouseControlTrack => MouseImageFollowing ? mouseManager.PointTrackHistory : mouseManager.PointTrackCurrent;
 
         [Browsable(true), Category("Appearance")]
         public Point MouseControlCoordinates => MouseControlTrack.ControlPointCurrent;
@@ -150,7 +150,7 @@ namespace ColourClashNet.Components
         public Point MouseControlCoordinatesClip => MouseControlCoordinates.Clip( Control?.Width ?? 0, Control?.Height ?? 0);
 
         [Browsable(true), Category("Appearance")]
-        public PointF MouseImageCoordinates => oCoordinateManager.InverseTransform(MouseControlCoordinates);
+        public PointF MouseImageCoordinates => coordinateManager.InverseTransform(MouseControlCoordinates);
 
         
         [Browsable(true), Category("Appearance")]
@@ -165,54 +165,54 @@ namespace ColourClashNet.Components
         [Browsable(true), Category("Behavior")]
         public EnumOperation ComponentOperationMode { get; private set; }
 
-        Control oControl;
+        Control control;
         [Browsable(true), Category("Appearance")]
         [DefaultValue(null)]
         public Control Control
         {
-            get { return oControl; }
+            get { return control; }
             set
             {
-                if (oControl != value)
+                if (control != value)
                 {
                     UnregisterControlEvents(); 
-                    oControl = value;
+                    control = value;
                     RegisterControlEvents();
                 }
             }
         }
 
-        Image oImage;
+        Image image;
         [Browsable(true), Category("Appearance")]
         [DefaultValue(null)]
         public Image Image
         {
-            get { return oImage; }
+            get { return image; }
             set
             {
-                if (oImage != value)
+                if (image != value)
                 {
-                    oImage = value;
-                    oMouseManager.Reset();
-                    oControl?.Refresh();
+                    image = value;
+                    mouseManager.Reset();
+                    control?.Refresh();
                 }
             }
         }
 
 
-        MouseHandler oMouseManager= new MouseHandler();
-        CoordinateManager oCoordinateManager = new CoordinateManager();
+        MouseHandler mouseManager= new MouseHandler();
+        CoordinateManager coordinateManager = new CoordinateManager();
 
-        List<System.Drawing.Color> lSelectedColors = new List<System.Drawing.Color>();  
+        List<System.Drawing.Color> selectedColors = new List<System.Drawing.Color>();  
         [DefaultValue(null)]
         public List<System.Drawing.Color> SelectedColors 
         {
-            get { return lSelectedColors; }
+            get { return selectedColors; }
             protected set
             { 
-                if( value != lSelectedColors)
+                if( value != selectedColors)
                 {
-                    lSelectedColors = value;
+                    selectedColors = value;
                     RebuildMouseColorToolStripItems();
                 }
             }
@@ -262,7 +262,7 @@ namespace ColourClashNet.Components
         void SetClickZoom(EnumZoom z)
         {
             ImageZoomMode = z;
-            oControl?.Refresh();
+            control?.Refresh();
         }
         void SetClickScroll()
         {
@@ -292,11 +292,11 @@ namespace ColourClashNet.Components
         #endregion
 
 
-        public void SetOperationMode(EnumOperation eOperationMode)
+        public void SetOperationMode(EnumOperation operationMode)
         {
             lock (locker)
             {
-                ComponentOperationMode = eOperationMode;
+                ComponentOperationMode = operationMode;
                 switch (ComponentOperationMode)
                 {
                     case EnumOperation.None:
@@ -318,27 +318,27 @@ namespace ColourClashNet.Components
 
         void RegisterControlEvents()
         {
-            if (oControl != null)
+            if (control != null)
             {
-                oControl.Paint += OnPaint;
-                oControl.MouseUp += OnMouseUp;
-                oControl.MouseDown += OnMouseDown;
-                oControl.MouseMove += OnMouseMove;
-                oControl.MouseWheel += OnMouseWheel;
-                oControl.ContextMenuStrip = oContextMenuStrip;
+                control.Paint += OnPaint;
+                control.MouseUp += OnMouseUp;
+                control.MouseDown += OnMouseDown;
+                control.MouseMove += OnMouseMove;
+                control.MouseWheel += OnMouseWheel;
+                control.ContextMenuStrip = contextMenuStrip;
             }
         }
 
         void UnregisterControlEvents()
         {
-            if (oControl != null)
+            if (control != null)
             {
-                oControl.ContextMenuStrip = null;
-                oControl.Paint -= OnPaint;
-                oControl.MouseUp -= OnMouseUp;
-                oControl.MouseDown -= OnMouseDown;
-                oControl.MouseMove -= OnMouseMove;
-                oControl.MouseWheel -= OnMouseWheel;
+                control.ContextMenuStrip = null;
+                control.Paint -= OnPaint;
+                control.MouseUp -= OnMouseUp;
+                control.MouseDown -= OnMouseDown;
+                control.MouseMove -= OnMouseMove;
+                control.MouseWheel -= OnMouseWheel;
             }
         }
 
@@ -347,7 +347,7 @@ namespace ColourClashNet.Components
         #region Event codes - core of the component 
 
 
-        protected void OnMouseWheel(object Sender, MouseEventArgs args)
+        protected void OnMouseWheel(object sender, MouseEventArgs args)
         {
             if (args.Delta != 0)
             {
@@ -372,20 +372,20 @@ namespace ColourClashNet.Components
 
         void UpdateMouseImageColor()
         {
-            if (oMouseManager.MouseState == MouseHandler.EnumMouseState.tracking)
+            if (mouseManager.MouseState == MouseHandler.EnumMouseState.tracking)
             {
                 return;
             }
-            if (Image is Bitmap oBmp)
+            if (Image is Bitmap bmp)
             {
-                var oPointI = MouseImageCoordinates;
-                if (oPointI.IsClipped(new Rectangle(0, 0, oBmp.Width, oBmp.Height)))
+                var pointI = MouseImageCoordinates;
+                if (pointI.IsClipped(new Rectangle(0, 0, bmp.Width, bmp.Height)))
                 {
                     MouseImageColor = System.Drawing.Color.Transparent;
                 }
                 else
                 {
-                    MouseImageColor = oBmp.GetPixel((int)oPointI.X, (int)oPointI.Y);
+                    MouseImageColor = bmp.GetPixel((int)pointI.X, (int)pointI.Y);
                 }
             }
             else
@@ -394,53 +394,53 @@ namespace ColourClashNet.Components
             }   
         }
 
-        public PointF oImageOrigin = new PointF(0, 0);
+        public PointF imageOrigin = new PointF(0, 0);
 
-        bool bFirstCLick = true;
+        bool firstClick = true;
 
-        protected void OnMouseDown(object Sender, MouseEventArgs args)
+        protected void OnMouseDown(object sender, MouseEventArgs args)
         {
-            if (oMouseManager.OnMouseDown(args))
+            if (mouseManager.OnMouseDown(args))
             {
-                if (bFirstCLick)
+                if (firstClick)
                 {
-                    bFirstCLick = false;
-                    oImageOrigin = oImageOrigin.Sub(MouseControlTrack.ControlPointTranslation);
+                    firstClick = false;
+                    imageOrigin = imageOrigin.Sub(MouseControlTrack.ControlPointTranslation);
                 }
                 else
                 {
-                    oImageOrigin = oImageOrigin.Sub(MouseControlTrack.ControlPointClick);
+                    imageOrigin = imageOrigin.Sub(MouseControlTrack.ControlPointClick);
                 }
-                oCoordinateManager.TransfOrigin = oImageOrigin.Add(MouseControlTrack.ControlPointTranslation);
+                coordinateManager.TransfOrigin = imageOrigin.Add(MouseControlTrack.ControlPointTranslation);
                 UpdateMouseImageColor();
                 ForceRefresh();
             }
-            MouseDown?.Invoke(Sender, args);
+            MouseDown?.Invoke(sender, args);
         }
 
-        protected void OnMouseMove(object Sender, MouseEventArgs args)
+        protected void OnMouseMove(object sender, MouseEventArgs args)
         {
-            if (oMouseManager.OnMouseMove(args))
+            if (mouseManager.OnMouseMove(args))
             {
-                if (oMouseManager.MouseState == MouseHandler.EnumMouseState.tracking)
+                if (mouseManager.MouseState == MouseHandler.EnumMouseState.tracking)
                 {
-                    oCoordinateManager.TransfOrigin = oImageOrigin.Add(MouseControlTrack.ControlPointTranslation);
+                    coordinateManager.TransfOrigin = imageOrigin.Add(MouseControlTrack.ControlPointTranslation);
                 }
                 UpdateMouseImageColor();
                 ForceRefresh();
             }
-            MouseMove?.Invoke(Sender, args);
+            MouseMove?.Invoke(sender, args);
         }
 
-        protected void OnMouseUp(object Sender, MouseEventArgs args)
+        protected void OnMouseUp(object sender, MouseEventArgs args)
         {
-            if (oMouseManager.OnMouseUp(args))
+            if (mouseManager.OnMouseUp(args))
             {
                 UpdateMouseImageColor();
                 ForceRefresh();
-                oImageOrigin = new PointF(0, 0);
+                imageOrigin = new PointF(0, 0);
             }
-            MouseUp?.Invoke(Sender, args);
+            MouseUp?.Invoke(sender, args);
         }
 
        
@@ -450,8 +450,8 @@ namespace ColourClashNet.Components
             if (Control != null && Image != null)
             {
                 UpdateControlAndImageRoi();
-                //oCoordinateManager.WorldRotationAngle += 1;
-                oCoordinateManager.DrawImage(e.Graphics, Image);
+                //coordinateManager.WorldRotationAngle += 1;
+                coordinateManager.DrawImage(e.Graphics, Image);
             }
             Paint?.Invoke(sender, e);
         }
@@ -539,25 +539,25 @@ namespace ColourClashNet.Components
         [Browsable(true), Category("Appearance")]
         public float ZoomImageX
         {
-            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.TransfZoom.X != 0 ? 1.0f / oCoordinateManager.TransfZoom.X : 0); }
+            get { UpdateControlAndImageRoi(); return (float)(coordinateManager.TransfZoom.X != 0 ? 1.0f / coordinateManager.TransfZoom.X : 0); }
         }
 
         [Browsable(true), Category("Appearance")]
         public float ZoomImageY
         {
-            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.TransfZoom.Y != 0 ? 1.0f / oCoordinateManager.TransfZoom.Y : 0); }
+            get { UpdateControlAndImageRoi(); return (float)(coordinateManager.TransfZoom.Y != 0 ? 1.0f / coordinateManager.TransfZoom.Y : 0); }
         }
 
         [Browsable(true), Category("Appearance")]
         public float ZoomControlX
         {
-            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.TransfZoom.X); }
+            get { UpdateControlAndImageRoi(); return (float)(coordinateManager.TransfZoom.X); }
         }
 
         [Browsable(true), Category("Appearance")]
         public float ZoomControY
         {
-            get { UpdateControlAndImageRoi(); return (float)(oCoordinateManager.TransfZoom.Y); }
+            get { UpdateControlAndImageRoi(); return (float)(coordinateManager.TransfZoom.Y); }
         }
 
 
@@ -565,75 +565,75 @@ namespace ColourClashNet.Components
         void UpdateControlAndImageRoi()
         {
 
-            float RoiZoomX = 0;
-            float RoiZoomY = 0;
-            if (oControl == null || Control.Size.Width <= 0 || Control.Size.Height <= 0)
+            float roiZoomX = 0;
+            float roiZoomY = 0;
+            if (control == null || Control.Size.Width <= 0 || Control.Size.Height <= 0)
             {
                 return;
             }
-            var oBmp = Image as Bitmap;
-            if (oBmp is null)
+            var bmp = Image as Bitmap;
+            if (bmp is null)
             {
                 return;
             }
-            if (oBmp.Width <= 0 && oBmp.Height <= 0)
+            if (bmp.Width <= 0 && bmp.Height <= 0)
             {
                 return;
             }
             // Il + facile
             // Determina la roi da disegnare
-            oCoordinateManager.SetTransfZoom(1);
+            coordinateManager.SetTransfZoom(1);
             float fcw = Math.Max(1,Control.Size.Width);
             float fch = Math.Max(1, Control.Size.Height);
             float fiw = Math.Max(1, Image.Size.Width);
             float fih = Math.Max(1, Image.Size.Height);
             //// Stretch Zoom
-            //RoiZoomX = (float)Image.Size.Width / fiw;
-            //RoiZoomY = (float)Image.Size.Height / fih;
+            //roiZoomX = (float)Image.Size.Width / fiw;
+            //roiZoomY = (float)Image.Size.Height / fih;
             switch (ImageZoomMode)
             {
                 // Zoom: restringe o allarga la roi
-                case EnumZoom.ZoomQ: RoiZoomX = RoiZoomY = 1.0f / 4; break;
-                case EnumZoom.ZoomH: RoiZoomX = RoiZoomY = 1.0f / 2; break;
-                case EnumZoom.Zoom1: RoiZoomX = RoiZoomY = 1.0f * 1; break;
-                case EnumZoom.Zoom2: RoiZoomX = RoiZoomY = 1.0f * 2; break;
-                case EnumZoom.Zoom3: RoiZoomX = RoiZoomY = 1.0f * 3; break;
-                case EnumZoom.Zoom4: RoiZoomX = RoiZoomY = 1.0f * 4; break;
+                case EnumZoom.ZoomQ: roiZoomX = roiZoomY = 1.0f / 4; break;
+                case EnumZoom.ZoomH: roiZoomX = roiZoomY = 1.0f / 2; break;
+                case EnumZoom.Zoom1: roiZoomX = roiZoomY = 1.0f * 1; break;
+                case EnumZoom.Zoom2: roiZoomX = roiZoomY = 1.0f * 2; break;
+                case EnumZoom.Zoom3: roiZoomX = roiZoomY = 1.0f * 3; break;
+                case EnumZoom.Zoom4: roiZoomX = roiZoomY = 1.0f * 4; break;
                 // Stretch: 
                 case EnumZoom.Stretch:
                     {
-                        RoiZoomX = fcw / fiw;
-                        RoiZoomY = fch / fih;
+                        roiZoomX = fcw / fiw;
+                        roiZoomY = fch / fih;
                     }
                     break;
                 // Fit w e h
                 // w : 100 = h : x
                 case EnumZoom.FitW:
-                    RoiZoomX = fcw / fiw;
-                    RoiZoomY = RoiZoomX;
+                    roiZoomX = fcw / fiw;
+                    roiZoomY = roiZoomX;
                     break;
                 case EnumZoom.FitH:
-                    RoiZoomY = fch / fih;
-                    RoiZoomX = RoiZoomY;
+                    roiZoomY = fch / fih;
+                    roiZoomX = roiZoomY;
                     break;
                 // Fit è il + cancaro
                 case EnumZoom.Fit:
                     {
-                        RoiZoomX = fcw / fiw;
-                        RoiZoomY = fch / fih;
-                        if (RoiZoomX < RoiZoomY)
+                        roiZoomX = fcw / fiw;
+                        roiZoomY = fch / fih;
+                        if (roiZoomX < roiZoomY)
                         {
-                            RoiZoomY = RoiZoomX;
+                            roiZoomY = roiZoomX;
                         }
                         else
                         {
-                            RoiZoomX = RoiZoomY;
+                            roiZoomX = roiZoomY;
                         }
                     }
                     break;
-                case EnumZoom.Manual: RoiZoomX = RoiZoomY = fRoiZoomM; break;
+                case EnumZoom.Manual: roiZoomX = roiZoomY = roiZoomM; break;
             }
-            oCoordinateManager.SetTrasfZoom(RoiZoomX, RoiZoomY);
+            coordinateManager.SetTrasfZoom(roiZoomX, roiZoomY);
         }
 
 
@@ -645,7 +645,7 @@ namespace ColourClashNet.Components
 
         protected void ForceRefresh()
         {
-            oControl?.Invalidate();
+            control?.Invalidate();
         }
 
    
@@ -655,25 +655,25 @@ namespace ColourClashNet.Components
             {
                 UpdateControlAndImageRoi();
                 //--------------------------------------------------------------------------
-                oCoordinateManager.TranslateTrasformationOrigin(deltaX, deltaY);
+                coordinateManager.TranslateTrasformationOrigin(deltaX, deltaY);
                 ForceRefresh();
             }
         }
 
-        public void WorldOriginMove(Point Delta)
+        public void WorldOriginMove(Point delta)
         {
-            WorldOriginMove(Delta.X, Delta.Y);
+            WorldOriginMove(delta.X, delta.Y);
         }
 
-        public void WorldOriginMove(PointF Delta)
+        public void WorldOriginMove(PointF delta)
         {
-            WorldOriginMove(Delta.X, Delta.Y);
+            WorldOriginMove(delta.X, delta.Y);
         }
 
         public void OriginZero()
         {
             //--------------------------------------------------------------------------
-            //oCoordinateManager.LocalOrigin = new PointF(0, 0);
+            //coordinateManager.LocalOrigin = new PointF(0, 0);
             ForceRefresh();
         }
 
@@ -684,20 +684,20 @@ namespace ColourClashNet.Components
 
       
 
-        protected Boolean MouseMovePushed = false;
-        protected Boolean MouseRoiPushed = false;
-        protected Point MousePushedPoint = new Point();
-        protected Point MousePushedPointLast = new Point();
+        protected Boolean mouseMovePushed = false;
+        protected Boolean mouseRoiPushed = false;
+        protected Point mousePushedPoint = new Point();
+        protected Point mousePushedPointLast = new Point();
 
        
 
         #endregion
 
-        private static Image MakeColorSwatch(System.Drawing.Color Color, int size = 12, int border = 1)
+        private static Image MakeColorSwatch(System.Drawing.Color color, int size = 12, int border = 1)
         {
             var bmp = new Bitmap(size, size);
             using (var g = Graphics.FromImage(bmp))
-            using (var brush = new SolidBrush(Color))
+            using (var brush = new SolidBrush(color))
             using (var pen = new Pen(System.Drawing.Color.FromArgb(120, System.Drawing.Color.Black), border))
             {
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;

@@ -268,14 +268,14 @@ namespace ColourClashProcessing.Blob
         /// <summary>
         /// Get blob item data
         /// </summary>
-        /// <param name="iBlobID"></param>
+        /// <param name="blobId"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        private BlobItem GetBlobItem(int iBlobID)
+        private BlobItem GetBlobItem(int blobId)
         {
             if (!Valid)
                 throw new InvalidOperationException("Blob is not available. Call Process() first.");
-            var blob = BlobList.FirstOrDefault(b => b.BlobId == iBlobID);
+            var blob = BlobList.FirstOrDefault(b => b.BlobId == blobId);
             if (blob == null)
             {
                 return null;
@@ -287,14 +287,14 @@ namespace ColourClashProcessing.Blob
         /// Rebuild a single shape with original image associated to the Blob ID
         /// <para>Coockie cut algorithm is used to avoid partial overlapping with other shapes inside the blob bounding box</para>
         /// </summary>
-        /// <param name="iBlobID"></param>
+        /// <param name="blobId"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public ImageData GetBlobImage(int iBlobID)
+        public ImageData GetBlobImage(int blobId)
         {
             if (!Valid)
                 throw new InvalidOperationException("Blob image is not available. Call Process() first.");
-            var blob = GetBlobItem(iBlobID);
+            var blob = GetBlobItem(blobId);
             if (blob == null)
             {
                 return null;

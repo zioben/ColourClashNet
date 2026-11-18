@@ -19,7 +19,7 @@ namespace ColourClashNet.Color.Dithering
 
         public override DitherInterface Create()
         {
-            matErrorDiffusion = new double[,] {
+            errorDiffusionMatrix = new double[,] {
                     { 0, 0, 0, 5, 3 },
                     { 2, 4, 5, 4, 2 },
                     { 0, 2, 3, 2, 0 },

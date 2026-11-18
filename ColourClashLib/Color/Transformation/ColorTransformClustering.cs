@@ -108,33 +108,33 @@ namespace ColourClashNet.Color.Transformation
             var rgbFixedList = ReferencePalette.ToList();
 
             // Prepare the evolutions
-            List<ColorEvolutionList<T>> lEvolutions = new();
+            List<ColorEvolutionList<T>> evolutions = new();
             var rgbFixedSet = new HashSet<int>(ReferencePalette);
 
             for (int train = 0; train < TrainingLoop; train++)
             {
                 LogMan.Trace(sC, sMethod, $"{Type} : Training loop {train}");
 
-                var lNextEvolution = new ColorEvolutionList<T>();
-                if (lEvolutions.Count == 0)
+                var nextEvolution = new ColorEvolutionList<T>();
+                if (evolutions.Count == 0)
                 {
                     foreach (var rgb in tempPalette)
-                        lNextEvolution.SetClusterColor(rgb);
+                        nextEvolution.SetClusterColor(rgb);
                 }
                 else
                 {
-                    var lLastEvolution = lEvolutions.Last();
-                    var lNextClusterColors = lLastEvolution.ComputeNextEvolution(ReferencePalette, ClusterColorSelectionMode, ColorDistanceEvaluationMode);
-                    foreach (var rgb in lNextClusterColors)
+                    var lastEvolution = evolutions.Last();
+                    var nextClusterColors = lastEvolution.ComputeNextEvolution(ReferencePalette, ClusterColorSelectionMode, ColorDistanceEvaluationMode);
+                    foreach (var rgb in nextClusterColors)
                     {
-                        lNextEvolution.SetClusterColor(rgb);
+                        nextEvolution.SetClusterColor(rgb);
                     }
                 }
 
-                lNextEvolution.Clusterize(tempImageHistogram, ColorDistanceEvaluationMode);
-                lEvolutions.Add(lNextEvolution);
+                nextEvolution.Clusterize(tempImageHistogram, ColorDistanceEvaluationMode);
+                evolutions.Add(nextEvolution);
 
-                var oArgs = new ColorProcessingEventArgs()
+                var args = new ColorProcessingEventArgs()
                 {
                     ColorTransformInterface = this,
                     ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, null, $"Loop {train}/{TrainingLoop}"),
@@ -142,13 +142,13 @@ namespace ColourClashNet.Color.Transformation
                 };
                 if (EnablePreviewEvents)
                 {
-                    var map = lNextEvolution.CreateTransformationMap(ImageSource, ColorDistanceEvaluationMode);
-                    oArgs.ProcessingResults.DataOut = map.Transform(ImageSource, token);
+                    var map = nextEvolution.CreateTransformationMap(ImageSource, ColorDistanceEvaluationMode);
+                    args.ProcessingResults.DataOut = map.Transform(ImageSource, token);
                 }
 
-                RaiseProcessPartialEvent(oArgs);
+                RaiseProcessPartialEvent(args);
             }
-            TransformationMap = lEvolutions.Last().CreateTransformationMap(ImageSource, ColorDistanceEvaluationMode);
+            TransformationMap = evolutions.Last().CreateTransformationMap(ImageSource, ColorDistanceEvaluationMode);
             return ColorTransformResult.CreateValidResult();
         }
 

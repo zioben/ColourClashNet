@@ -30,44 +30,44 @@ namespace ColourClashNet.Color.Transformation
 
 
 
-        protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken = default)
+        protected override ColorTransformResult CreateTransformationMap(CancellationToken token = default)
         {
-            //OutputPalette = new Palette();
+            //outputPalette = new Palette();
             TransformationMap.Reset();
-            var SourceHistogram = new HistogramRGB().Create(ImageSource);
-            var oTempHist = SourceHistogram.SortColorsDescending();
-            var oTempPalette = Palette.MergePalette(ReferencePalette, oTempHist.ToPalette());
-            if (oTempPalette.Count <= MaxColorWanted)
+            var sourceHistogram = new HistogramRGB().Create(ImageSource);
+            var tempHist = sourceHistogram.SortColorsDescending();
+            var tempPalette = Palette.MergePalette(ReferencePalette, tempHist.ToPalette());
+            if (tempPalette.Count <= MaxColorWanted)
             {
-                foreach (var kvp in SourceHistogram.HistogramDictionary)
+                foreach (var kvp in sourceHistogram.HistogramDictionary)
                 {
-                    //OutputPalette.Add(kvp.Key);
+                    //outputPalette.Add(kvp.Key);
                     TransformationMap.Add(kvp.Key, kvp.Key);
                 }
             }
             else
             {
-                var listAll = oTempPalette.ToList();
+                var listAll = tempPalette.ToList();
                 var listMax = listAll.Take(MaxColorWanted).ToList();
-                var oPalette = new Palette().Create(listMax);
+                var palette = new Palette().Create(listMax);
                 listAll.ForEach(rgbItem =>
                 {
-                    oToken.ThrowIfCancellationRequested();
+                    token.ThrowIfCancellationRequested();
                     // From list of ColorsMaxWanted element get the best color approssimation
-                    var rgbBest = ColorIntExt.GetNearestColor(rgbItem, oPalette, ColorDistanceEvaluationMode);
+                    var rgbBest = ColorIntExt.GetNearestColor(rgbItem, palette, ColorDistanceEvaluationMode);
                     //var dErrorMin = listMax.Min(rgbMax => rgbMax.Distance(rgbItem, ColorDistanceEvaluationMode));
                     //var rgbBest = listMax.FirstOrDefault(rgbMax => rgbMax.Distance(rgbItem, ColorDistanceEvaluationMode) == dErrorMin);
-                    //OutputPalette.Add(rgbBest);
-                    TransformationMap.rgbTransformationMap[rgbItem] = rgbBest;
+                    //outputPalette.Add(rgbBest);
+                    TransformationMap.RgbTransformationMap[rgbItem] = rgbBest;
                 });
             }
             return ColorTransformResult.CreateValidResult();
         }
 
-        protected override ColorTransformResult ExecuteTransform(CancellationToken oToken)
+        protected override ColorTransformResult ExecuteTransform(CancellationToken token)
         {
-            var oRetData = TransformationMap.Transform(ImageSource, oToken);
-            return ColorTransformResult.CreateValidResult(ImageSource, oRetData);
+            var retData = TransformationMap.Transform(ImageSource, token);
+            return ColorTransformResult.CreateValidResult(ImageSource, retData);
         }
     }
 }

@@ -49,13 +49,13 @@ namespace ColourClashNet.Color.Transformation
                 LogMan.Trace(sC, sM, $"{Type} : Creating trasformation map");
 
                 TransformationMap.Reset();
-                var oBkgList = BackgroundPalette.ToList();
-                var oPalList = ImageSource.ColorPalette.ToList();
-                foreach (var rgb in oPalList)
+                var bkgList = BackgroundPalette.ToList();
+                var palList = ImageSource.ColorPalette.ToList();
+                foreach (var rgb in palList)
                 {
                     TransformationMap.Add(rgb, rgb);
                 }
-                foreach (var rgb in oBkgList)
+                foreach (var rgb in bkgList)
                 {
                     TransformationMap.Remove(rgb);
                     TransformationMap.Add(rgb, ColorBackgroundReplacement);

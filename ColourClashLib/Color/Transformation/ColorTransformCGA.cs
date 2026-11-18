@@ -267,7 +267,7 @@ namespace ColourClashNet.Color.Transformation
             WithReferencePalette(refPalette, true);
         }
 
-        protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken = default)
+        protected override ColorTransformResult CreateTransformationMap(CancellationToken token = default)
         {
             TransformationMap.Reset();
             RebuildReferencePalette();

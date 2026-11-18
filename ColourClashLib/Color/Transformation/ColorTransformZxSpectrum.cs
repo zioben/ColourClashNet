@@ -110,7 +110,7 @@ namespace ColourClashNet.Color.Transformation
         public int ZxPaletteOutColorSeedLow { get; init; } = 0x00D8;
         public int ZxPaletteOutColorSeedHigh { get; init; } = 0x00FF;
 
-        ColorTransformType transformType { get; set; } = ColorTransformType.ColorReductionClustering;
+        ColorTransformType TransformType { get; set; } = ColorTransformType.ColorReductionClustering;
         ColorTransformConfig CreateConfig(Palette palette, ColorDithering ditheringType)
         {
             return config.Clone()
@@ -146,19 +146,19 @@ namespace ColourClashNet.Color.Transformation
 
         ColorTransformationMap CreateZxMap(int colorSeedIn, int colorSeedOut, bool mapTheBlack)
         {
-            ColorTransformationMap oMap = new ColorTransformationMap();
+            ColorTransformationMap map = new ColorTransformationMap();
             if (mapTheBlack)
             {
-                oMap.Add(ColorIntExt.FromRGB(0, 0, 0), ColorIntExt.FromRGB(0, 0, 0));
+                map.Add(ColorIntExt.FromRGB(0, 0, 0), ColorIntExt.FromRGB(0, 0, 0));
             }
-            oMap.Add(ColorIntExt.FromRGB(0, 0, colorSeedIn), ColorIntExt.FromRGB(0, 0, colorSeedOut));
-            oMap.Add(ColorIntExt.FromRGB(colorSeedIn, 0, 0), ColorIntExt.FromRGB(colorSeedOut, 0, 0));
-            oMap.Add(ColorIntExt.FromRGB(colorSeedIn, 0, colorSeedIn), ColorIntExt.FromRGB(colorSeedOut, 0, colorSeedOut));
-            oMap.Add(ColorIntExt.FromRGB(0, colorSeedIn, 0), ColorIntExt.FromRGB(0, colorSeedOut, 0));
-            oMap.Add(ColorIntExt.FromRGB(0, colorSeedIn, colorSeedIn), ColorIntExt.FromRGB(0, colorSeedOut, colorSeedOut));
-            oMap.Add(ColorIntExt.FromRGB(colorSeedIn, colorSeedIn, 0), ColorIntExt.FromRGB(colorSeedOut, colorSeedOut, 0));
-            oMap.Add(ColorIntExt.FromRGB(colorSeedIn, colorSeedIn, colorSeedIn), ColorIntExt.FromRGB(colorSeedOut, colorSeedOut, colorSeedOut));
-            return oMap;
+            map.Add(ColorIntExt.FromRGB(0, 0, colorSeedIn), ColorIntExt.FromRGB(0, 0, colorSeedOut));
+            map.Add(ColorIntExt.FromRGB(colorSeedIn, 0, 0), ColorIntExt.FromRGB(colorSeedOut, 0, 0));
+            map.Add(ColorIntExt.FromRGB(colorSeedIn, 0, colorSeedIn), ColorIntExt.FromRGB(colorSeedOut, 0, colorSeedOut));
+            map.Add(ColorIntExt.FromRGB(0, colorSeedIn, 0), ColorIntExt.FromRGB(0, colorSeedOut, 0));
+            map.Add(ColorIntExt.FromRGB(0, colorSeedIn, colorSeedIn), ColorIntExt.FromRGB(0, colorSeedOut, colorSeedOut));
+            map.Add(ColorIntExt.FromRGB(colorSeedIn, colorSeedIn, 0), ColorIntExt.FromRGB(colorSeedOut, colorSeedOut, 0));
+            map.Add(ColorIntExt.FromRGB(colorSeedIn, colorSeedIn, colorSeedIn), ColorIntExt.FromRGB(colorSeedOut, colorSeedOut, colorSeedOut));
+            return map;
         }
 
 
@@ -210,17 +210,17 @@ namespace ColourClashNet.Color.Transformation
             // transform to real ZX colors
             var zxRealImage = transformationMap.Transform(zxBaseImage, token);
             // evaluate tiles 8x8 - 2 colors per tile
-            TileManager oTileManager = new TileManager().Create(8, 8, zxRealImage, loPalette ? 1.0 : 2.0, CreateConfig(new Palette(), dithering), token); // ColorDithering.None);, token);//  ithering), token);
-            var tileProcRes = oTileManager.ProcessColors(token);
+            TileManager tileManager = new TileManager().Create(8, 8, zxRealImage, loPalette ? 1.0 : 2.0, CreateConfig(new Palette(), dithering), token); // ColorDithering.None);, token);//  ithering), token);
+            var tileProcRes = tileManager.ProcessColors(token);
             var normalization = ColorIntExt.GetMaxColorDistance(transformationMap.GetOutputPalette(), ColorDistanceEvaluationMode, token);
-            var dError = oTileManager.RecalcGlobalTransformationError(zxBestImage, token);
-            //LogMan.Warning(sC, "demo", $"{loPalette} : ERR = {dError}");
+            var error = tileManager.RecalcGlobalTransformationError(zxBestImage, token);
+            //LogMan.Warning(sC, "demo", $"{loPalette} : ERR = {error}");
             //RaiseProcessPartialEvent(new ColorProcessingEventArgs()
             //{
             //    ProcessingResults = ColorTransformResult.CreateValidResult(null, zxBaseImage)
             //});
 
-            return oTileManager;
+            return tileManager;
         }
 
 
@@ -230,7 +230,7 @@ namespace ColourClashNet.Color.Transformation
             var zxTransformationMapLo = CreateZxMap(colorSeedInLo, ZxPaletteOutColorSeedLow, true);
             var zxTransformationMapHi = CreateZxMap(colorSeedInHi, ZxPaletteOutColorSeedHigh, IncludeBlackInHighColor);
 
-            List<Task<TileManager>> lTaskList = new List<Task<TileManager>>();
+            List<Task<TileManager>> taskList = new List<Task<TileManager>>();
             var procResults = new ZxProcessingResults()
             {
                 ColorSeedInLow = colorSeedInLo,
@@ -240,20 +240,20 @@ namespace ColourClashNet.Color.Transformation
             {
                 case ZxPaletteMode.PaletteLo:
                     {
-                        lTaskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(true, zxBestImage, zxTransformationMapLo, DitherLowColorImage, token)));
-                        lTaskList.Add(null);
+                        taskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(true, zxBestImage, zxTransformationMapLo, DitherLowColorImage, token)));
+                        taskList.Add(null);
                     }
                     break;
                 case ZxPaletteMode.PaletteHi:
                     {
-                        lTaskList.Add(null);
-                        lTaskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(false, zxBestImage, zxTransformationMapHi, DitherHighColorImage, token)));
+                        taskList.Add(null);
+                        taskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(false, zxBestImage, zxTransformationMapHi, DitherHighColorImage, token)));
                     }
                     break;
                 case ZxPaletteMode.BothPalettes:
                     {
-                        lTaskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(true, zxBestImage, zxTransformationMapLo, DitherLowColorImage, token)));
-                        lTaskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(false, zxBestImage, zxTransformationMapHi, DitherHighColorImage, token)));
+                        taskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(true, zxBestImage, zxTransformationMapLo, DitherLowColorImage, token)));
+                        taskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(false, zxBestImage, zxTransformationMapHi, DitherHighColorImage, token)));
                     }
                     break;
                 default:
@@ -261,9 +261,9 @@ namespace ColourClashNet.Color.Transformation
             }
 
             // Await task completed
-            var lTaskListValid = lTaskList.Where(X => X != null).ToList();
-            Task.WaitAll(lTaskListValid.ToArray());
-            procResults.Create(lTaskList[0]?.Result, lTaskList[1]?.Result, ImageSource, ColorDistanceEvaluationMode, token);
+            var taskListValid = taskList.Where(task => task != null).ToList();
+            Task.WaitAll(taskListValid.ToArray());
+            procResults.Create(taskList[0]?.Result, taskList[1]?.Result, ImageSource, ColorDistanceEvaluationMode, token);
             return procResults;
         }
 
@@ -302,16 +302,16 @@ namespace ColourClashNet.Color.Transformation
                 {
                     for (int low = start; low < endL; low += step)
                     {
-                        int iL = Math.Min(255, low);
+                        int lowClamped = Math.Min(255, low);
                         for (int high = low + step - 1; high < endH; high += step, cycle++)
                         {
-                            int iH = Math.Min(255, high);
+                            int highClamped = Math.Min(255, high);
                             RaiseProcessPartialEvent(new ColorProcessingEventArgs()
                             {
-                                ProcessingResults = ColorTransformResult.CreateValidResult(null, null, $"step {cycle} : Range [{iL} - {iH}]")
+                                ProcessingResults = ColorTransformResult.CreateValidResult(null, null, $"step {cycle} : Range [{lowClamped} - {highClamped}]")
                             });
                             token.ThrowIfCancellationRequested();
-                            var processingResult = ExecuteTransformZx(bestZxImage, iL, iH, token);
+                            var processingResult = ExecuteTransformZx(bestZxImage, lowClamped, highClamped, token);
 
                             if ((bestResult?.MergeError ?? double.PositiveInfinity) > processingResult.MergeError)
                             {
@@ -320,7 +320,7 @@ namespace ColourClashNet.Color.Transformation
                                 {
                                     ColorTransformInterface = this,
                                     CompletedPercent = ((cycle * step * step) / ((256.0 - ZxPaletteInColorSeedLow) * (256.0 - ZxPaletteInColorSeedLow))) * 100.0,
-                                    ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, processingResult?.MergeImage, $"step {cycle} : Range [{iL} - {iH}] : Error = {processingResult?.MergeError}"),
+                                    ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, processingResult?.MergeImage, $"step {cycle} : Range [{lowClamped} - {highClamped}] : Error = {processingResult?.MergeError}"),
                                 });
                             }
                         }

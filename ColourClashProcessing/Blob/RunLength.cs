@@ -99,10 +99,10 @@ namespace ColourClashProcessing.Blob
             {
                 if (runLengths == null)
                     throw new ArgumentNullException(nameof(runLengths));
-                int xMin = runLengths.Min(R => R.XS);
-                int xMax = runLengths.Max(R => R.XE);
-                int yMin = runLengths.Min(R => R.Y);
-                int yMax = runLengths.Max(R => R.Y);
+                int xMin = runLengths.Min(run => run.XS);
+                int xMax = runLengths.Max(run => run.XE);
+                int yMin = runLengths.Min(run => run.Y);
+                int yMax = runLengths.Max(run => run.Y);
                 var width = xMax - xMin+1;
                 var height= yMax - yMin+1;
                 if (width <= 0 || height <= 0)
@@ -147,15 +147,15 @@ namespace ColourClashProcessing.Blob
             string sM = nameof(MergeToMatrix);
             if(mergedMatrix==null)
                 throw new ArgumentNullException(nameof(mergedMatrix));
-            var W = mergedMatrix.GetLength(1);
-            var H = mergedMatrix.GetLength(0);
-            var yMin = runLengths.Min(R => R.Y);
-            var yMax = runLengths.Max(R => R.Y);
-            var xMin = runLengths.Min(R => R.XS);
-            var xMax = runLengths.Max(R => R.XE);
-            if (yMin < 0 || yMax >= H || xMin < 0 || xMax >= W)
+            var width = mergedMatrix.GetLength(1);
+            var height = mergedMatrix.GetLength(0);
+            var yMin = runLengths.Min(run => run.Y);
+            var yMax = runLengths.Max(run => run.Y);
+            var xMin = runLengths.Min(run => run.XS);
+            var xMax = runLengths.Max(run => run.XE);
+            if (yMin < 0 || yMax >= height || xMin < 0 || xMax >= width)
             {
-                LogMan.Error(sC, sM, $"Run length dimensions [{xMin},{yMin};{xMax},{yMax}] exceeded matrix dimension [0,0;{W},{H}]");
+                LogMan.Error(sC, sM, $"Run length dimensions [{xMin},{yMin};{xMax},{yMax}] exceeded matrix dimension [0,0;{width},{height}]");
                 return false;
             }
             foreach (var rl in runLengths)

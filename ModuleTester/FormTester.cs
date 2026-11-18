@@ -11,7 +11,7 @@ namespace ModuleTester
 {
     public partial class FormTester : Form
     {
-        Dictionary<string, Image> oDict = new();
+        Dictionary<string, Image> dict = new();
 
         public FormTester()
         {
@@ -24,11 +24,11 @@ namespace ModuleTester
             //  TestTransformSpectrum();
         }
 
-        ConcurrentQueue<string> oLogBag = new ConcurrentQueue<string>();
+        ConcurrentQueue<string> logBag = new ConcurrentQueue<string>();
 
         private void LogMan_OnLogMessage(object? sender, LogEventArgs e)
         {
-            oLogBag.Enqueue(e.Message);
+            logBag.Enqueue(e.Message);
         }
         void CreateCombo(List<string> stringList, ComboBox cb, int? defaultIndex = null)
         {
@@ -52,13 +52,13 @@ namespace ModuleTester
 
         void CreateCombos()
         {
-            oDict = new();
-            oDict.Add("1M Colors", ColourClashDrawings.Properties.Resources.BMP_1Mcolors);
-            oDict.Add("RGB Palette", ColourClashDrawings.Properties.Resources.BMP_RGB_Palette);
-            oDict.Add("FADE Base", ColourClashDrawings.Properties.Resources.BMP_FadeTest);
-            oDict.Add("GRANGER Charts", ColourClashDrawings.Properties.Resources.BMP_Granger_Chart);
+            dict = new();
+            dict.Add("1M Colors", ColourClashDrawings.Properties.Resources.BMP_1Mcolors);
+            dict.Add("RGB Palette", ColourClashDrawings.Properties.Resources.BMP_RGB_Palette);
+            dict.Add("FADE Base", ColourClashDrawings.Properties.Resources.BMP_FadeTest);
+            dict.Add("GRANGER Charts", ColourClashDrawings.Properties.Resources.BMP_Granger_Chart);
 
-            CreateCombo(oDict.Select(X => X.Key).ToList(), cbPreset, 1);
+            CreateCombo(dict.Select(x => x.Key).ToList(), cbPreset, 1);
             CreateCombo(typeof(ColorDithering), cbDithering, 9);
             CreateCombo(typeof(ColorDistanceEvaluationMode), cbColorMode, 0);
             CreateCombo(typeof(ColorQuantizationMode), cbQuantization, 4);
@@ -79,26 +79,26 @@ namespace ModuleTester
             oldTrasf = transf;
             oldConfig = cfg;
             bitmapRenderOUT.Image = null;
-            var eDither = ColorDithering.None;
-            if (!Enum.TryParse<ColorDithering>(cbDithering.SelectedItem?.ToString(), out eDither))
+            var dither = ColorDithering.None;
+            if (!Enum.TryParse<ColorDithering>(cbDithering.SelectedItem?.ToString(), out dither))
             {
-                eDither = ColorDithering.None;
+                dither = ColorDithering.None;
             }
-            var eColor = ColorDistanceEvaluationMode.RGB;
-            if (!Enum.TryParse<ColorDistanceEvaluationMode>(cbColorMode.SelectedItem?.ToString(), out eColor))
+            var color = ColorDistanceEvaluationMode.RGB;
+            if (!Enum.TryParse<ColorDistanceEvaluationMode>(cbColorMode.SelectedItem?.ToString(), out color))
             {
-                eColor = ColorDistanceEvaluationMode.RGB;
+                color = ColorDistanceEvaluationMode.RGB;
             }
-            cfg.WithColorDistanceEvaluationMode(eColor)
+            cfg.WithColorDistanceEvaluationMode(color)
             //.WithQuantizationMode()
-            .WithDithering(eDither, (double)numDitheringStrenght.Value / 100.0, ColorDitheringFx.None);
+            .WithDithering(dither, (double)numDitheringStrenght.Value / 100.0, ColorDitheringFx.None);
             transf.SetProperties(cfg);
-            var oImageData = ImageToolsGDI.GdiImageToImageData(bitmapRenderIN.Image as Bitmap);
+            var imageData = ImageToolsGDI.GdiImageToImageData(bitmapRenderIN.Image as Bitmap);
             _ = Task.Run(async () =>
             {
                 var cts = new CancellationTokenSource();
                 ProcessingForm.CreateProcessingForm(transf, cts);
-                transf.Create(oImageData);
+                transf.Create(imageData);
                 var ret = transf.ProcessColors(cts.Token);
                 Invoke(() =>
                 {
@@ -146,7 +146,7 @@ namespace ModuleTester
             }
             ColourClashNet.Color.Transformation.ColorTransformBkgRemover transf = new();
             Palette pal = new Palette().Create();
-            List<int> oList = new List<int>();
+            List<int> list = new List<int>();
             for (int r = 0; r < 256; r++)
             {
                 for (int g = 0; g < 256; g++)
@@ -336,9 +336,9 @@ namespace ModuleTester
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             var txt = cbPreset.Text.ToString();
-            if (oDict.ContainsKey(txt))
+            if (dict.ContainsKey(txt))
             {
-                bitmapRenderIN.Image = oDict[txt];
+                bitmapRenderIN.Image = dict[txt];
             }
         }
 
@@ -432,8 +432,8 @@ namespace ModuleTester
             }
             try
             {
-                var oBmp = Bitmap.FromFile(openLoadImage.FileName);
-                bitmapRenderIN.Image = oBmp;
+                var bmp = Bitmap.FromFile(openLoadImage.FileName);
+                bitmapRenderIN.Image = bmp;
             }
             catch (Exception ex)
             {
@@ -463,7 +463,7 @@ namespace ModuleTester
 
         private void oTimerLog_Tick(object sender, EventArgs e)
         {
-            while (oLogBag.TryDequeue(out var s))
+            while (logBag.TryDequeue(out var s))
             {
                 listBox1.Items.Insert(0, s);
             }

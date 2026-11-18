@@ -17,7 +17,7 @@ namespace ColourClashNet.Log
     /// </summary>
     public class LogMan
     {
-        static LogLevel eMinLogLevel = LogLevel.Debug;
+        static LogLevel minLogLevel = LogLevel.Debug;
 
         public static event EventHandler<LogEventArgs> OnLogMessage;
 
@@ -25,29 +25,29 @@ namespace ColourClashNet.Log
         [Description("Log minimum level. Can be set any time")]
         public static LogLevel MinLogLevel
         {
-            get => eMinLogLevel;
+            get => minLogLevel;
             set
             {
-                eMinLogLevel = value;
-                LogManager.Configuration.AddRule(ToNLogLevel(eMinLogLevel), NLog.LogLevel.Fatal, sLogTarget);
+                minLogLevel = value;
+                LogManager.Configuration.AddRule(ToNLogLevel(minLogLevel), NLog.LogLevel.Fatal, logTarget);
             }
         }
 
 
         #region constant paths and rules
 
-        static readonly string sLogFileName = "Log";
-        static readonly string sLogFolder = "Logs";
-        static readonly string sLogArchive = "LogsArchive";
-        static readonly string sLogTarget = "DeltaLog";
-        static readonly string sLogRule = "DeltaRule";
-        static readonly string sLogID = "DefaultLog";
+        static readonly string logFileName = "Log";
+        static readonly string logFolder = "Logs";
+        static readonly string logArchive = "LogsArchive";
+        static readonly string logTarget = "DeltaLog";
+        static readonly string logRule = "DeltaRule";
+        static readonly string logId = "DefaultLog";
 
         #endregion
 
-        static NLog.LogLevel ToNLogLevel(LogLevel eLevel)
+        static NLog.LogLevel ToNLogLevel(LogLevel level)
         {
-            switch (eLevel)
+            switch (level)
             {
                 case LogLevel.Fatal:
                     return NLog.LogLevel.Fatal;
@@ -69,43 +69,43 @@ namespace ColourClashNet.Log
             }
         }
 
-        static NLog.Logger NLogger => LogManager.GetLogger(sLogID);
+        static NLog.Logger NLogger => LogManager.GetLogger(logId);
 
         static void CreateNLog()
         {
-            Directory.CreateDirectory($"./{sLogFolder}");
+            Directory.CreateDirectory($"./{logFolder}");
             LogManager.Setup();
             // Creazione configurazione
-            var nLogConf = new LoggingConfiguration();
+            var logConf = new LoggingConfiguration();
             // Target per scrivere su file
-            var fTarget = new FileTarget(sLogTarget);
-            fTarget.FileName = "${basedir}" + $"/{sLogFolder}/{sLogFileName}.txt";
-            //fTarget.FileName = "C:/TestX/" + sLogFileName + ".txt";
-            //fTarget.Layout = "${date:format=yyyy-MM-dd HH\\:mm\\:ss}.${date:format=fff}" +
+            var fileTarget = new FileTarget(logTarget);
+            fileTarget.FileName = "${basedir}" + $"/{logFolder}/{logFileName}.txt";
+            //fileTarget.FileName = "C:/TestX/" + logFileName + ".txt";
+            //fileTarget.Layout = "${date:format=yyyy-MM-dd HH\\:mm\\:ss}.${date:format=fff}" +
             //    "|${level:uppercase=true}" +
             //    "|${message}" +
             //    " ${onexception: ${exception:format=ToString,format=Data};}";
-            fTarget.Layout = "${message}" +
+            fileTarget.Layout = "${message}" +
                 "${onexception: | ${exception:format=ToString,format=Data};}";
-            fTarget.KeepFileOpen = true;
-            fTarget.Encoding = Encoding.UTF8;
-            fTarget.CreateDirs = true;
-            fTarget.ArchiveAboveSize = 4 * 1024 * 1024;
-            fTarget.ArchiveSuffixFormat = $"{0:yyyyMMdd-HHmmss}_{1:000}";
-            //fTarget.ArchiveDateFormat = "yyyyMMdd-HHmmss";
-            fTarget.ArchiveFileName = "${basedir}" + $"/{sLogFolder}/{sLogArchive}/{sLogFileName}" + "_{#}.txt";
-            //fTarget.ArchiveNumbering = ArchiveNumberingMode.Sequence;
-            fTarget.MaxArchiveFiles = 100;
-            //fTarget.EnableArchiveFileCompression = true;
-            //fTarget.ConcurrentWrites = true;
+            fileTarget.KeepFileOpen = true;
+            fileTarget.Encoding = Encoding.UTF8;
+            fileTarget.CreateDirs = true;
+            fileTarget.ArchiveAboveSize = 4 * 1024 * 1024;
+            fileTarget.ArchiveSuffixFormat = $"{0:yyyyMMdd-HHmmss}_{1:000}";
+            //fileTarget.ArchiveDateFormat = "yyyyMMdd-HHmmss";
+            fileTarget.ArchiveFileName = "${basedir}" + $"/{logFolder}/{logArchive}/{logFileName}" + "_{#}.txt";
+            //fileTarget.ArchiveNumbering = ArchiveNumberingMode.Sequence;
+            fileTarget.MaxArchiveFiles = 100;
+            //fileTarget.EnableArchiveFileCompression = true;
+            //fileTarget.ConcurrentWrites = true;
 
-            nLogConf.AddTarget(sLogID, fTarget);
-            nLogConf.AddRule(ToNLogLevel(MinLogLevel), NLog.LogLevel.Fatal, fTarget);
+            logConf.AddTarget(logId, fileTarget);
+            logConf.AddRule(ToNLogLevel(MinLogLevel), NLog.LogLevel.Fatal, fileTarget);
             // Windows Trace on NLOG
             //System.Diagnostics.Trace.Listeners.Clear();
             //System.Diagnostics.Trace.Listeners.Add(new NLog.NLogTraceListener { Name = "NLog" });
             //System.Diagnostics.Trace.WriteLine("Hello World");
-            LogManager.Configuration = nLogConf;
+            LogManager.Configuration = logConf;
 
         }
 
@@ -139,52 +139,52 @@ namespace ColourClashNet.Log
         {
             if (ex == null)
                 return "";
-            string sMsg = $"{Environment.NewLine}Exception Dump{Environment.NewLine}";
+            string logLine = $"{Environment.NewLine}Exception Dump{Environment.NewLine}";
             do
             {
-                sMsg += $"InnerMessage : {ex.Message}{Environment.NewLine}";
+                logLine += $"InnerMessage : {ex.Message}{Environment.NewLine}";
                 ex = ex.InnerException;
             }
             while (ex != null);
-            return sMsg;
+            return logLine;
         }
 
 
         /// <summary>
         /// Generic log message handler
         /// </summary>
-        /// <param name="eLevel">Log Level</param>
+        /// <param name="level">Log Level</param>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
-        /// <param name="sMessage">Log message</param>
+        /// <param name="message">Log message</param>
         /// <param name="ex">Exception info</param>
-        static void Log(LogLevel eLevel, string sClass, string sMethod, string sMessage, Exception ex)
+        static void Log(LogLevel level, string sClass, string sMethod, string message, Exception ex)
         {
-            if (eLevel > MinLogLevel)
+            if (level > MinLogLevel)
                 return;
 
-            var oDT = DateTime.Now;
-            string sMsg = $"{oDT:yyyy-MM-dd HH:mm:ss.fff} | {eLevel} | {sClass}.{sMethod} : {sMessage} {GetExceptionMessage(ex)}";
-            //string sMsgNLog = $"{eLevel} | {sClass}.{sMethod} : {sMessage}";
+            var now = DateTime.Now;
+            string logLine = $"{now:yyyy-MM-dd HH:mm:ss.fff} | {level} | {sClass}.{sMethod} : {message} {GetExceptionMessage(ex)}";
+            //string sMsgNLog = $"{level} | {sClass}.{sMethod} : {message}";
 
-            switch (eLevel)
+            switch (level)
             {
                 case LogLevel.Fatal:
-                    System.Diagnostics.Trace.TraceError(sMsg);
-                    NLogger?.Fatal(ex, sMsg);
+                    System.Diagnostics.Trace.TraceError(logLine);
+                    NLogger?.Fatal(ex, logLine);
                     break;
                 case LogLevel.Exception:
                 case LogLevel.Error:
-                    System.Diagnostics.Trace.TraceError(sMsg);
-                    NLogger?.Error(ex, sMsg);
+                    System.Diagnostics.Trace.TraceError(logLine);
+                    NLogger?.Error(ex, logLine);
                     break;
                 case LogLevel.Warning:
-                    System.Diagnostics.Trace.TraceWarning(sMsg);
-                    NLogger?.Warn(ex, sMsg);
+                    System.Diagnostics.Trace.TraceWarning(logLine);
+                    NLogger?.Warn(ex, logLine);
                     break;
                 default:
-                    System.Diagnostics.Trace.TraceInformation(sMsg);
-                    NLogger?.Info(ex, sMsg);
+                    System.Diagnostics.Trace.TraceInformation(logLine);
+                    NLogger?.Info(ex, logLine);
                     break;
             }
 
@@ -192,9 +192,9 @@ namespace ColourClashNet.Log
             {
                 OnLogMessage?.Invoke(null, new LogEventArgs()
                 {
-                    Level = eLevel,
-                    Timestamp = oDT,
-                    Message = sMsg,
+                    Level = level,
+                    Timestamp = now,
+                    Message = logLine,
                     Except = ex
                 });
             }
@@ -208,11 +208,11 @@ namespace ColourClashNet.Log
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
-        /// <param name="sMessage">Log message</param>
+        /// <param name="message">Log message</param>
         /// <param name="ex">Exception info</param>
-        public static void Fatal(string sClass, string sMethod, string sMessage, Exception ex)
+        public static void Fatal(string sClass, string sMethod, string message, Exception ex)
         {
-            Log(LogLevel.Fatal, sClass, sMethod, sMessage, ex);
+            Log(LogLevel.Fatal, sClass, sMethod, message, ex);
         }
 
         /// <summary>
@@ -220,11 +220,11 @@ namespace ColourClashNet.Log
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
-        /// <param name="sMessage">Log message</param>
+        /// <param name="message">Log message</param>
         /// <param name="ex">Exception info</param>
-        public static void Exception(string sClass, string sMethod, string sMessage, Exception ex)
+        public static void Exception(string sClass, string sMethod, string message, Exception ex)
         {
-            Log(LogLevel.Exception, sClass, sMethod, sMessage, ex);
+            Log(LogLevel.Exception, sClass, sMethod, message, ex);
         }
 
         /// <summary>
@@ -244,12 +244,12 @@ namespace ColourClashNet.Log
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
-        /// <param name="sMessage">Log message</param>
+        /// <param name="message">Log message</param>
         /// <param name="ex">Exception info</param>
-        public static void Error(string sClass, string sMethod, string sMessage, Exception ex)
+        public static void Error(string sClass, string sMethod, string message, Exception ex)
         {
-            var eLevel = ex == null ? LogLevel.Error : LogLevel.Fatal;
-            Log(eLevel, sClass, sMethod, sMessage, ex);
+            var level = ex == null ? LogLevel.Error : LogLevel.Fatal;
+            Log(level, sClass, sMethod, message, ex);
         }
 
         /// <summary>
@@ -257,10 +257,10 @@ namespace ColourClashNet.Log
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
-        /// <param name="sMessage">Log message</param>
-        public static void Error(string sClass, string sMethod, string sMessage)
+        /// <param name="message">Log message</param>
+        public static void Error(string sClass, string sMethod, string message)
         {
-            Log(LogLevel.Error, sClass, sMethod, sMessage, null);
+            Log(LogLevel.Error, sClass, sMethod, message, null);
         }
 
         /// <summary>
@@ -268,10 +268,10 @@ namespace ColourClashNet.Log
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
-        /// <param name="sMessage">Log message</param>
-        public static void Warning(string sClass, string sMethod, string sMessage)
+        /// <param name="message">Log message</param>
+        public static void Warning(string sClass, string sMethod, string message)
         {
-            Log(LogLevel.Warning, sClass, sMethod, sMessage, null);
+            Log(LogLevel.Warning, sClass, sMethod, message, null);
         }
 
         /// <summary>
@@ -279,10 +279,10 @@ namespace ColourClashNet.Log
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
-        /// <param name="sMessage">Log message</param>
-        public static void Pass(string sClass, string sMethod, string sMessage)
+        /// <param name="message">Log message</param>
+        public static void Pass(string sClass, string sMethod, string message)
         {
-            Log(LogLevel.Pass, sClass, sMethod, sMessage, null);
+            Log(LogLevel.Pass, sClass, sMethod, message, null);
         }
 
         /// <summary>
@@ -290,10 +290,10 @@ namespace ColourClashNet.Log
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
-        /// <param name="sMessage">Log message</param>
-        public static void Message(string sClass, string sMethod, string sMessage)
+        /// <param name="message">Log message</param>
+        public static void Message(string sClass, string sMethod, string message)
         {
-            Log(LogLevel.Message, sClass, sMethod, sMessage, null);
+            Log(LogLevel.Message, sClass, sMethod, message, null);
         }
 
         /// <summary>
@@ -301,10 +301,10 @@ namespace ColourClashNet.Log
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
-        /// <param name="sMessage">Log message</param>
-        public static void Debug(string sClass, string sMethod, string sMessage)
+        /// <param name="message">Log message</param>
+        public static void Debug(string sClass, string sMethod, string message)
         {
-            Log(LogLevel.Debug, sClass, sMethod, sMessage, null);
+            Log(LogLevel.Debug, sClass, sMethod, message, null);
         }
 
         /// <summary>
@@ -312,10 +312,10 @@ namespace ColourClashNet.Log
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
-        /// <param name="sMessage">Log message</param>
-        public static void Trace(string sClass, string sMethod, string sMessage)
+        /// <param name="message">Log message</param>
+        public static void Trace(string sClass, string sMethod, string message)
         {
-            Log(LogLevel.Debug, sClass, sMethod, sMessage, null);
+            Log(LogLevel.Debug, sClass, sMethod, message, null);
         }
     }
 }

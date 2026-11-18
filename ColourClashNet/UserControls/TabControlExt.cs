@@ -22,7 +22,7 @@ namespace ColourClashNet.Controls
             public bool Canceled { get; set; }
         }
 
-        Dictionary<string, TabPage> oTabPages = new Dictionary<string, TabPage>();
+        Dictionary<string, TabPage> tabPages = new Dictionary<string, TabPage>();
         private System.ComponentModel.IContainer components;
         public event EventHandler<TabEventArgs> TabClosing;
         public event EventHandler<TabEventArgs> TabClosed;
@@ -46,29 +46,29 @@ namespace ColourClashNet.Controls
             tpNew.Text = $"Page{TabPages.Count + 1}OOO";
             tpNew.Tag = caNew;
             TabPages.Add(tpNew);
-            oTabPages[caNew.Name] = tpNew;   
+            tabPages[caNew.Name] = tpNew;   
             return tpNew;   
         }
-        public void RemovePage(Control oControl)
+        public void RemovePage(Control control)
         {
-            var sTableID = oControl.Name;
-            if (oTabPages.ContainsKey(sTableID))
+            var tableId = control.Name;
+            if (tabPages.ContainsKey(tableId))
             {
-                var oTp = oTabPages[sTableID];
-                if (TabPages.ContainsKey(sTableID))
+                var tabPage = tabPages[tableId];
+                if (TabPages.ContainsKey(tableId))
                 {
-                    TabPages.Remove(oTp);
+                    TabPages.Remove(tabPage);
                 }
-                oTabPages.Remove(sTableID);
+                tabPages.Remove(tableId);
             }
         }
 
-        public void SetPageText(Control oControl, string sText)
+        public void SetPageText(Control control, string text)
         {
-            var sTableID = oControl.Name;
-            if (oTabPages.ContainsKey(sTableID))
+            var tableId = control.Name;
+            if (tabPages.ContainsKey(tableId))
             {
-                oTabPages[sTableID].Text = sText;
+                tabPages[tableId].Text = text;
             }
         }
 
@@ -91,12 +91,12 @@ namespace ColourClashNet.Controls
         {
             Image icon = imageList2.Images[0];
             Rectangle r = GetTabRect(SelectedIndex);
-            var Roi = new Rectangle(r.X + 6, r.Y + 3, icon.Width, icon.Height);
-            return Roi;
+            var roi = new Rectangle(r.X + 6, r.Y + 3, icon.Width, icon.Height);
+            return roi;
         }
 
-        public bool InsideCloseButtonTab(Point Location)
-            =>GetRoi().Contains(Location);
+        public bool InsideCloseButtonTab(Point location)
+            =>GetRoi().Contains(location);
 
 
         void TabManager_MouseDown_1(object sender, MouseEventArgs e)
@@ -105,21 +105,21 @@ namespace ColourClashNet.Controls
             {
                 if (InsideCloseButtonTab(e.Location))
                 {
-                    var oTab = this.SelectedTab;
-                    if ( oTab == null)
+                    var tab = this.SelectedTab;
+                    if ( tab == null)
                     {
                         return;
                     }
-                    var oArgs = new TabEventArgs()
+                    var args = new TabEventArgs()
                     {
                         ButtonRoi = GetRoi(),
-                        TabClosed = oTab,
+                        TabClosed = tab,
                         Canceled = false,
                         MouseEventArgs = e
                     };
-                    TabClosing?.Invoke(this, oArgs);
-                    if (oArgs.Canceled) { return; }
-                    TabClosed?.Invoke(this, oArgs);
+                    TabClosing?.Invoke(this, args);
+                    if (args.Canceled) { return; }
+                    TabClosed?.Invoke(this, args);
                 }
             }
         }

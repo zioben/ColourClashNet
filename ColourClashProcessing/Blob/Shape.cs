@@ -44,21 +44,21 @@ namespace ColourClashProcessing.Blob
                 Reset();
                 ImageData.AssertValid(image);
                 var matrix = image.GetMatrix();
-                int R = matrix.GetLength(0);
-                int C = matrix.GetLength(1);
+                int rowCount = matrix.GetLength(0);
+                int columns = matrix.GetLength(1);
 
                 // One list per row: threads never share a collection, so no locking is needed
                 // and the final concatenation is already ordered by (Y, XS) - no sort required.
-                var rows = new List<RunLength>[R];
+                var rows = new List<RunLength>[rowCount];
 
                 // Passing the token through ParallelOptions makes cancellation surface as a plain
                 // OperationCanceledException (a throw from inside the body would be wrapped in an
                 // AggregateException and would not be caught by the catch below).
-                Parallel.For(0, R, new ParallelOptions { CancellationToken = token }, r =>
+                Parallel.For(0, rowCount, new ParallelOptions { CancellationToken = token }, r =>
                 {
                     var list = new List<RunLength>();
                     int c = 0;
-                    while (c < C)
+                    while (c < columns)
                     {
                         if (matrix[r, c] == 0)
                         {
@@ -67,7 +67,7 @@ namespace ColourClashProcessing.Blob
                         }
 
                         int startC = c;
-                        while (c < C && matrix[r, c] != 0)
+                        while (c < columns && matrix[r, c] != 0)
                             c++;
 
                         list.Add(new RunLength(r, startC, c - 1));
@@ -75,11 +75,11 @@ namespace ColourClashProcessing.Blob
                     rows[r] = list;
                 });
 
-                for (int r = 0; r < R; r++)
+                for (int r = 0; r < rowCount; r++)
                     RunLengths.AddRange(rows[r]);
 
-                SourceWidth = C;
-                SourceHeight = R;
+                SourceWidth = columns;
+                SourceHeight = rowCount;
                 return ColorTransformResult.CreateValidResult(image, null, $"Processed {RunLengths.Count} run lengths");
             }
             catch (OperationCanceledException cex)

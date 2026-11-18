@@ -18,42 +18,42 @@ public abstract class DitherErrorDiffusion : DitherBase
 
     static string sC = nameof(DitherErrorDiffusion);
 
-    protected double[,] matErrorDiffusion = null;
+    protected double[,] errorDiffusionMatrix = null;
 
 
-    protected void Normalize(double dN)
+    protected void Normalize(double n)
     {
-        if (matErrorDiffusion == null)
+        if (errorDiffusionMatrix == null)
         {
             return;
         }
-        if (dN == 0)
+        if (n == 0)
         {
             return;
         }
-        int R = matErrorDiffusion.GetLength(0);
-        int C = matErrorDiffusion.GetLength(1);
-        for (int r = 0; r < R; r++)
+        int rows = errorDiffusionMatrix.GetLength(0);
+        int columns = errorDiffusionMatrix.GetLength(1);
+        for (int r = 0; r < rows; r++)
         {
-            for (int c = 0; c < C; c++)
+            for (int c = 0; c < columns; c++)
             {
-                matErrorDiffusion[r, c] /= dN;
+                errorDiffusionMatrix[r, c] /= n;
             }
         }
     }
 
     protected void Normalize()
     {
-        if (matErrorDiffusion == null)
+        if (errorDiffusionMatrix == null)
         {
             return;
         }
-        var dN = 0.0;
-        foreach (var d in matErrorDiffusion)
+        var n = 0.0;
+        foreach (var d in errorDiffusionMatrix)
         {
-            dN += d;
+            n += d;
         }
-        Normalize(dN);
+        Normalize(n);
     }
 
     public override DitherInterface Create() => this;
@@ -75,88 +75,88 @@ public abstract class DitherErrorDiffusion : DitherBase
 
             LogMan.Trace(sC, sM, $"{Type} : Dithering");
 
-            int R = dataOriginal.GetLength(0);
-            int C = dataOriginal.GetLength(1);
-            int RR = matErrorDiffusion.GetLength(0);
-            int CC = matErrorDiffusion.GetLength(1);
-            int CO = CC / 2;
+            int rows = dataOriginal.GetLength(0);
+            int columns = dataOriginal.GetLength(1);
+            int kernelRows = errorDiffusionMatrix.GetLength(0);
+            int kernelColumns = errorDiffusionMatrix.GetLength(1);
+            int kernelCenter = kernelColumns / 2;
 
-            var oRO = new double[R, C];
-            var oGO = new double[R, C];
-            var oBO = new double[R, C];
-            var oRP = new double[R, C];
-            var oGP = new double[R, C];
-            var oBP = new double[R, C];
+            var redOriginal = new double[rows, columns];
+            var greenOriginal = new double[rows, columns];
+            var blueOriginal = new double[rows, columns];
+            var redProcessed = new double[rows, columns];
+            var greenProcessed = new double[rows, columns];
+            var blueProcessed = new double[rows, columns];
 
-            for(int r = 0; r < R; r++)
-            //Parallel.For(0, R, r =>
+            for(int r = 0; r < rows; r++)
+            //Parallel.For(0, rows, r =>
             {
                 token.ThrowIfCancellationRequested();
-                for (int c = 0; c < C; c++)
+                for (int c = 0; c < columns; c++)
                 {
-                    var oDatOrig = dataOriginal[r, c];
-                    oRO[r, c] = oDatOrig.ToR();
-                    oGO[r, c] = oDatOrig.ToG();
-                    oBO[r, c] = oDatOrig.ToB();
-                    var oDataProc = dataProcessed[r, c];
-                    oRP[r, c] = oDataProc.ToR();
-                    oGP[r, c] = oDataProc.ToG();
-                    oBP[r, c] = oDataProc.ToB();
+                    var originalColor = dataOriginal[r, c];
+                    redOriginal[r, c] = originalColor.ToR();
+                    greenOriginal[r, c] = originalColor.ToG();
+                    blueOriginal[r, c] = originalColor.ToB();
+                    var processedColor = dataProcessed[r, c];
+                    redProcessed[r, c] = processedColor.ToR();
+                    greenProcessed[r, c] = processedColor.ToG();
+                    blueProcessed[r, c] = processedColor.ToB();
                 }
             }//);
 
-            var dataOut = new int[R, C];
+            var dataOut = new int[rows, columns];
 
-            var dStrenght = DitheringStrenght;// / 100.0;
+            var strength = DitheringStrenght;// / 100.0;
 
-            for (int r = 0; r < R; r++)
+            for (int r = 0; r < rows; r++)
             {
                 token.ThrowIfCancellationRequested();
-                for (int c = 0; c < C; c++)
+                for (int c = 0; c < columns; c++)
                 {
                     token.ThrowIfCancellationRequested();
 
-                    var OldPixelR = Math.Max(0, Math.Min(255, oRO[r, c]));
-                    var OldPixelG = Math.Max(0, Math.Min(255, oGO[r, c]));
-                    var OldPixelB = Math.Max(0, Math.Min(255, oBO[r, c]));
+                    var oldPixelR = Math.Max(0, Math.Min(255, redOriginal[r, c]));
+                    var oldPixelG = Math.Max(0, Math.Min(255, greenOriginal[r, c]));
+                    var oldPixelB = Math.Max(0, Math.Min(255, blueOriginal[r, c]));
 
-                    var OldPixel = ColorIntExt.FromRGB(OldPixelR, OldPixelG, OldPixelB);
-                    var NewPixel = ColorIntExt.GetNearestColor(OldPixel, dataProcessedPalette, colorEvaluationMode);
-                    dataOut[r, c] = NewPixel;
+                    var oldPixel = ColorIntExt.FromRGB(oldPixelR, oldPixelG, oldPixelB);
+                    var newPixel = ColorIntExt.GetNearestColor(oldPixel, dataProcessedPalette, colorEvaluationMode);
+                    dataOut[r, c] = newPixel;
 
-                    var NewPixelR = NewPixel.ToR();
-                    var NewPixelG = NewPixel.ToG();
-                    var NewPixelB = NewPixel.ToB();
-                    var ErrorR = OldPixelR - NewPixelR;
-                    var ErrorG = OldPixelG - NewPixelG;
-                    var ErrorB = OldPixelB - NewPixelB;
+                    var newPixelR = newPixel.ToR();
+                    var newPixelG = newPixel.ToG();
+                    var newPixelB = newPixel.ToB();
+                    var errorR = oldPixelR - newPixelR;
+                    var errorG = oldPixelG - newPixelG;
+                    var errorB = oldPixelB - newPixelB;
 
-                    for (int rr = 0; rr < RR; rr++)
+                    for (int rr = 0; rr < kernelRows; rr++)
                     {
                         int rOffset = rr + r;
-                        if (rOffset >= R)
+                        if (rOffset >= rows)
                             break;
-                        for (int cc = 0; cc < CC; cc++)
+                        for (int cc = 0; cc < kernelColumns; cc++)
                         {
-                            int cOffset = c + cc - CO;
-                            if (cOffset < 0)
+                            int colOffset = c + cc - kernelCenter;
+                            if (colOffset < 0)
                                 continue;
-                            //if (c == CO)
+                            //if (c == kernelCenter)
                              //   continue;
-                            if (cOffset >= C)
+                            if (colOffset >= columns)
                                 break;
-                            oRO[rOffset, cOffset] += ErrorR * matErrorDiffusion[rr, cc] * dStrenght;
-                            oGO[rOffset, cOffset] += ErrorG * matErrorDiffusion[rr, cc] * dStrenght;
-                            oBO[rOffset, cOffset] += ErrorB * matErrorDiffusion[rr, cc] * dStrenght;
+                            redOriginal[rOffset, colOffset] += errorR * errorDiffusionMatrix[rr, cc] * strength;
+                            greenOriginal[rOffset, colOffset] += errorG * errorDiffusionMatrix[rr, cc] * strength;
+                            blueOriginal[rOffset, colOffset] += errorB * errorDiffusionMatrix[rr, cc] * strength;
                         }
                     }
                 }
             }
 
-            for (int r = 0; r < R; r++)
+            for (int r = 0; r < rows; r++)
             {
                 token.ThrowIfCancellationRequested();
-                for (int c = 0; c < C; c++)
+                for (int c = 0; c < columns; c++)
                 {
                     if (dataProcessed[r, c] < 0)
                     {

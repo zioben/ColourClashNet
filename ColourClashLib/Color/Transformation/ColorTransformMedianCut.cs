@@ -42,137 +42,137 @@ namespace ColourClashNet.Color.Transformation
 
 
 
-        int GetMedian(List<int> lList)
+        int GetMedian(List<int> list)
         {
-            float fLim = lList.Sum() / 2f;
-            if (fLim <= 0) return 0;
+            float limit = list.Sum() / 2f;
+            if (limit <= 0) return 0;
 
-            float fSum = 0;
-            for (int i = 0; i < lList.Count; i++)
+            float sum = 0;
+            for (int i = 0; i < list.Count; i++)
             {
-                fSum += lList[i];
-                if (fSum > fLim) return i;
+                sum += list[i];
+                if (sum > limit) return i;
             }
-            return lList.Count - 1;
+            return list.Count - 1;
         }
 
 
-        int GetRange(List<int> lList)
+        int GetRange(List<int> list)
         {
-            int first = lList.FindIndex(x => x != 0);
+            int first = list.FindIndex(x => x != 0);
             if (first < 0) return 0; // lista tutta a zero
-            int last = lList.FindLastIndex(x => x != 0);
+            int last = list.FindLastIndex(x => x != 0);
             return last - first;
         }
 
-        void Partition(Palette oPalette, int iMaxColor)
+        void Partition(Palette palette, int maxColor)
         {
-            var rgbList = oPalette.ToList();
-            if (iMaxColor > 0)
+            var rgbList = palette.ToList();
+            if (maxColor > 0)
             {
 
-                var lR = new int[256].ToList();
-                var lG = new int[256].ToList();
-                var lB = new int[256].ToList();
+                var histR = new int[256].ToList();
+                var histG = new int[256].ToList();
+                var histB = new int[256].ToList();
                 foreach (var rgb in rgbList)
                 {
-                    lR[rgb.ToR()]++;
-                    lG[rgb.ToG()]++;
-                    lB[rgb.ToB()]++;
+                    histR[rgb.ToR()]++;
+                    histG[rgb.ToG()]++;
+                    histB[rgb.ToB()]++;
                 }
-                int ird = GetRange(lR);
-                int igd = GetRange(lG);
-                int ibd = GetRange(lB);
-                Palette hInf = new Palette();
-                Palette hSup = new Palette();
+                int ird = GetRange(histR);
+                int igd = GetRange(histG);
+                int ibd = GetRange(histB);
+                Palette lowerHalf = new Palette();
+                Palette upperHalf = new Palette();
                 if (ird > igd && ird > ibd)
                 {
-                    var irm = GetMedian(lR);
+                    var irm = GetMedian(histR);
                     foreach (var rgb in rgbList)
                     {
                         if (rgb.ToR() <= irm)
-                            hInf.Add(rgb);
+                            lowerHalf.Add(rgb);
                         else
-                            hSup.Add(rgb);
+                            upperHalf.Add(rgb);
                     }
                 }
                 else if (igd > ibd)
                 {
-                    var igm = GetMedian(lG);
+                    var igm = GetMedian(histG);
                     foreach (var rgb in rgbList)
                     {
                         if (rgb.ToG() <= igm)
-                            hInf.Add(rgb);
+                            lowerHalf.Add(rgb);
                         else
-                            hSup.Add(rgb);
+                            upperHalf.Add(rgb);
                     }
                 }
                 else
                 {
-                    var ibm = GetMedian(lB);
+                    var ibm = GetMedian(histB);
                     foreach (var rgb in rgbList)
                     {
                         if (rgb.ToB() <= ibm)
-                            hInf.Add(rgb);
+                            lowerHalf.Add(rgb);
                         else
-                            hSup.Add(rgb);
+                            upperHalf.Add(rgb);
                     }
                 }
                 // With ties the median can be the highest value on the channel, leaving one side empty:
                 // in that case split the colors sorted on the selected channel by index.
-                if ((hInf.Count == 0 || hSup.Count == 0) && rgbList.Count > 1)
+                if ((lowerHalf.Count == 0 || upperHalf.Count == 0) && rgbList.Count > 1)
                 {
                     Func<int, int> channel = (ird > igd && ird > ibd) ? (rgb => rgb.ToR()) : (igd > ibd) ? (rgb => rgb.ToG()) : (rgb => rgb.ToB());
                     var sorted = rgbList.OrderBy(channel).ToList();
                     int half = sorted.Count / 2;
-                    hInf = new Palette().Create(sorted.Take(half));
-                    hSup = new Palette().Create(sorted.Skip(half));
+                    lowerHalf = new Palette().Create(sorted.Take(half));
+                    upperHalf = new Palette().Create(sorted.Skip(half));
                 }
-                Partition(hInf, iMaxColor / 2);
-                Partition(hSup, iMaxColor / 2);
+                Partition(lowerHalf, maxColor / 2);
+                Partition(upperHalf, maxColor / 2);
                 return;
             }
             else
             {
-                if (oPalette.Count == 0)
+                if (palette.Count == 0)
                     return;
-                var iRGB = ColorIntExt.GetColorMean(oPalette, ColorSelectionMode);
+                var meanColor = ColorIntExt.GetColorMean(palette, ColorSelectionMode);
                 foreach (var rgb in rgbList)
                 {
-                    if (!TransformationMap.rgbTransformationMap.ContainsKey(rgb))
+                    if (!TransformationMap.RgbTransformationMap.ContainsKey(rgb))
                     {
-                        TransformationMap.Add(rgb, iRGB);
+                        TransformationMap.Add(rgb, meanColor);
                     }
                 }
             }
         }
 
-        Palette OutputPalette = new Palette();
+        Palette outputPalette = new Palette();
 
-        protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken=default)
+        protected override ColorTransformResult CreateTransformationMap(CancellationToken token=default)
         {
-            OutputPalette = new Palette();
-            var SourceHistogram = new HistogramRGB().Create(ImageSource);
-            if (SourceHistogram.ToPalette().Count <= MaxColorsWanted)
+            outputPalette = new Palette();
+            var sourceHistogram = new HistogramRGB().Create(ImageSource);
+            if (sourceHistogram.ToPalette().Count <= MaxColorsWanted)
             {
-                foreach (var kvp in SourceHistogram.HistogramDictionary)
+                foreach (var kvp in sourceHistogram.HistogramDictionary)
                 {
-                    TransformationMap.rgbTransformationMap[kvp.Key] = kvp.Key;
+                    TransformationMap.RgbTransformationMap[kvp.Key] = kvp.Key;
                 }
-                OutputPalette = TransformationMap.GetOutputPalette();
+                outputPalette = TransformationMap.GetOutputPalette();
             }
             else
             {
-                int iColorsMax = Math.Min(256, Math.Max(2, MaxColorsWanted));
-                Partition(SourceHistogram.ToPalette(), iColorsMax / 2);
-                OutputPalette = TransformationMap.GetOutputPalette();
+                int colorsMax = Math.Min(256, Math.Max(2, MaxColorsWanted));
+                Partition(sourceHistogram.ToPalette(), colorsMax / 2);
+                outputPalette = TransformationMap.GetOutputPalette();
             }
             return ColorTransformResult.CreateValidResult();
         }
 
-        protected override ColorTransformResult ExecuteTransform(CancellationToken oToken)
+        protected override ColorTransformResult ExecuteTransform(CancellationToken token)
         {
-            var ret = TransformationMap.Transform(ImageSource, oToken);
+            var ret = TransformationMap.Transform(ImageSource, token);
             if (ret != null)
             {
                 return ColorTransformResult.CreateValidResult(ImageSource, ret);

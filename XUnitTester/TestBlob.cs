@@ -28,20 +28,20 @@ namespace XUnitTester
             MatrixTools.Blit(mat2, mat1, 0, 0, 200, 50, 32, 24);
             MatrixTools.Blit(mat2, mat1, 0, 0, 200, 100, 32, 24);
 
-            ImageData oImage = new ImageData().Create(mat1);
+            ImageData image = new ImageData().Create(mat1);
 
             Directory.CreateDirectory("C:\\Temp");
-            ImageTools.SaveImage(oImage, "C:\\Temp\\TestBlobIn");
+            ImageTools.SaveImage(image, "C:\\Temp\\TestBlobIn");
 
             ColourClashProcessing.Blob.Blob blob = new ColourClashProcessing.Blob.Blob()
                 .WithThreshold(ColorIntExt.FromRGB(255, 0, 255), 0, false)
                 .WithFiltering(10, 1000000, 10, 1000000, 10, 1000000)
                 .WithProcessing(ColourClashProcessing.Blob.BlobConnectionModes.FourConnected);
 
-            var result = blob.Process(oImage);
+            var result = blob.Process(image);
 
-            var oImageOut = blob.GetShapeImage();
-            ImageTools.SaveImage(oImageOut, "C:\\Temp\\TestBlobOut");
+            var imageOut = blob.GetShapeImage();
+            ImageTools.SaveImage(imageOut, "C:\\Temp\\TestBlobOut");
 
             var blobSegmetedOut = blob.GetBlobSegmentedImage();
             ImageTools.SaveImage(blobSegmetedOut, $"C:\\Temp\\TestBlobOut_Segmented");
@@ -58,14 +58,14 @@ namespace XUnitTester
         {
             int colBkg = ColorIntExt.FromRGB(255, 0, 255);
             int colFgd = ColorIntExt.FromRGB(128, 128, 128);
-            int W = 320;
-            int H = 200;
+            int width = 320;
+            int height = 200;
 
             // Crate te most difficult blob to process
-            var mat1 = MatrixTools.CreateMatrix(W, H, colBkg);
-            for (int y = 0; y < H; y++)
+            var mat1 = MatrixTools.CreateMatrix(width, height, colBkg);
+            for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < W; x++)
+                for (int x = 0; x < width; x++)
                 {
                     if ((x + y) % 2 == 0)
                     {
@@ -77,10 +77,10 @@ namespace XUnitTester
                     }
                 }
             }
-            ImageData oImage = new ImageData().Create(mat1);
+            ImageData image = new ImageData().Create(mat1);
 
             Directory.CreateDirectory("C:\\Temp");
-            ImageTools.SaveImage(oImage, $"C:\\Temp\\{connectionMode}_TestBlobIn.png", ImageSaveFormat.Png);
+            ImageTools.SaveImage(image, $"C:\\Temp\\{connectionMode}_TestBlobIn.png", ImageSaveFormat.Png);
 
             ColourClashProcessing.Blob.Blob blob = new ColourClashProcessing.Blob.Blob()
                 .WithThreshold(ColorIntExt.FromRGB(255, 0, 255), 0, false)
@@ -88,7 +88,7 @@ namespace XUnitTester
                 .WithProcessing(ColourClashProcessing.Blob.BlobConnectionModes.FourConnected);
 
             blob.WithProcessing(connectionMode);
-            var result = blob.Process(oImage);
+            var result = blob.Process(image);
 
             var imageShapeOut = blob.GetShapeImage();
             ImageTools.SaveImage(imageShapeOut, $"C:\\Temp\\{connectionMode}_ShapeOut_{blob.BlobList.Count}");
@@ -110,15 +110,15 @@ namespace XUnitTester
             // Create an image with 4 blobs
 
             Directory.CreateDirectory($"C:\\Temp\\{fileName}\\Frames");
-            ImageData oImage = ImageTools.LoadImage($"C:\\Temp\\{fileName}.png");
-            ImageTools.SaveImage(oImage, $"C:\\Temp\\{fileName}\\Test{fileName}_BlobIn");
+            ImageData image = ImageTools.LoadImage($"C:\\Temp\\{fileName}.png");
+            ImageTools.SaveImage(image, $"C:\\Temp\\{fileName}\\Test{fileName}_BlobIn");
 
             ColourClashProcessing.Blob.Blob blob = new ColourClashProcessing.Blob.Blob()
                 .WithThreshold(ColorIntExt.FromRGB(255, 0, 255), 0, false)
                 .WithFiltering(10, 1000000, 10, 1000000, 10, 1000000)
                 .WithProcessing(ColourClashProcessing.Blob.BlobConnectionModes.FourConnected);
 
-            var result = blob.Process(oImage);
+            var result = blob.Process(image);
 
             var shapeOut = blob.GetShapeImage();
             ImageTools.SaveImage(shapeOut, $"C:\\Temp\\{fileName}\\Test{fileName}_ShapeOut");

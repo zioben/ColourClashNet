@@ -39,8 +39,8 @@ namespace ColourClashLib.Color.Transformation.Evolution
         /// The number of items (colors) in the cluster, derived from the histogram dictionary.
         /// </summary>
         public int ClusterItems => HistDictionary.Count();
-        public double Distance(int rgb, ColorDistanceEvaluationMode eMode) => ClusterRGB.Distance(rgb, eMode);
-        public int GetClusterColor(int rgb, ColorDistanceEvaluationMode eMode) => ClusterRGB;
+        public double Distance(int rgb, ColorDistanceEvaluationMode mode) => ClusterRGB.Distance(rgb, mode);
+        public int GetClusterColor(int rgb, ColorDistanceEvaluationMode mode) => ClusterRGB;
         public void SetClusterColor(int rgb) => ClusterRGB = rgb;
 
         public override string ToString()

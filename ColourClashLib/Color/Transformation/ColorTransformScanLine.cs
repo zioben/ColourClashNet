@@ -88,34 +88,34 @@ namespace ColourClashNet.Color.Transformation
             => WithProcessingParams(cfg.ScanlineChunkHeight, cfg.ScanlinePaletteMode, cfg.MaxColorsWanted, cfg.ScanlineMaxColorsPerChunk, cfg.ScanlineInternalTransformationModel);
 
 
-        protected override ColorTransformResult ExecuteTransform(CancellationToken oToken = default)
+        protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             String sM = nameof(ExecuteTransform);
             BypassDithering = true;
             ColorListRow.Clear();
 
-            var oRet = new int[ImageSource.Rows, ImageSource.Columns];
-            var oSourceNew = new Imaging.ImageData().Create(ImageSource);
+            var ret = new int[ImageSource.Rows, ImageSource.Columns];
+            var sourceNew = new Imaging.ImageData().Create(ImageSource);
 
-            var oLineFixedPalette = ReferencePalette;
+            var lineFixedPalette = ReferencePalette;
             switch (PaletteMode)
             {
                 case ScanlinePaletteMode.IndependentChunkPalette:
-                    return ExecuteTransformIndipendentPalette(oToken);
+                    return ExecuteTransformIndipendentPalette(token);
                 case ScanlinePaletteMode.SharedChunksPalette:
-                    return ExecuteTransformSharedPalette(oToken);
+                    return ExecuteTransformSharedPalette(token);
                 default:
                     throw new NotImplementedException($"{sC}.{sM} : ReductionModePalette {PaletteMode} not implemented");
             }
         }
 
-        ColorTransformResult ExecuteTransformIndipendentPalette(CancellationToken oToken = default)
+        ColorTransformResult ExecuteTransformIndipendentPalette(CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransformSharedPalette);
             var cfg = config.Clone().WithMaxColorWanted(MaxColorsPerChunk).WithReferencePalette(ReferencePalette);
             TileManager = new TileManager()
-                .Create(ImageSource.Width, ChunkHeight, ImageSource, 1.0, cfg, oToken);
-            var tileResult = TileManager.ProcessColors(oToken);
+                .Create(ImageSource.Width, ChunkHeight, ImageSource, 1.0, cfg, token);
+            var tileResult = TileManager.ProcessColors(token);
             if (tileResult.IsSuccess)
             {
                 ImageOutput = TileManager.MergeToImage(new List<TileManager?>() { TileManager });
@@ -127,24 +127,24 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
-        ColorTransformResult ExecuteTransformSharedPalette(CancellationToken oToken = default)
+        ColorTransformResult ExecuteTransformSharedPalette(CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransformSharedPalette);
-            var oMainImage = ImageSource;
-            var oMainPalette = oMainImage.ColorPalette;
-            if (oMainPalette.Count > MaxColorsWanted)
+            var mainImage = ImageSource;
+            var mainPalette = mainImage.ColorPalette;
+            if (mainPalette.Count > MaxColorsWanted)
             {
                 var transf = ColorTransformInternal.Alloc(config,config.ScanlineInternalTransformationModel).Create(ImageSource);
-                var result = transf.ProcessColors(oToken);
-                oMainImage = result.DataOut;
+                var result = transf.ProcessColors(token);
+                mainImage = result.DataOut;
             }
-            ImageData.AssertValid(oMainImage);
+            ImageData.AssertValid(mainImage);
             var cfg = config.Clone()
                 .WithMaxColorWanted(MaxColorsPerChunk)
                 .WithReferencePalette(new(), true);
             TileManager = new TileManager()
-                .Create(oMainImage.Width, ChunkHeight, oMainImage, 1.0, cfg, oToken);
-            var tileResult = TileManager.ProcessColors(oToken);
+                .Create(mainImage.Width, ChunkHeight, mainImage, 1.0, cfg, token);
+            var tileResult = TileManager.ProcessColors(token);
             if (tileResult.IsSuccess)
             { 
                 ImageOutput = TileManager.MergeToImage(new List<TileManager?>() { TileManager });

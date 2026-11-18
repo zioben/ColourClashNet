@@ -21,68 +21,68 @@ public partial class TileManager
             throw new ArgumentOutOfRangeException($"{nameof(tileMan.tileProcessingMatrix)} size is zero");
     }
 
-    static bool MergeToMatrix(int[,] oDataOut, List<TileManager?> lTileMan)
+    static bool MergeToMatrix(int[,] dataOut, List<TileManager?> tileMan)
     {
         string sM = nameof(MergeToMatrix);
-        if (oDataOut == null)
-            throw new ArgumentNullException(nameof(oDataOut));
+        if (dataOut == null)
+            throw new ArgumentNullException(nameof(dataOut));
 
-        var lTileManFiltered = lTileMan?.Where(X => X != null).ToList() ?? null;
-        if (lTileManFiltered == null || lTileManFiltered.Count == 0)
+        var tileManFiltered = tileMan?.Where(x => x != null).ToList() ?? null;
+        if (tileManFiltered == null || tileManFiltered.Count == 0)
         {
             LogMan.Error(sC, sM, "No valid TileManagers provided");
             return false;
         }
 
-        var minRows = lTileManFiltered.Min(X => X.TileRows);
-        var minColumns = lTileManFiltered.Min(X => X.TileColumns);
-        var bRet = true;
+        var minRows = tileManFiltered.Min(x => x.TileRows);
+        var minColumns = tileManFiltered.Min(x => x.TileColumns);
+        var ret = true;
         for (int r = 0; r < minRows; r++)
         {
             for (int c = 0; c < minColumns; c++)
             {
-                var lTileProcessingRC = new List<TileProcessing>();
-                lTileManFiltered.ForEach(X => lTileProcessingRC.Add(X.GetTileProcessing(r, c)));
-                var lTileProcessingFilteredRC = lTileProcessingRC.Where(X => X != null).ToList();
-                bRet &= TileProcessing.MergeData(oDataOut, lTileProcessingFilteredRC);
+                var tileProcessingRC = new List<TileProcessing>();
+                tileManFiltered.ForEach(x => tileProcessingRC.Add(x.GetTileProcessing(r, c)));
+                var tileProcessingFilteredRC = tileProcessingRC.Where(x => x != null).ToList();
+                ret &= TileProcessing.MergeData(dataOut, tileProcessingFilteredRC);
             }
         }
-        return bRet;
+        return ret;
     }
-    bool MergeToMatrix(int[,] oDataRef, TileManager oTileA, TileManager oTileB)
-        => MergeToMatrix(oDataRef, new List<TileManager?> { oTileA, oTileB });
-    bool MergeToMatrix(int[,] oDataRef, TileManager oTileA, TileManager oTileB, TileManager oTileC, TileManager oTileD)
-        => MergeToMatrix(oDataRef, new List<TileManager?> { oTileA, oTileB, oTileC, oTileD });
+    bool MergeToMatrix(int[,] dataRef, TileManager tileA, TileManager tileB)
+        => MergeToMatrix(dataRef, new List<TileManager?> { tileA, tileB });
+    bool MergeToMatrix(int[,] dataRef, TileManager tileA, TileManager tileB, TileManager tileC, TileManager tileD)
+        => MergeToMatrix(dataRef, new List<TileManager?> { tileA, tileB, tileC, tileD });
 
-    public static ImageData MergeToImage(List<TileManager?> lTileMan)
+    public static ImageData MergeToImage(List<TileManager?> tileMan)
     {
         string sM = nameof(MergeToImage);
-        var lTileManFiltered = lTileMan?.Where(X => X != null).ToList() ?? null;
-        if (lTileManFiltered == null || lTileManFiltered.Count == 0)
+        var tileManFiltered = tileMan?.Where(x => x != null).ToList() ?? null;
+        if (tileManFiltered == null || tileManFiltered.Count == 0)
         {
             LogMan.Error(sC, sM, "No valid TileManagers provided");
             return null;
         }
-        int R = (lTileManFiltered.Max(X => X.ImageSource.Rows));
-        int C = (lTileManFiltered.Max(X => X.ImageSource.Columns));
-        if( R== 0 || C == 0)
+        int rows = (tileManFiltered.Max(x => x.ImageSource.Rows));
+        int columns = (tileManFiltered.Max(x => x.ImageSource.Columns));
+        if( rows== 0 || columns == 0)
         {
             LogMan.Error(sC, sM, "Invalid dimensions calculated from TileManagers");
             return null;
         }
-        var oDataMerge = new int[R, C];
-        if (!MergeToMatrix(oDataMerge, lTileManFiltered))
+        var dataMerge = new int[rows, columns];
+        if (!MergeToMatrix(dataMerge, tileManFiltered))
         {
             LogMan.Error(sC, sM, "Merging data from TileManagers failed");
             return null;
         }
-        return new ImageData().Create(oDataMerge);
+        return new ImageData().Create(dataMerge);
     }
 
 
-    public ImageData? MergeToImage( TileManager? oTileA, TileManager? oTileB)
-       => MergeToImage(new List<TileManager?> { oTileA, oTileB });
-    public ImageData? MergeToImage( TileManager? oTileA, TileManager? oTileB, TileManager? oTileC, TileManager? oTilD)
-        => MergeToImage(new List<TileManager?> { oTileA, oTileB, oTileC, oTilD });
+    public ImageData? MergeToImage( TileManager? tileA, TileManager? tileB)
+       => MergeToImage(new List<TileManager?> { tileA, tileB });
+    public ImageData? MergeToImage( TileManager? tileA, TileManager? tileB, TileManager? tileC, TileManager? tileD)
+        => MergeToImage(new List<TileManager?> { tileA, tileB, tileC, tileD });
 
 }

@@ -108,7 +108,7 @@ namespace ColourClashNet.Color
        /// if no valid RGB values are found.</returns>
         public Palette ToPalette()
         {
-            var list = HistogramDictionary.Select(X => X.Key);
+            var list = HistogramDictionary.Select(x => x.Key);
             return new Palette().Create(list);  
         }
         
@@ -121,7 +121,7 @@ namespace ColourClashNet.Color
        /// palette will contain all available colors.</returns>
         public Palette ToPalette(int maxColorWanted)
         {
-            var list = HistogramDictionary.Select(X => X.Key).ToList().Take(maxColorWanted);
+            var list = HistogramDictionary.Select(x => x.Key).ToList().Take(maxColorWanted);
             return new Palette().Create(list);
         }
 
@@ -134,15 +134,15 @@ namespace ColourClashNet.Color
        /// from most to least frequent.</returns>
         public HistogramRGB SortColorsDescending()
         {
-            var lSorted = HistogramDictionary
+            var sorted = HistogramDictionary
                 .OrderByDescending(kvp => kvp.Value)
                 .ToList();
-            var oRet = new HistogramRGB();
-            foreach (var kvp in lSorted)
+            var ret = new HistogramRGB();
+            foreach (var kvp in sorted)
             {
-                oRet.AddToHistogram(kvp.Key, kvp.Value);
+                ret.AddToHistogram(kvp.Key, kvp.Value);
             }
-            return oRet;
+            return ret;
         }
 
        /// <summary>
@@ -152,15 +152,15 @@ namespace ColourClashNet.Color
        /// from least to most frequent. Returns <see langword="null"/> if the histogram is empty.</returns>
         public HistogramRGB? SortColorsAscending()
         {
-            var lSorted = HistogramDictionary
+            var sorted = HistogramDictionary
                 .OrderBy(kvp => kvp.Value)
                 .ToList();
-            var oRet = new HistogramRGB();
-            foreach (var kvp in lSorted)
+            var ret = new HistogramRGB();
+            foreach (var kvp in sorted)
             {
-                oRet.AddToHistogram(kvp.Key, kvp.Value);
+                ret.AddToHistogram(kvp.Key, kvp.Value);
             }
-            return oRet;
+            return ret;
         }
 
         /// <summary>

@@ -33,16 +33,16 @@ namespace ColourClashLib.Color.Transformation.Evolution
             return ColorIntExt.FromRGB(ClusterRGB.ToR() / 2, ClusterRGB.ToG() / 2, ClusterRGB.ToB() / 2);
         }
       
-        public new double Distance(int rgb, ColorDistanceEvaluationMode eMode)
+        public new double Distance(int rgb, ColorDistanceEvaluationMode mode)
         {
-            return Math.Min(ClusterRGB.Distance(rgb, eMode), ClusterRGB_EHB.Distance(rgb, eMode));
+            return Math.Min(ClusterRGB.Distance(rgb, mode), ClusterRGB_EHB.Distance(rgb, mode));
         }
 
-        public new int GetClusterColor(int rgb, ColorDistanceEvaluationMode eMode)
+        public new int GetClusterColor(int rgb, ColorDistanceEvaluationMode mode)
         {
             if(ClusterRGB == ColorDefaults.DefaultInvalidColorInt)
                 return ColorDefaults.DefaultInvalidColorInt;
-            if( ClusterRGB.Distance(rgb, eMode) <= ClusterRGB_EHB.Distance(rgb, eMode))
+            if( ClusterRGB.Distance(rgb, mode) <= ClusterRGB_EHB.Distance(rgb, mode))
                 return ClusterRGB;
             else
                 return ClusterRGB_EHB;

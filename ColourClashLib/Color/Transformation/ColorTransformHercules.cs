@@ -29,7 +29,7 @@ namespace ColourClashNet.Color.Transformation
             ReferencePalette.Add(ColorIntExt.FromRGB(255, 255, 255));
         }
        
-        protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken = default)
+        protected override ColorTransformResult CreateTransformationMap(CancellationToken token = default)
         {
             TransformationMap.Reset();
             RebuildReferencePalette();

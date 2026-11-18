@@ -54,7 +54,7 @@ namespace ColourClashNet.Color.Transformation
 
             string sM = nameof(ExecuteTransform);
 
-            var oProcessed = new int[ImageSource.Rows, ImageSource.Columns];
+            var processed = new int[ImageSource.Rows, ImageSource.Columns];
             BypassDithering = true;
 
             // More Performant without Parallel ?
@@ -70,14 +70,14 @@ namespace ColourClashNet.Color.Transformation
                         hsv.H = (float)((((hsv.H + HueShift) % 360.0) + 360.0) % 360.0);
                         hsv.S = (float)Math.Min(100, hsv.S * SaturationMultFactor);
                         hsv.V = (float)Math.Min(100, hsv.V * BrightnessMultFactor);
-                        oProcessed[r, c] = hsv.ToIntRGB();
+                        processed[r, c] = hsv.ToIntRGB();
                     }
                 }
                 token.ThrowIfCancellationRequested();
             });
             //}
 
-            return ColorTransformResult.CreateValidResult(ImageSource, new ImageData().Create(oProcessed));
+            return ColorTransformResult.CreateValidResult(ImageSource, new ImageData().Create(processed));
 
         }
     }

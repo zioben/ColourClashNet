@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            oContextMenuStrip = new ContextMenuStrip(components);
+            contextMenuStrip = new ContextMenuStrip(components);
             toolStripMenuItemZoom = new ToolStripMenuItem();
             toolStripMenuItem1_4 = new ToolStripMenuItem();
             toolStripMenuItem1_2 = new ToolStripMenuItem();
@@ -46,15 +46,15 @@
             toolStripMenuItemAddColor = new ToolStripMenuItem();
             toolStripMenuItemResetColors = new ToolStripMenuItem();
             toolStripMenuItemColors = new ToolStripMenuItem();
-            oContextMenuStripColors = new ContextMenuStrip(components);
-            oContextMenuStrip.SuspendLayout();
+            contextMenuStripColors = new ContextMenuStrip(components);
+            contextMenuStrip.SuspendLayout();
             // 
-            // oContextMenuStrip
+            // contextMenuStrip
             // 
-            oContextMenuStrip.Items.AddRange(new ToolStripItem[] { toolStripMenuItemZoom, toolStripMenuItemBlockMoving, toolStripMenuItemAddColor, toolStripMenuItemResetColors, toolStripMenuItemColors });
-            oContextMenuStrip.Name = "oContextMenuStrip";
-            oContextMenuStrip.Size = new Size(140, 114);
-            oContextMenuStrip.Opening += oContextMenuStrip_Opening;
+            contextMenuStrip.Items.AddRange(new ToolStripItem[] { toolStripMenuItemZoom, toolStripMenuItemBlockMoving, toolStripMenuItemAddColor, toolStripMenuItemResetColors, toolStripMenuItemColors });
+            contextMenuStrip.Name = "oContextMenuStrip";
+            contextMenuStrip.Size = new Size(140, 114);
+            contextMenuStrip.Opening += oContextMenuStrip_Opening;
             // 
             // toolStripMenuItemZoom
             // 
@@ -153,17 +153,17 @@
             toolStripMenuItemColors.Size = new Size(139, 22);
             toolStripMenuItemColors.Text = "Color List";
             // 
-            // oContextMenuStripColors
+            // contextMenuStripColors
             // 
-            oContextMenuStripColors.Name = "oContextMenuStripColors";
-            oContextMenuStripColors.OwnerItem = toolStripMenuItemColors;
-            oContextMenuStrip.ResumeLayout(false);
+            contextMenuStripColors.Name = "oContextMenuStripColors";
+            contextMenuStripColors.OwnerItem = toolStripMenuItemColors;
+            contextMenuStrip.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.ContextMenuStrip oContextMenuStrip;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemZoom;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1_1;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2_1;
@@ -179,7 +179,7 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemBlockMoving;
         private ToolStripMenuItem toolStripMenuItemAddColor;
         private ToolStripMenuItem toolStripMenuItemColors;
-        private ContextMenuStrip oContextMenuStripColors;
+        private ContextMenuStrip contextMenuStripColors;
         private ToolStripMenuItem toolStripMenuItemResetColors;
     }
 }

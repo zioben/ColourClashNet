@@ -14,7 +14,7 @@ namespace ColourClashNet.Color.Transformation
     {
         static string sClass = nameof(ColorTransformResult);
 
-        static string sValidMessage = "Ok";
+        static string validMessage = "Ok";
 
         public ImageData? DataIn { get; internal set; }
         public ImageData? DataOut { get; internal set; }
@@ -24,38 +24,38 @@ namespace ColourClashNet.Color.Transformation
         public Exception? Exception { get; internal set; }
 
 
-        static public ColorTransformResult CreateValidResult(ImageData? inputData, ImageData? outputData, string sMessage, double processingScore) => new ColorTransformResult()
+        static public ColorTransformResult CreateValidResult(ImageData? inputData, ImageData? outputData, string message, double processingScore) => new ColorTransformResult()
         {
             DataIn = inputData,
             DataOut = outputData,
             ProcessingScore = processingScore,
             IsSuccess = true,
-            Message = sMessage
+            Message = message
         };
 
 
-        static public ColorTransformResult CreateValidResult(ImageData? inputData, ImageData? outputData, string sMessage)
-            => CreateValidResult(inputData, outputData, sMessage, double.NaN);
+        static public ColorTransformResult CreateValidResult(ImageData? inputData, ImageData? outputData, string message)
+            => CreateValidResult(inputData, outputData, message, double.NaN);
 
         static public ColorTransformResult CreateValidResult(ImageData? inputData, ImageData? outputData)
-            => CreateValidResult(inputData, outputData, sValidMessage, double.NaN);
-        static public ColorTransformResult CreateValidResult(ImageData? inputData, ImageData? outputData,double dProgressPercent)
-            => CreateValidResult(inputData, outputData, sValidMessage, dProgressPercent);
+            => CreateValidResult(inputData, outputData, validMessage, double.NaN);
+        static public ColorTransformResult CreateValidResult(ImageData? inputData, ImageData? outputData,double progressPercent)
+            => CreateValidResult(inputData, outputData, validMessage, progressPercent);
         static public ColorTransformResult CreateValidResult() 
-            => CreateValidResult(null, null, sValidMessage);
+            => CreateValidResult(null, null, validMessage);
 
-        static public ColorTransformResult CreateErrorResult(ImageData inputData, ImageData outputData, string sMessage, Exception ex) => new ColorTransformResult()
+        static public ColorTransformResult CreateErrorResult(ImageData inputData, ImageData outputData, string message, Exception ex) => new ColorTransformResult()
         {
             DataIn = inputData,
             DataOut = outputData,
-            Message = sMessage,    
+            Message = message,    
             Exception = ex
         };
-        static public ColorTransformResult CreateErrorResult(ImageData inputData, ImageData outputData, string sMessage) => CreateErrorResult(inputData,outputData, sMessage, null);
+        static public ColorTransformResult CreateErrorResult(ImageData inputData, ImageData outputData, string message) => CreateErrorResult(inputData,outputData, message, null);
         static public ColorTransformResult CreateErrorResult(ImageData inputData, ImageData outputData, Exception ex) => CreateErrorResult(inputData, outputData,$"Exception : {ex?.Message ?? "null"}" , ex);
-        static public ColorTransformResult CreateErrorResult(string sMessage, Exception ex) => CreateErrorResult(null,null, sMessage, ex);
+        static public ColorTransformResult CreateErrorResult(string message, Exception ex) => CreateErrorResult(null,null, message, ex);
         static public ColorTransformResult CreateErrorResult(Exception ex) => CreateErrorResult($"Exception : {ex?.Message ?? "null"}", ex);
-        static public ColorTransformResult CreateErrorResult(String sMessage) => CreateErrorResult(sMessage, null);
+        static public ColorTransformResult CreateErrorResult(String message) => CreateErrorResult(message, null);
 
     }
 

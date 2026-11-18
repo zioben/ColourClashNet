@@ -12,11 +12,11 @@ namespace ColourClashNet.Color
 {
     public partial class HistogramRGB
     {
-        static readonly int[] oColorArray = new int[256 * 256 * 256];
+        static readonly int[] colorArray = new int[256 * 256 * 256];
 
-        static readonly int SizeLimit = 1920 * 1080;
+        static readonly int sizeLimit = 1920 * 1080;
 
-        static object oLocker = new object();
+        static object locker = new object();
 
         public static void AssertValid(HistogramRGB hitogram)
         {
@@ -37,28 +37,28 @@ namespace ColourClashNet.Color
                 throw new ArgumentNullException(nameof(matrix));
             if (histogram == null)
                 throw new ArgumentNullException(nameof(histogram));
-            lock (oLocker)
+            lock (locker)
             {
-                Array.Clear(oColorArray, 0, oColorArray.Length);
+                Array.Clear(colorArray, 0, colorArray.Length);
                 histogram.Reset();
-                int R = matrix.GetLength(0);
-                int C = matrix.GetLength(1);
-                for (int r = 0; r < R; r++)
+                int rows = matrix.GetLength(0);
+                int columns = matrix.GetLength(1);
+                for (int r = 0; r < rows; r++)
                 {
-                    for (int c = 0; c < C; c++)
+                    for (int c = 0; c < columns; c++)
                     {
                         var rgb = matrix[r, c];
                         if (rgb.IsColor())
                         {
-                            oColorArray[rgb]++;
+                            colorArray[rgb]++;
                         }
                     }
                 }
-                for (int rgb = 0; rgb < oColorArray.Length; rgb++)
+                for (int rgb = 0; rgb < colorArray.Length; rgb++)
                 {
-                    if (oColorArray[rgb] > 0)
+                    if (colorArray[rgb] > 0)
                     {
-                        histogram.AddToHistogram(rgb, oColorArray[rgb]);
+                        histogram.AddToHistogram(rgb, colorArray[rgb]);
                     }
                 }
             }
@@ -77,11 +77,11 @@ namespace ColourClashNet.Color
             if (histogram == null)
                 throw new ArgumentNullException(nameof(histogram));
             histogram.Reset();
-            int R = matrix.GetLength(0);
-            int C = matrix.GetLength(1);
-            for (int r = 0; r < R; r++)
+            int rows = matrix.GetLength(0);
+            int columns = matrix.GetLength(1);
+            for (int r = 0; r < rows; r++)
             {
-                for (int c = 0; c < C; c++)
+                for (int c = 0; c < columns; c++)
                 {
                     var rgb = matrix[r, c];
                     histogram.AddToHistogram(rgb, 1);
@@ -104,9 +104,9 @@ namespace ColourClashNet.Color
             if (histogram == null)
                 throw new ArgumentNullException(nameof(histogram));
             histogram.Reset();
-            int R = matrix.GetLength(0);
-            int C = matrix.GetLength(1);
-            if (R * C > SizeLimit)
+            int rows = matrix.GetLength(0);
+            int columns = matrix.GetLength(1);
+            if (rows * columns > sizeLimit)
             {
                 LogMan.Trace(sClass, sMethod, "Using array method for large image");
                 CreateHistogramArray(matrix, histogram);

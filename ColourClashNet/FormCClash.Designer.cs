@@ -44,14 +44,14 @@ namespace ColourClashNet
             newContainerToolStripMenuItem = new ToolStripMenuItem();
             bitmapIndexedToolStripMenuItem = new ToolStripMenuItem();
             bitmapToolStripMenuItem = new ToolStripMenuItem();
-            pNGToolStripMenuItem = new ToolStripMenuItem();
+            pngToolStripMenuItem = new ToolStripMenuItem();
             amigaToolStripMenuItem = new ToolStripMenuItem();
-            iFFILBMToolStripMenuItem = new ToolStripMenuItem();
+            iffIlbmToolStripMenuItem = new ToolStripMenuItem();
             bitplaneToolStripMenuItem1 = new ToolStripMenuItem();
             rawBitplaneAndOCSCopperlistToolStripMenuItem = new ToolStripMenuItem();
             sourceCodeToolStripMenuItem = new ToolStripMenuItem();
-            ColorModeToolStripMenuItem = new ToolStripMenuItem();
-            ColorDistanceToolStripMenuItem = new ToolStripMenuItem();
+            colorModeToolStripMenuItem = new ToolStripMenuItem();
+            colorDistanceToolStripMenuItem = new ToolStripMenuItem();
             ditheringToolStripMenuItem = new ToolStripMenuItem();
             ditherFXToolStripMenuItem = new ToolStripMenuItem();
             tsmiResolution = new ToolStripMenuItem();
@@ -96,7 +96,7 @@ namespace ColourClashNet
             // menuStripMain
             // 
             menuStripMain.Dock = DockStyle.None;
-            menuStripMain.Items.AddRange(new ToolStripItem[] { toolStripMenuItem1, ColorModeToolStripMenuItem, ColorDistanceToolStripMenuItem, ditheringToolStripMenuItem, ditherFXToolStripMenuItem, tsmiResolution });
+            menuStripMain.Items.AddRange(new ToolStripItem[] { toolStripMenuItem1, colorModeToolStripMenuItem, colorDistanceToolStripMenuItem, ditheringToolStripMenuItem, ditherFXToolStripMenuItem, tsmiResolution });
             menuStripMain.Location = new Point(0, 0);
             menuStripMain.Name = "menuStripMain";
             menuStripMain.Size = new Size(1184, 24);
@@ -142,7 +142,7 @@ namespace ColourClashNet
             // 
             // exportToolStripMenuItem
             // 
-            exportToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newContainerToolStripMenuItem, bitmapIndexedToolStripMenuItem, bitmapToolStripMenuItem, pNGToolStripMenuItem, amigaToolStripMenuItem });
+            exportToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newContainerToolStripMenuItem, bitmapIndexedToolStripMenuItem, bitmapToolStripMenuItem, pngToolStripMenuItem, amigaToolStripMenuItem });
             exportToolStripMenuItem.Name = "exportToolStripMenuItem";
             exportToolStripMenuItem.Size = new Size(180, 22);
             exportToolStripMenuItem.Text = "Export";
@@ -168,25 +168,25 @@ namespace ColourClashNet
             bitmapToolStripMenuItem.Text = "Bitmap";
             bitmapToolStripMenuItem.Click += bitmapToolStripMenuItem_Click;
             // 
-            // pNGToolStripMenuItem
+            // pngToolStripMenuItem
             // 
-            pNGToolStripMenuItem.Name = "pNGToolStripMenuItem";
-            pNGToolStripMenuItem.Size = new Size(180, 22);
-            pNGToolStripMenuItem.Text = "PNG";
-            pNGToolStripMenuItem.Click += pNGToolStripMenuItem_Click;
+            pngToolStripMenuItem.Name = "pNGToolStripMenuItem";
+            pngToolStripMenuItem.Size = new Size(180, 22);
+            pngToolStripMenuItem.Text = "PNG";
+            pngToolStripMenuItem.Click += pNGToolStripMenuItem_Click;
             // 
             // amigaToolStripMenuItem
             // 
-            amigaToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { iFFILBMToolStripMenuItem, bitplaneToolStripMenuItem1, rawBitplaneAndOCSCopperlistToolStripMenuItem, sourceCodeToolStripMenuItem });
+            amigaToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { iffIlbmToolStripMenuItem, bitplaneToolStripMenuItem1, rawBitplaneAndOCSCopperlistToolStripMenuItem, sourceCodeToolStripMenuItem });
             amigaToolStripMenuItem.Name = "amigaToolStripMenuItem";
             amigaToolStripMenuItem.Size = new Size(180, 22);
             amigaToolStripMenuItem.Text = "Amiga";
             // 
-            // iFFILBMToolStripMenuItem
+            // iffIlbmToolStripMenuItem
             // 
-            iFFILBMToolStripMenuItem.Name = "iFFILBMToolStripMenuItem";
-            iFFILBMToolStripMenuItem.Size = new Size(224, 22);
-            iFFILBMToolStripMenuItem.Text = "IFF-ILBM";
+            iffIlbmToolStripMenuItem.Name = "iFFILBMToolStripMenuItem";
+            iffIlbmToolStripMenuItem.Size = new Size(224, 22);
+            iffIlbmToolStripMenuItem.Text = "IFF-ILBM";
             // 
             // bitplaneToolStripMenuItem1
             // 
@@ -206,18 +206,18 @@ namespace ColourClashNet
             sourceCodeToolStripMenuItem.Size = new Size(224, 22);
             sourceCodeToolStripMenuItem.Text = "SourceCode";
             // 
-            // ColorModeToolStripMenuItem
+            // colorModeToolStripMenuItem
             // 
-            ColorModeToolStripMenuItem.Name = "ColorModeToolStripMenuItem";
-            ColorModeToolStripMenuItem.Size = new Size(87, 20);
-            ColorModeToolStripMenuItem.Tag = "FullColor";
-            ColorModeToolStripMenuItem.Text = "Quantization";
+            colorModeToolStripMenuItem.Name = "ColorModeToolStripMenuItem";
+            colorModeToolStripMenuItem.Size = new Size(87, 20);
+            colorModeToolStripMenuItem.Tag = "FullColor";
+            colorModeToolStripMenuItem.Text = "Quantization";
             // 
-            // ColorDistanceToolStripMenuItem
+            // colorDistanceToolStripMenuItem
             // 
-            ColorDistanceToolStripMenuItem.Name = "ColorDistanceToolStripMenuItem";
-            ColorDistanceToolStripMenuItem.Size = new Size(93, 20);
-            ColorDistanceToolStripMenuItem.Text = "ColorDistance";
+            colorDistanceToolStripMenuItem.Name = "ColorDistanceToolStripMenuItem";
+            colorDistanceToolStripMenuItem.Size = new Size(93, 20);
+            colorDistanceToolStripMenuItem.Text = "ColorDistance";
             // 
             // ditheringToolStripMenuItem
             // 
@@ -308,14 +308,14 @@ namespace ColourClashNet
         private ToolStripMenuItem newContainerToolStripMenuItem;
         private ToolStripMenuItem bitmapIndexedToolStripMenuItem;
         private ToolStripMenuItem bitmapToolStripMenuItem;
-        private ToolStripMenuItem pNGToolStripMenuItem;
+        private ToolStripMenuItem pngToolStripMenuItem;
         private ToolStripMenuItem amigaToolStripMenuItem;
-        private ToolStripMenuItem iFFILBMToolStripMenuItem;
+        private ToolStripMenuItem iffIlbmToolStripMenuItem;
         private ToolStripMenuItem bitplaneToolStripMenuItem1;
         private ToolStripMenuItem rawBitplaneAndOCSCopperlistToolStripMenuItem;
         private ToolStripMenuItem sourceCodeToolStripMenuItem;
-        private ToolStripMenuItem ColorModeToolStripMenuItem;
-        private ToolStripMenuItem ColorDistanceToolStripMenuItem;
+        private ToolStripMenuItem colorModeToolStripMenuItem;
+        private ToolStripMenuItem colorDistanceToolStripMenuItem;
         private ToolStripMenuItem ditheringToolStripMenuItem;
         private ToolStripMenuItem tsmiResolution;
         private ToolStripMenuItem originalToolStripMenuItem;

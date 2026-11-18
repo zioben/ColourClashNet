@@ -13,12 +13,12 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Internal storage for unique colors.
         /// </summary>
-        protected internal HashSet<int> rgbPalette { get; private init; } = new HashSet<int>();
+        protected internal HashSet<int> RgbPalette { get; private init; } = new HashSet<int>();
 
        /// <summary>
        /// Gets the number of colors contained in the palette.
        /// </summary>
-        public int Count => rgbPalette.Count;
+        public int Count => RgbPalette.Count;
 
         /// <summary>
         /// Gets a value indicating whether the collection contains one or more elements.
@@ -29,24 +29,24 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Adds the specified RGB color value to the palette if it represents a valid color.
         /// </summary>
-        /// <param name="iRGB">The integer value representing an RGB color to add to the palette. Must satisfy the color validation
+        /// <param name="rgb">The integer value representing an RGB color to add to the palette. Must satisfy the color validation
         /// criteria defined by IsColor().</param>
-        public void Add(int iRGB)
+        public void Add(int rgb)
         {
-            if (iRGB.IsColor())
-                rgbPalette.Add(iRGB);
+            if (rgb.IsColor())
+                RgbPalette.Add(rgb);
         }
 
         /// <summary>
         /// Removes the color with the specified RGB value from the palette.
         /// </summary>
-        /// <param name="iRGB">The RGB value of the color to remove from the palette.</param>
-        public void Remove(int iRGB) => rgbPalette.Remove(iRGB);
+        /// <param name="rgb">The RGB value of the color to remove from the palette.</param>
+        public void Remove(int rgb) => RgbPalette.Remove(rgb);
 
         /// <summary>
         /// Removes all items from the palette, resetting it to an empty state.
         /// </summary>
-        public void Reset() => rgbPalette.Clear();
+        public void Reset() => RgbPalette.Clear();
 
         /// <summary>
         /// 
@@ -81,20 +81,20 @@ namespace ColourClashNet.Color
         /// <summary>
         /// Creates a new Palette instance from a two-dimensional array of integer color data.
         /// </summary>
-        /// <param name="oData">A two-dimensional array containing color data, where each element represents a color value. Cannot be null.</param>
+        /// <param name="data">A two-dimensional array containing color data, where each element represents a color value. Cannot be null.</param>
         /// <returns>A Palette instance initialized with the specified color data.</returns>
-        internal Palette Create( int[,] oData)
-            => Create(oData?.Cast<int>());
+        internal Palette Create( int[,] data)
+            => Create(data?.Cast<int>());
 
 
         /// <summary>
         /// Creates a new palette from the specified image data.
         /// </summary>
-        /// <param name="oImageData">The image data from which to generate the palette. Can be null, in which case the result depends on the
+        /// <param name="imageData">The image data from which to generate the palette. Can be null, in which case the result depends on the
         /// implementation of the underlying Create method.</param>
         /// <returns>A Palette instance generated from the provided image data.</returns>
-        public Palette Create(ImageData oImageData)
-            => Create(oImageData?.matrix);
+        public Palette Create(ImageData imageData)
+            => Create(imageData?.matrix);
 
         /// <summary>
         /// Creates a new palette from the specified palette
@@ -103,14 +103,14 @@ namespace ColourClashNet.Color
         /// implementation of the underlying Create method.</param>
         /// <returns>A Palette instance generated from the provided image data.</returns>
         public Palette Create(Palette palette)
-            => Create(palette?.rgbPalette ?? new HashSet<int>());
+            => Create(palette?.RgbPalette ?? new HashSet<int>());
 
         /// <summary>
         /// Returns a list containing all color values in the palette.
         /// </summary>
         /// <returns>A list of integers representing the color values in the palette. The list will be empty if the palette
         /// contains no colors.</returns>
-        public List<int> ToList() => rgbPalette.ToList();
+        public List<int> ToList() => RgbPalette.ToList();
 
 
         /// <summary>
@@ -122,13 +122,13 @@ namespace ColourClashNet.Color
 
         public IEnumerator<int> GetEnumerator()
         {
-            return ((IEnumerable<int>)rgbPalette).GetEnumerator();
+            return ((IEnumerable<int>)RgbPalette).GetEnumerator();
         }
 
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ((IEnumerable)rgbPalette).GetEnumerator();
+            return ((IEnumerable)RgbPalette).GetEnumerator();
         }
     }
 }

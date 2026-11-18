@@ -86,7 +86,7 @@ namespace ColourClashNet.Color.Transformation
 
         #region abstract Methods
 
-        protected virtual ColorTransformResult CreateTransformationMap(CancellationToken oToken = default)
+        protected virtual ColorTransformResult CreateTransformationMap(CancellationToken token = default)
         {
             string sM = nameof(CreateTransformationMap);
             LogMan.Debug(sM, sM, $"{Type} : Default {nameof(CreateTransformationMap)} called - no processing");
@@ -110,7 +110,7 @@ namespace ColourClashNet.Color.Transformation
 
 
         protected bool ProcessPartialEventRegistered => ProcessPartial != null;
-        protected void RaiseProcessPartialEvent(ColorProcessingEventArgs oArgs) => ProcessPartial?.Invoke(this, oArgs);
+        protected void RaiseProcessPartialEvent(ColorProcessingEventArgs args) => ProcessPartial?.Invoke(this, args);
 
         public ColorTransformInterface Create( ImageData sourceImage, ImageData referenceImage)
         {
@@ -302,64 +302,64 @@ namespace ColourClashNet.Color.Transformation
 
 
                 // Creating Transformation Map
-                var oMapRes = CreateTransformationMap(token);
-                if (!oMapRes.IsSuccess)
+                var mapRes = CreateTransformationMap(token);
+                if (!mapRes.IsSuccess)
                 {
                     LogMan.Error(sC, sM, $"{Type} : {nameof(CreateTransformationMap)} Error");
-                    return oMapRes;
+                    return mapRes;
                 }
 
                 // Execute color reduction
-                var oTransfRes = ExecuteTransform(token);
-                var oRetRes = new ColorTransformResult();
-                if (!oTransfRes.IsSuccess)
+                var transfRes = ExecuteTransform(token);
+                var retRes = new ColorTransformResult();
+                if (!transfRes.IsSuccess)
                 {
                     LogMan.Error(sC, sM, $"{Type} : {nameof(ExecuteTransform)} error");
                     // Propagate the transformation error (message and exception) to the caller
-                    oRetRes = oTransfRes;
+                    retRes = transfRes;
                 }
                 else
                 {
 
                     if (BypassDithering || DitheringConfig.DitheringType == ColorDithering.None)
                     {
-                        ImageOutput.Create(oTransfRes.DataOut);
-                        oRetRes = ColorTransformResult.CreateValidResult(ImageSource, ImageOutput);
+                        ImageOutput.Create(transfRes.DataOut);
+                        retRes = ColorTransformResult.CreateValidResult(ImageSource, ImageOutput);
                     }
                     else
                     {
 
-                        var processedImage = oTransfRes.DataOut;
+                        var processedImage = transfRes.DataOut;
 
-                        var oHash = new HashSet<int>();
+                        var hash = new HashSet<int>();
                         foreach (var rgb in processedImage.ColorPalette.ToList())
                         {
                             if (rgb.IsColor())
                             {
-                                oHash.Add(rgb);
+                                hash.Add(rgb);
                             }
                         }
 
-                        if (oHash.Count > 256)
+                        if (hash.Count > 256)
                         {
-                            LogMan.Warning(sC, sM, $"{Name} : Processing Completed - {DitheringConfig} : Too many colors to apply a dither : {oHash.Count}");
+                            LogMan.Warning(sC, sM, $"{Name} : Processing Completed - {DitheringConfig} : Too many colors to apply a dither : {hash.Count}");
                             ImageOutput.Create(processedImage);
-                            oRetRes = ColorTransformResult.CreateValidResult(ImageSource, ImageOutput);
+                            retRes = ColorTransformResult.CreateValidResult(ImageSource, ImageOutput);
                         }
                         else
                         {
-                            var oDithering = DitherBase.CreateDitherInterface(DitheringConfig);
-                            var oImageDataDither = oDithering.Dither(ImageReference, processedImage, ColorDistanceEvaluationMode, token);
-                            if (oImageDataDither.IsSuccess)
+                            var dithering = DitherBase.CreateDitherInterface(DitheringConfig);
+                            var imageDataDither = dithering.Dither(ImageReference, processedImage, ColorDistanceEvaluationMode, token);
+                            if (imageDataDither.IsSuccess)
                             {
-                                ImageOutput.Create(oImageDataDither.DataOut);
+                                ImageOutput.Create(imageDataDither.DataOut);
                                 LogMan.Debug(sC, sM, $"{Type} : Processing Completed with dithering");
-                                oRetRes = ColorTransformResult.CreateValidResult(ImageSource, ImageOutput);
+                                retRes = ColorTransformResult.CreateValidResult(ImageSource, ImageOutput);
                             }
                             else
                             {
                                 LogMan.Error(sC, sM, $"{Type} :  Dithering error");
-                                oRetRes = ColorTransformResult.CreateErrorResult(ImageSource, processedImage, $"{Type} : Dithering error");
+                                retRes = ColorTransformResult.CreateErrorResult(ImageSource, processedImage, $"{Type} : Dithering error");
                             }
                         }
 
@@ -370,13 +370,13 @@ namespace ColourClashNet.Color.Transformation
                 m_chrono.Update();
                 try
                 {
-                    Processed?.Invoke(this, CreateTransformEventArgs(cts, oRetRes));
+                    Processed?.Invoke(this, CreateTransformEventArgs(cts, retRes));
                 }
                 catch (Exception exEvent)
                 {
                     LogMan.Exception(sC, sM, $"{Type} : Error in {nameof(Processed)} event", exEvent);
                 }
-                return oRetRes;
+                return retRes;
             }
             catch (ThreadInterruptedException exTh)
             {

@@ -27,30 +27,30 @@ namespace ModuleTester
             cts = cancellationTokenSource;
         }
 
-        void AppendData(ColorProcessingEventArgs oArgs)
+        void AppendData(ColorProcessingEventArgs args)
         {
-            if (oArgs == null)
+            if (args == null)
             {
                 return;
             }
             Invoke(() =>
             {
-                //if (oArgs.CancellationTokenSource != null)
+                //if (args.CancellationTokenSource != null)
                 //{
-                //    cts = oArgs.CancellationTokenSource;
+                //    cts = args.CancellationTokenSource;
                 //}
-                if (oArgs?.ProcessingResults?.Message != null)
+                if (args?.ProcessingResults?.Message != null)
                 {
-                    lbHistory.Items.Insert(0, oArgs.ProcessingResults.Message);
+                    lbHistory.Items.Insert(0, args.ProcessingResults.Message);
                 }
-                if (oArgs?.ProcessingResults?.DataOut != null)
+                if (args?.ProcessingResults?.DataOut != null)
                 {
-                    picImageTemp.Image = ImageToolsGDI.ImageDataToGdiImage(oArgs.ProcessingResults.DataOut);
+                    picImageTemp.Image = ImageToolsGDI.ImageDataToGdiImage(args.ProcessingResults.DataOut);
                 }
-                if (!double.IsNaN(oArgs.CompletedPercent))
+                if (!double.IsNaN(args.CompletedPercent))
                 {
-                    lblPerc.Text = $"{oArgs.CompletedPercent:f1} %";
-                    pbarComplete.Value = (int)Math.Min(pbarComplete.Maximum, Math.Max(pbarComplete.Minimum, oArgs.CompletedPercent));
+                    lblPerc.Text = $"{args.CompletedPercent:f1} %";
+                    pbarComplete.Value = (int)Math.Min(pbarComplete.Maximum, Math.Max(pbarComplete.Minimum, args.CompletedPercent));
                 }
             });
         }

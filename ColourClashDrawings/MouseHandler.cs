@@ -25,7 +25,7 @@ namespace ColourClashNet.Drawing
             public Point ControlPointTranslation { get; internal set; }
             public Point ControlPointCurrent { get; internal set; }
 
-            Point ControlPointOld;
+            Point controlPointOld;
 
             public PointTrack()
             {
@@ -34,39 +34,39 @@ namespace ColourClashNet.Drawing
 
             public void Reset()
             {
-                ControlPointClick = ControlPointCurrent = ControlPointOld = ControlPointTranslation = new Point(0, 0);
+                ControlPointClick = ControlPointCurrent = controlPointOld = ControlPointTranslation = new Point(0, 0);
             }
 
-            public void Set(Point oCurrentPos, bool bHistoryMode )
+            public void Set(Point currentPos, bool historyMode )
             {
-                if (!bHistoryMode)
+                if (!historyMode)
                 {
-                    ControlPointClick = oCurrentPos;
-                    ControlPointTranslation = oCurrentPos;
-                    ControlPointCurrent = oCurrentPos;
-                    ControlPointOld = oCurrentPos;
+                    ControlPointClick = currentPos;
+                    ControlPointTranslation = currentPos;
+                    ControlPointCurrent = currentPos;
+                    controlPointOld = currentPos;
                 }
                 else
                 {
-                    var ControlPointDelta = oCurrentPos.Sub(ControlPointCurrent);
-                    ControlPointTranslation = ControlPointTranslation.Add(ControlPointDelta);
-                    ControlPointCurrent = oCurrentPos;
-                    ControlPointOld = oCurrentPos;
+                    var controlPointDelta = currentPos.Sub(ControlPointCurrent);
+                    ControlPointTranslation = ControlPointTranslation.Add(controlPointDelta);
+                    ControlPointCurrent = currentPos;
+                    controlPointOld = currentPos;
                 }
             }
 
-            public void Update(Point oCurrentPos)
+            public void Update(Point currentPos)
             {
-                ControlPointCurrent = oCurrentPos;
+                ControlPointCurrent = currentPos;
             }
-            public void Follow(Point oCurrentPos,bool bTracking)
+            public void Follow(Point currentPos,bool tracking)
             {
-                ControlPointCurrent = oCurrentPos;
-                if (bTracking)
+                ControlPointCurrent = currentPos;
+                if (tracking)
                 {
-                    var ControlPointDelta = oCurrentPos.Sub(ControlPointOld);
-                    ControlPointOld = ControlPointCurrent;
-                    ControlPointTranslation = ControlPointTranslation.Add(ControlPointDelta);
+                    var controlPointDelta = currentPos.Sub(controlPointOld);
+                    controlPointOld = ControlPointCurrent;
+                    ControlPointTranslation = ControlPointTranslation.Add(controlPointDelta);
                 }
             }
         }
@@ -82,70 +82,70 @@ namespace ColourClashNet.Drawing
         protected RectangleF ToRectangleF(Point p1, Point p2) => new RectangleF(Math.Min(p1.X, p2.X), Math.Min(p1.Y, p2.Y), Math.Abs(p2.X - p1.X), Math.Abs(p2.Y - p1.Y));
         protected RectangleF ToRectangleF(PointF p1, PointF p2) => new RectangleF(Math.Min(p1.X, p2.X), Math.Min(p1.Y, p2.Y), Math.Abs(p2.X - p1.X), Math.Abs(p2.Y - p1.Y));
 
-        bool bPressed = false;
+        bool pressed = false;
 
-        bool bStartHistory = false;
+        bool startHistory = false;
 
         public void Reset()
         {
             PointTrackCurrent.Reset();
             PointTrackHistory.Reset();
-            bStartHistory = false;
-            bPressed = false;
+            startHistory = false;
+            pressed = false;
             MouseState = EnumMouseState.none;
         }
 
-        internal virtual bool OnMouseDown(MouseEventArgs oArgs )
+        internal virtual bool OnMouseDown(MouseEventArgs args )
         {
-            if( oArgs.Button == MouseButton)
+            if( args.Button == MouseButton)
             {
                 MouseState = EnumMouseState.push;
-                if (!bPressed)
+                if (!pressed)
                 {
-                    bPressed = true;
-                    PointTrackCurrent.Set(oArgs.Location, false);
-                    if (!bStartHistory)
+                    pressed = true;
+                    PointTrackCurrent.Set(args.Location, false);
+                    if (!startHistory)
                     {
-                        bStartHistory = true;
-                        PointTrackHistory.Set(oArgs.Location, false );
+                        startHistory = true;
+                        PointTrackHistory.Set(args.Location, false );
                     }
                     else
                     {
-                        PointTrackHistory.Set(oArgs.Location, true);
+                        PointTrackHistory.Set(args.Location, true);
                     }
                     return true;
                 }
             }
             return false;
         }
-        internal virtual bool OnMouseUp(MouseEventArgs oArgs)
+        internal virtual bool OnMouseUp(MouseEventArgs args)
         {
-            if( oArgs.Button == MouseButton)
+            if( args.Button == MouseButton)
             {
-                PointTrackCurrent.Follow(oArgs.Location,MouseTracking);
-                PointTrackHistory.Follow(oArgs.Location,MouseTracking);    
+                PointTrackCurrent.Follow(args.Location,MouseTracking);
+                PointTrackHistory.Follow(args.Location,MouseTracking);    
                 MouseState = EnumMouseState.release;
-                if (bPressed)
+                if (pressed)
                 {
-                    bPressed = false;
+                    pressed = false;
                     return true;
                 }
             }
             return false;
         }
 
-        internal virtual bool OnMouseMove(MouseEventArgs oArgs)
+        internal virtual bool OnMouseMove(MouseEventArgs args)
         {
-            PointTrackCurrent.Update(oArgs.Location);
-            PointTrackHistory.Update(oArgs.Location);
+            PointTrackCurrent.Update(args.Location);
+            PointTrackHistory.Update(args.Location);
 
-            if (bPressed)
+            if (pressed)
             {
                 if (MouseTracking)
                 {
                     MouseState = EnumMouseState.tracking;
-                    PointTrackCurrent.Follow(oArgs.Location, MouseTracking);
-                    PointTrackHistory.Follow(oArgs.Location, MouseTracking);
+                    PointTrackCurrent.Follow(args.Location, MouseTracking);
+                    PointTrackHistory.Follow(args.Location, MouseTracking);
                 }
             }
             else

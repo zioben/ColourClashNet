@@ -35,19 +35,19 @@ namespace ColourClashNet.Color.Transformation
         public ColorTransformQuantization WithQuantization(ColorTransformConfig cfg) => WithQuantization(cfg.QuantizationMode);
 
 
-        public static int QuantizeColor(ColorQuantizationMode QuantizationMode, int iRGB)
+        public static int QuantizeColor(ColorQuantizationMode quantizationMode, int color)
         {
-            if (iRGB < 0)
-                return iRGB;
-            switch (QuantizationMode)
+            if (color < 0)
+                return color;
+            switch (quantizationMode)
             {
                 case ColorQuantizationMode.RGB888:
-                    return iRGB;
+                    return color;
                 case ColorQuantizationMode.RGB111:
                     {
-                        int r = iRGB.ToR() > 127 ? 0xFF : 0;
-                        int g = iRGB.ToG() > 127 ? 0xFF : 0;
-                        int b = iRGB.ToB() > 127 ? 0xFF : 0;
+                        int r = color.ToR() > 127 ? 0xFF : 0;
+                        int g = color.ToG() > 127 ? 0xFF : 0;
+                        int b = color.ToB() > 127 ? 0xFF : 0;
                         return ColorIntExt.FromRGB(r,g,b);
                     }
                 case ColorQuantizationMode.RGB222:
@@ -55,7 +55,7 @@ namespace ColourClashNet.Color.Transformation
                         // 1100.0000
                         // 1122.0000
                         // 1122.3333
-                        int rgb = iRGB & 0x00C0C0C0;
+                        int rgb = color & 0x00C0C0C0;
                         rgb |= rgb >> 2;
                         rgb |= rgb >> 4;
                         return rgb;
@@ -67,7 +67,7 @@ namespace ColourClashNet.Color.Transformation
                         // 1112.2200 1112.2200 ....
                         // 1112.2223.3312.2233 <- need mask to preserve G color channel
                         //           ^^                      
-                        int rgb = iRGB & 0x00E0E0E0;
+                        int rgb = color & 0x00E0E0E0;
                         rgb |= rgb >> 3;
                         rgb |= ((rgb >> 6) & 0x00030303);
                         return rgb;
@@ -76,7 +76,7 @@ namespace ColourClashNet.Color.Transformation
                     {
                         // 1111.0000
                         // 1111.2222                      
-                        int rgb = iRGB & 0x00F0F0F0;
+                        int rgb = color & 0x00F0F0F0;
                         rgb |= rgb >> 4;
                         return rgb;
                     }
@@ -84,15 +84,15 @@ namespace ColourClashNet.Color.Transformation
                     {
                         // 1111.1000
                         // 1111.1222.22 <- need mask to preserve G color channel                      
-                        int rgb = iRGB & 0x00F8F8F8;
+                        int rgb = color & 0x00F8F8F8;
                         rgb |= ((rgb >> 5) & 0x00070707);
                         return rgb;
                     }
                 case ColorQuantizationMode.RGB565:
                     {
-                        int r = iRGB.ToR() & 0xF8;
-                        int g = iRGB.ToG() & 0xFC;
-                        int b = iRGB.ToB() & 0xF8;
+                        int r = color.ToR() & 0xF8;
+                        int g = color.ToG() & 0xFC;
+                        int b = color.ToB() & 0xF8;
                         r |= r >> 5;
                         g |= g >> 6;
                         b |= b >> 5;
@@ -103,7 +103,7 @@ namespace ColourClashNet.Color.Transformation
 
                         // 1111.1100
                         // 1111.1122.2222 <- need mask to preserve G color channel
-                        int rgb = iRGB & 0x00FCFCFC;
+                        int rgb = color & 0x00FCFCFC;
                         rgb |= ((rgb >> 6) & 0x00030303);
                         return rgb;
                     }
@@ -112,10 +112,10 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
-        public int QuantizeColor(int iRGB)
-            => QuantizeColor(QuantizationMode,iRGB);
+        public int QuantizeColor(int rgb)
+            => QuantizeColor(QuantizationMode,rgb);
 
-        protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken=default)
+        protected override ColorTransformResult CreateTransformationMap(CancellationToken token=default)
         {
             string sM = nameof(CreateTransformationMap);
             LogMan.Trace(sC, sM, $"{Type} : Creating trasformation map");
@@ -131,7 +131,7 @@ namespace ColourClashNet.Color.Transformation
         }
 
         // Not needed
-        //protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? oToken)
+        //protected async override Task<ColorTransformResults> ExecuteTransformAsync(CancellationToken? token)
 
        
     }

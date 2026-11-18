@@ -40,25 +40,25 @@ namespace ColourClashNet.Drawing
         }
 
 
-        protected CoordinateManager oCMan = new CoordinateManager();
+        protected CoordinateManager coordinateManager = new CoordinateManager();
 
         public CoordinateManager CoordinateManager
         {
-            get { return oCMan; }
+            get { return coordinateManager; }
             set 
             {
                 if (value != null)
                 {
-                    oCMan = value;
+                    coordinateManager = value;
                 }
             }
         }
 
-        void UpdateCoordinates(PointTrack oPoint, ImageTrack oImage)
+        void UpdateCoordinates(PointTrack point, ImageTrack image)
         {
-            oImage.ImagePointClick = oCMan.Transform(oPoint.ControlPointClick);
-            oImage.ImagePointTranslation = oCMan.Transform(oPoint.ControlPointTranslation);
-            oImage.ImagePointCurrent = oCMan.Transform(oPoint.ControlPointCurrent);
+            image.ImagePointClick = coordinateManager.Transform(point.ControlPointClick);
+            image.ImagePointTranslation = coordinateManager.Transform(point.ControlPointTranslation);
+            image.ImagePointCurrent = coordinateManager.Transform(point.ControlPointCurrent);
         }
 
         bool UpdateCoordinates()
@@ -77,28 +77,28 @@ namespace ColourClashNet.Drawing
             }
         }
 
-        internal override bool OnMouseDown(MouseEventArgs oArgs)
+        internal override bool OnMouseDown(MouseEventArgs args)
         {
-            if (base.OnMouseDown(oArgs))
+            if (base.OnMouseDown(args))
             {
                 return UpdateCoordinates();
             }
             return false;
         }
 
-        internal override bool OnMouseUp(MouseEventArgs oArgs)
+        internal override bool OnMouseUp(MouseEventArgs args)
         {
-            if (base.OnMouseUp(oArgs))
+            if (base.OnMouseUp(args))
             {
                 return UpdateCoordinates();
             }
             return false;
         }
 
-        internal override bool OnMouseMove(MouseEventArgs oArgs)
+        internal override bool OnMouseMove(MouseEventArgs args)
         {
             // Corretto questo codice, non cambiare la logica
-            if (base.OnMouseMove(oArgs))
+            if (base.OnMouseMove(args))
             {
                 return UpdateCoordinates();
             }
@@ -109,18 +109,18 @@ namespace ColourClashNet.Drawing
             }
         }
 
-        public RectangleF ToImageRectangle(int iCX, int iCY, int iCW, int iCH)
+        public RectangleF ToImageRectangle(int cx, int cy, int cw, int ch)
         {
-            var P1 = oCMan.Transform(iCX, iCY);
-            var P2 = oCMan.Transform(iCX+iCW, iCY+iCH);
-            return ToRectangleF(P1, P2);
+            var p1 = coordinateManager.Transform(cx, cy);
+            var p2 = coordinateManager.Transform(cx+cw, cy+ch);
+            return ToRectangleF(p1, p2);
         }
 
-        public RectangleF ToControlRectangle(int iCX, int iCY, int iCW, int iCH)
+        public RectangleF ToControlRectangle(int cx, int cy, int cw, int ch)
         {
-            var P1 = oCMan.InverseTransform(iCX, iCY);
-            var P2 = oCMan.InverseTransform(iCX + iCW, iCY + iCH);
-            return ToRectangleF(P1, P2);
+            var p1 = coordinateManager.InverseTransform(cx, cy);
+            var p2 = coordinateManager.InverseTransform(cx + cw, cy + ch);
+            return ToRectangleF(p1, p2);
         }
     }
 }

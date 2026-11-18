@@ -20,7 +20,7 @@ namespace ColourClashNet.Components
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [DefaultValue(null)]
-        public BlobConfig blobConfig { get; set; } = new BlobConfig();
+        public BlobConfig BlobConfig { get; set; } = new BlobConfig();
 
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -52,13 +52,13 @@ namespace ColourClashNet.Components
 
         public BlobManager WithProcessingParams( Palette bkgPalette, int bkgReplacementColorRGB )
         {
-            blobConfig.WithThreshold(bkgPalette, (int)blobConfig.ThresholdRGB.ToleranceFactor, blobConfig.ThresholdRGB.InvertResults)
+            BlobConfig.WithThreshold(bkgPalette, (int)BlobConfig.ThresholdRGB.ToleranceFactor, BlobConfig.ThresholdRGB.InvertResults)
             .WithColors(bkgReplacementColorRGB);
             return this;
         }
         public BlobManager WithProcessingParams(BlobConfig config, int bkgReplacementColorRGB)
         {
-            blobConfig.WithThreshold(config)
+            BlobConfig.WithThreshold(config)
             .WithFiltering(config)
             .WithProcessing(config)
             .WithColors(bkgReplacementColorRGB);
@@ -75,7 +75,7 @@ namespace ColourClashNet.Components
                 LogMan.Error(sC, sM, "Source image is null");
                 return null;
             }
-            if (blobConfig.ThresholdRGB.ThresholdPalette.Count == 0)
+            if (BlobConfig.ThresholdRGB.ThresholdPalette.Count == 0)
             {
                 LogMan.Error(sC, sM, "No background colors selected");
                 return null;
@@ -90,12 +90,12 @@ namespace ColourClashNet.Components
 
                 BlobAnalysis.Reset();
                 BlobAnalysis
-                    .WithThreshold(blobConfig)
-                    .WithFiltering(blobConfig)
-                    .WithProcessing(blobConfig)
-                    .WithColors(blobConfig);
-                var oRes = BlobAnalysis.Process(sourceImage, cts.Token);
-                if (!oRes.IsSuccess)
+                    .WithThreshold(BlobConfig)
+                    .WithFiltering(BlobConfig)
+                    .WithProcessing(BlobConfig)
+                    .WithColors(BlobConfig);
+                var res = BlobAnalysis.Process(sourceImage, cts.Token);
+                if (!res.IsSuccess)
                 {
                     LogMan.Error(sC, sM, "Blob analysis failed");
                     return null;
