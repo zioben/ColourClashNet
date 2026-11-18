@@ -1,4 +1,5 @@
 ﻿using ColourClashNet.Color.Dithering;
+using ColourClashNet.Color.Tile;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
@@ -158,6 +159,59 @@ namespace ColourClashNet.Color.Transformation
         /// Raises <see cref="ProcessPartial"/>.
         /// </summary>
         protected void RaiseProcessPartialEvent(ColorProcessingEventArgs args) => ProcessPartial?.Invoke(this, args);
+
+        /// <summary>
+        /// Raises <see cref="ProcessPartial"/> on behalf of a nested step (child transformation or tile manager).
+        /// <para/>
+        /// The event data is copied and re-issued by this instance, so subscribers of the outermost transformation
+        /// receive the progress of every nested level. Nothing is allocated when nobody is listening.
+        /// </summary>
+        /// <param name="sender">Nested step that raised the event</param>
+        /// <param name="args">Event data of the nested step</param>
+        protected void ForwardNestedEvent(object? sender, ColorProcessingEventArgs args)
+        {
+            if (ProcessPartial == null || args == null)
+                return;
+            RaiseProcessPartialEvent(new ColorProcessingEventArgs()
+            {
+                ColorTransformInterface = this,
+                ProcessingResults = args.ProcessingResults,
+                CancellationTokenSource = args.CancellationTokenSource,
+                TransformationMap = args.TransformationMap,
+                CompletedPercent = args.CompletedPercent,
+            });
+        }
+
+        /// <summary>
+        /// Subscribes to the <see cref="ProcessPartial"/> and <see cref="ProcessAdvance"/> events of a nested
+        /// transformation and forwards them through <see cref="ForwardNestedEvent"/>.
+        /// </summary>
+        /// <typeparam name="T">Nested transformation type</typeparam>
+        /// <param name="child">Nested transformation</param>
+        /// <returns><paramref name="child"/>, to allow fluent use.</returns>
+        protected T ForwardEventsFrom<T>(T child) where T : ColorTransformInterface
+        {
+            if (child != null)
+            {
+                child.ProcessPartial += ForwardNestedEvent;
+                child.ProcessAdvance += ForwardNestedEvent;
+            }
+            return child;
+        }
+
+        /// <summary>
+        /// Subscribes to the progress event of a <see cref="TileManager"/> and forwards it through <see cref="ForwardNestedEvent"/>.
+        /// </summary>
+        /// <param name="tileManager">Tile manager used by this transformation</param>
+        /// <returns><paramref name="tileManager"/>, to allow fluent use.</returns>
+        protected TileManager ForwardEventsFrom(TileManager tileManager)
+        {
+            if (tileManager != null)
+            {
+                tileManager.ProcessPartial += ForwardNestedEvent;
+            }
+            return tileManager;
+        }
 
         /// <inheritdoc/>
         /// <exception cref="ArgumentNullException">An image is invalid.</exception>
@@ -354,7 +408,7 @@ namespace ColourClashNet.Color.Transformation
             catch (Exception ex)
             {
                 LogMan.Exception(sC, sM, Name, ex);
-                return ColorTransformResult.CreateErrorResult(ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : transformation map not applicable", ex);
             }
         }
 
@@ -409,22 +463,21 @@ namespace ColourClashNet.Color.Transformation
 
 
 
+                ColorTransformResult result;
+
                 // Creating Transformation Map
                 var mapResult = CreateTransformationMap(token);
-                if (!mapResult.IsSuccess)
+                ColorTransformResult? transformResult = null;
+                if (mapResult == null || !mapResult.IsSuccess)
                 {
                     LogMan.Error(sC, sM, $"{Type} : {nameof(CreateTransformationMap)} Error");
-                    return mapResult;
+                    result = ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : {nameof(CreateTransformationMap)} failed", mapResult);
                 }
-
-                // Execute color reduction
-                var transformResult = ExecuteTransform(token);
-                var result = new ColorTransformResult();
-                if (!transformResult.IsSuccess)
+                else if ((transformResult = ExecuteTransform(token)) == null || !transformResult.IsSuccess || transformResult.DataOut == null)
                 {
+                    // Execute color reduction failed: propagate the nested error (message, output and exception)
                     LogMan.Error(sC, sM, $"{Type} : {nameof(ExecuteTransform)} error");
-                    // Propagate the transformation error (message and exception) to the caller
-                    result = transformResult;
+                    result = ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : {nameof(ExecuteTransform)} failed", transformResult);
                 }
                 else
                 {
@@ -468,7 +521,7 @@ namespace ColourClashNet.Color.Transformation
                             else
                             {
                                 LogMan.Error(sC, sM, $"{Type} :  Dithering error");
-                                result = ColorTransformResult.CreateErrorResult(ImageSource, processedImage, $"{Type} : Dithering error");
+                                result = ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, processedImage, $"{Type} : dithering error : {imageDataDither.Message}", imageDataDither.Exception);
                             }
                         }
 
@@ -490,12 +543,17 @@ namespace ColourClashNet.Color.Transformation
             catch (ThreadInterruptedException exInterrupted)
             {
                 LogMan.Error(sC, sM, $"{Type} : Processing Interrupted");
-                return ColorTransformResult.CreateErrorResult("Processed interrupted");
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : processing interrupted", exInterrupted);
+            }
+            catch (OperationCanceledException exCanceled)
+            {
+                LogMan.Warning(sC, sM, $"{Type} : Processing cancelled");
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : processing cancelled", exCanceled);
             }
             catch (Exception ex)
             {
                 LogMan.Exception(sC, sM, ex);
-                return ColorTransformResult.CreateErrorResult(ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : processing failed", ex);
             }
             finally
             {
@@ -526,12 +584,12 @@ namespace ColourClashNet.Color.Transformation
             {
                 // Create returns null on failure: report it as an error result instead of throwing NullReferenceException
                 return Create(sourceImage, referenceImage)?.ProcessColors(token)
-                    ?? ColorTransformResult.CreateErrorResult($"{Type} : {nameof(Create)} failed");
+                    ?? ColorTransformResult.CreateErrorResult(sC, sM, sourceImage, null, $"{Type} : {nameof(Create)} failed");
             }
             catch (Exception ex)
             {
                 LogMan.Exception(sC, sM, ex);
-                return ColorTransformResult.CreateErrorResult(ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, sourceImage, null, $"{Type} : processing failed", ex);
             }
         }
 

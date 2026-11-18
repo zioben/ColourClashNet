@@ -79,7 +79,10 @@ namespace XUnitTester
             var result = transform.CreateAndProcessColors(CreateImage(8, 8, 0));
 
             Assert.False(result.IsSuccess);
-            Assert.Equal(FailingTransform.ErrorMessage, result.Message);
+            // The nested error is chained after the context of the failing operation
+            Assert.StartsWith("ColorTransformBase.ProcessColors : ", result.Message);
+            Assert.EndsWith(FailingTransform.ErrorMessage, result.Message);
+            Assert.NotNull(result.DataIn);
             Assert.IsType<InvalidOperationException>(result.Exception);
         }
 

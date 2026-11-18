@@ -158,20 +158,24 @@ namespace ColourClashNet.Color.Transformation
 
 
         /// <summary>
-        /// Reduces the image to 32 clusters for the Extra Half-Brite mode.
+        /// Reduces the image to 32 Extra Half-Brite clusters (each base color also provides its half-bright copy).
         /// </summary>
-        ImageData ToEHB(ImageData dataSource, ImageData dataPreProcessed, CancellationToken token = default)
+        /// <returns>A valid result with the EHB image, or an error result.</returns>
+        ColorTransformResult ToEHB(ImageData dataSource, ImageData dataPreProcessed, CancellationToken token = default)
         {
-
-            // EHB clusters: each of the 32 base colors also provides its half-bright copy
-            var transform = new ColorTransformClusteringEHB()
-                .WithClustering(config)
+            string sM = nameof(ToEHB);
+            var transform = ForwardEventsFrom(new ColorTransformClusteringEHB());
+            transform.WithClustering(config)
                 .WithColorDistanceEvaluationMode(config)
-                .WithDithering(DitheringConfig) as ColorTransformClusteringEHB;
+                .WithDithering(DitheringConfig);
             transform.MaxColorsWanted = 32;
-            transform.ProcessAdvance += (s,e)=> RaiseProcessPartialEvent(e);
             var result = transform.CreateAndProcessColors(dataPreProcessed, token);
-            return new ImageData().Create(result.DataOut);
+            if (result == null || !result.IsSuccess || result.DataOut == null)
+            {
+                LogMan.Error(sC, sM, $"{Type} : EHB clustering failed");
+                return ColorTransformResult.CreateErrorResultFrom(sC, sM, dataSource, $"{Type} : EHB clustering failed", result);
+            }
+            return ColorTransformResult.CreateValidResult(dataSource, result.DataOut);
         }
 
 
@@ -181,67 +185,77 @@ namespace ColourClashNet.Color.Transformation
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransform);
-
-            ImageData? amigaData;
-
-            var quantization = new ColorTransformQuantization();
-            quantization.WithQuantization(ColorQuantizationMode.RGB444)
-                         .WithReferencePalette(ReferencePalette)
-                         .WithDithering(DitheringConfig);
-
-            if (AmigaVideoMode == EnumAmigaVideoMode.ExtraHalfBright)
+            try
             {
-                var resultQuantized = quantization.CreateAndProcessColors(ImageSource, token);
-                amigaData = ToEHB(ImageSource, resultQuantized.DataOut, token);
-            }
-            else
-            {
+                var quantization = ForwardEventsFrom(new ColorTransformQuantization());
+                quantization.WithQuantization(ColorQuantizationMode.RGB444)
+                             .WithReferencePalette(ReferencePalette)
+                             .WithDithering(DitheringConfig);
 
-                int maxColors = 0;
-
+                int maxColors;
+                ColorQuantizationMode hamQuantization;
                 switch (AmigaVideoMode)
                 {
+                    case EnumAmigaVideoMode.ExtraHalfBright:
+                        {
+                            var resultQuantized = quantization.CreateAndProcessColors(ImageSource, token);
+                            if (resultQuantized == null || !resultQuantized.IsSuccess)
+                            {
+                                LogMan.Error(sC, sM, $"{Type} : RGB444 quantization failed");
+                                return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : RGB444 quantization failed", resultQuantized);
+                            }
+                            var ehbResult = ToEHB(ImageSource, resultQuantized.DataOut, token);
+                            return ehbResult.IsSuccess
+                                ? ColorTransformResult.CreateValidResult(ImageSource, ehbResult.DataOut)
+                                : ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : EHB conversion failed", ehbResult);
+                        }
                     case EnumAmigaVideoMode.Ham6:
                         maxColors = 16;
-                        quantization.WithQuantization(ColorQuantizationMode.RGB444);
+                        hamQuantization = ColorQuantizationMode.RGB444;
                         break;
                     case EnumAmigaVideoMode.Ham8:
                         maxColors = 64;
-                        quantization.WithQuantization(ColorQuantizationMode.RGB666);
+                        hamQuantization = ColorQuantizationMode.RGB666;
                         break;
                     default:
-                        return null;
+                        LogMan.Error(sC, sM, $"{Type} : unsupported video mode {AmigaVideoMode}");
+                        return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : unsupported video mode {AmigaVideoMode}");
                 }
 
+                quantization.WithQuantization(hamQuantization);
                 var quantizedResult = quantization.CreateAndProcessColors(ImageSource, token);
+                if (quantizedResult == null || !quantizedResult.IsSuccess)
+                {
+                    LogMan.Error(sC, sM, $"{Type} : {hamQuantization} quantization failed");
+                    return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : {hamQuantization} quantization failed", quantizedResult);
+                }
 
                 // Compute the HAM base palette (16 or 64 colors) on the quantized image
                 var cfg = config.Clone()
                     .WithMaxColorWanted(maxColors);
-                var colorReduction = ColorTransformInternal.Alloc(cfg, cfg.AmigaInternalTransformationModel) as ColorTransformBase;
+                var colorReduction = ForwardEventsFrom(ColorTransformInternal.Alloc(cfg, cfg.AmigaInternalTransformationModel));
                 colorReduction.SetProperties(cfg);
                 var dataPreprocessedResult = colorReduction.CreateAndProcessColors(quantizedResult.DataOut, token);
+                if (dataPreprocessedResult == null || !dataPreprocessedResult.IsSuccess)
+                {
+                    LogMan.Error(sC, sM, $"{Type} : HAM base palette reduction failed");
+                    return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : HAM base palette reduction failed", dataPreprocessedResult);
+                }
                 BypassDithering = true;
 
-                switch (AmigaVideoMode)
-                {
-                    case EnumAmigaVideoMode.Ham6:
-                        amigaData = ToHam(ImageSource, dataPreprocessedResult.DataOut, ColorQuantizationMode.RGB444, token);
-                        break;
-                    case EnumAmigaVideoMode.Ham8:
-                        amigaData = ToHam(ImageSource, dataPreprocessedResult.DataOut, ColorQuantizationMode.RGB666, token);
-                        break;
-                    default:
-                        amigaData = null;
-                        break;
-                }
+                var amigaData = ToHam(ImageSource, dataPreprocessedResult.DataOut, hamQuantization, token);
+                return ColorTransformResult.CreateValidResult(ImageSource, amigaData);
             }
-            if (amigaData == null)
+            catch (OperationCanceledException ex)
             {
-                LogMan.Error(sC, sM, $"Failed to generate Amiga transformed data");
-                return ColorTransformResult.CreateErrorResult(ImageSource,null, $"{sC}.{sM} : Amiga transformed data is null");
+                LogMan.Exception(sC, sM, $"{Type} : operation cancelled", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : operation cancelled", ex);
             }
-            return ColorTransformResult.CreateValidResult(ImageSource, amigaData);
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, $"{Type} : {AmigaVideoMode} conversion failed", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : {AmigaVideoMode} conversion failed", ex);
+            }
         }
 
     }

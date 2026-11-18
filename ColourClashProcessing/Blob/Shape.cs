@@ -52,7 +52,7 @@ namespace ColourClashProcessing.Blob
         /// </summary>
         /// <param name="image">Binary image produced by the threshold stage.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>A valid result, or an error result when cancelled.</returns>
+        /// <returns>A valid result, or an error result.</returns>
         public ColorTransformResult Process(ImageData image, CancellationToken token = default)
         {
             string sM = nameof(Process);
@@ -102,12 +102,12 @@ namespace ColourClashProcessing.Blob
             catch (OperationCanceledException cex)
             {
                 LogMan.Exception(sC, sM, $"Operation canceled", cex);
-                return ColorTransformResult.CreateErrorResult(image, null, $"Operation canceled", cex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, image, null, "run length extraction cancelled", cex);
             }
             catch (Exception ex)
             {
                 LogMan.Exception(sC, sM, $"Operation failed", ex);
-                throw;
+                return ColorTransformResult.CreateErrorResult(sC, sM, image, null, "run length extraction failed", ex);
             }
         }
 

@@ -232,190 +232,130 @@ namespace ColourClashNet.Color.Transformation
             // Tile colors must be picked from the (C64) image colors, not evaluated as cluster means
             cfg.ClusterColorSelectionMode = ColorSelectionMode.UseColorPalette;
             tileManager = new TileManager()
-                .WithTileBorder(TileBorderShow, TileBorderColor)
-                .Create(tileWidth, tileHeight, image, 1.0, cfg, token);
+                .WithTileBorder(TileBorderShow, TileBorderColor);
+            // Subscribe before Create: the tiles forward their transformation events through the manager
+            ForwardEventsFrom(tileManager);
+            tileManager.Create(tileWidth, tileHeight, image, 1.0, cfg, token);
             return tileManager;
         }
 
         /// <summary>
         /// Maps the image to <paramref name="palette"/> without tile constraints: the best result obtainable with that palette.
         /// </summary>
-        ImageData? ToDebugImage(ImageData image, Palette palette, CancellationToken token = default)
+        /// <returns>A valid result with the mapped image, or an error result.</returns>
+        ColorTransformResult ToDebugImage(ImageData image, Palette palette, CancellationToken token = default)
         {
-            var tempResult = new ColorTransformFixedPalette()
-                .WithReferencePalette(palette)
+            string sM = nameof(ToDebugImage);
+            var paletteTransform = ForwardEventsFrom(new ColorTransformFixedPalette());
+            paletteTransform.WithReferencePalette(palette)
                 .WithDithering(DitheringConfig)
-                .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
-                .CreateAndProcessColors(image, token);
-            return tempResult.DataOut;
+                .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
+            var result = paletteTransform.CreateAndProcessColors(image, token);
+            if (result == null || !result.IsSuccess || result.DataOut == null)
+            {
+                LogMan.Error(sC, sM, $"{Type} : C64 palette mapping failed");
+                return ColorTransformResult.CreateErrorResultFrom(sC, sM, image, $"{Type} : C64 palette mapping failed", result);
+            }
+            return ColorTransformResult.CreateValidResult(image, result.DataOut);
         }
 
-
         /// <summary>
-        /// Hires bitmap: 8x8 tiles, 2 colors per tile.
+        /// Bitmap modes: maps the image to <paramref name="palette"/>, then color-reduces every tile independently.
+        /// <list type="bullet">
+        /// <item>Hires: 8x8 tiles, 2 colors per tile; Hires FLI: 8x1 tiles.</item>
+        /// <item>Multicolor: 4x8 wide-pixel tiles, background color + 3 colors per tile; Multicolor FLI: 4x1 tiles.</item>
+        /// </list>
         /// </summary>
-        ImageData ToBitmapHires(Palette palette, CancellationToken token = default)
+        /// <param name="palette">Base or enhanced C64 palette</param>
+        /// <param name="tileWidth">Tile width (in wide pixels for multicolor modes)</param>
+        /// <param name="tileHeight">Tile height</param>
+        /// <param name="tileColors">Colors per tile</param>
+        /// <param name="multicolor">True for the wide-pixel modes, processed at half horizontal resolution</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>A valid result with the final image, or an error result describing the failed step.</returns>
+        ColorTransformResult ToBitmap(Palette palette, int tileWidth, int tileHeight, int tileColors, bool multicolor, CancellationToken token = default)
         {
-            var tempImage = ToDebugImage(ImageSource,palette,token);
-            ImageData.AssertValid(tempImage);
-            TileManager manager = CreateTileManager(8, 8, 2, tempImage, new Palette(), token);
+            string sM = nameof(ToBitmap);
+            var workImage = multicolor ? ImageTools.HalveXResolution(ImageSource, HalveResolutionMode.MeanColor) : ImageSource;
+            var mappedResult = ToDebugImage(workImage, palette, token);
+            if (!mappedResult.IsSuccess)
+            {
+                return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : {VideoMode} palette mapping failed", mappedResult);
+            }
+            var mappedImage = mappedResult.DataOut;
+
+            // Multicolor: the most frequent color becomes the global background color, shared by every tile
+            var sharedColors = multicolor
+                ? new HistogramRGB().Create(mappedImage).SortColorsDescending().ToPalette(1)
+                : new Palette();
+            TileManager manager = CreateTileManager(tileWidth, tileHeight, tileColors, mappedImage, sharedColors, token);
             var tileResult = manager.ProcessColors(token);
-            if (tileResult.IsSuccess)
+            if (tileResult == null || !tileResult.IsSuccess)
             {
-                var tileImage = manager.CreateImageFromTiles();
-                return tileImage;
+                LogMan.Error(sC, sM, $"{Type} : {VideoMode} tile processing failed");
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, mappedImage, $"{Type} : {VideoMode} tile processing failed : {tileResult?.Message}", tileResult?.Exception);
             }
-            else
-            {
-                return null;
-            }
+            var tileImage = manager.CreateImageFromTiles();
+            return ColorTransformResult.CreateValidResult(ImageSource, multicolor ? ImageTools.DoubleXResolution(tileImage) : tileImage);
         }
 
-        /// <summary>
-        /// Multicolor bitmap: 4x8 wide-pixel tiles, background color + 3 colors per tile.
-        /// </summary>
-        ImageData ToBitmapMultiColor(Palette palette, CancellationToken token = default)
-        {
-            var halveImage = ImageTools.HalveXResolution(ImageSource, HalveResolutionMode.MeanColor);
-            var tempImage = ToDebugImage(halveImage, palette, token);
-
-            ImageData.AssertValid(tempImage);
-            // The most frequent color becomes the global background color, shared by every tile
-            var backgroundColor = new HistogramRGB().Create(tempImage).SortColorsDescending().ToPalette(1);
-            TileManager manager = CreateTileManager(4, 8, 4, tempImage, backgroundColor, token);
-            var tileResult = manager.ProcessColors(token);
-            if (tileResult.IsSuccess)
-            {
-                var tileImage = manager.CreateImageFromTiles();
-                return ImageTools.DoubleXResolution(tileImage);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Multicolor FLI: 4x1 wide-pixel tiles, background color + 3 colors per tile.
-        /// </summary>
-        ImageData ToBitmapMulticolorFli( Palette palette, CancellationToken token = default)
-        {
-            var halveImage = ImageTools.HalveXResolution(ImageSource, HalveResolutionMode.MeanColor);
-            var tempImage = ToDebugImage(halveImage, palette, token);
-            ImageData.AssertValid(tempImage);
-            var backgroundColor = new HistogramRGB().Create(tempImage).SortColorsDescending().ToPalette(1);
-            TileManager manager = CreateTileManager(4, 1, 4, tempImage, backgroundColor, token);
-            var tileResult = manager.ProcessColors(token);
-            if (tileResult.IsSuccess)
-            {
-                var tileImage = manager.CreateImageFromTiles();
-                return ImageTools.DoubleXResolution(tileImage);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Hires FLI: 8x1 tiles, 2 colors per tile.
-        /// </summary>
-        ImageData ToBitmapHiresFli(Palette palette, CancellationToken token = default)
-        {
-            var tempImage = ToDebugImage(ImageSource, palette, token);
-            ImageData.AssertValid(tempImage);
-            TileManager manager = CreateTileManager(8, 1, 2, tempImage, new Palette(), token);
-            var tileResult = manager.ProcessColors(token);
-            if (tileResult.IsSuccess)
-            {
-                var tileImage = manager.CreateImageFromTiles();
-                return tileImage;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-
-
-        /// <summary>
-        /// Multicolor charset mode (not implemented yet).
-        /// </summary>
-        /// <returns>Always null.</returns>
-        ImageData ToCharsetMulticolor(CancellationToken token = default)
-        {   
-            return null;
-        }
-
-      
         /// <summary>
         /// Runs the conversion for the selected video mode. Dithering is handled internally.
         /// </summary>
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
-            ImageData? preprocessedData = null;
+            string sM = nameof(ExecuteTransform);
             BypassDithering = true;
-            switch (VideoMode)
+            try
             {
-
-                case C64VideoMode.DebugEnhancedPalette:
-                    {
-                        preprocessedData = ToDebugImage(ImageSource, enhancedPalette, token);
-                    }
-                    break;
-                case C64VideoMode.DebugBasePalette:
-                    {
-                        preprocessedData = ToDebugImage(ImageSource, basePalette, token);
-                    }
-                    break;
-                case C64VideoMode.Charset:
-                case C64VideoMode.HiResEnhanced:
-                    {
-                        preprocessedData = ToBitmapHires(enhancedPalette, token);
-                    }
-                    break;
-                case C64VideoMode.HiRes:
-                    {                       
-                        preprocessedData = ToBitmapHires(basePalette, token);
-                    }
-                break;
-                case C64VideoMode.FlexibleLineInterpretation:
-                    {
-                        preprocessedData = ToBitmapMulticolorFli(basePalette, token);
-                    }
-                break;
-                case C64VideoMode.MulticolorEnhanced:
-                    {
-                        preprocessedData = ToBitmapMultiColor(enhancedPalette, token);
-                    }
-                    break;
-                case C64VideoMode.Multicolor:
-                    {
-                        preprocessedData = ToBitmapMultiColor(basePalette, token);
-                    }
-                break;
-                case C64VideoMode.HiResFlexibleLineInterpretation:
-                    {
-                        preprocessedData = ToBitmapHiresFli(basePalette, token);
-                    }
-                    break;
-                case C64VideoMode.CharsetMulticolor:
-                    {
-                        preprocessedData = ToCharsetMulticolor(token);
-                    }
-                    break;
-
-                default:
-                break;
+                ColorTransformResult result;
+                switch (VideoMode)
+                {
+                    case C64VideoMode.DebugEnhancedPalette:
+                        result = ToDebugImage(ImageSource, enhancedPalette, token);
+                        break;
+                    case C64VideoMode.DebugBasePalette:
+                        result = ToDebugImage(ImageSource, basePalette, token);
+                        break;
+                    case C64VideoMode.Charset:
+                    case C64VideoMode.HiResEnhanced:
+                        result = ToBitmap(enhancedPalette, 8, 8, 2, false, token);
+                        break;
+                    case C64VideoMode.HiRes:
+                        result = ToBitmap(basePalette, 8, 8, 2, false, token);
+                        break;
+                    case C64VideoMode.FlexibleLineInterpretation:
+                        result = ToBitmap(basePalette, 4, 1, 4, true, token);
+                        break;
+                    case C64VideoMode.MulticolorEnhanced:
+                        result = ToBitmap(enhancedPalette, 4, 8, 4, true, token);
+                        break;
+                    case C64VideoMode.Multicolor:
+                        result = ToBitmap(basePalette, 4, 8, 4, true, token);
+                        break;
+                    case C64VideoMode.HiResFlexibleLineInterpretation:
+                        result = ToBitmap(basePalette, 8, 1, 2, false, token);
+                        break;
+                    case C64VideoMode.CharsetMulticolor:
+                    default:
+                        LogMan.Error(sC, sM, $"{Type} : video mode {VideoMode} not supported");
+                        return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : video mode {VideoMode} not supported");
+                }
+                if (!result.IsSuccess)
+                {
+                    return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : video mode {VideoMode} conversion failed", result);
+                }
+                return ColorTransformResult.CreateValidResult(ImageSource, result.DataOut);
             }
-            if (preprocessedData != null)
+            catch (OperationCanceledException ex)
             {
-                return ColorTransformResult.CreateValidResult(ImageSource, preprocessedData);
+                LogMan.Exception(sC, sM, $"{Type} : operation cancelled", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : operation cancelled", ex);
             }
-            else
+            catch (Exception ex)
             {
-                return ColorTransformResult.CreateErrorResult("Error during C64 transformation", null);
+                LogMan.Exception(sC, sM, $"{Type} : video mode {VideoMode} conversion failed", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : video mode {VideoMode} conversion failed", ex);
             }
         }
     }

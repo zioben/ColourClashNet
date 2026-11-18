@@ -85,9 +85,10 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         static public ColorTransformResult CreateErrorResult(ImageData inputData, ImageData outputData, string message, Exception ex) => new ColorTransformResult()
         {
-            DataIn = inputData,
-            DataOut = outputData,
-            Message = message,    
+            // Empty images (no pixel data) are not meaningful in an error report
+            DataIn = inputData?.matrix != null ? inputData : null,
+            DataOut = outputData?.matrix != null ? outputData : null,
+            Message = message,
             Exception = ex
         };
         /// <summary>
@@ -110,6 +111,57 @@ namespace ColourClashNet.Color.Transformation
         /// Creates a failed result with a message only.
         /// </summary>
         static public ColorTransformResult CreateErrorResult(String message) => CreateErrorResult(message, null);
+
+        /// <summary>
+        /// Creates a failed result whose message identifies the failing operation as <c>sClass.sMethod : message</c>.
+        /// <para/>
+        /// When <paramref name="message"/> is empty, the exception message is used.
+        /// </summary>
+        /// <param name="sClass">Class of the failing operation</param>
+        /// <param name="sMethod">Method of the failing operation</param>
+        /// <param name="inputData">Input image of the operation, if available</param>
+        /// <param name="outputData">Partial output image, if available</param>
+        /// <param name="message">Error description</param>
+        /// <param name="ex">Exception that caused the error, if any</param>
+        static public ColorTransformResult CreateErrorResult(string sClass, string sMethod, ImageData? inputData, ImageData? outputData, string? message, Exception? ex)
+        {
+            var text = string.IsNullOrWhiteSpace(message)
+                ? (ex != null ? $"Exception : {ex.Message}" : "Unknown error")
+                : message;
+            return CreateErrorResult(inputData, outputData, $"{sClass}.{sMethod} : {text}", ex);
+        }
+
+        /// <summary>
+        /// Creates a failed result without exception, identifying the failing operation.
+        /// </summary>
+        static public ColorTransformResult CreateErrorResult(string sClass, string sMethod, ImageData? inputData, ImageData? outputData, string? message)
+            => CreateErrorResult(sClass, sMethod, inputData, outputData, message, null);
+
+        /// <summary>
+        /// Creates a failed result from an exception, identifying the failing operation.
+        /// </summary>
+        static public ColorTransformResult CreateErrorResult(string sClass, string sMethod, ImageData? inputData, ImageData? outputData, Exception? ex)
+            => CreateErrorResult(sClass, sMethod, inputData, outputData, (string?)null, ex);
+
+        /// <summary>
+        /// Creates a failed result for an operation whose nested step failed.
+        /// <para/>
+        /// The message chains the operation description with the nested message; output image and
+        /// exception are taken from <paramref name="innerResult"/>. A null inner result is reported as such.
+        /// </summary>
+        /// <param name="sClass">Class of the failing operation</param>
+        /// <param name="sMethod">Method of the failing operation</param>
+        /// <param name="inputData">Input image of the operation, if available</param>
+        /// <param name="message">Description of the failed step</param>
+        /// <param name="innerResult">Result of the nested step</param>
+        static public ColorTransformResult CreateErrorResultFrom(string sClass, string sMethod, ImageData? inputData, string message, ColorTransformResult? innerResult)
+            => CreateErrorResult(
+                sClass,
+                sMethod,
+                inputData,
+                innerResult?.DataOut,
+                innerResult == null ? $"{message} : no result" : $"{message} : {innerResult.Message}",
+                innerResult?.Exception);
 
     }
 

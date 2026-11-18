@@ -87,11 +87,11 @@ namespace ColourClashNet.Color.Dithering
             }            
             if (imageProcessed == null)
             {
-                return ColorTransformResult.CreateErrorResult("invalid input imageProcessed");
+                return ColorTransformResult.CreateErrorResult(sC, sM, imageProcessed, ditheredResult?.DataOut, $"{Type} : invalid undithered image");
             }
             if (ditheredResult == null || !ditheredResult.IsSuccess || ditheredResult.DataOut == null )
             {
-                return ColorTransformResult.CreateErrorResult("invalid input preprocessed result");
+                return ColorTransformResult.CreateErrorResultFrom(sC, sM, imageProcessed, $"{Type} : invalid dithering result", ditheredResult);
             }
             try
             {
@@ -122,7 +122,7 @@ namespace ColourClashNet.Color.Dithering
                         columnStep = 2;
                         break;
                     default:
-                        return ColorTransformResult.CreateErrorResult($"unsupported dither fx : {DitheringFx}");
+                        return ColorTransformResult.CreateErrorResult(sC, sM, imageProcessed, ditheredResult.DataOut, $"{Type} : unsupported dither fx {DitheringFx}");
                 }
 
                
@@ -138,15 +138,15 @@ namespace ColourClashNet.Color.Dithering
                 var imageFx = new ImageData().Create(matrixOut);
                 return ColorTransformResult.CreateValidResult(ditheredResult.DataOut, imageFx);
             }
-            catch (TaskCanceledException et)
-            {
-                LogMan.Exception(sC, sM, $"{Type}", et);
-                return ColorTransformResult.CreateErrorResult(et);
-            }
             catch (OperationCanceledException ex)
             {
-                LogMan.Exception(sC, sM, $"{Type}", ex);
-                return ColorTransformResult.CreateErrorResult(ex);
+                LogMan.Exception(sC, sM, $"{Type} : dithering effect cancelled", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, imageProcessed, ditheredResult.DataOut, $"{Type} : dithering effect cancelled", ex);
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, $"{Type} : dithering effect failed", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, imageProcessed, ditheredResult.DataOut, $"{Type} : dithering effect failed", ex);
             }
 
         }

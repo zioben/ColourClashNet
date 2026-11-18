@@ -19,6 +19,29 @@ public partial class TileProcessing
 
     object locker = new object();
 
+    /// <summary>
+    /// Raised with the progress of the tile transformation (forwarded from its
+    /// <see cref="ColorTransformInterface.ProcessPartial"/> and <see cref="ColorTransformInterface.ProcessAdvance"/> events).
+    /// </summary>
+    public event EventHandler<ColorProcessingEventArgs>? ProcessPartial;
+
+    /// <summary>
+    /// Raises <see cref="ProcessPartial"/> with a copy of the event data of the tile transformation.
+    /// </summary>
+    void RaiseProcessPartialEvent(object? sender, ColorProcessingEventArgs args)
+    {
+        if (ProcessPartial == null || args == null)
+            return;
+        ProcessPartial.Invoke(this, new ColorProcessingEventArgs()
+        {
+            ColorTransformInterface = args.ColorTransformInterface,
+            ProcessingResults = args.ProcessingResults,
+            CancellationTokenSource = args.CancellationTokenSource,
+            TransformationMap = args.TransformationMap,
+            CompletedPercent = args.CompletedPercent,
+        });
+    }
+
     /// <summary>Tile image and its position in the source image.</summary>
     protected TileItem? tileItem =  null;
 
@@ -95,6 +118,11 @@ public partial class TileProcessing
             NormalizationError = normalizationError;
             tileItem = new TileItem().Create(sourceImage, sourceX, sourceY, tileWidth, tileHeight);
             transformation = ColorTransformInternal.Alloc(colorTransformConfig, ColorTransformType.ColorReductionClustering);
+            // Preview images of a single tile are useless and costly: progress messages are still raised
+            if (transformation is ColorTransformBase transformationBase)
+                transformationBase.EnablePreviewEvents = false;
+            transformation.ProcessPartial += RaiseProcessPartialEvent;
+            transformation.ProcessAdvance += RaiseProcessPartialEvent;
             return this;
         }
     }
@@ -108,10 +136,11 @@ public partial class TileProcessing
         lock (locker)
         {
             AssertValid(this);
-            var result = transformation.Create(tileItem.TileImage)?.ProcessColors(token) ?? ColorTransformResult.CreateErrorResult("Invalid processing");
-            if (!result.IsSuccess)
+            var result = transformation.Create(tileItem.TileImage)?.ProcessColors(token);
+            if (result == null || !result.IsSuccess)
             {
-                LogMan.Error(sC, sM, $"Tile transformation failed: {result.Message}");
+                LogMan.Error(sC, sM, $"Tile transformation failed: {result?.Message ?? "transformation not created"}");
+                return ColorTransformResult.CreateErrorResultFrom(sC, sM, tileItem.TileImage, $"tile {this} transformation failed", result);
             }
             return result;
         }

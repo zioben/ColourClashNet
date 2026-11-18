@@ -30,6 +30,56 @@ public partial class TileManager
 
     TileProcessing[,]? tileProcessingMatrix;
 
+    /// <summary>
+    /// Raised with the progress of the tile processing: one event per processed tile row,
+    /// plus the events forwarded from the tile transformations (throttled, see <see cref="TileEventInterval"/>).
+    /// </summary>
+    public event EventHandler<ColorProcessingEventArgs>? ProcessPartial;
+
+    /// <summary>
+    /// Raises <see cref="ProcessPartial"/> with a copy of <paramref name="args"/>.
+    /// </summary>
+    /// <summary>
+    /// Minimum interval between two forwarded tile transformation events.
+    /// <para/>
+    /// Every tile runs its own transformation (e.g. 1000 tiles x 10 clustering loops for a C64 image):
+    /// forwarding all of them would flood the UI, so they are throttled. Tile row progress events are never throttled.
+    /// </summary>
+    public TimeSpan TileEventInterval { get; set; } = TimeSpan.FromMilliseconds(100);
+
+    long lastTileEventTicks = 0;
+
+    /// <summary>
+    /// Forwards a tile transformation event, unless another one was forwarded less than <see cref="TileEventInterval"/> ago.
+    /// </summary>
+    void ForwardTileEvent(object? sender, ColorProcessingEventArgs args)
+    {
+        if (ProcessPartial == null)
+            return;
+        long now = Environment.TickCount64;
+        long last = Interlocked.Read(ref lastTileEventTicks);
+        if (now - last < (long)TileEventInterval.TotalMilliseconds)
+            return;
+        // Only one of concurrent callers wins the slot
+        if (Interlocked.CompareExchange(ref lastTileEventTicks, now, last) != last)
+            return;
+        RaiseProcessPartialEvent(sender, args);
+    }
+
+    void RaiseProcessPartialEvent(object? sender, ColorProcessingEventArgs args)
+    {
+        if (ProcessPartial == null || args == null)
+            return;
+        ProcessPartial.Invoke(this, new ColorProcessingEventArgs()
+        {
+            ColorTransformInterface = args.ColorTransformInterface,
+            ProcessingResults = args.ProcessingResults,
+            CancellationTokenSource = args.CancellationTokenSource,
+            TransformationMap = args.TransformationMap,
+            CompletedPercent = args.CompletedPercent,
+        });
+    }
+
     /// <summary>Tile width in pixels.</summary>
     public int TileW { get; private set; } = 8;
 
@@ -142,6 +192,7 @@ public partial class TileManager
                             Math.Min(TileH, ImageSource.Height - ys),
                             NormalizationError,
                             colorTransformConfig);
+                        tileProcessingMatrix[r, c].ProcessPartial += ForwardTileEvent;
                     }
                 }//);
                 return this;
@@ -186,12 +237,18 @@ public partial class TileManager
                     int cc = c;
                     token.ThrowIfCancellationRequested();
                     var tileResult = tileProcessingMatrix[rr, cc].ProcessTile(token);
-                    if (!tileResult.IsSuccess)
+                    if (tileResult == null || !tileResult.IsSuccess)
                     {
-                        LogMan.Error(sC, sM, $"Tile ({rr},{cc}) processing failed : {tileResult.Message}");
-                        return ColorTransformResult.CreateErrorResult($"Tile ({rr},{cc}) processing failed : {tileResult.Message}", tileResult.Exception);
+                        LogMan.Error(sC, sM, $"Tile ({rr},{cc}) processing failed : {tileResult?.Message}");
+                        return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"tile ({rr},{cc}) processing failed", tileResult);
                     }
-                };
+                }
+                // Tile row completed: report the overall progress
+                RaiseProcessPartialEvent(this, new ColorProcessingEventArgs()
+                {
+                    ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, null, $"Tile row {r + 1}/{TileRows} processed"),
+                    CompletedPercent = 100.0 * (r + 1) / TileRows,
+                });
             }//);
             var error = RecalcGlobalTransformationError();
             return ColorTransformResult.CreateValidResult();
@@ -199,7 +256,12 @@ public partial class TileManager
         catch (OperationCanceledException ex)
         {
             LogMan.Exception(sC, sM, "Operation cancelled",ex);
-            return ColorTransformResult.CreateErrorResult("Operation cancelled");
+            return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, "operation cancelled", ex);
+        }
+        catch (Exception ex)
+        {
+            LogMan.Exception(sC, sM, "Tile processing failed", ex);
+            return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, "tile processing failed", ex);
         }
     }
 

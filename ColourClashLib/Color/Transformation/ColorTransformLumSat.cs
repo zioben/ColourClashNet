@@ -1,5 +1,6 @@
 ﻿using ColourClashNet.Color.Conversion;
 using ColourClashNet.Imaging;
+using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -78,22 +79,35 @@ namespace ColourClashNet.Color.Transformation
             var processed = new int[ImageSource.Rows, ImageSource.Columns];
             BypassDithering = true;
 
-            Parallel.For(0, ImageSource.Rows, new ParallelOptions { CancellationToken = token }, r =>
+            try
             {
-                for (int c = 0; c < ImageSource.Columns; c++)
+                Parallel.For(0, ImageSource.Rows, new ParallelOptions { CancellationToken = token }, r =>
                 {
-                    var hsv = HSV.CreateFromIntRGB(ImageSource.matrix[r, c]);
-                    if (hsv.IsValid)
+                    for (int c = 0; c < ImageSource.Columns; c++)
                     {
-                        // Wrap hue into [0,360): HSV.ToIntRGB expects a normalized hue
-                        hsv.H = (float)((((hsv.H + HueShift) % 360.0) + 360.0) % 360.0);
-                        hsv.S = (float)Math.Min(100, hsv.S * SaturationMultFactor);
-                        hsv.V = (float)Math.Min(100, hsv.V * BrightnessMultFactor);
-                        processed[r, c] = hsv.ToIntRGB();
+                        var hsv = HSV.CreateFromIntRGB(ImageSource.matrix[r, c]);
+                        if (hsv.IsValid)
+                        {
+                            // Wrap hue into [0,360): HSV.ToIntRGB expects a normalized hue
+                            hsv.H = (float)((((hsv.H + HueShift) % 360.0) + 360.0) % 360.0);
+                            hsv.S = (float)Math.Min(100, hsv.S * SaturationMultFactor);
+                            hsv.V = (float)Math.Min(100, hsv.V * BrightnessMultFactor);
+                            processed[r, c] = hsv.ToIntRGB();
+                        }
                     }
-                }
-                token.ThrowIfCancellationRequested();
-            });
+                    token.ThrowIfCancellationRequested();
+                });
+            }
+            catch (OperationCanceledException ex)
+            {
+                LogMan.Exception(sC, sM, $"{Type} : operation cancelled", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : operation cancelled", ex);
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, $"{Type} : HSV adjustment failed", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : HSV adjustment failed", ex);
+            }
 
             return ColorTransformResult.CreateValidResult(ImageSource, new ImageData().Create(processed));
 
