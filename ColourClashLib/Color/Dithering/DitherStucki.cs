@@ -8,7 +8,7 @@ using ColourClashNet.Color;
 namespace ColourClashNet.Color.Dithering
 {
     /// <summary>
-    /// Stucki error diffusion dithering.
+    /// Stucki error diffusion dithering (12 neighbours, weights / 42).
     /// </summary>
     public class DitherStucki : DitherErrorDiffusion
     {
@@ -28,9 +28,9 @@ namespace ColourClashNet.Color.Dithering
         public override DitherInterface Create()
         {
             errorDiffusionMatrix = new double[,] {
-                    { 0, 0, 0, 5, 3 },
-                    { 2, 4, 5, 4, 2 },
-                    { 0, 2, 3, 2, 0 },
+                    { 0, 0, 0, 8, 4 },
+                    { 2, 4, 8, 4, 2 },
+                    { 1, 2, 4, 2, 1 },
                     };
             Normalize();
             return this;

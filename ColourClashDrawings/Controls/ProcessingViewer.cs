@@ -54,7 +54,7 @@ namespace ColourClashNet.Controls
                 if (!double.IsNaN(args.CompletedPercent))
                 {
                     lblPerc.Text = $"{args.CompletedPercent:f1} %";
-                    pbarComplete.Value = (int)Math.Min(0,Math.Max(0,args.CompletedPercent));
+                    pbarComplete.Value = (int)Math.Min(pbarComplete.Maximum, Math.Max(pbarComplete.Minimum, args.CompletedPercent));
                 }
             });
         }

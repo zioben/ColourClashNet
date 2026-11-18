@@ -8,7 +8,7 @@ using ColourClashNet.Color;
 namespace ColourClashNet.Color.Dithering
 {
     /// <summary>
-    /// Burkes error diffusion dithering.
+    /// Burkes error diffusion dithering (2 rows, weights / 32).
     /// </summary>
     public class DitherBurkes : DitherErrorDiffusion
     {
@@ -28,9 +28,8 @@ namespace ColourClashNet.Color.Dithering
         public override DitherInterface Create()
         {
             errorDiffusionMatrix = new double[,] {
-                    { 0, 0, 0, 7, 5 },
-                    { 3, 5, 7, 5, 3 },
-                    { 1, 3, 5, 3, 1 },
+                    { 0, 0, 0, 8, 4 },
+                    { 2, 4, 8, 4, 2 },
                     };
             Normalize();
             return this;

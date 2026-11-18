@@ -555,7 +555,7 @@ public static partial class ImageToolsGDI
     /// <summary>
     /// Creates an 8 bpp indexed bitmap from a color matrix, aligning the width as requested.
     /// <para/>
-    /// Note: the bitmap palette is not set here.
+    /// Pixels are indexed on <paramref name="paletteSrc"/>, which also becomes the bitmap palette.
     /// </summary>
     /// <param name="indexMatrix">Color matrix to index</param>
     /// <param name="paletteSrc">Palette used for the indexing</param>
@@ -563,7 +563,7 @@ public static partial class ImageToolsGDI
     /// <returns>The bitmap, or null on error.</returns>
     unsafe static Bitmap? MatrixToGdiImageIndexedUnsafe(int[,] indexMatrix, List<int> paletteSrc, WidthAlignMode alignMode)
     {
-        string sMethod = nameof(MatrixToGdiImageIndexed);
+        string sMethod = nameof(MatrixToGdiImageIndexedUnsafe);
         try
         {
             if (indexMatrix == null)
@@ -576,8 +576,8 @@ public static partial class ImageToolsGDI
                 LogMan.Error(sClass, sMethod, "Palette is null");
                 return null;
             }
-            ImageData imageData = new ImageData().Create(indexMatrix);
-            var indexData = ImageTools.CreateIndexedMatrix(imageData, alignMode);
+            // Index on the given palette, so that pixel indexes and bitmap palette entries match
+            var indexData = MatrixTools.CreateIndexedMatrix(indexMatrix, paletteSrc, alignMode);
             int height = indexData.GetLength(0);
             int width = indexData.GetLength(1);
 
@@ -603,6 +603,7 @@ public static partial class ImageToolsGDI
                 return null;
             }
             bmp.UnlockBits(lockedData);
+            SetGdiImageColorPalette(bmp, paletteSrc);
             return bmp;
         }
         catch (Exception ex)

@@ -340,15 +340,13 @@ namespace ColourClashNet.Log
 
         /// <summary>
         /// Logs a trace (lowest severity) message.
-        /// <para/>
-        /// Note: the message is currently written with <see cref="LogLevel.Debug"/> severity.
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
         /// <param name="message">Log message</param>
         public static void Trace(string sClass, string sMethod, string message)
         {
-            Log(LogLevel.Debug, sClass, sMethod, message, null);
+            Log(LogLevel.Trace, sClass, sMethod, message, null);
         }
     }
 }

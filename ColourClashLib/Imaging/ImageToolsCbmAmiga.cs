@@ -81,7 +81,7 @@ namespace ColourClashNet.Imaging
                     {
                         int planeByte = 0;
                         for (int j = 0; j < 8; j++)
-                            planeByte |= (chunky[j] & 0x01) << (8 - j);
+                            planeByte |= (chunky[j] & 0x01) << (7 - j);   // leftmost pixel -> MSB
                         planar[k] = (byte)planeByte;
                         for (int j = 0; j < 8; j++)
                             chunky[j] >>= 1;

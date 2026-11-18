@@ -39,7 +39,7 @@ namespace ColourClashLib.Color.Transformation.Evolution
         /// <summary>
         /// Distance to the nearest of the cluster color and its half-bright copy.
         /// </summary>
-        public new double Distance(int rgb, ColorDistanceEvaluationMode mode)
+        public override double Distance(int rgb, ColorDistanceEvaluationMode mode)
         {
             return Math.Min(ClusterRGB.Distance(rgb, mode), ClusterRGB_EHB.Distance(rgb, mode));
         }
@@ -47,7 +47,7 @@ namespace ColourClashLib.Color.Transformation.Evolution
         /// <summary>
         /// Returns the nearest of the cluster color and its half-bright copy.
         /// </summary>
-        public new int GetClusterColor(int rgb, ColorDistanceEvaluationMode mode)
+        public override int GetClusterColor(int rgb, ColorDistanceEvaluationMode mode)
         {
             if(ClusterRGB == ColorDefaults.DefaultInvalidColorInt)
                 return ColorDefaults.DefaultInvalidColorInt;

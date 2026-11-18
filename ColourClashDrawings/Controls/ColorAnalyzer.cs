@@ -356,9 +356,9 @@ namespace ColourClashNet.Controls
                 DitheringFx);
             //
             colorManager.TransformConfig.WithHSV(
+                (double)nudHue.Value,
                 (double)nudSat.Value,
-                (double)nudBright.Value,
-                (double)nudHue.Value);
+                (double)nudBright.Value);
             //
             colorManager.TransformConfig.WithC64ScreenMode(
                (ColorTransformCbm64.C64VideoMode)Enum.Parse(typeof(ColorTransformCbm64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString()),
@@ -375,7 +375,7 @@ namespace ColourClashNet.Controls
             //
             colorManager.TransformConfig.WithZxProcessing(
                  (ColorTransformZxSpectrum.ZxAutotuneMode)Enum.Parse(typeof(ColorTransformZxSpectrum.ZxAutotuneMode), cbZxAutotuneMode.SelectedItem.ToString()),
-                 chkZxBlackHI.Checked,
+                 chkZxDitherImageLo.Checked,
                  chkZxDitherHI.Checked,
                  chkZxBlackHI.Checked,
                  chkShowTileBorders.Checked);

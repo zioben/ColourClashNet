@@ -113,9 +113,9 @@ namespace ColourClashLib.Color.Transformation.Evolution
             for (int i = 0; i < n; i++)
             {
                 var evo = evolution[i];
-                if (referencePalette.Contains(evo.GetClusterColor(i, distanceMode)))
+                if (referencePalette.Contains(evo.ClusterRGB))
                 {
-                    next[i] = evo.GetClusterColor(i, distanceMode);
+                    next[i] = evo.ClusterRGB;
                 }
                 else if (evo.HistDictionary.Count > 0)
                 {
@@ -156,7 +156,7 @@ namespace ColourClashLib.Color.Transformation.Evolution
                 else
                 {
                     // No candidate available: keep the previous center
-                    next[i] = evolution[i].GetClusterColor(i, distanceMode);
+                    next[i] = evolution[i].ClusterRGB;
                 }
             }
 
