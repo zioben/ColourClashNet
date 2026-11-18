@@ -22,29 +22,58 @@ using System.Windows.Forms;
 
 namespace ColourClashNet.Controls
 {
+    /// <summary>
+    /// Main working control: shows the source and the processed image side by side and exposes
+    /// the settings and the commands of every color transformation and of the blob extraction.
+    /// </summary>
     public partial class ColorAnalyzer : UserControl
     {
 
 
 
 
+        /// <summary>
+        /// Event data raised when the current result is copied to a new container.
+        /// </summary>
         public class CopyDataEventArgs : EventArgs
         {
+            /// <summary>Image name.</summary>
             public string Name { get; set; }
+            /// <summary>Source image.</summary>
             public Image SourceBitmap { get; set; }
+            /// <summary>
+            /// Processed image.
+            /// </summary>
             public Image DestBitmap { get; set; }
+            /// <summary>
+            /// Area of the processed image to copy.
+            /// </summary>
             public Rectangle DestBitmapRoi { get; set; }
         }
 
+        /// <summary>
+        /// Event data raised when a new source image is loaded.
+        /// </summary>
         public class DataSourceEventArgs : EventArgs
         {
+            /// <summary>Image name.</summary>
             public String Name { get; set; }
+            /// <summary>Loaded image.</summary>
             public Image SourceBitmap { get; set; }
+            /// <summary>
+            /// Source file, if any.
+            /// </summary>
             public FileInfo SourceFile { get; set; }
         }
 
 
+        /// <summary>
+        /// Raised when the user copies the current result to a new container.
+        /// </summary>
         public event EventHandler<CopyDataEventArgs> ImageCopied;
+        /// <summary>
+        /// Raised when a new source image is loaded.
+        /// </summary>
         public event EventHandler<DataSourceEventArgs> ImageCreated;
 
         int panel1MaxWidth = 400;
@@ -52,28 +81,51 @@ namespace ColourClashNet.Controls
         FileInfo currentFileInfo = null;
         String currentName = "";
 
+        /// <summary>
+        /// Target resolution: the source image is resized to it when loaded (null = keep the original size).
+        /// </summary>
         [DefaultValue(null)]
         public GraphicsResolution WantedRes { get; set; } = null;
 
+        /// <summary>
+        /// Quantization applied in the pre-processing.
+        /// </summary>
         [DefaultValue(ColorQuantizationMode.RGB888)]
         public ColorQuantizationMode QuantizationMode { get; set; } = ColorQuantizationMode.RGB888;
 
+        /// <summary>
+        /// Dithering algorithm.
+        /// </summary>
         [DefaultValue(ColorDithering.FloydSteinberg)]
         public ColorDithering DitheringType { get; set; } = ColorDithering.FloydSteinberg;
 
+        /// <summary>
+        /// Post-dithering effect.
+        /// </summary>
         [DefaultValue(ColorDitheringFx.None)]
         public ColorDitheringFx DitheringFx { get; set; } = ColorDitheringFx.None;
 
+        /// <summary>
+        /// Color distance metric.
+        /// </summary>
         [DefaultValue(ColorDistanceEvaluationMode.RGB)]
         public ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; set; } = ColorDistanceEvaluationMode.RGB;
 
+        /// <summary>
+        /// Blob detector.
+        /// </summary>
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Blob BlobAnalysis { get; set; } = new Blob();
 
-        //public ColorTransformConfig Config => colorManager.Config;
 
+        /// <summary>
+        /// Processing pipeline of this control.
+        /// </summary>
         public Components.ColorTransformManager ColorManager => colorManager;
 
+        /// <summary>
+        /// Creates the control and initializes combo boxes and event wiring.
+        /// </summary>
         public ColorAnalyzer()
         {
             InitializeComponent();
@@ -97,20 +149,29 @@ namespace ColourClashNet.Controls
             blobManager.OnPreProcess += (s, e) => { blobManager.WithProcessingParams(colorManager.TransformConfig.ColorBackgroundPalette, colorManager.TransformConfig.ColorBackgroundReplacementValue); };
         }                
 
+        /// <summary>
+        /// Applies the UI settings and runs the pre-processing again.
+        /// </summary>
         public void Preprocess()
         {
             SetControlToConfig();
             colorManager.PreProcess();
         }
 
-        void CreateComboBox(ComboBox ocb, List<string> items)
+        /// <summary>
+        /// Fills a combo box and selects the first item.
+        /// </summary>
+        void CreateComboBox(ComboBox comboBox, List<string> items)
         {
-            ocb.Items.Clear();
-            items.ForEach(x => ocb.Items.Add(x));
-            ocb.SelectedIndex = 0;
+            comboBox.Items.Clear();
+            items.ForEach(x => comboBox.Items.Add(x));
+            comboBox.SelectedIndex = 0;
         }
 
 
+        /// <summary>
+        /// Updates the UI with the parameters found by a transformation (e.g. ZX autotune seeds).
+        /// </summary>
         private void RebuildParams(object sender)
         {
             if (sender is ColorTransformZxSpectrum zxTransform)
@@ -123,26 +184,27 @@ namespace ColourClashNet.Controls
 
 
 
+        /// <summary>
+        /// Rebuilds the background color swatches from the colors picked on the source image and reprocesses.
+        /// </summary>
         void BuildBkgPalette()
         {
             pbBkColor.Image = null;
-            var bkgColor = bitmapRenderSource.SelectedColors;
-            if (bkgColor.Count > 0)
+            var bkgColors = bitmapRenderSource.SelectedColors;
+            if (bkgColors.Count > 0)
             {
-                Bitmap bmp = new Bitmap((int)bkgColor.Count * 16, (int)16);
+                Bitmap bmp = new Bitmap((int)bkgColors.Count * 16, (int)16);
+                // Draw one 16x16 swatch per background color
                 using (var g = Graphics.FromImage(bmp))
                 {
-                    int index = 0;
-                    for (int i = 0; i < bkgColor.Count; i++)
+                    for (int i = 0; i < bkgColors.Count; i++)
                     {
-                        var item = bkgColor[i];
+                        var item = bkgColors[i];
                         using (var brush = new SolidBrush(item))
                         {
                             g.FillRectangle(brush, i * 16, 0, 16, 16);
                         }
-                        index++;
                     }
-                    ;
                 }
                 pbBkColor.SizeMode = PictureBoxSizeMode.StretchImage;
                 pbBkColor.Image = bmp;
@@ -151,6 +213,9 @@ namespace ColourClashNet.Controls
             colorManager.PreProcess();
         }
 
+        /// <summary>
+        /// Shows copies of the source and processed images.
+        /// </summary>
         void ShowImage()
         {
             bitmapRenderSource.Image = colorManager.ImageSource?.Clone() as Image;
@@ -158,6 +223,9 @@ namespace ColourClashNet.Controls
             Invalidate();
         }
 
+        /// <summary>
+        /// Refreshes property grids and images.
+        /// </summary>
         void RefreshData()
         {
             pgColorProcessor.SelectedObject = colorManager;
@@ -167,6 +235,10 @@ namespace ColourClashNet.Controls
 
         Bitmap loadedBmp;
 
+        /// <summary>
+        /// Resizes a bitmap to <see cref="WantedRes"/>.
+        /// </summary>
+        /// <returns>The resized bitmap, or <paramref name="srcBmp"/> when no resolution is set.</returns>
         public Bitmap ResizeBitmap(Bitmap srcBmp)
         {
             if (srcBmp == null)
@@ -179,16 +251,19 @@ namespace ColourClashNet.Controls
             }
             else
             {
-                var bmp2 = new Bitmap(WantedRes.Width, WantedRes.Height);
-                using (var graphics = Graphics.FromImage(bmp2))
+                var resizedBmp = new Bitmap(WantedRes.Width, WantedRes.Height);
+                using (var graphics = Graphics.FromImage(resizedBmp))
                 {
                     graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-                    graphics.DrawImage(srcBmp, new Rectangle(0, 0, bmp2.Width, bmp2.Height), new Rectangle(0, 0, srcBmp.Width, srcBmp.Height), GraphicsUnit.Pixel);
+                    graphics.DrawImage(srcBmp, new Rectangle(0, 0, resizedBmp.Width, resizedBmp.Height), new Rectangle(0, 0, srcBmp.Width, srcBmp.Height), GraphicsUnit.Pixel);
                 }
-                return bmp2;
+                return resizedBmp;
             }
         }
 
+        /// <summary>
+        /// Reloads the current bitmap into the pipeline.
+        /// </summary>
         public void Create()
         {
             bitmapRenderDest.ResetMouseSelectedColors();
@@ -205,6 +280,9 @@ namespace ColourClashNet.Controls
             });
         }
 
+        /// <summary>
+        /// Loads an image into the control.
+        /// </summary>
         public void Create(ImageData image, string name)
         {
             loadedBmp = ImageToolsGDI.ImageDataToGdiImage(image) as Bitmap;
@@ -212,6 +290,9 @@ namespace ColourClashNet.Controls
             Create();
         }
 
+        /// <summary>
+        /// Loads an image into the control.
+        /// </summary>
         public void Create(Image image, string name)
         {
             loadedBmp = image as Bitmap;
@@ -219,6 +300,9 @@ namespace ColourClashNet.Controls
             Create();
         }
 
+        /// <summary>
+        /// Loads an image file into the control.
+        /// </summary>
         public void Create(FileInfo fileInfo)
         {
             var image = ImageTools.LoadImage(fileInfo.FullName);
@@ -227,17 +311,23 @@ namespace ColourClashNet.Controls
 
 
 
+        /// <summary>
+        /// Returns the background colors picked on the source image.
+        /// </summary>
         Palette GetBkgColors()
         {
-            var ret = new List<int>();
+            var colors = new List<int>();
             foreach (var item in bitmapRenderSource.SelectedColors)
-                ret.Add(ColorIntExtGdi.FromDrawingColor(item));
-            return new Palette().Create(ret);
+                colors.Add(ColorIntExtGdi.FromDrawingColor(item));
+            return new Palette().Create(colors);
         }
 
 
 
 
+        /// <summary>
+        /// Copies all the UI settings into the transformation configuration.
+        /// </summary>
         private void SetControlToConfig()
         {
             colorManager.TransformConfig.WithBackgroundColorReplacement(
@@ -259,7 +349,7 @@ namespace ColourClashNet.Controls
                 (int)nudColorsWanted.Value,
                 (int)nudClusterLoop.Value,
                 ColorSelectionMode.UseColorPalette);
-            // Dithering viene settato dalla form
+            // Dithering type and effect are set by the hosting form
             colorManager.TransformConfig.WithDithering(
                 DitheringType,
                 (double)nudDitheringStrenght.Value,
@@ -308,11 +398,6 @@ namespace ColourClashNet.Controls
 
         private void pbBkColor_DoubleClick(object sender, EventArgs e)
         {
-            //if (bkgColor.Count > 0)
-            //{
-            //    bkgColor.RemoveAt(bkgColor.Count - 1);
-            //    Reprocess();
-            //}
         }
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
@@ -321,12 +406,15 @@ namespace ColourClashNet.Controls
         }
 
 
-        private void oColorManager_OnReset(object sender, EventArgs e)
+        private void colorManager_OnReset(object sender, EventArgs e)
         {
             RefreshData();
         }
 
 
+        /// <summary>
+        /// Applies the UI settings and runs the transformation <paramref name="type"/> asynchronously.
+        /// </summary>
         private async void ReduceColorsAsync(ColorTransformType type)
         {
             SetControlToConfig();
@@ -419,12 +507,12 @@ namespace ColourClashNet.Controls
             }
         }
 
-        private void oBitmapRenderSource_MouseMove(object sender, MouseEventArgs e)
+        private void bitmapRenderSource_MouseMove(object sender, MouseEventArgs e)
         {
-            var pointC = bitmapRenderSource.MouseControlCoordinates;
-            tsMouseCoord.Text = $"X:{pointC.X} Y:{pointC.Y}";
-            var pointI = bitmapRenderSource.MouseImageCoordinatesClip;
-            tsImageCoord.Text = $"X:{pointI.X:f2} Y:{pointI.Y:f2}";
+            var controlPoint = bitmapRenderSource.MouseControlCoordinates;
+            tsMouseCoord.Text = $"X:{controlPoint.X} Y:{controlPoint.Y}";
+            var imagePoint = bitmapRenderSource.MouseImageCoordinatesClip;
+            tsImageCoord.Text = $"X:{imagePoint.X:f2} Y:{imagePoint.Y:f2}";
             tsColorData.BackColor = bitmapRenderSource.MouseImageColor;
         }
 
@@ -454,6 +542,9 @@ namespace ColourClashNet.Controls
             });
         }
 
+        /// <summary>
+        /// Arranges the source and processed views horizontally or vertically.
+        /// </summary>
         void SetRenderPanelLayout(bool horizontalLayout)
         {
             splitRenderLayout.Orientation = horizontalLayout ? Orientation.Horizontal : Orientation.Vertical;

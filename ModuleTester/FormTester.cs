@@ -1,4 +1,4 @@
-
+﻿
 using ColourClashLib.Color.Transformation;
 using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
@@ -9,9 +9,13 @@ using System.Threading.Tasks;
 
 namespace ModuleTester
 {
+    /// <summary>
+    /// Manual test bench: runs every color transformation on a preset or loaded image
+    /// and shows input, output, configuration and log side by side.
+    /// </summary>
     public partial class FormTester : Form
     {
-        Dictionary<string, Image> dict = new();
+        Dictionary<string, Image> presetImages = new();
 
         public FormTester()
         {
@@ -21,7 +25,6 @@ namespace ModuleTester
             CreateCombos();
             LogMan.OnLogMessage += LogMan_OnLogMessage;
 
-            //  TestTransformSpectrum();
         }
 
         ConcurrentQueue<string> logBag = new ConcurrentQueue<string>();
@@ -30,35 +33,35 @@ namespace ModuleTester
         {
             logBag.Enqueue(e.Message);
         }
-        void CreateCombo(List<string> stringList, ComboBox cb, int? defaultIndex = null)
+        void CreateCombo(List<string> stringList, ComboBox comboBox, int? defaultIndex = null)
         {
-            cb.Items.Clear();
+            comboBox.Items.Clear();
             if (stringList == null)
             {
                 return;
             }
             foreach (var item in stringList)
             {
-                cb.Items.Add(item);
+                comboBox.Items.Add(item);
             }
-            if (defaultIndex.HasValue && defaultIndex.Value >= 0 && defaultIndex.Value < cb.Items.Count)
+            if (defaultIndex.HasValue && defaultIndex.Value >= 0 && defaultIndex.Value < comboBox.Items.Count)
             {
-                cb.SelectedIndex = defaultIndex.Value;
+                comboBox.SelectedIndex = defaultIndex.Value;
             }
         }
 
-        void CreateCombo(Type enumType, ComboBox cb, int? defaultIndex = null)
-            => CreateCombo(Enum.GetNames(enumType).ToList(), cb, defaultIndex);
+        void CreateCombo(Type enumType, ComboBox comboBox, int? defaultIndex = null)
+            => CreateCombo(Enum.GetNames(enumType).ToList(), comboBox, defaultIndex);
 
         void CreateCombos()
         {
-            dict = new();
-            dict.Add("1M Colors", ColourClashDrawings.Properties.Resources.BMP_1Mcolors);
-            dict.Add("RGB Palette", ColourClashDrawings.Properties.Resources.BMP_RGB_Palette);
-            dict.Add("FADE Base", ColourClashDrawings.Properties.Resources.BMP_FadeTest);
-            dict.Add("GRANGER Charts", ColourClashDrawings.Properties.Resources.BMP_Granger_Chart);
+            presetImages = new();
+            presetImages.Add("1M Colors", ColourClashDrawings.Properties.Resources.BMP_1Mcolors);
+            presetImages.Add("RGB Palette", ColourClashDrawings.Properties.Resources.BMP_RGB_Palette);
+            presetImages.Add("FADE Base", ColourClashDrawings.Properties.Resources.BMP_FadeTest);
+            presetImages.Add("GRANGER Charts", ColourClashDrawings.Properties.Resources.BMP_Granger_Chart);
 
-            CreateCombo(dict.Select(x => x.Key).ToList(), cbPreset, 1);
+            CreateCombo(presetImages.Select(x => x.Key).ToList(), cbPreset, 1);
             CreateCombo(typeof(ColorDithering), cbDithering, 9);
             CreateCombo(typeof(ColorDistanceEvaluationMode), cbColorMode, 0);
             CreateCombo(typeof(ColorQuantizationMode), cbQuantization, 4);
@@ -70,13 +73,18 @@ namespace ModuleTester
             CreateCombo(typeof(ColorTransformZxSpectrum.ZxPaletteMode), cbZXPaletteMode, 0);
         }
 
-        void ClearOldTransform() => oldTrasf = null;
+        void ClearOldTransform() => oldTransform = null;
 
-        ColorTransformInterface oldTrasf = null;
+        ColorTransformInterface oldTransform = null;
         ColorTransformConfig oldConfig = null;
-        void Process(ColorTransformInterface transf, ColorTransformConfig cfg)
+        /// <summary>
+        /// Applies the common UI settings (distance, dithering) to <paramref name="cfg"/> and runs
+        /// <paramref name="transform"/> on the input image in background, with a progress form.
+        /// The transformation is remembered so that the "reprocess" button can run it again.
+        /// </summary>
+        void Process(ColorTransformInterface transform, ColorTransformConfig cfg)
         {
-            oldTrasf = transf;
+            oldTransform = transform;
             oldConfig = cfg;
             bitmapRenderOUT.Image = null;
             var dither = ColorDithering.None;
@@ -90,21 +98,20 @@ namespace ModuleTester
                 color = ColorDistanceEvaluationMode.RGB;
             }
             cfg.WithColorDistanceEvaluationMode(color)
-            //.WithQuantizationMode()
             .WithDithering(dither, (double)numDitheringStrenght.Value / 100.0, ColorDitheringFx.None);
-            transf.SetProperties(cfg);
+            transform.SetProperties(cfg);
             var imageData = ImageToolsGDI.GdiImageToImageData(bitmapRenderIN.Image as Bitmap);
             _ = Task.Run(async () =>
             {
                 var cts = new CancellationTokenSource();
-                ProcessingForm.CreateProcessingForm(transf, cts);
-                transf.Create(imageData);
-                var ret = transf.ProcessColors(cts.Token);
+                ProcessingForm.CreateProcessingForm(transform, cts);
+                transform.Create(imageData);
+                var result = transform.ProcessColors(cts.Token);
                 Invoke(() =>
                 {
-                    bitmapRenderOUT.Image = ImageToolsGDI.ImageDataToGdiImage(ret.DataOut);
+                    bitmapRenderOUT.Image = ImageToolsGDI.ImageDataToGdiImage(result.DataOut);
                     propertyGrid1.SelectedObject = cfg;
-                    propertyGrid2.SelectedObject = transf;
+                    propertyGrid2.SelectedObject = transform;
                     pbIN.Refresh();
                     pbOUT.Refresh();
                 });
@@ -114,38 +121,36 @@ namespace ModuleTester
 
         void TestTransformID()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorIdentity)
+            if (oldTransform?.Type == ColorTransformType.ColorIdentity)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformIdentity transf = new();
-            // transf.SetProperty(ColourClashNet.Color.ColorTransformProperties.DitheringType, ColorDithering.None);
-            // transf.SetProperty(ColorTransformProperties.MaxColorsWanted, 16);
-            Process(transf, new ColorTransformConfig());
+            ColourClashNet.Color.Transformation.ColorTransformIdentity transform = new();
+            Process(transform, new ColorTransformConfig());
         }
         void TestTransformQuantizer()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorReductionQuantization)
+            if (oldTransform?.Type == ColorTransformType.ColorReductionQuantization)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformQuantization transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformQuantization transform = new();
             var cfg = new ColorTransformConfig()
                 .WithQuantizationMode((ColorQuantizationMode)Enum.Parse(typeof(ColorQuantizationMode), cbQuantization.SelectedItem?.ToString()));
-            Process(transf, cfg);
+            Process(transform, cfg);
         }
 
         void TestTransformBkgRemover()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorRemover)
+            if (oldTransform?.Type == ColorTransformType.ColorRemover)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformBkgRemover transf = new();
-            Palette pal = new Palette().Create();
+            ColourClashNet.Color.Transformation.ColorTransformBkgRemover transform = new();
+            Palette bkgPalette = new Palette().Create();
             List<int> list = new List<int>();
             for (int r = 0; r < 256; r++)
             {
@@ -153,176 +158,176 @@ namespace ModuleTester
                 {
                     for (int b = 0; b < 128; b++)
                     {
-                        pal.Add(ColorIntExt.FromRGB(r, g, b));
+                        bkgPalette.Add(ColorIntExt.FromRGB(r, g, b));
                     }
                 }
             }
             var cfg = new ColorTransformConfig()
-                .WithBackgroundColorReplacement(pal, 0);
-            Process(transf, cfg);
+                .WithBackgroundColorReplacement(bkgPalette, 0);
+            Process(transform, cfg);
         }
 
         void TestTransformAmiga()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorReductionHam)
+            if (oldTransform?.Type == ColorTransformType.ColorReductionHam)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformCbmAmiga transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformCbmAmiga transform = new();
             var cfg = new ColorTransformConfig()
                 .WithAmigaScreenMode(
                     (ColorTransformCbmAmiga.EnumAmigaVideoMode)Enum.Parse(typeof(ColorTransformCbmAmiga.EnumAmigaVideoMode), cbAmigaMode.SelectedItem?.ToString()),
                      ColorTransformType.ColorReductionClustering,
                      ColorSelectionMode.EvaluateColorMean);
             //                .WithClustering(16, 10, ColorSelectionMode.EvaluateColorMean);
-            Process(transf, cfg);
+            Process(transform, cfg);
         }
 
         void TestTransformLumSat()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorReductionSaturation)
+            if (oldTransform?.Type == ColorTransformType.ColorReductionSaturation)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformLumSat transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformLumSat transform = new();
             var cfg = new ColorTransformConfig()
                 .WithHSV((double)numLumH.Value, (double)numLumS.Value / 100, (double)numLumV.Value / 100);
-            Process(transf, cfg);
+            Process(transform, cfg);
         }
 
         void TestTransformC64()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorReductionCBM64)
+            if (oldTransform?.Type == ColorTransformType.ColorReductionCBM64)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformCbm64 transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformCbm64 transform = new();
             var cfg = new ColorTransformConfig()
                 .WithC64ScreenMode(
                 (ColorTransformCbm64.C64VideoMode) Enum.Parse(typeof(ColorTransformCbm64.C64VideoMode), cbC64VideoMode.SelectedItem?.ToString()),
                 ColorTransformCbm64.C64DitheringMode.PreDitherImage,
                 false);
-            Process(transf, cfg);
+            Process(transform, cfg);
         }
 
         void TestTransformCluster()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorReductionClustering)
+            if (oldTransform?.Type == ColorTransformType.ColorReductionClustering)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformClustering transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformClustering transform = new();
             var cfg = new ColorTransformConfig()
                 .WithClustering(16, 10, ColorSelectionMode.EvaluateColorMean);
-            Process(transf, cfg);
+            Process(transform, cfg);
         }
 
 
         void TestTransformAmigaEHB()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorReductionHam)
+            if (oldTransform?.Type == ColorTransformType.ColorReductionHam)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformCbmAmiga transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformCbmAmiga transform = new();
             var cfg = new ColorTransformConfig()
                 .WithAmigaScreenMode(ColorTransformCbmAmiga.EnumAmigaVideoMode.Ham6,
                 ColorTransformType.ColorReductionClustering,
                 ColorSelectionMode.EvaluateColorMean);
-            Process(transf, cfg);
+            Process(transform, cfg);
         }
 
         void TestTransformCPC()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorReductionCPC)
+            if (oldTransform?.Type == ColorTransformType.ColorReductionCPC)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
                 return;
             }
-            ColorTransformAmstradCPC transf = new();
+            ColorTransformAmstradCPC transform = new();
             var cfg = new ColorTransformConfig()
                 .WithCpcVideoMode((ColorTransformAmstradCPC.CPCVideoMode) Enum.Parse(typeof(ColorTransformAmstradCPC.CPCVideoMode), cbCPCVideoMode.SelectedItem?.ToString()));
-            Process(transf, cfg);
+            Process(transform, cfg);
         }
 
         void TestTransformEGA()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorReductionEGA)
+            if (oldTransform?.Type == ColorTransformType.ColorReductionEGA)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformEGA transf = new();
-            Process(transf, new ColorTransformConfig());
+            ColourClashNet.Color.Transformation.ColorTransformEGA transform = new();
+            Process(transform, new ColorTransformConfig());
         }
 
         void TestTransformCGA()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorReductionCGA)
+            if (oldTransform?.Type == ColorTransformType.ColorReductionCGA)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformCGA transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformCGA transform = new();
             var cfg = new ColorTransformConfig()
                 .WithCGAScreenMode((ColorTransformCGA.CGAVideoMode)Enum.Parse(typeof(ColorTransformCGA.CGAVideoMode), cbCgaVideoMode.SelectedItem?.ToString()),
                     ColorTransformCGA.CGACompositeOutputMode.ProcessedImage); 
-            Process(transf,cfg);
+            Process(transform,cfg);
         }
 
         void TestTransformFast()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorReductionFast)
+            if (oldTransform?.Type == ColorTransformType.ColorReductionFast)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformFast transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformFast transform = new();
             var cfg = new ColorTransformConfig()
                 .WithFastReduction(16);
-            Process(transf, cfg);
+            Process(transform, cfg);
         }
 
         void TestTransformMedianCut()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorReductionMedianCut)
+            if (oldTransform?.Type == ColorTransformType.ColorReductionMedianCut)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformMedianCut transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformMedianCut transform = new();
             var cfg = new ColorTransformConfig()
                .WithMedianCut(16);
-            Process(transf, cfg);
+            Process(transform, cfg);
         }
 
         void TestTransformSpectrum()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorReductionZxSpectrum)
+            if (oldTransform?.Type == ColorTransformType.ColorReductionZxSpectrum)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformZxSpectrum transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformZxSpectrum transform = new();
             var cfg = new ColorTransformConfig()
                 .WithZxScreenMode((ColorTransformZxSpectrum.ZxPaletteMode) Enum.Parse(typeof(ColorTransformZxSpectrum.ZxPaletteMode), cbZXPaletteMode.SelectedItem?.ToString()), 128, 256)
                 .WithZxProcessing((ColorTransformZxSpectrum.ZxAutotuneMode) Enum.Parse(typeof(ColorTransformZxSpectrum.ZxAutotuneMode), cbZXAutotuneMode.SelectedItem?.ToString()), true, true, true, false);
-            Process(transf, cfg);
+            Process(transform, cfg);
         }
 
         void TestTransformPalette()
         {
-            if (oldTrasf?.Type == ColorTransformType.ColorReductionGenericPalette)
+            if (oldTransform?.Type == ColorTransformType.ColorReductionGenericPalette)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
                 return;
             }
-            ColourClashNet.Color.Transformation.ColorTransformFixedPalette transf = new();
+            ColourClashNet.Color.Transformation.ColorTransformFixedPalette transform = new();
             var palette = new Palette().Create();
             for (int i = 0; i < 256; i += 16)
             {
@@ -330,25 +335,25 @@ namespace ModuleTester
             }
             var cfg = new ColorTransformConfig()
                 .WithReferencePalette(palette);
-            Process(transf, cfg);
+            Process(transform, cfg);
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             var txt = cbPreset.Text.ToString();
-            if (dict.ContainsKey(txt))
+            if (presetImages.ContainsKey(txt))
             {
-                bitmapRenderIN.Image = dict[txt];
+                bitmapRenderIN.Image = presetImages[txt];
             }
         }
 
 
         private async void butReprocess(object sender, EventArgs e)
         {
-            var transf = propertyGrid2.SelectedObject as ColorTransformInterface;
-            if (transf != null)
+            var transform = propertyGrid2.SelectedObject as ColorTransformInterface;
+            if (transform != null)
             {
-                Process(oldTrasf, oldConfig);
+                Process(oldTransform, oldConfig);
             }
         }
 

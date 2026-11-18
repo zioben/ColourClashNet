@@ -1,8 +1,11 @@
-using ColourClashNet.Color;
+﻿using ColourClashNet.Color;
 using ColourClashNet.Log;
 
 namespace ColourClashNet
 {
+    /// <summary>
+    /// Windows Forms application entry point.
+    /// </summary>
     internal static class Program
     {
         static string sClass = nameof(Program);
@@ -22,17 +25,6 @@ namespace ColourClashNet
             LogMan.Create();
             LogMan.Message( sClass, sMethod , "Hello");
             LogMan.MinLogLevel = LogLevel.Message;
-
-            ColourClashNet.Drawing.CoordinateManager man = new();
-
-            //var oPoint1 = new PointF(1,2);
-            //man.TransfZoom = new PointF(0.1f,100f);
-            //man.WorldRotationAngle = 45;
-            //man.TranslateRotationPoint(10, 10);
-            //man.TranslateWorldOrigin(10, -10);
-            //var oPoint2 = man.Transform(oPoint1);
-            //var oPoint3 = man.InverseTransform(oPoint2);
-
 
             Application.Run(new FormCClash());
         }

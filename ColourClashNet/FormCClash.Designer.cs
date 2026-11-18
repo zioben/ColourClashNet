@@ -173,7 +173,7 @@ namespace ColourClashNet
             pngToolStripMenuItem.Name = "pNGToolStripMenuItem";
             pngToolStripMenuItem.Size = new Size(180, 22);
             pngToolStripMenuItem.Text = "PNG";
-            pngToolStripMenuItem.Click += pNGToolStripMenuItem_Click;
+            pngToolStripMenuItem.Click += pngToolStripMenuItem_Click;
             // 
             // amigaToolStripMenuItem
             // 

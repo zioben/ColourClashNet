@@ -7,36 +7,43 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet
 {
+    /// <summary>
+    /// Global default colors (packed RGB integers) shared by processing and rendering code.
+    /// </summary>
     public static class ColorDefaults
     {
-        
-
         /// <summary>
-        /// Gets or sets the default background Color.
+        /// Gets or sets the default background color (magenta).
         /// </summary>
         public static int DefaultBkgColorInt { get; set; } = ColorIntExt.FromRGB(255,0,255);
 
 
         /// <summary>
-        /// Gets or sets the default mask Color used for rendering operations.
+        /// Gets or sets the default mask color used for rendering operations.
         /// </summary>
         public static int DefaultMaskColorInt { get; set; } = ColorIntExt.FromRGB(255, 255, 255);
         
 
         /// <summary>
-        /// Gets or sets the default Color used for tile layers.
+        /// Gets or sets the default color used for tile layers.
         /// </summary>
         public static int DefaultTileColorInt { get; set; } = ColorIntExt.FromRGB(255, 0, 0);
 
 
         /// <summary>
-        /// Default integer representation of an invalid Color.
+        /// Gets or sets the integer representation of an invalid color (flagged with <see cref="ColorInfo.Invalid"/>).
         /// </summary>
         public static int DefaultInvalidColorInt { get; set; } = ColorIntExt.FromRGB(255, 255, 255, ColorInfo.Invalid);
 
+        /// <summary>
+        /// Gets or sets the foreground color used to draw blob shapes.
+        /// </summary>
         public static int DefaultShapeForeColorInt { get; set; } = ColorIntExt.FromRGB(255, 255, 255);
+
+        /// <summary>
+        /// Gets or sets the background color used to draw blob shapes.
+        /// </summary>
         public static int DefaultShapeBkgColorInt { get; set; } = ColorIntExt.FromRGB(0,0,0);
-       // public static int DefaultBlobBkgColorInt { get; set; } = DefaultBkgColorInt;
 
     }
 }

@@ -9,27 +9,60 @@ namespace ColourClashProcessing.Blob
     /// </summary>
     public class BlobItem
     {
-        double _sumX = 0;
-        double _sumY = 0;
+        double sumX = 0;
+        double sumY = 0;
 
         /// <summary>1-based identifier assigned by <see cref="BlobBuilder"/>.</summary>
         public int BlobId { get; internal set; } = -1;
 
+        /// <summary>
+        /// Number of pixels.
+        /// </summary>
         public int Area { get; private set; } = 0;
+        /// <summary>
+        /// Bounding box left column.
+        /// </summary>
         public int XMin { get; private set; } = int.MaxValue;
+        /// <summary>
+        /// Bounding box right column (inclusive).
+        /// </summary>
         public int XMax { get; private set; } = int.MinValue;
+        /// <summary>
+        /// Bounding box top row.
+        /// </summary>
         public int YMin { get; private set; } = int.MaxValue;
+        /// <summary>
+        /// Bounding box bottom row (inclusive).
+        /// </summary>
         public int YMax { get; private set; } = int.MinValue;
 
+        /// <summary>
+        /// Bounding box width.
+        /// </summary>
         public int Width => Area == 0 ? 0 : XMax - XMin + 1;
+        /// <summary>
+        /// Bounding box height.
+        /// </summary>
         public int Height => Area == 0 ? 0 : YMax - YMin + 1;
 
-        /// <summary>Centroid in pixel coordinates (pixel centers).</summary>
-        public double CentroidX => Area == 0 ? 0 : _sumX / Area;
-        public double CentroidY => Area == 0 ? 0 : _sumY / Area;
+        /// <summary>
+        /// Centroid X in pixel coordinates (pixel centers).
+        /// </summary>
+        public double CentroidX => Area == 0 ? 0 : sumX / Area;
+        /// <summary>
+        /// Centroid Y in pixel coordinates (pixel centers).
+        /// </summary>
+        public double CentroidY => Area == 0 ? 0 : sumY / Area;
 
+        /// <summary>
+        /// Runs that make up the blob.
+        /// </summary>
         public List<RunLength> RunLengths { get; private set; } = new List<RunLength>();
 
+        /// <summary>
+        /// Adds a run and updates area, bounding box and centroid sums.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="rl"/> is null.</exception>
         public void Add(RunLength rl)
         {
             ArgumentNullException.ThrowIfNull(rl);
@@ -43,8 +76,8 @@ namespace ColourClashProcessing.Blob
             if (rl.Y > YMax) YMax = rl.Y;
 
             // sum of x over xs..xe = (xs + xe) * length / 2
-            _sumX += (rl.XS + rl.XE) * (double)rl.Length / 2.0;
-            _sumY += (double)rl.Y * rl.Length;
+            sumX += (rl.XS + rl.XE) * (double)rl.Length / 2.0;
+            sumY += (double)rl.Y * rl.Length;
         }
     }
 }

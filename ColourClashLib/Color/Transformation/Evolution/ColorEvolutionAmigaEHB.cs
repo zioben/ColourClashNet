@@ -16,16 +16,19 @@ namespace ColourClashLib.Color.Transformation.Evolution
 
 
     /// <summary>
-    /// Represents a color evolution cluster.
+    /// Cluster for the Amiga Extra Half-Brite mode: each palette color also provides a half-bright copy.
     /// </summary>
     public class ColorEvolutionAmigaEHB : ColorEvolution
     {
         static string sC = nameof(ColorEvolutionAmigaEHB);
      
         /// <summary>
-        /// The Cluster RGB color representing the centroid of the cluster.
+        /// Half-bright version of the cluster color (each channel divided by 2).
         /// </summary>
         public int ClusterRGB_EHB => toEHB();
+        /// <summary>
+        /// Computes the half-bright color, or an invalid color when the cluster has no color.
+        /// </summary>
         int toEHB()
         {
             if (ClusterRGB == ColorDefaults.DefaultInvalidColorInt)
@@ -33,11 +36,17 @@ namespace ColourClashLib.Color.Transformation.Evolution
             return ColorIntExt.FromRGB(ClusterRGB.ToR() / 2, ClusterRGB.ToG() / 2, ClusterRGB.ToB() / 2);
         }
       
+        /// <summary>
+        /// Distance to the nearest of the cluster color and its half-bright copy.
+        /// </summary>
         public new double Distance(int rgb, ColorDistanceEvaluationMode mode)
         {
             return Math.Min(ClusterRGB.Distance(rgb, mode), ClusterRGB_EHB.Distance(rgb, mode));
         }
 
+        /// <summary>
+        /// Returns the nearest of the cluster color and its half-bright copy.
+        /// </summary>
         public new int GetClusterColor(int rgb, ColorDistanceEvaluationMode mode)
         {
             if(ClusterRGB == ColorDefaults.DefaultInvalidColorInt)

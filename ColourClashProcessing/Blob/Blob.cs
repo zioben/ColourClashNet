@@ -16,6 +16,13 @@ using System.Threading;
 
 namespace ColourClashProcessing.Blob
 {
+    /// <summary>
+    /// Blob (connected component) detector for sprite and tile extraction.
+    /// <para/>
+    /// Pipeline: global threshold (foreground / background split), horizontal run length extraction,
+    /// run based connected component labeling, size filtering. The detected blobs can then be rebuilt
+    /// as images cut from the source image.
+    /// </summary>
     public class Blob
     {
         static String sC = nameof(Blob);
@@ -24,8 +31,8 @@ namespace ColourClashProcessing.Blob
 
         BlobConfig config = new BlobConfig();
 
-//        GlobalThreshold threshold = new GlobalThreshold();
-        Dictionary<int, List<RunLength>>? _connectedComponents = null;
+        // Run lengths of each blob, by blob id
+        Dictionary<int, List<RunLength>>? connectedComponents = null;
         Shape shape = new Shape();
 
         StopWatch timer=new();
@@ -34,40 +41,73 @@ namespace ColourClashProcessing.Blob
 
         #region config properties
 
+        /// <summary>
+        /// Background reference colors.
+        /// </summary>
         [Browsable(true), Category("Input")]
         public Palette ThresholdPalette => config.ThresholdRGB.ThresholdPalette;
 
+        /// <summary>
+        /// Threshold tolerance.
+        /// </summary>
         [Browsable(true), Category("Input")]
         public double ThresholdTolerance => config.ThresholdRGB.ToleranceFactor;
 
+        /// <summary>
+        /// Swaps foreground and background.
+        /// </summary>
         [Browsable(true), Category("Input")]
         public bool ThresholdInvertResults => config.ThresholdRGB.InvertResults;
 
+        /// <summary>
+        /// Pixel connectivity.
+        /// </summary>
         [Browsable(true), Category("Input")]
         public BlobConnectionModes ConnectionMode => config.ConnectionMode;
 
         #endregion
 
-        #region filtering proeprties
+        #region filtering properties
 
+        /// <summary>
+        /// Minimum blob width (0 = no limit).
+        /// </summary>
         [Browsable(true), Category("Filtering")]
         public int MinBlobWidth => config.MinBlobWidth;
 
+        /// <summary>
+        /// Minimum blob height (0 = no limit).
+        /// </summary>
         [Browsable(true), Category("Filtering")]
         public int MinBlobHeight => config.MinBlobHeight;
 
+        /// <summary>
+        /// Minimum blob area (0 = no limit).
+        /// </summary>
         [Browsable(true), Category("Filtering")]
         public int MinBlobArea => config.MinBlobArea;
 
+        /// <summary>
+        /// Maximum blob width (0 = no limit).
+        /// </summary>
         [Browsable(true), Category("Filtering")]
         public int MaxBlobWidth => config.MaxBlobWidth;
 
+        /// <summary>
+        /// Maximum blob height (0 = no limit).
+        /// </summary>
         [Browsable(true), Category("Filtering")]
         public int MaxBlobHeight => config.MaxBlobHeight;
 
+        /// <summary>
+        /// Maximum blob area (0 = no limit).
+        /// </summary>
         [Browsable(true), Category("Filtering")]
         public int MaxBlobArea => config.MaxBlobArea;
 
+        /// <summary>
+        /// Background color of the rebuilt blob images.
+        /// </summary>
         public int BlobBkgColor => config.BlobBkgColor;
 
         #endregion
@@ -77,15 +117,27 @@ namespace ColourClashProcessing.Blob
         /// <summary>Blobs found by the last <see cref="Process"/>, numbered 1..N.</summary>
         public IReadOnlyList<BlobItem> BlobList { get; private set; } = Array.Empty<BlobItem>();
 
-        public bool Valid => shape.Valid && _connectedComponents != null;
+        /// <summary>
+        /// True after a successful <see cref="Process"/>.
+        /// </summary>
+        public bool Valid => shape.Valid && connectedComponents != null;
 
+        /// <summary>
+        /// Copy of the processed image.
+        /// </summary>
         public ImageData ImageSource { get; private set; }
 
+        /// <summary>
+        /// Duration of the last <see cref="Process"/>, in milliseconds.
+        /// </summary>
         public double ProcessingTime => timer.ElapsedMilliseconds;
 
         #endregion
 
 
+        /// <summary>
+        /// Creates a detector with the default configuration.
+        /// </summary>
         public Blob()
         {
             Reset();
@@ -108,55 +160,85 @@ namespace ColourClashProcessing.Blob
             shape.Reset();
             BlobList = Array.Empty<BlobItem>();
             ImageSource = null;
-            _connectedComponents = null;
+            connectedComponents = null;
         }
 
         #region setup fluent
 
+        /// <summary>
+        /// Sets the threshold (fluent).
+        /// </summary>
         public Blob WithThreshold(Palette thresholdPalette, double toleranceFactor, bool invertResults)
         {
             config.ThresholdRGB.WithThreshold( new Palette().Create(thresholdPalette),toleranceFactor,invertResults);
             return this;
         }
 
+        /// <summary>
+        /// Sets a single threshold color (fluent).
+        /// </summary>
         public Blob WithThreshold(int rgbThreshold, double toleranceFactor, bool invertResults)
         {
             config.ThresholdRGB.WithThreshold( new Palette().Create(new List<int> { rgbThreshold }), toleranceFactor, invertResults);
             return this;
         }
 
+        /// <summary>
+        /// Copies the threshold settings (fluent).
+        /// </summary>
         public Blob WithThreshold(GlobalThreshold thresholdRGB)
             => WithThreshold(thresholdRGB.ThresholdPalette, thresholdRGB.ToleranceFactor, thresholdRGB.InvertResults);
 
+        /// <summary>
+        /// Copies the threshold settings from a configuration (fluent).
+        /// </summary>
         public Blob WithThreshold(BlobConfig blobConfig)
             => WithThreshold(blobConfig.ThresholdRGB);
 
+        /// <summary>
+        /// Sets the connectivity (fluent).
+        /// </summary>
         public Blob WithProcessing(BlobConnectionModes connectionMode)
         {
             config.WithProcessing(connectionMode);
             return this;
         }
 
+        /// <summary>
+        /// Copies the connectivity from a configuration (fluent).
+        /// </summary>
         public Blob WithProcessing(BlobConfig blobConfig)
             => WithProcessing(blobConfig.ConnectionMode);
 
+        /// <summary>
+        /// Sets the background color of the rebuilt images (fluent).
+        /// </summary>
         public Blob WithColors( int bkgColorRGB)
         {
             config.WithColors( bkgColorRGB);
             return this;
         }
 
+        /// <summary>
+        /// Copies the colors from a configuration (fluent).
+        /// </summary>
         public Blob WithColors(BlobConfig blobConfig)
         { 
             config.WithColors(blobConfig);
             return this;
         }
 
+        /// <summary>
+        /// Sets the size filters; 0 disables a limit (fluent).
+        /// </summary>
         public Blob WithFiltering(int minArea, int maxArea, int minWidth, int maxWidth, int minHeight, int maxHeight)
         {
             config.WithFiltering(minWidth, minHeight, minArea, maxWidth, maxHeight, maxArea);
             return this;
         }
+        /// <summary>
+        /// Copies the size filters from a configuration (fluent).
+        /// </summary>
         public Blob WithFiltering(BlobConfig config)
         {
             this.config.WithFiltering(config.MinBlobWidth, config.MinBlobHeight, config.MinBlobArea, config.MaxBlobWidth, config.MaxBlobHeight, config.MaxBlobArea);
@@ -167,6 +249,10 @@ namespace ColourClashProcessing.Blob
 
         #endregion
 
+        /// <summary>
+        /// Detects the blobs of <paramref name="image"/>.
+        /// </summary>
+        /// <returns>A result whose output is the thresholded (binary) image.</returns>
         public ColorTransformResult Process(ImageData image, CancellationToken cancellationToken = default)
         {
             string sM = nameof(Process);
@@ -214,7 +300,7 @@ namespace ColourClashProcessing.Blob
                     blobs.RemoveAll(b => b.Height > MaxBlobHeight);
 
                 BlobList = blobs;
-                _connectedComponents = blobs.ToDictionary(b => b.BlobId, b => b.RunLengths);
+                connectedComponents = blobs.ToDictionary(b => b.BlobId, b => b.RunLengths);
 
                 timer.Update();
 
@@ -239,38 +325,34 @@ namespace ColourClashProcessing.Blob
         }
 
         /// <summary>
-        /// Rebuild image containing ALL source shapes
+        /// Rebuilds the binary image of all foreground shapes, before the size filtering.
         /// </summary>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="InvalidOperationException"><see cref="Process"/> has not been called.</exception>
         public ImageData GetShapeImage()
         {
            if(!Valid) 
-                throw new InvalidOperationException("Shaper image is not available. Call Process() first.");
+                throw new InvalidOperationException("Shape image is not available. Call Process() first.");
             return shape.ToImageData();
         }
 
         /// <summary>
-        /// Rebuild image containing only blobs
+        /// Rebuilds the binary image of the blobs that passed the size filtering.
         /// </summary>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="InvalidOperationException"><see cref="Process"/> has not been called.</exception>
         public ImageData GetBlobImage()
         {
             if(!Valid) 
                 throw new InvalidOperationException("Blob image is not available. Call Process() first.");
 
-            List<RunLength> allRuns = _connectedComponents!.Values.SelectMany(runs => runs).ToList();
+            List<RunLength> allRuns = connectedComponents!.Values.SelectMany(runs => runs).ToList();
             var blobImage = RunLength.ToShapeImageData(allRuns, ImageSource);
             return blobImage;
         }
 
         /// <summary>
-        /// Get blob item data
+        /// Returns the blob with the given id, or null.
         /// </summary>
-        /// <param name="blobId"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="InvalidOperationException"><see cref="Process"/> has not been called.</exception>
         private BlobItem GetBlobItem(int blobId)
         {
             if (!Valid)
@@ -284,12 +366,12 @@ namespace ColourClashProcessing.Blob
         }
 
         /// <summary>
-        /// Rebuild a single shape with original image associated to the Blob ID
-        /// <para>Coockie cut algorithm is used to avoid partial overlapping with other shapes inside the blob bounding box</para>
+        /// Cuts the source pixels of a blob into a new image as large as its bounding box.
+        /// <para/>
+        /// A cookie cut with the blob shape is used, so other shapes overlapping the bounding box are not copied.
         /// </summary>
-        /// <param name="blobId"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <returns>The blob image, or null if the id does not exist.</returns>
+        /// <exception cref="InvalidOperationException"><see cref="Process"/> has not been called.</exception>
         public ImageData GetBlobImage(int blobId)
         {
             if (!Valid)
@@ -302,11 +384,14 @@ namespace ColourClashProcessing.Blob
             var matrixDst = MatrixTools.CreateMatrix(blob.Width, blob.Height, config.BlobBkgColor);
             var imageMask = RunLength.ToShapeImageData(blob.RunLengths);
             MatrixTools.CoockieCut(ImageSource, imageMask, matrixDst, blob.XMin,blob.YMin,0,0, 0, 0, blob.Width, blob.Height);
-            //MatrixTools.Blit(ImageSource, matrixDst, blob.XMin, blob.YMin, 0, 0, blob.Width, blob.Height);
             var imageData = new ImageData().Create(matrixDst);
             return imageData;
         }
 
+        /// <summary>
+        /// Cuts the source pixels of a blob into a new image.
+        /// </summary>
+        /// <exception cref="NullReferenceException"><paramref name="blobItem"/> is null.</exception>
         public ImageData GetBlobImage(BlobItem blobItem)
         {
             if (blobItem == null)
@@ -315,10 +400,9 @@ namespace ColourClashProcessing.Blob
         }
 
         /// <summary>
-        /// Rebuild a shaped image. Segmentation is obtained associating every shape with the associated Blob ID
+        /// Draws the shapes of all blobs on a black image of the source size.
         /// </summary>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="InvalidOperationException"><see cref="Process"/> has not been called.</exception>
         public ImageData GetBlobSegmentedImage()
         {
             if (!Valid)
@@ -334,9 +418,8 @@ namespace ColourClashProcessing.Blob
         }
 
         /// <summary>
-        /// 
+        /// Enumerates the blob images; each image is named after its blob id.
         /// </summary>
-        /// <returns></returns>
         IEnumerable<ImageData> ToEnumerable()
         {
             if (!Valid)
@@ -351,9 +434,8 @@ namespace ColourClashProcessing.Blob
         }
 
         /// <summary>
-        /// 
+        /// Returns the images of all blobs; each image is named after its blob id.
         /// </summary>
-        /// <returns></returns>
         public List<ImageData> ToImageList()
             => ToEnumerable().ToList();
 

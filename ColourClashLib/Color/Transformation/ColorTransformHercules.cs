@@ -8,11 +8,17 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
+    /// <summary>
+    /// Hercules monochrome mode: maps every color to black or white.
+    /// </summary>
     public class ColorTransformHercules : ColorTransformFixedPalette
     {
 
 
 
+        /// <summary>
+        /// Creates the Hercules transformation.
+        /// </summary>
         public ColorTransformHercules()
         {
             Type = ColorTransformType.ColorReductionHercules;
@@ -21,6 +27,9 @@ namespace ColourClashNet.Color.Transformation
 
         Palette palette = new();
 
+        /// <summary>
+        /// Loads the black and white palette.
+        /// </summary>
         protected override void RebuildReferencePalette()
         {
             ReferencePalette.Reset();
@@ -29,6 +38,9 @@ namespace ColourClashNet.Color.Transformation
             ReferencePalette.Add(ColorIntExt.FromRGB(255, 255, 255));
         }
        
+        /// <summary>
+        /// Maps each source color to the nearest of black and white.
+        /// </summary>
         protected override ColorTransformResult CreateTransformationMap(CancellationToken token = default)
         {
             TransformationMap.Reset();

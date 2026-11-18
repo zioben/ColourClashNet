@@ -1615,7 +1615,7 @@
             // 
             bitmapRenderSource.Control = pictureBoxSrc;
             bitmapRenderSource.ImageZoomMode = Components.BitmapRender.EnumZoom.Zoom1;
-            bitmapRenderSource.MouseMove += oBitmapRenderSource_MouseMove;
+            bitmapRenderSource.MouseMove += bitmapRenderSource_MouseMove;
             // 
             // bitmapRenderDest
             // 

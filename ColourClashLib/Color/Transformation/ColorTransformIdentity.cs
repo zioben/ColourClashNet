@@ -10,25 +10,31 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
+    /// <summary>
+    /// Identity transformation: the output is a copy of the source image (dithering may still apply).
+    /// </summary>
     public class ColorTransformIdentity : ColorTransformBase
     {
         static string sC = nameof(ColorTransformIdentity);
+        /// <summary>
+        /// Creates the identity transformation.
+        /// </summary>
         public ColorTransformIdentity()
         {
             Type = ColorTransformType.ColorIdentity;
             Description = "1:1 Color transformation";
         }
 
-        // Not Needed
-        // protected async override Task<ColorTransformResults> CreateTrasformationMapAsync(CancellationToken? oToken)
-
+        /// <summary>
+        /// Copies the source image.
+        /// </summary>
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
               string sM = nameof(ExecuteTransform);
                 try
                 {
-                    var res = ColorTransformResult.CreateValidResult(ImageSource, new ImageData().Create(ImageSource));
-                    return res;
+                    var result = ColorTransformResult.CreateValidResult(ImageSource, new ImageData().Create(ImageSource));
+                    return result;
                 }
                 catch (Exception ex)
                 {

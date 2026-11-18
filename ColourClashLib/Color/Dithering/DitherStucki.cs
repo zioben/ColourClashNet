@@ -7,16 +7,24 @@ using ColourClashNet.Color;
 
 namespace ColourClashNet.Color.Dithering
 {
+    /// <summary>
+    /// Stucki error diffusion dithering.
+    /// </summary>
     public class DitherStucki : DitherErrorDiffusion
     {
-
+        /// <summary>
+        /// Creates the ditherer; call <see cref="Create"/> to initialize the kernel.
+        /// </summary>
         public DitherStucki()
         {
             Type = ColorDithering.Stucki;
             Description = "Stucki quantization error diffusion";
         }
 
-
+        /// <summary>
+        /// Loads and normalizes the error diffusion kernel.
+        /// </summary>
+        /// <returns>This instance.</returns>
         public override DitherInterface Create()
         {
             errorDiffusionMatrix = new double[,] {

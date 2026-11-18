@@ -11,8 +11,9 @@ namespace ColourClashNet.Imaging;
 public partial class ImageData
 {
     /// <summary>
-    /// Gets a value indicating whether the current object contains valid data.
+    /// Throws if the image is null or has no pixel data.
     /// </summary>
+    /// <exception cref="ArgumentNullException"></exception>
     public static void AssertValid(ImageData image)
     {
         string sM = nameof(AssertValid);
@@ -22,6 +23,10 @@ public partial class ImageData
             throw new ArgumentNullException($"{sC}.{sM} : {nameof(matrix)} is null");
     }
 
+    /// <summary>
+    /// Throws if either image is invalid, empty, or the two images have different sizes.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"></exception>
     public static void AssertValidAndDimension(ImageData imageA, ImageData imageB)
     {
         string sM = nameof(AssertValidAndDimension);

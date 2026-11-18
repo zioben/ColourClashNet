@@ -8,31 +8,66 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
+    /// <summary>
+    /// IBM CGA video modes: maps the image to the palette of the selected mode.
+    /// </summary>
     public class ColorTransformCGA : ColorTransformFixedPalette
     {
 
+        /// <summary>
+        /// CGA video modes.
+        /// </summary>
         public enum CGAVideoMode
         {
+            /// <summary>
+            /// 320x200, palette 0 (green, red, brown), low intensity.
+            /// </summary>
             Mode4_0L,
+            /// <summary>
+            /// 320x200, palette 0, high intensity.
+            /// </summary>
             Mode4_0H,
+            /// <summary>
+            /// 320x200, palette 1 (cyan, magenta, white), low intensity.
+            /// </summary>
             Mode4_1L,
+            /// <summary>
+            /// 320x200, palette 1, high intensity.
+            /// </summary>
             Mode4_1H,
+            /// <summary>
+            /// 320x200, mode 5 palette (cyan, red, white), low intensity.
+            /// </summary>
             Mode5_1L,
+            /// <summary>
+            /// 320x200, mode 5 palette, high intensity.
+            /// </summary>
             Mode5_1H,
+            /// <summary>640x200, black and white.</summary>
             Mode6,
+            /// <summary>16 color RGBI palette as rendered on an RGB monitor.</summary>
             RGBI,
+            /// <summary>16 color composite artifact palette, palette 0.</summary>
             Composite_0,
+            /// <summary>16 color composite artifact palette, palette 1.</summary>
             Composite_1,
+            /// <summary>Full 16 color CGA palette.</summary>
             DebugPalette,
         }
 
+        /// <summary>
+        /// CGA output image type.
+        /// </summary>
         public enum CGACompositeOutputMode
         {
+            /// <summary>Image as displayed.</summary>
             ProcessedImage,
+            /// <summary>Raw pixel data (not implemented yet).</summary>
             RawImage,
         }
 
 
+        // Palettes of each video mode (patterns are reserved for raw data encoding)
         EncodingPatternDictionary<List<int>>  patternFull = new();
         EncodingPatternDictionary<List<int>> patternRGBI = new();
         EncodingPatternDictionary<List<int>> patternComposite0 = new();
@@ -47,6 +82,9 @@ namespace ColourClashNet.Color.Transformation
 
 
 
+        /// <summary>
+        /// Creates the CGA transformation and builds the mode palettes.
+        /// </summary>
         public ColorTransformCGA()
         {
             Type = ColorTransformType.ColorReductionCGA;
@@ -55,34 +93,50 @@ namespace ColourClashNet.Color.Transformation
             CreatePalette();
         }
 
+        /// <summary>
+        /// Converts the output to raw data when <see cref="OutputMode"/> is <see cref="CGACompositeOutputMode.RawImage"/>.
+        /// </summary>
         private void ColorTransformReductionCGA_Processed(object? sender, ColorProcessingEventArgs e)
         {
             if (e.ProcessingResults.IsSuccess)
             {
                 if (OutputMode == CGACompositeOutputMode.RawImage)
                 {
-                    e.ProcessingResults.DataOut = CreateRowImage(e.ProcessingResults.DataOut, VideoMode);
+                    e.ProcessingResults.DataOut = CreateRawImage(e.ProcessingResults.DataOut, VideoMode);
                 }
             }
         }
 
-        private ImageData? CreateRowImage(ImageData? dataOut, CGAVideoMode videoMode)
+        /// <summary>
+        /// Builds the raw CGA image (not implemented yet).
+        /// </summary>
+        /// <exception cref="NotImplementedException">Always.</exception>
+        private ImageData? CreateRawImage(ImageData? dataOut, CGAVideoMode videoMode)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Target video mode.
+        /// </summary>
         public CGAVideoMode VideoMode
         { 
             get => config.CGAVideoMode;
             set => config.CGAVideoMode = value;
         }
 
+        /// <summary>
+        /// Output image type.
+        /// </summary>
         public CGACompositeOutputMode OutputMode
         {
             get => config.CGAOutputMode;
             set => config.CGAOutputMode = value;
         }
 
+        /// <summary>
+        /// Sets the video mode and the output type (fluent).
+        /// </summary>
         public ColorTransformCGA WithProcessingParams(CGAVideoMode value, CGACompositeOutputMode outputMode)
         {
             OutputMode = outputMode;
@@ -90,6 +144,9 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
+        /// <summary>
+        /// Builds the palettes of all video modes.
+        /// </summary>
         void CreatePalette()
         {
             patternFull.Reset()
@@ -113,6 +170,8 @@ namespace ColourClashNet.Color.Transformation
                 .AddPattern(0x00_FF_FF_55)
                 .AddPattern(0x00_FF_FF_FF);
 
+            // Mode 4/5 palettes are subsets of the full palette: background (black) + 3 fixed colors,
+            // L/H = low/high intensity
             var pal = patternFull.GetPalette().ToList();
 
             patternMode4_0L.Reset()
@@ -155,6 +214,7 @@ namespace ColourClashNet.Color.Transformation
                 .AddPattern(pal[0])
                 .AddPattern(pal[15]);
 
+            // Colors as perceived on period monitors / composite output (measured values)
             patternRGBI.Reset()
                 .AddPattern(0x00_00_00_00)
                 .AddPattern(0x00_00_6E_31)
@@ -221,6 +281,10 @@ namespace ColourClashNet.Color.Transformation
        
 
 
+        /// <summary>
+        /// Selects the palette of the current video mode.
+        /// </summary>
+        /// <exception cref="NotImplementedException">Unsupported video mode.</exception>
         protected override void RebuildReferencePalette()
         {
             var refPalette = patternFull.GetPalette();
@@ -267,6 +331,9 @@ namespace ColourClashNet.Color.Transformation
             WithReferencePalette(refPalette, true);
         }
 
+        /// <summary>
+        /// Maps each source color to the nearest color of the mode palette.
+        /// </summary>
         protected override ColorTransformResult CreateTransformationMap(CancellationToken token = default)
         {
             TransformationMap.Reset();
@@ -279,6 +346,9 @@ namespace ColourClashNet.Color.Transformation
             return ColorTransformResult.CreateValidResult();
         }
 
+        /// <summary>
+        /// Applies the transformation map.
+        /// </summary>
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             switch (VideoMode)

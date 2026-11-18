@@ -13,14 +13,24 @@ namespace ColourClashNet.Log
 {
 
     /// <summary>
-    /// Log Manager
+    /// Static logging facade used by the whole solution.
+    /// <para/>
+    /// Each message is formatted once and dispatched to <see cref="System.Diagnostics.Trace"/>,
+    /// to an NLog rolling file target and to the <see cref="OnLogMessage"/> event, so that UI
+    /// components can display the log in real time.
     /// </summary>
     public class LogMan
     {
         static LogLevel minLogLevel = LogLevel.Debug;
 
+        /// <summary>
+        /// Raised for every message that passes the <see cref="MinLogLevel"/> filter.
+        /// </summary>
         public static event EventHandler<LogEventArgs> OnLogMessage;
 
+        /// <summary>
+        /// Minimum severity that is logged; messages with a higher (less severe) level are discarded.
+        /// </summary>
         [Browsable(true), Category("Config")]
         [Description("Log minimum level. Can be set any time")]
         public static LogLevel MinLogLevel
@@ -45,6 +55,9 @@ namespace ColourClashNet.Log
 
         #endregion
 
+        /// <summary>
+        /// Maps the internal <see cref="LogLevel"/> to the equivalent NLog level.
+        /// </summary>
         static NLog.LogLevel ToNLogLevel(LogLevel level)
         {
             switch (level)
@@ -71,13 +84,16 @@ namespace ColourClashNet.Log
 
         static NLog.Logger NLogger => LogManager.GetLogger(logId);
 
+        /// <summary>
+        /// Builds the NLog configuration: a single size-based rolling file target under <c>./Logs</c>.
+        /// </summary>
         static void CreateNLog()
         {
             Directory.CreateDirectory($"./{logFolder}");
             LogManager.Setup();
-            // Creazione configurazione
+            // Build the logging configuration
             var logConf = new LoggingConfiguration();
-            // Target per scrivere su file
+            // File target: the message is already fully formatted by Log(), so the layout only appends exception data
             var fileTarget = new FileTarget(logTarget);
             fileTarget.FileName = "${basedir}" + $"/{logFolder}/{logFileName}.txt";
             //fileTarget.FileName = "C:/TestX/" + logFileName + ".txt";
@@ -91,6 +107,7 @@ namespace ColourClashNet.Log
             fileTarget.Encoding = Encoding.UTF8;
             fileTarget.CreateDirs = true;
             fileTarget.ArchiveAboveSize = 4 * 1024 * 1024;
+            // Archive when the file exceeds 4 MB, keeping at most 100 archived files
             fileTarget.ArchiveSuffixFormat = $"{0:yyyyMMdd-HHmmss}_{1:000}";
             //fileTarget.ArchiveDateFormat = "yyyyMMdd-HHmmss";
             fileTarget.ArchiveFileName = "${basedir}" + $"/{logFolder}/{logArchive}/{logFileName}" + "_{#}.txt";
@@ -109,13 +126,16 @@ namespace ColourClashNet.Log
 
         }
 
+        /// <summary>
+        /// Flushes and closes all NLog targets.
+        /// </summary>
         static void DestroyNLog()
         {
             LogManager.Shutdown();
         }
 
         /// <summary>
-        /// Log resource allocator
+        /// Initializes the logging infrastructure. Call once at application startup.
         /// </summary>
         public static void Create()
         {
@@ -129,12 +149,20 @@ namespace ColourClashNet.Log
             //NLogger.Fatal("Sample fatal error message");
         }
 
+        /// <summary>
+        /// Releases the logging infrastructure. Call once at application shutdown.
+        /// </summary>
         public static void Destroy()
         {
             DestroyNLog();
         }
 
 
+        /// <summary>
+        /// Builds a text dump of the exception chain (outer and all inner exception messages).
+        /// </summary>
+        /// <param name="ex">Exception to dump; may be null.</param>
+        /// <returns>The dump text, or an empty string when <paramref name="ex"/> is null.</returns>
         static string GetExceptionMessage(Exception ex)
         {
             if (ex == null)
@@ -151,7 +179,7 @@ namespace ColourClashNet.Log
 
 
         /// <summary>
-        /// Generic log message handler
+        /// Formats a log line and dispatches it to Trace, NLog and <see cref="OnLogMessage"/>.
         /// </summary>
         /// <param name="level">Log Level</param>
         /// <param name="sClass">Source Class</param>
@@ -165,7 +193,7 @@ namespace ColourClashNet.Log
 
             var now = DateTime.Now;
             string logLine = $"{now:yyyy-MM-dd HH:mm:ss.fff} | {level} | {sClass}.{sMethod} : {message} {GetExceptionMessage(ex)}";
-            //string sMsgNLog = $"{level} | {sClass}.{sMethod} : {message}";
+            //string nlogLine = $"{level} | {sClass}.{sMethod} : {message}";
 
             switch (level)
             {
@@ -190,6 +218,7 @@ namespace ColourClashNet.Log
 
             try
             {
+                // Subscriber failures must never break the caller: exceptions are swallowed on purpose
                 OnLogMessage?.Invoke(null, new LogEventArgs()
                 {
                     Level = level,
@@ -204,7 +233,7 @@ namespace ColourClashNet.Log
         }
 
         /// <summary>
-        /// Trace a Fatal message (application hangs)
+        /// Logs a fatal message (unrecoverable condition).
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
@@ -216,7 +245,7 @@ namespace ColourClashNet.Log
         }
 
         /// <summary>
-        /// Trace an Exception message
+        /// Logs a caught exception with a custom message.
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
@@ -228,7 +257,7 @@ namespace ColourClashNet.Log
         }
 
         /// <summary>
-        /// Trace an Exception message
+        /// Logs a caught exception with a default message.
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
@@ -240,7 +269,9 @@ namespace ColourClashNet.Log
 
 
         /// <summary>
-        /// Trace an Error message
+        /// Logs an error message.
+        /// <para/>
+        /// When <paramref name="ex"/> is not null the message is promoted to <see cref="LogLevel.Fatal"/>.
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
@@ -253,7 +284,7 @@ namespace ColourClashNet.Log
         }
 
         /// <summary>
-        /// Trace an Error message
+        /// Logs an error message.
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
@@ -264,7 +295,7 @@ namespace ColourClashNet.Log
         }
 
         /// <summary>
-        /// Trace a Warning message
+        /// Logs a warning message.
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
@@ -275,7 +306,7 @@ namespace ColourClashNet.Log
         }
 
         /// <summary>
-        /// Trace a Pass OK message
+        /// Logs a "step passed" message.
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
@@ -286,7 +317,7 @@ namespace ColourClashNet.Log
         }
 
         /// <summary>
-        /// Trace a  message
+        /// Logs an informational message.
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
@@ -297,7 +328,7 @@ namespace ColourClashNet.Log
         }
 
         /// <summary>
-        /// Trace a debug message
+        /// Logs a debug message.
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
@@ -308,7 +339,9 @@ namespace ColourClashNet.Log
         }
 
         /// <summary>
-        /// Trace lowest level message
+        /// Logs a trace (lowest severity) message.
+        /// <para/>
+        /// Note: the message is currently written with <see cref="LogLevel.Debug"/> severity.
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>

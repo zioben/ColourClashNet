@@ -54,7 +54,7 @@
             contextMenuStrip.Items.AddRange(new ToolStripItem[] { toolStripMenuItemZoom, toolStripMenuItemBlockMoving, toolStripMenuItemAddColor, toolStripMenuItemResetColors, toolStripMenuItemColors });
             contextMenuStrip.Name = "oContextMenuStrip";
             contextMenuStrip.Size = new Size(140, 114);
-            contextMenuStrip.Opening += oContextMenuStrip_Opening;
+            contextMenuStrip.Opening += contextMenuStrip_Opening;
             // 
             // toolStripMenuItemZoom
             // 

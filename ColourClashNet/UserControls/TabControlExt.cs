@@ -10,45 +10,86 @@ using System.Windows.Forms;
 
 namespace ColourClashNet.Controls
 {
+    /// <summary>
+    /// Tab control with a close icon on each tab, used to host one <c>ColorAnalyzer</c> per tab.
+    /// </summary>
     public partial class TabControlExt : TabControl
     {
+        /// <summary>
+        /// Event data for the tab closing events.
+        /// </summary>
         public class TabEventArgs : EventArgs
         {
+            /// <summary>
+            /// Tab being closed.
+            /// </summary>
             public TabPage TabClosed { get; set; }
 
+            /// <summary>
+            /// Visible tab title (without the reserved trailing characters).
+            /// </summary>
             public string TabText => TabClosed?.Text?.Substring(0,TabClosed.Text.Length-3) ?? string.Empty; 
+            /// <summary>
+            /// Area of the close icon.
+            /// </summary>
             public Rectangle ButtonRoi { get; set; }
+            /// <summary>
+            /// Mouse event that triggered the close.
+            /// </summary>
             public MouseEventArgs MouseEventArgs { get; set; }
+            /// <summary>
+            /// Set to true in <see cref="TabClosing"/> to keep the tab open.
+            /// </summary>
             public bool Canceled { get; set; }
         }
 
         Dictionary<string, TabPage> tabPages = new Dictionary<string, TabPage>();
         private System.ComponentModel.IContainer components;
+        /// <summary>
+        /// Raised when the close icon is clicked; can be cancelled.
+        /// </summary>
         public event EventHandler<TabEventArgs> TabClosing;
+        /// <summary>
+        /// Raised after <see cref="TabClosing"/> when the close has not been cancelled.
+        /// </summary>
         public event EventHandler<TabEventArgs> TabClosed;
 
+        /// <summary>
+        /// Creates the control.
+        /// </summary>
         public TabControlExt() : base()
         {
             InitializeComponent();
             RegisterEvents();
         }
+        /// <summary>
+        /// Wires owner draw and mouse events.
+        /// </summary>
         void RegisterEvents()
         {
             DrawItem += TabManager_DrawItem_1;
             MouseDown += TabManager_MouseDown_1;
         }
 
-        public TabPage CreatePage(Control caNew)
+        /// <summary>
+        /// Adds a tab hosting <paramref name="content"/>; the tab is indexed by the control name.
+        /// </summary>
+        /// <returns>The new tab page.</returns>
+        public TabPage CreatePage(Control content)
         {
-            var tpNew = new TabPage();
-            tpNew.Name = $"{caNew.Name}";
-            tpNew.Controls.Add(caNew);
-            tpNew.Text = $"Page{TabPages.Count + 1}OOO";
-            tpNew.Tag = caNew;
-            TabPages.Add(tpNew);
-            tabPages[caNew.Name] = tpNew;   
-            return tpNew;   
+            var newPage = new TabPage();
+            newPage.Name = $"{content.Name}";
+            newPage.Controls.Add(content);
+            // The 3 trailing characters reserve room for the close icon and are never drawn
+            newPage.Text = $"Page{TabPages.Count + 1}OOO";
+            newPage.Tag = content;
+            TabPages.Add(newPage);
+            tabPages[content.Name] = newPage;   
+            return newPage;   
         }
+        /// <summary>
+        /// Removes the tab hosting <paramref name="control"/>.
+        /// </summary>
         public void RemovePage(Control control)
         {
             var tableId = control.Name;
@@ -63,6 +104,9 @@ namespace ColourClashNet.Controls
             }
         }
 
+        /// <summary>
+        /// Sets the title of the tab hosting <paramref name="control"/> (the last 3 characters are reserved and not drawn).
+        /// </summary>
         public void SetPageText(Control control, string text)
         {
             var tableId = control.Name;
@@ -72,12 +116,15 @@ namespace ColourClashNet.Controls
             }
         }
 
+        /// <summary>
+        /// Draws the tab title and the close icon.
+        /// </summary>
         void TabManager_DrawItem_1(object sender, DrawItemEventArgs e)
         {
             TabPage tabPage = TabPages[e.Index];
             Rectangle tabRect = GetTabRect(e.Index);
 
-            // Move Text Right 
+            // Move the text right, leaving room for the close icon
             tabRect.X += 8;
 
             TextRenderer.DrawText(e.Graphics, tabPage.Text.Substring(0, tabPage.Text.Length - 3), e.Font, tabRect, tabPage.ForeColor);
@@ -87,18 +134,27 @@ namespace ColourClashNet.Controls
             e.DrawFocusRectangle();
         }
 
+        /// <summary>
+        /// Returns the area of the close icon of the selected tab.
+        /// </summary>
         Rectangle GetRoi()
         {
             Image icon = imageList2.Images[0];
-            Rectangle r = GetTabRect(SelectedIndex);
-            var roi = new Rectangle(r.X + 6, r.Y + 3, icon.Width, icon.Height);
+            Rectangle tabRect = GetTabRect(SelectedIndex);
+            var roi = new Rectangle(tabRect.X + 6, tabRect.Y + 3, icon.Width, icon.Height);
             return roi;
         }
 
+        /// <summary>
+        /// Returns true when <paramref name="location"/> is on the close icon of the selected tab.
+        /// </summary>
         public bool InsideCloseButtonTab(Point location)
             =>GetRoi().Contains(location);
 
 
+        /// <summary>
+        /// Raises the closing events when the close icon is clicked.
+        /// </summary>
         void TabManager_MouseDown_1(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)

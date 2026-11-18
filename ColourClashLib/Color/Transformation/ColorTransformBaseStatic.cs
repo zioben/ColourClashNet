@@ -13,78 +13,88 @@ namespace ColourClashNet.Color.Transformation
 {
     public abstract partial class ColorTransformBase : ColorTransformInterface
     {
+        /// <summary>
+        /// Throws if <paramref name="transform"/> is null.
+        /// </summary>
         public static void AssertValid(ColorTransformInterface transform)
         {
             if (transform == null)
                 throw new ArgumentNullException($"{nameof(transform)}");
         }
 
+        /// <summary>
+        /// Factory: creates the transformation that implements <paramref name="transformType"/> and applies the configuration.
+        /// </summary>
+        /// <param name="transformType">Algorithm to create</param>
+        /// <param name="paramList">Configuration copied into the new instance</param>
+        /// <returns>The configured transformation.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Unsupported transformation type.</exception>
         public static ColorTransformInterface CreateColorTransformInterface(ColorTransformType transformType, ColorTransformConfig paramList)
         {
             string sMethod = nameof(CreateColorTransformInterface);
-            ColorTransformInterface trans = null;
+            ColorTransformInterface transform = null;
             switch (transformType)
             {
                 case ColorTransformType.ColorIdentity:
                 case ColorTransformType.None:
-                    trans = new ColorTransformIdentity();
+                    transform = new ColorTransformIdentity();
                     break;
                 case ColorTransformType.ColorReductionCBM64:
-                    trans = new ColorTransformCbm64();
+                    transform = new ColorTransformCbm64();
                     break;
                 case ColorTransformType.ColorReductionClustering:
-                    trans = new ColorTransformClustering();
+                    transform = new ColorTransformClustering();
                     break;
                 case ColorTransformType.ColorReductionCPC:
-                    trans = new ColorTransformAmstradCPC();
+                    transform = new ColorTransformAmstradCPC();
                     break;
                 case ColorTransformType.ColorReductionHercules:
-                    trans = new ColorTransformHercules();
+                    transform = new ColorTransformHercules();
                     break;
                 case ColorTransformType.ColorReductionCGA:
-                    trans = new ColorTransformCGA();
+                    transform = new ColorTransformCGA();
                     break;
                 case ColorTransformType.ColorReductionEGA:
-                    trans = new ColorTransformEGA();
+                    transform = new ColorTransformEGA();
                     break;
                 case ColorTransformType.ColorReductionVGA:
-                    trans = new ColorTransformVGA();
+                    transform = new ColorTransformVGA();
                     break;
                 case ColorTransformType.ColorReductionFast:
-                    trans = new ColorTransformFast();
+                    transform = new ColorTransformFast();
                     break;
                 case ColorTransformType.ColorReductionGenericPalette:
-                    trans = new ColorTransformFixedPalette();
+                    transform = new ColorTransformFixedPalette();
                     break;
                 case ColorTransformType.ColorReductionHam:
-                    trans = new ColorTransformCbmAmiga();
+                    transform = new ColorTransformCbmAmiga();
                     break;
                 case ColorTransformType.ColorReductionMedianCut:
-                    trans = new ColorTransformMedianCut();
+                    transform = new ColorTransformMedianCut();
                     break;
                 case ColorTransformType.ColorReductionQuantization:
-                    trans = new ColorTransformQuantization();
+                    transform = new ColorTransformQuantization();
                     break;
                 case ColorTransformType.ColorReductionSaturation:
-                    trans = new ColorTransformLumSat();
+                    transform = new ColorTransformLumSat();
                     break;
                 case ColorTransformType.ColorReductionScanline:
-                    trans = new ColorTransformScanLine();
+                    transform = new ColorTransformScanLine();
                     break;
                 case ColorTransformType.ColorReductionZxSpectrum:
-                    trans = new ColorTransformZxSpectrum();                    
+                    transform = new ColorTransformZxSpectrum();                    
                     break;
                 case ColorTransformType.ColorRemover:
-                    trans = new ColorTransformBkgRemover();
+                    transform = new ColorTransformBkgRemover();
                     break;
                 case ColorTransformType.ColorReductionEnhancedPalette:
-                    trans = new ColorTransformFixedPaletteEnhanced();
+                    transform = new ColorTransformFixedPaletteEnhanced();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(sMethod, $"Transform type {transformType} not yet supported");
             }
 
-            return trans.SetProperties(paramList);
+            return transform.SetProperties(paramList);
         }
     }
 }

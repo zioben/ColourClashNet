@@ -23,11 +23,15 @@ namespace ColourClashNet.Color.Conversion
         /// </summary>
         public float B { get; set; }
 
+        /// <inheritdoc/>
         public bool IsValid => 
             L >= 0f && L <= 100f &&
             A >= -128f && A <= 127f &&
             B >= -128f && B <= 127f;
 
+        /// <summary>
+        /// Creates a LAB color from its components.
+        /// </summary>
         public LAB(float l, float a, float b)
         {
             L = l;
@@ -35,19 +39,24 @@ namespace ColourClashNet.Color.Conversion
             B = b;
         }
 
+        /// <summary>
+        /// Creates a LAB color from an integer RGB color.
+        /// </summary>
         public LAB(int rgb)
         {
             FromIntRGB(rgb);
         }
 
         /// <summary>
-        /// Converts an RGB color (int) to LAB.
+        /// Converts an RGB color (int) to LAB (sRGB, D65 reference white).
+        /// <para/>
+        /// Non-color values produce an invalid LAB (L = -1).
         /// </summary>
         public bool FromIntRGB(int rgb)
         {
             if (rgb.IsColor())
             {
-                // Step 1: RGB -> XYZ
+                // Step 1: RGB -> linear RGB (inverse sRGB gamma) -> XYZ
                 float r = rgb.ToR() / 255f;
                 float g = rgb.ToG() / 255f;
                 float b = rgb.ToB() / 255f;
@@ -87,6 +96,7 @@ namespace ColourClashNet.Color.Conversion
         /// </summary>
         public int ToIntRGB()
         {
+            // Inverse of FromIntRGB: LAB -> XYZ (D65) -> linear RGB -> sRGB gamma -> 8 bit
             float y = (L + 16f) / 116f;
             float x = A / 500f + y;
             float z = y - B / 200f;
@@ -114,24 +124,23 @@ namespace ColourClashNet.Color.Conversion
             return ColorIntExt.FromRGB(red, green, blue);
         }
 
-        
-
-       
-
         /// <summary>
-        /// Calculates Euclidean distance between two LAB colors (ΔE).
+        /// Calculates the Euclidean distance between two LAB colors (CIE76 ΔE).
         /// </summary>
         public static double Distance(LAB labA, LAB labB)
         {
             if (!labA.IsValid || !labB.IsValid)
                 return double.NaN;
 
-            double deltaR = labA.L - labB.L;
-            double deltaG = labA.A - labB.A;
+            double deltaL = labA.L - labB.L;
+            double deltaA = labA.A - labB.A;
             double deltaB = labA.B - labB.B;
-            return Math.Sqrt(deltaR * deltaR + deltaG * deltaG + deltaB * deltaB);
+            return Math.Sqrt(deltaL * deltaL + deltaA * deltaA + deltaB * deltaB);
         }
 
+        /// <summary>
+        /// Creates a LAB instance from an integer RGB representation.
+        /// </summary>
         public static LAB CreateFromIntRGB(int rgb)
             => new LAB(rgb);
 

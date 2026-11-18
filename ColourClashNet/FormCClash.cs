@@ -1,4 +1,4 @@
-using ColourClashNet.Color;
+﻿using ColourClashNet.Color;
 using ColourClashNet.Components;
 using ColourClashNet.Controls;
 using ColourClashNet.Drawing;
@@ -11,10 +11,14 @@ using System.Windows.Forms;
 
 namespace ColourClashNet
 {
+    /// <summary>
+    /// Main window: hosts one <see cref="ColorAnalyzer"/> per tab and the global menus (file, settings, resolution, export).
+    /// </summary>
     public partial class FormCClash : Form
     {
 
 
+        // Resolutions offered in the "Resolution" menu (common retro video modes)
         List<GraphicsResolution> gfxRes = new List<GraphicsResolution>()
         {
             new GraphicsResolution { Width=160, Height = 144 },
@@ -47,11 +51,23 @@ namespace ColourClashNet
             new GraphicsResolution { Width=1024, Height = 768 },
         };
 
+        /// <summary>
+        /// Checkable setting menu items (quantization, distance, dithering).
+        /// </summary>
         List<ToolStripMenuItem> tsItemsSetup = new List<ToolStripMenuItem>();
+        /// <summary>
+        /// Checkable resolution menu items.
+        /// </summary>
         List<ToolStripMenuItem> tsItemsResolution = new List<ToolStripMenuItem>();
 
+        /// <summary>
+        /// Analyzer of the selected tab.
+        /// </summary>
         ColorAnalyzer? SelectedColorAnalyzer => tabManager?.SelectedTab?.Tag as ColorAnalyzer;
 
+        /// <summary>
+        /// Creates the main window.
+        /// </summary>
         public FormCClash()
         {
             InitializeComponent();
@@ -67,6 +83,9 @@ namespace ColourClashNet
         #region Tab Management
 
         TabControlExt tabManager;
+        /// <summary>
+        /// Creates the tab control and the first tab.
+        /// </summary>
         void CreateTabManager()
         {
             tabManager = new TabControlExt();
@@ -85,10 +104,6 @@ namespace ColourClashNet
                 => MenuRebuildSetChecks());
             tabManager.SelectedIndexChanged += ((s, e)
                 => MenuRebuildSetChecks());
-//            tabManager.TabIndexChanged += ((s, e) 
-  //              => MenuRebuildSetChecks());
-     //       tabManager.TabClosed += ((s, e) 
-       //         => MenuRebuildSetChecks());
             tabManager.ResumeLayout();
 
             CreateTab();
@@ -96,21 +111,27 @@ namespace ColourClashNet
 
       
 
+        /// <summary>
+        /// Adds a new tab with an empty analyzer and selects it.
+        /// </summary>
         ColorAnalyzer CreateTab()
         {
-            var caNew = new ColorAnalyzer();
-            caNew.Dock = caTemplate.Dock;
-            caNew.Location = caTemplate.Location;
-            caNew.Name = $"ca.{DateTime.Now.Ticks}";
-            caNew.Size = caTemplate.Size;
-            caNew.ImageCopied += ((s, e) => CreateTab(e.DestBitmap, e.Name));
-            caNew.ImageCreated += ((s, e) => tabManager.SetPageText(caNew, e.Name.Substring(Math.Max(0, e.Name.Length - 12))));
-            var tp = tabManager.CreatePage(caNew);
-            tabManager.SelectedTab= tp;    
+            var analyzer = new ColorAnalyzer();
+            analyzer.Dock = caTemplate.Dock;
+            analyzer.Location = caTemplate.Location;
+            analyzer.Name = $"ca.{DateTime.Now.Ticks}";
+            analyzer.Size = caTemplate.Size;
+            analyzer.ImageCopied += ((s, e) => CreateTab(e.DestBitmap, e.Name));
+            analyzer.ImageCreated += ((s, e) => tabManager.SetPageText(analyzer, e.Name.Substring(Math.Max(0, e.Name.Length - 12))));
+            var page = tabManager.CreatePage(analyzer);
+            tabManager.SelectedTab= page;    
 
-            return caNew;
+            return analyzer;
         }
 
+        /// <summary>
+        /// Adds a new tab and loads <paramref name="srcImage"/> into it.
+        /// </summary>
         void CreateTab(Image srcImage, string name) => CreateTab().Create(srcImage, name);
 
         #endregion
@@ -118,38 +139,42 @@ namespace ColourClashNet
 
         #region Populating Menu
 
+        /// <summary>
+        /// Adds a checkable setting item; enum values ending with "Unknown" are skipped.
+        /// </summary>
         void CreateMenuItem(ToolStripMenuItem parentItem, string text, object? tag)
         {
             if( tag == null)
                 return; 
             if (tag.ToString().ToLower().EndsWith(".unknown"))
                 return;
-            var tsItem = new System.Windows.Forms.ToolStripMenuItem();
-            tsItem.Name = $"Menu.{tag}";
-            tsItem.Size = new System.Drawing.Size(180, 22);
-            tsItem.Text = text;
-            tsItem.CheckOnClick = true;
-            tsItem.Tag = tag;
-            tsItem.Click += TsItem_ClickSetup;
-            parentItem.DropDownItems.Add(tsItem);
-            tsItemsSetup.Add(tsItem);
+            var menuItem = new System.Windows.Forms.ToolStripMenuItem();
+            menuItem.Name = $"Menu.{tag}";
+            menuItem.Size = new System.Drawing.Size(180, 22);
+            menuItem.Text = text;
+            menuItem.CheckOnClick = true;
+            menuItem.Tag = tag;
+            menuItem.Click += TsItem_ClickSetup;
+            parentItem.DropDownItems.Add(menuItem);
+            tsItemsSetup.Add(menuItem);
         }
 
-        //string ToTag<T>(string value)
-        //{
-        //    return $"{typeof(T).Name}.{value}";
-        //}
-
+        /// <summary>
+        /// Adds one menu item for each value of the enum <typeparamref name="T"/>.
+        /// </summary>
         void InitMenu<T>(ToolStripMenuItem parentItem) where T : System.Enum
         {
-            var colorMode = Enum.GetValues(typeof(T));
-            foreach (var x in colorMode)
+            var values = Enum.GetValues(typeof(T));
+            foreach (var value in values)
             {
-                var s = x.ToString() ?? "null";
-                CreateMenuItem(parentItem, s, x);
-            };
+                var text = value.ToString() ?? "null";
+                CreateMenuItem(parentItem, text, value);
+            }
         }
 
+        /// <summary>
+        /// Builds the setting menus.
+        /// </summary>
         void InitMenu()
         {
             InitMenu<ColorQuantizationMode>(colorModeToolStripMenuItem);
@@ -159,21 +184,26 @@ namespace ColourClashNet
             MenuRebuildSetChecks();
         }
 
-        void MenuRebulidSetCheck<T>(string? value)
+        /// <summary>
+        /// Checks the menu item of type <typeparamref name="T"/> whose value is <paramref name="value"/>.
+        /// </summary>
+        void MenuRebuildSetCheck<T>(string? value)
         {
             if (string.IsNullOrEmpty( value))
                 return;
-            //var sTag = ToTag<T>(value ?? "null");
             var tagList = tsItemsSetup.Where(x => x.Tag != null).ToList();
             var typeList = tagList.Where(x => typeof(T) == x.Tag.GetType()).ToList();
             var tsSelected = typeList.Where(x => x.Tag.ToString()==value).ToList();
-            foreach (var ts in tsSelected)
+            foreach (var item in tsSelected)
             {
-                ts.Checked = true;
+                item.Checked = true;
             }
         }
 
-        void MenuRebulidSetCheck(GraphicsResolution? res)
+        /// <summary>
+        /// Checks the menu item of the given resolution ("Original" when null).
+        /// </summary>
+        void MenuRebuildSetCheck(GraphicsResolution? res)
         {
             if (res == null)
             {
@@ -181,24 +211,30 @@ namespace ColourClashNet
             }
             else
             {
-                var ts = tsItemsResolution.FirstOrDefault(x => x.Tag == res);
-                if (ts != null)
-                    ts.Checked = true;
+                var item = tsItemsResolution.FirstOrDefault(x => x.Tag == res);
+                if (item != null)
+                    item.Checked = true;
             }
         }
 
+        /// <summary>
+        /// Synchronizes the menu checks with the settings of the selected analyzer.
+        /// </summary>
         void MenuRebuildSetChecks()
         {
             tsItemsSetup.ForEach(x => x.Checked = false);
-            MenuRebulidSetCheck<ColorQuantizationMode>(SelectedColorAnalyzer?.QuantizationMode.ToString());
-            MenuRebulidSetCheck<ColorDistanceEvaluationMode>(SelectedColorAnalyzer?.ColorDistanceEvaluationMode.ToString());
-            MenuRebulidSetCheck<ColorDithering>(SelectedColorAnalyzer?.DitheringType.ToString());
-            MenuRebulidSetCheck<ColorDitheringFx>(SelectedColorAnalyzer?.DitheringFx.ToString());
+            MenuRebuildSetCheck<ColorQuantizationMode>(SelectedColorAnalyzer?.QuantizationMode.ToString());
+            MenuRebuildSetCheck<ColorDistanceEvaluationMode>(SelectedColorAnalyzer?.ColorDistanceEvaluationMode.ToString());
+            MenuRebuildSetCheck<ColorDithering>(SelectedColorAnalyzer?.DitheringType.ToString());
+            MenuRebuildSetCheck<ColorDitheringFx>(SelectedColorAnalyzer?.DitheringFx.ToString());
             tsItemsResolution.ForEach(x => x.Checked = false);
-            MenuRebulidSetCheck(SelectedColorAnalyzer?.WantedRes);
+            MenuRebuildSetCheck(SelectedColorAnalyzer?.WantedRes);
         }
         
 
+        /// <summary>
+        /// Applies the clicked setting to the selected analyzer.
+        /// </summary>
         private void TsItem_ClickSetup(object? sender, EventArgs e)
         {
             var menuItem = sender as ToolStripMenuItem;
@@ -224,6 +260,9 @@ namespace ColourClashNet
             MenuRebuildSetChecks();
         }
 
+        /// <summary>
+        /// Applies the clicked resolution to the selected analyzer and reloads its image.
+        /// </summary>
         private void TsItem_ClickResolution(object? sender, EventArgs e)
         {
             var menuItem = sender as ToolStripMenuItem;
@@ -236,21 +275,24 @@ namespace ColourClashNet
             SelectedColorAnalyzer?.Create();
         }
 
+        /// <summary>
+        /// Builds the resolution menu.
+        /// </summary>
         void CreateScaleMenuItems()
         {
             originalToolStripMenuItem.Click += TsItem_ClickResolution;
             tsItemsResolution.Add(originalToolStripMenuItem);
             foreach (var res in gfxRes)
             {
-                var tsItem = new System.Windows.Forms.ToolStripMenuItem();
-                tsItem.Name = "tsi" + res.Name;
-                tsItem.Size = new System.Drawing.Size(180, 22);
-                tsItem.Text = res.Name;
-                tsItem.CheckOnClick = true;
-                tsItem.Tag = res;
-                tsItem.Click += TsItem_ClickResolution;
-                tsmiResolution.DropDownItems.Add(tsItem);
-                tsItemsResolution.Add(tsItem);
+                var menuItem = new System.Windows.Forms.ToolStripMenuItem();
+                menuItem.Name = "tsi" + res.Name;
+                menuItem.Size = new System.Drawing.Size(180, 22);
+                menuItem.Text = res.Name;
+                menuItem.CheckOnClick = true;
+                menuItem.Tag = res;
+                menuItem.Click += TsItem_ClickResolution;
+                tsmiResolution.DropDownItems.Add(menuItem);
+                tsItemsResolution.Add(menuItem);
             }
         }
 
@@ -292,6 +334,9 @@ namespace ColourClashNet
             }
         }
 
+        /// <summary>
+        /// Returns the processed image of the selected analyzer.
+        /// </summary>
         ImageData GetProcessedImageData() => ImageToolsGDI.GdiImageToImageData(SelectedColorAnalyzer?.ColorManager?.ImageProcessed);
 
         private void toolStripMenuItemSave_Click(object sender, EventArgs e)
@@ -335,7 +380,7 @@ namespace ColourClashNet
             }
         }
 
-        private void pNGToolStripMenuItem_Click(object sender, EventArgs e)
+        private void pngToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (sfdExportImage.ShowDialog() == DialogResult.OK)
             {

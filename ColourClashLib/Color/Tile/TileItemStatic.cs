@@ -9,6 +9,9 @@ namespace ColourClashNet.Color.Tile;
 
 public partial class TileItem
 {
+    /// <summary>
+    /// Throws if the tile is null or its image is invalid.
+    /// </summary>
     public static void AssertValid(TileItem tileItem)
     {
         if (tileItem == null)

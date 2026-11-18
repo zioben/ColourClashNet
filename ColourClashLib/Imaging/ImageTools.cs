@@ -14,6 +14,9 @@ using System.Xml.Xsl;
 
 namespace ColourClashNet.Imaging;
 
+/// <summary>
+/// High level image helpers: indexed conversion, resolution changes, load and save (SkiaSharp based).
+/// </summary>
 public static partial class ImageTools
 {
     static string sC = nameof(ImageTools);
@@ -45,11 +48,11 @@ public static partial class ImageTools
     }
 
     /// <summary>
-    /// 
+    /// Doubles the horizontal resolution by duplicating every column.
     /// </summary>
-    /// <param name="image"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
+    /// <param name="image">Source image</param>
+    /// <returns>A new image twice as wide.</returns>
+    /// <exception cref="ArgumentNullException">The image is invalid.</exception>
     public static ImageData DoubleXResolution(ImageData image)
     {
         ImageData.AssertValid(image);
@@ -58,10 +61,11 @@ public static partial class ImageTools
     }
 
     /// <summary>
-    /// 
+    /// Halves the horizontal resolution by merging pairs of adjacent columns.
     /// </summary>
-    /// <param name="image"></param>
-    /// <returns></returns>
+    /// <param name="image">Source image</param>
+    /// <param name="halveMode">How each pair of pixels is merged</param>
+    /// <returns>A new image half as wide.</returns>
     public static ImageData HalveXResolution(ImageData image, HalveResolutionMode halveMode)
     {
         ImageData.AssertValid(image);
@@ -70,12 +74,24 @@ public static partial class ImageTools
     }
 
 
+    /// <summary>
+    /// Saves the image as an 8 bit indexed BMP, aligning the width as requested.
+    /// </summary>
+    /// <returns>True on success.</returns>
     public static bool SaveImageAsIndexedBitmap(ImageData image,  string fileName, WidthAlignMode pixelWidthAlignment)
         =>MatrixTools.SaveIndexedMatrixAsImage(image.matrix, fileName, image.ColorPalette, pixelWidthAlignment);
+
+    /// <summary>
+    /// Saves the image as an 8 bit indexed BMP.
+    /// </summary>
+    /// <returns>True on success.</returns>
     public static bool SaveImageAsIndexedBitmap(ImageData image, string fileName)
         => MatrixTools.SaveIndexedMatrixAsImage(image.matrix, fileName, image.ColorPalette);
 
-
+    /// <summary>
+    /// Replaces the extension of <paramref name="fileName"/> with the one of <paramref name="saveFormat"/>.
+    /// </summary>
+    /// <exception cref="ArgumentException">Unsupported format.</exception>
     public static string SetFileNameExtension(string fileName, ImageSaveFormat saveFormat)
     {
         string ext = saveFormat switch
@@ -89,6 +105,14 @@ public static partial class ImageTools
         return newFileName;
     }   
 
+    /// <summary>
+    /// Saves the image as PNG, BMP or JPG. The file extension is replaced to match the format.
+    /// </summary>
+    /// <param name="image">Image to save</param>
+    /// <param name="fileName">Destination file name</param>
+    /// <param name="saveFormat">File format</param>
+    /// <param name="quality">Encoder quality [0..100] (JPG only)</param>
+    /// <returns>True on success; errors are logged.</returns>
     public static bool SaveImage(ImageData image, string fileName, ImageSaveFormat saveFormat, int quality=80)
     {
         string sM = nameof(SaveImage);
@@ -108,9 +132,10 @@ public static partial class ImageTools
                 throw new InvalidOperationException(
                     $"Pixel buffer mismatch: bitmap has {pixels.Length} bytes, matrix needs {expectedBytes}.");
 
-            // image.matrix è int[,]: niente AsSpan() diretto sui multidim array.
-            // Otteniamo un ref byte all'inizio del buffer e costruiamo uno Span<byte>
-            // della dimensione esatta in byte (rows*cols*sizeof(int)).
+            // image.matrix is int[,]: AsSpan() is not available on multidimensional arrays.
+            // Get a byte reference to the start of the buffer and build a Span<byte> of the
+            // exact byte size (rows*cols*sizeof(int)). A packed 0x00RRGGBB int in little endian
+            // is laid out as B,G,R,0, i.e. BGRA8888 with the alpha ignored (opaque bitmap).
             ref byte srcRef = ref MemoryMarshal.GetArrayDataReference(image.matrix);
             Span<byte> srcBytes = MemoryMarshal.CreateSpan(ref srcRef, (int)expectedBytes);
 
@@ -130,7 +155,6 @@ public static partial class ImageTools
                     break;
                 default: throw new ArgumentException($"{saveFormat} not supported");
             }
-//            using SKImage skImage = SKImage.FromBitmap(skBitmap);
             var newFileName = SetFileNameExtension(fileName, saveFormat);
             using SKData encoded = skBitmap.Encode(format, quality);
             using FileStream stream = File.Create(newFileName);
@@ -144,10 +168,20 @@ public static partial class ImageTools
         }
     }
 
+    /// <summary>
+    /// Saves the image as PNG.
+    /// </summary>
     public static bool SaveImage(ImageData image, string fileName)
         => SaveImage(image, fileName, ImageSaveFormat.Png);
-    
 
+    /// <summary>
+    /// Loads an image file (any format supported by SkiaSharp) into an <see cref="ImageData"/>.
+    /// <para/>
+    /// The alpha channel is discarded and odd widths are padded with one black column,
+    /// because several retro video modes work on pixel pairs.
+    /// </summary>
+    /// <param name="fileName">Image file path</param>
+    /// <returns>The loaded image, or null on error (errors are logged).</returns>
     public static ImageData LoadImage(string fileName)
     {
         string sM = nameof(LoadImage);
@@ -156,20 +190,20 @@ public static partial class ImageTools
             using SKBitmap original = SKBitmap.Decode(fileName);
             if (original == null)
             {
-                LogMan.Exception(sC, sM, new FileLoadException($"Impossibile decodificare il file: {fileName}"));
+                LogMan.Exception(sC, sM, new FileLoadException($"Unable to decode file: {fileName}"));
                 return null;
             }
 
-            // Forziamo il formato BGRA8888 Unpremul, indipendentemente dal formato
-            // sorgente (es. JPEG decodificato in RGB, PNG con alpha, ecc.)
+            // Force the BGRA8888 Unpremul format, whatever the source format
+            // (e.g. JPEG decoded as RGB, PNG with alpha, etc.)
             SKImageInfo targetInfo = new(original.Width, original.Height, SKColorType.Bgra8888, SKAlphaType.Unpremul);
 
             using SKBitmap skBitmap = original.ColorType == targetInfo.ColorType && original.AlphaType == targetInfo.AlphaType
                 ? original.Copy()
-                : original.Copy(SKColorType.Bgra8888); // gestisce conversione Colore
+                : original.Copy(SKColorType.Bgra8888); // handles the color type conversion
 
-            // Se Copy(ColorType) non normalizza l'alpha (rimane Premul), ricostruiamo
-            // esplicitamente il bitmap nel formato desiderato.
+            // If Copy(ColorType) does not normalize the alpha (still Premul), explicitly
+            // redraw the bitmap in the target format.
             SKBitmap normalized = skBitmap;
             if (skBitmap.AlphaType != SKAlphaType.Unpremul)
             {
@@ -189,14 +223,14 @@ public static partial class ImageTools
             if (srcBytes.Length != expectedBytes)
             {
                 LogMan.Exception(sC, sM, new InvalidOperationException(
-                    $"Pixel buffer mismatch: bitmap ha {srcBytes.Length} byte, attesi {expectedBytes}."));
+                    $"Pixel buffer mismatch: bitmap has {srcBytes.Length} bytes, expected {expectedBytes}."));
                 return null;
             }
 
             int[,] matrix = new int[rows, cols];
 
-            // Stessa tecnica usata in SaveImage, ma in direzione opposta:
-            // copiamo i byte del bitmap (BGRA) direttamente nella matrice int[,].
+            // Same technique used in SaveImage, in the opposite direction:
+            // copy the bitmap bytes (BGRA) directly into the int[,] matrix.
             ref byte dstRef = ref MemoryMarshal.GetArrayDataReference(matrix);
             Span<byte> dstBytes = MemoryMarshal.CreateSpan(ref dstRef, (int)expectedBytes);
 
@@ -205,27 +239,26 @@ public static partial class ImageTools
             if (!ReferenceEquals(normalized, skBitmap))
                 normalized.Dispose();
 
-            int matrixRows = matrix.GetLength(0);
-            int columns = matrix.GetLength(1);
-
-            for (int r = 0; r < matrixRows; r++)
+            // Drop the alpha byte: the upper byte of a packed color is reserved for ColorInfo flags
+            for (int r = 0; r < rows; r++)
             {
-                for (int c = 0; c < columns; c++)
+                for (int c = 0; c < cols; c++)
                 {
                     matrix[r, c] = matrix[r, c] & 0x00FFFFFF;
                 }
             }
 
-            if (columns % 2 == 0)
+            if (cols % 2 == 0)
             {
                 return new ImageData().Create(matrix);
             }
             else
             {
-                var matrixPadded = new int[matrixRows, columns + 1];
-                for (int r = 0; r < matrixRows; r++)
+                // Pad odd widths to an even number of columns
+                var matrixPadded = new int[rows, cols + 1];
+                for (int r = 0; r < rows; r++)
                 {
-                    for (int c = 0; c < columns; c++)
+                    for (int c = 0; c < cols; c++)
                     {
                         matrixPadded[r, c] = matrix[r, c];
                     }

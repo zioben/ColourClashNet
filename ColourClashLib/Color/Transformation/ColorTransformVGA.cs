@@ -13,33 +13,51 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
+    /// <summary>
+    /// IBM VGA 256 color mode: quantizes the image to RGB666, then reduces it to <see cref="MaxColorUsed"/> colors by clustering.
+    /// </summary>
     public class ColorTransformVGA : ColorTransformBase
     {
         static string sC = nameof(ColorTransformVGA);
 
+        /// <summary>
+        /// Creates the VGA transformation.
+        /// </summary>
         public ColorTransformVGA()
         {
             Type = ColorTransformType.ColorReductionVGA;
-            Description = "Commododre Amiga specific color reduction";
+            Description = "Reduce colors to a VGA 256 color palette (RGB666)";
         }
 
 
+        /// <summary>
+        /// Maximum number of output colors.
+        /// </summary>
         public int MaxColorUsed
         {
             get => config.MaxColorsWanted;
             set => config.MaxColorsWanted = value;
         }   
 
+        /// <summary>
+        /// Sets the maximum number of output colors (fluent).
+        /// </summary>
         public ColorTransformVGA WithProperties(int maxColors)
         {
             MaxColorUsed = maxColors;
             return this;
         }
 
+        /// <summary>
+        /// Sets the maximum number of output colors from a configuration (fluent).
+        /// </summary>
         public ColorTransformVGA WithProperties(ColorTransformConfig cfg) => WithProperties(cfg.MaxColorsWanted);
 
 
 
+        /// <summary>
+        /// Runs the RGB666 quantization followed by the clustering reduction.
+        /// </summary>
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransform);

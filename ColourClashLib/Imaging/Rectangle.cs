@@ -7,19 +7,30 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Imaging
 {
+    /// <summary>
+    /// Immutable axis-aligned rectangle with generic numeric coordinates.
+    /// </summary>
+    /// <typeparam name="T">Numeric type (int, float, double ...)</typeparam>
     public readonly struct Rectangle<T> where T : INumber<T>
     {
-        
-
+        /// <summary>Left coordinate.</summary>
         public T X { get; }
-        public T Y { get; }        
+        /// <summary>Top coordinate.</summary>
+        public T Y { get; }
+        /// <summary>Width.</summary>
         public T Width { get ; }
+        /// <summary>Height.</summary>
         public T Height { get ; }
+        /// <summary>X start (same as <see cref="X"/>).</summary>
         public T XS => X;
+        /// <summary>Y start (same as <see cref="Y"/>).</summary>
         public T YS => Y;
+        /// <summary>X end (exclusive): <c>X + Width</c>.</summary>
         public T XE => X + Width;
+        /// <summary>Y end (exclusive): <c>Y + Height</c>.</summary>
         public T YE => Y + Height;
 
+        /// <summary>True when width or height is not positive.</summary>
         public bool IsEmpty
         {
             get
@@ -28,6 +39,9 @@ namespace ColourClashNet.Imaging
             }
         }
 
+        /// <summary>
+        /// Creates a rectangle from its origin and size.
+        /// </summary>
         public Rectangle(T x, T y, T width, T height)
         {
             X = x;
@@ -41,8 +55,12 @@ namespace ColourClashNet.Imaging
             => $"X:{X} Y:{Y} W:{Width} H:{Height}";
 
 
+        /// <summary>
+        /// Returns the intersection of two rectangles, or an empty rectangle if they do not overlap.
+        /// </summary>
         public static Rectangle<T> Intersect( Rectangle<T> rectA, Rectangle<T> rectB)
         {
+            // a/b = rectangle, s/e = start/end, i = intersection
             T axs = rectA.X;
             T ays = rectA.Y;
             T axe = rectA.X + rectA.Width;
@@ -65,8 +83,12 @@ namespace ColourClashNet.Imaging
             }
         }
 
+        /// <summary>
+        /// Returns the smallest rectangle that contains both rectangles.
+        /// </summary>
         public static Rectangle<T> Union(Rectangle<T> rectA, Rectangle<T> rectB)
         {
+            // a/b = rectangle, s/e = start/end, u = union
             T axs = rectA.X;
             T ays = rectA.Y;
             T axe = rectA.X + rectA.Width;

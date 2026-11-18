@@ -12,21 +12,31 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Dithering;
 
+/// <summary>
+/// Pass-through ditherer: returns a copy of the processed image unchanged.
+/// </summary>
 public class DitherIdentity : DitherBase
 {
     static string sC = nameof(DitherIdentity);
 
+    /// <summary>
+    /// Creates the pass-through ditherer.
+    /// </summary>
     public DitherIdentity()
     {
         Type = ColorDithering.None;
-        Description = "Passthrought";
+        Description = "Passthrough";
     }
 
+    /// <inheritdoc/>
     public override DitherInterface Create()
     {
         return this;
     }
 
+    /// <summary>
+    /// Clones <paramref name="imageProcessed"/> without any dithering.
+    /// </summary>
     protected override ColorTransformResult DitherImplementation(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
     {
         string sM = nameof(DitherImplementation);

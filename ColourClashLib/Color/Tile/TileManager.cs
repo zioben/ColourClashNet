@@ -16,6 +16,12 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Tile;
 
+/// <summary>
+/// Splits an image into a grid of tiles and color-reduces each tile independently.
+/// <para/>
+/// Used to emulate attribute based video modes (ZX Spectrum, C64, CPC ...) where every
+/// character cell can only use a limited set of colors.
+/// </summary>
 public partial class TileManager
 {
     static string sC = nameof(TileManager);
@@ -23,20 +29,40 @@ public partial class TileManager
     object locker = new object();
 
     TileProcessing[,]? tileProcessingMatrix;
+
+    /// <summary>Tile width in pixels.</summary>
     public int TileW { get; private set; } = 8;
+
+    /// <summary>Tile height in pixels.</summary>
     public int TileH { get; private set; } = 8;
 
+    /// <summary>Number of tile rows.</summary>
     public int TileRows => tileProcessingMatrix?.GetLength(0) ?? 0;
+
+    /// <summary>Number of tile columns.</summary>
     public int TileColumns => tileProcessingMatrix?.GetLength(1) ?? 0;
+
+    /// <summary>When true, <see cref="CreateImageFromTiles"/> marks the top-left pixel of each tile.</summary>
     public bool TileBorderShow { get; set; } = false;
+
+    /// <summary>Color used to mark tile borders.</summary>
     public int TileBorderColor { get; set; } = ColorIntExt.FromRGB(255, 0, 255);
 
+    /// <summary>Copy of the image being tiled.</summary>
     public ImageData ImageSource { get; private set; } = new ImageData();
 
+    /// <summary>Transformation settings applied to each tile.</summary>
     public ColorTransformConfig TransformationConfig { get; private set; } = new ();
+
+    /// <summary>Sum of the transformation errors of all tiles; NaN when not computed.</summary>
     public double GlobalTransformationError { get; set; } = double.NaN;
+
+    /// <summary>Divider applied to each tile error to make different transformations comparable.</summary>
     public double NormalizationError { get; private set; } = 1.0;
 
+    /// <summary>
+    /// Returns the tile at grid position (<paramref name="r"/>, <paramref name="c"/>), or null if out of range.
+    /// </summary>
     public TileProcessing? GetTileProcessing(int r, int c)
     {
         lock (locker)
@@ -49,6 +75,9 @@ public partial class TileManager
         }
     }
 
+    /// <summary>
+    /// Clears tiles, source image and errors.
+    /// </summary>
     public void Reset()
     {
         lock (locker)
@@ -62,6 +91,18 @@ public partial class TileManager
     }
 
 
+    /// <summary>
+    /// Splits <paramref name="image"/> into tiles of <paramref name="tileWidth"/> x <paramref name="tileHeight"/> pixels.
+    /// Edge tiles may be smaller.
+    /// </summary>
+    /// <param name="tileWidth">Tile width in pixels</param>
+    /// <param name="tileHeight">Tile height in pixels</param>
+    /// <param name="image">Source image</param>
+    /// <param name="normalizationError">Divider applied to each tile error</param>
+    /// <param name="colorTransformConfig">Transformation settings for every tile</param>
+    /// <param name="token">Cancellation token</param>
+    /// <returns>This instance; reset when cancelled.</returns>
+    /// <exception cref="InvalidConstraintException">Invalid tile size.</exception>
     public TileManager Create(int tileWidth, int tileHeight, ImageData image, double normalizationError, ColorTransformConfig colorTransformConfig , CancellationToken token=default)
     {
 
@@ -79,7 +120,6 @@ public partial class TileManager
                 Reset();
                 TileW = tileWidth;
                 TileH = tileHeight;
-                //TransformationType = colorTransformType;
                 NormalizationError = normalizationError;
 
                 ImageSource = new ImageData().Create(image);
@@ -115,6 +155,9 @@ public partial class TileManager
         }
     }
 
+    /// <summary>
+    /// Configures the tile border marking (fluent).
+    /// </summary>
     public TileManager WithTileBorder( bool tileBorderShow, int tileBorderColor)
     {
         TileBorderShow = tileBorderShow;
@@ -122,6 +165,10 @@ public partial class TileManager
         return this;
     }
 
+    /// <summary>
+    /// Color-reduces every tile, then recalculates <see cref="GlobalTransformationError"/>.
+    /// </summary>
+    /// <returns>A valid result, or an error result for the first failing tile or on cancellation.</returns>
     public ColorTransformResult ProcessColors(CancellationToken token = default)
     {
         string sM = nameof(ProcessColors);  
@@ -157,6 +204,10 @@ public partial class TileManager
     }
 
 
+    /// <summary>
+    /// Recalculates the sum of the tile errors against <paramref name="referenceImage"/>.
+    /// </summary>
+    /// <returns>The global error, or NaN on error or cancellation.</returns>
     public double RecalcGlobalTransformationError(ImageData referenceImage,  CancellationToken token=default)
     {
         string sM = nameof(RecalcGlobalTransformationError);
@@ -200,8 +251,14 @@ public partial class TileManager
         }
     }
 
+    /// <summary>
+    /// Recalculates the sum of the tile errors against <see cref="ImageSource"/>.
+    /// </summary>
     public double RecalcGlobalTransformationError(CancellationToken token = default) => RecalcGlobalTransformationError(ImageSource, token);
 
+    /// <summary>
+    /// Reassembles the processed tiles into a full image, optionally marking tile corners.
+    /// </summary>
     public ImageData CreateImageFromTiles()
     {
         string sM = nameof(CreateImageFromTiles);

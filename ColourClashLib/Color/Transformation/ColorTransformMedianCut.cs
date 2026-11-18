@@ -7,21 +7,36 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
+    /// <summary>
+    /// Median cut color reduction (Heckbert).
+    /// <para/>
+    /// The color set is recursively split in two along the channel with the widest range, at the median value,
+    /// until the requested number of boxes is reached; each box is then mapped to its representative color.
+    /// </summary>
     public class ColorTransformMedianCut : ColorTransformBase
     {
 
+        /// <summary>
+        /// Creates the median cut reduction.
+        /// </summary>
         public ColorTransformMedianCut()
         {
             Type = ColorTransformType.ColorReductionMedianCut;
             Description = "Median partition color reduction";
         }
 
+        /// <summary>
+        /// Maximum number of output colors (rounded to a power of two, max 256).
+        /// </summary>
         public int MaxColorsWanted 
         { 
             get => config.MaxColorsWanted;
             set => config.MaxColorsWanted = value;
         }
 
+        /// <summary>
+        /// How the representative color of each box is selected.
+        /// </summary>
         public ColorSelectionMode ColorSelectionMode
         {
             get => config.MedianCutColorSelectionMode;
@@ -29,6 +44,9 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
+        /// <summary>
+        /// Sets the processing parameters (fluent).
+        /// </summary>
         public ColorTransformMedianCut WithProcessingParams(int maxColors, ColorSelectionMode colorSelectionMode )
         {
             MaxColorsWanted = maxColors;
@@ -36,12 +54,18 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
+        /// <summary>
+        /// Sets the processing parameters from a configuration (fluent).
+        /// </summary>
         public ColorTransformMedianCut WithProcessingParams(ColorTransformConfig cfg) => WithProcessingParams(cfg.MaxColorsWanted, cfg.MedianCutColorSelectionMode );
 
 
 
 
 
+        /// <summary>
+        /// Returns the index of the histogram median (first bin where the cumulative count exceeds half of the total).
+        /// </summary>
         int GetMedian(List<int> list)
         {
             float limit = list.Sum() / 2f;
@@ -57,14 +81,21 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
+        /// <summary>
+        /// Returns the distance between the first and the last non-empty bin of a histogram.
+        /// </summary>
         int GetRange(List<int> list)
         {
             int first = list.FindIndex(x => x != 0);
-            if (first < 0) return 0; // lista tutta a zero
+            if (first < 0) return 0; // all zero histogram
             int last = list.FindLastIndex(x => x != 0);
             return last - first;
         }
 
+        /// <summary>
+        /// Recursively splits <paramref name="palette"/>; when <paramref name="maxColor"/> reaches zero the box is a leaf
+        /// and its colors are added to the transformation map.
+        /// </summary>
         void Partition(Palette palette, int maxColor)
         {
             var rgbList = palette.ToList();
@@ -80,28 +111,29 @@ namespace ColourClashNet.Color.Transformation
                     histG[rgb.ToG()]++;
                     histB[rgb.ToB()]++;
                 }
-                int ird = GetRange(histR);
-                int igd = GetRange(histG);
-                int ibd = GetRange(histB);
+                // Split along the channel with the widest range, at its median
+                int rangeR = GetRange(histR);
+                int rangeG = GetRange(histG);
+                int rangeB = GetRange(histB);
                 Palette lowerHalf = new Palette();
                 Palette upperHalf = new Palette();
-                if (ird > igd && ird > ibd)
+                if (rangeR > rangeG && rangeR > rangeB)
                 {
-                    var irm = GetMedian(histR);
+                    var medianR = GetMedian(histR);
                     foreach (var rgb in rgbList)
                     {
-                        if (rgb.ToR() <= irm)
+                        if (rgb.ToR() <= medianR)
                             lowerHalf.Add(rgb);
                         else
                             upperHalf.Add(rgb);
                     }
                 }
-                else if (igd > ibd)
+                else if (rangeG > rangeB)
                 {
-                    var igm = GetMedian(histG);
+                    var medianG = GetMedian(histG);
                     foreach (var rgb in rgbList)
                     {
-                        if (rgb.ToG() <= igm)
+                        if (rgb.ToG() <= medianG)
                             lowerHalf.Add(rgb);
                         else
                             upperHalf.Add(rgb);
@@ -109,10 +141,10 @@ namespace ColourClashNet.Color.Transformation
                 }
                 else
                 {
-                    var ibm = GetMedian(histB);
+                    var medianB = GetMedian(histB);
                     foreach (var rgb in rgbList)
                     {
-                        if (rgb.ToB() <= ibm)
+                        if (rgb.ToB() <= medianB)
                             lowerHalf.Add(rgb);
                         else
                             upperHalf.Add(rgb);
@@ -122,7 +154,7 @@ namespace ColourClashNet.Color.Transformation
                 // in that case split the colors sorted on the selected channel by index.
                 if ((lowerHalf.Count == 0 || upperHalf.Count == 0) && rgbList.Count > 1)
                 {
-                    Func<int, int> channel = (ird > igd && ird > ibd) ? (rgb => rgb.ToR()) : (igd > ibd) ? (rgb => rgb.ToG()) : (rgb => rgb.ToB());
+                    Func<int, int> channel = (rangeR > rangeG && rangeR > rangeB) ? (rgb => rgb.ToR()) : (rangeG > rangeB) ? (rgb => rgb.ToG()) : (rgb => rgb.ToB());
                     var sorted = rgbList.OrderBy(channel).ToList();
                     int half = sorted.Count / 2;
                     lowerHalf = new Palette().Create(sorted.Take(half));
@@ -134,6 +166,7 @@ namespace ColourClashNet.Color.Transformation
             }
             else
             {
+                // Leaf box: all its colors map to the representative color
                 if (palette.Count == 0)
                     return;
                 var meanColor = ColorIntExt.GetColorMean(palette, ColorSelectionMode);
@@ -149,6 +182,9 @@ namespace ColourClashNet.Color.Transformation
 
         Palette outputPalette = new Palette();
 
+        /// <summary>
+        /// Builds the map: identity when the image already fits, median cut partition otherwise.
+        /// </summary>
         protected override ColorTransformResult CreateTransformationMap(CancellationToken token=default)
         {
             outputPalette = new Palette();
@@ -163,6 +199,7 @@ namespace ColourClashNet.Color.Transformation
             }
             else
             {
+                // Partition(maxColor) produces 2 * maxColor leaf boxes
                 int colorsMax = Math.Min(256, Math.Max(2, MaxColorsWanted));
                 Partition(sourceHistogram.ToPalette(), colorsMax / 2);
                 outputPalette = TransformationMap.GetOutputPalette();
@@ -170,12 +207,15 @@ namespace ColourClashNet.Color.Transformation
             return ColorTransformResult.CreateValidResult();
         }
 
+        /// <summary>
+        /// Applies the transformation map.
+        /// </summary>
         protected override ColorTransformResult ExecuteTransform(CancellationToken token)
         {
-            var ret = TransformationMap.Transform(ImageSource, token);
-            if (ret != null)
+            var outputImage = TransformationMap.Transform(ImageSource, token);
+            if (outputImage != null)
             {
-                return ColorTransformResult.CreateValidResult(ImageSource, ret);
+                return ColorTransformResult.CreateValidResult(ImageSource, outputImage);
             }
             return new();
         }

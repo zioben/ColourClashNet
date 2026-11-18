@@ -15,55 +15,125 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
+    /// <summary>
+    /// ZX Spectrum attribute mode: 8x8 cells with 2 colors each, from either the normal or the bright 8 color palette.
+    /// <para/>
+    /// Source colors are first classified on an "input seed" palette (the intensity at which ZX colors appear in the source),
+    /// then remapped to the real ZX colors and reduced per cell. Normal and bright results are merged choosing,
+    /// for each cell, the palette with the lower error. The autotune mode searches the best input seeds.
+    /// </summary>
     public class ColorTransformZxSpectrum : ColorTransformBase
     {
         static string sC = nameof(ColorTransformZxSpectrum);
 
+        /// <summary>
+        /// ZX Spectrum palettes used.
+        /// </summary>
         public enum ZxPaletteMode
         {
+            /// <summary>
+            /// Each cell uses the best of the normal and bright palettes.
+            /// </summary>
             BothPalettes = 0,
+            /// <summary>
+            /// Normal palette only.
+            /// </summary>
             PaletteLo = 1,
+            /// <summary>
+            /// Bright palette only.
+            /// </summary>
             PaletteHi = 2,
+            /// <summary>
+            /// Maps the image to the full ZX palette without attribute constraints.
+            /// </summary>
             DebugPalette = 3,
         }
 
+        /// <summary>
+        /// Automatic search of the input seed values.
+        /// </summary>
         public enum ZxAutotuneMode
         {
+            /// <summary>
+            /// Use the configured seeds.
+            /// </summary>
             None = 0,
+            /// <summary>
+            /// Coarse search.
+            /// </summary>
             Fast = 1,
+            /// <summary>
+            /// Coarse search followed by a refinement around the best result.
+            /// </summary>
             Detailed = 2,
         }
 
+        /// <summary>
+        /// Creates the ZX Spectrum transformation.
+        /// </summary>
         public ColorTransformZxSpectrum()
         {
             Type = ColorTransformType.ColorReductionZxSpectrum;
             Description = "Reduce color to ZX Spectrum color map and apply ColourClash reduction";
         }
 
+        /// <summary>
+        /// Result of one ZX processing run with a given pair of input seeds.
+        /// </summary>
         public class ZxProcessingResults
         {
+            /// <summary>
+            /// Input seed of the normal palette.
+            /// </summary>
             public int ColorSeedInLow { get; internal set; }
+            /// <summary>
+            /// Input seed of the bright palette.
+            /// </summary>
             public int ColorSeedInHigh { get; internal set; }
+            /// <summary>
+            /// Image processed with the normal palette.
+            /// </summary>
             public ImageData? ProcessedImageLow { get; private set; }
+            /// <summary>
+            /// Image processed with the bright palette.
+            /// </summary>
             public ImageData? ProcessedImageHigh { get; private set; }
+            /// <summary>
+            /// Final image: best cells of both palettes.
+            /// </summary>
             public ImageData? MergeImage { get; internal set; }
+            /// <summary>
+            /// Mean color error of <see cref="MergeImage"/> against the source image.
+            /// </summary>
             public double MergeError { get; internal set; }
+            /// <summary>
+            /// Tiles processed with the normal palette.
+            /// </summary>
             public TileManager? TileManagerLow { get; private set; }
+            /// <summary>
+            /// Tiles processed with the bright palette.
+            /// </summary>
             public TileManager? TileManagerHigh { get; private set; }
 
-            internal bool Create(TileManager tileManLo, TileManager tileManHi, ImageData referenceImage, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
+            /// <summary>
+            /// Builds the processed images, merges them and evaluates the merge error.
+            /// </summary>
+            internal bool Create(TileManager tileManagerLow, TileManager tileManagerHigh, ImageData referenceImage, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
             {
-                TileManagerLow = tileManLo;
-                TileManagerHigh = tileManHi;
-                ProcessedImageLow = tileManLo?.CreateImageFromTiles();
-                ProcessedImageHigh = tileManHi?.CreateImageFromTiles();
-                MergeImage = TileManager.MergeToImage(new List<TileManager?> { tileManLo, tileManHi });
+                TileManagerLow = tileManagerLow;
+                TileManagerHigh = tileManagerHigh;
+                ProcessedImageLow = tileManagerLow?.CreateImageFromTiles();
+                ProcessedImageHigh = tileManagerHigh?.CreateImageFromTiles();
+                MergeImage = TileManager.MergeToImage(new List<TileManager?> { tileManagerLow, tileManagerHigh });
                 MergeError = ColorIntExt.EvaluateError(referenceImage, MergeImage, colorEvaluationMode, token);
                 return true;
             }
         }
 
 
+        /// <summary>
+        /// Normal palette input seed (clamped to [8, high seed]).
+        /// </summary>
         public int ZxPaletteInColorSeedLow
         {
             get => config.ZxPaletteInColorSeedLow;
@@ -73,6 +143,9 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
+        /// <summary>
+        /// Bright palette input seed (clamped to [low seed, 255]).
+        /// </summary>
         public int ZxPaletteInColorSeedHigh
         {
             get => config.ZxPaletteInColorSeedHigh;
@@ -82,35 +155,62 @@ namespace ColourClashNet.Color.Transformation
             }
         }
 
+        /// <summary>
+        /// Palettes used.
+        /// </summary>
         public ZxPaletteMode PaletteMode 
         { 
             get => config.ZxPaletteMode;
             set => config.ZxPaletteMode = value;
         }
+        /// <summary>
+        /// Includes black in the bright palette.
+        /// </summary>
         public bool IncludeBlackInHighColor 
         { 
             get => config.ZxIncludeBlackInHighColorImage;
             set => config.ZxIncludeBlackInHighColorImage = value;
         }
+        /// <summary>
+        /// Input seed search mode.
+        /// </summary>
         public ZxAutotuneMode AutotuneMode 
         { 
             get => config.ZxAutotuneMode;
             set => config.ZxAutotuneMode = value;
         }
+        /// <summary>
+        /// Dithers the normal palette image.
+        /// </summary>
         public bool DitherLowColorImage
         { 
             get => config.ZxDitherLowColorImage;
             set => config.ZxDitherLowColorImage = value;
         } 
+        /// <summary>
+        /// Dithers the bright palette image.
+        /// </summary>
         public bool DitherHighColorImage 
         { 
             get => config.ZxDitherHighColorImage;
             set => config.ZxDitherHighColorImage = value;
         }
+        /// <summary>
+        /// Channel intensity of the real normal ZX colors.
+        /// </summary>
         public int ZxPaletteOutColorSeedLow { get; init; } = 0x00D8;
+        /// <summary>
+        /// Channel intensity of the real bright ZX colors.
+        /// </summary>
         public int ZxPaletteOutColorSeedHigh { get; init; } = 0x00FF;
 
+        /// <summary>
+        /// Reduction used for each attribute cell.
+        /// </summary>
         ColorTransformType TransformType { get; set; } = ColorTransformType.ColorReductionClustering;
+        /// <summary>
+        /// Creates the cell configuration: 2 colors picked from the cell palette.
+        /// </summary>
         ColorTransformConfig CreateConfig(Palette palette, ColorDithering ditheringType)
         {
             return config.Clone()
@@ -121,6 +221,9 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
+        /// <summary>
+        /// Sets the palette settings (fluent).
+        /// </summary>
         public ColorTransformZxSpectrum WithZxScreenMode(ZxPaletteMode paletteMode, int lowColorInSeed, int highColorInSeed)
         {
             ZxPaletteInColorSeedLow = lowColorInSeed;
@@ -128,9 +231,15 @@ namespace ColourClashNet.Color.Transformation
             PaletteMode = paletteMode;
             return this;
         }
+        /// <summary>
+        /// Sets the palette settings from a configuration (fluent).
+        /// </summary>
         public ColorTransformZxSpectrum WithZxScreenMode(ColorTransformConfig cfg)
             => WithZxScreenMode(cfg.ZxPaletteMode, cfg.ZxPaletteInColorSeedLow, cfg.ZxPaletteInColorSeedHigh);
 
+        /// <summary>
+        /// Sets the processing settings (fluent).
+        /// </summary>
         public ColorTransformZxSpectrum WithProcessingParams(ZxAutotuneMode autotuneMode, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor)
         {
             DitherLowColorImage = ditherLowColorImage;
@@ -140,10 +249,19 @@ namespace ColourClashNet.Color.Transformation
             return this;
         }
 
+        /// <summary>
+        /// Sets the processing settings from a configuration (fluent).
+        /// </summary>
         public ColorTransformZxSpectrum WithProcessingParams(ColorTransformConfig cfg)
             => WithProcessingParams(cfg.ZxAutotuneMode, cfg.ZxDitherLowColorImage, cfg.ZxDitherHighColorImage, cfg.ZxIncludeBlackInHighColorImage);
 
 
+        /// <summary>
+        /// Creates the map from the 8 input seed colors to the 8 real ZX colors of one palette.
+        /// </summary>
+        /// <param name="colorSeedIn">Channel intensity of the colors in the source image</param>
+        /// <param name="colorSeedOut">Channel intensity of the real ZX colors</param>
+        /// <param name="mapTheBlack">Includes black in the map</param>
         ColorTransformationMap CreateZxMap(int colorSeedIn, int colorSeedOut, bool mapTheBlack)
         {
             ColorTransformationMap map = new ColorTransformationMap();
@@ -162,10 +280,14 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
+        /// <summary>
+        /// Maps the image to the full ZX palette (plus mixed colors) without attribute constraints: the reference for the error evaluation.
+        /// </summary>
         ImageData CreateBestZxImage(CancellationToken token = default)
         {
             var zxPalette = new Palette();
             zxPalette.Add(ColorIntExt.FromRGB(0, 0, 0));
+            // 8 normal colors (intensity 0xD8) + 7 bright colors (0xFF); bright black equals black
             var l = ZxPaletteOutColorSeedLow;
             zxPalette.Add(ColorIntExt.FromRGB(0, 0, l));
             zxPalette.Add(ColorIntExt.FromRGB(0, l, 0));
@@ -183,8 +305,7 @@ namespace ColourClashNet.Color.Transformation
             zxPalette.Add(ColorIntExt.FromRGB(l, l, 0));
             zxPalette.Add(ColorIntExt.FromRGB(l, l, l));
 
-            // var zxBaseTransform = new ColorTransformReductionPalette()
-                var zxBaseTransform = new ColorTransformFixedPaletteEnhanced()
+            var zxBaseTransform = new ColorTransformFixedPaletteEnhanced()
                 .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
                 .WithReferencePalette(zxPalette)
                 .WithDithering(DitheringConfig)
@@ -194,11 +315,19 @@ namespace ColourClashNet.Color.Transformation
             return zxBaseImage;
         }
 
+        /// <summary>
+        /// Processes the image with one palette: seed classification, mapping to real ZX colors and per cell reduction.
+        /// </summary>
+        /// <param name="loPalette">True for the normal palette, false for the bright one</param>
+        /// <param name="zxBestImage">Reference image for the error evaluation</param>
+        /// <param name="transformationMap">Seed to ZX color map</param>
+        /// <param name="useDithering">Enables dithering</param>
+        /// <param name="token">Cancellation token</param>
         TileManager CreateAndProcessTiles(bool loPalette, ImageData zxBestImage, ColorTransformationMap transformationMap, bool useDithering, CancellationToken token = default)
         {
             var dithering = useDithering ? DitheringConfig.DitheringType : ColorDithering.None;
 
-            //Create best input image on input seed palette
+            // Create the best input image on the input seed palette
             var zxBaseTransform = new ColorTransformFixedPalette()
                .WithReferencePalette(transformationMap.GetInputPalette())
                .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
@@ -207,23 +336,22 @@ namespace ColourClashNet.Color.Transformation
             var zxBaseResult = zxBaseTransform.ProcessColors(token);
             var zxBaseImage = zxBaseResult.DataOut;
 
-            // transform to real ZX colors
+            // Transform to real ZX colors
             var zxRealImage = transformationMap.Transform(zxBaseImage, token);
-            // evaluate tiles 8x8 - 2 colors per tile
-            TileManager tileManager = new TileManager().Create(8, 8, zxRealImage, loPalette ? 1.0 : 2.0, CreateConfig(new Palette(), dithering), token); // ColorDithering.None);, token);//  ithering), token);
-            var tileProcRes = tileManager.ProcessColors(token);
+            // Evaluate 8x8 attribute cells - 2 colors per cell.
+            // The bright palette error is weighted half, so that it wins ties against the normal palette.
+            TileManager tileManager = new TileManager().Create(8, 8, zxRealImage, loPalette ? 1.0 : 2.0, CreateConfig(new Palette(), dithering), token);
+            var tileResult = tileManager.ProcessColors(token);
             var normalization = ColorIntExt.GetMaxColorDistance(transformationMap.GetOutputPalette(), ColorDistanceEvaluationMode, token);
             var error = tileManager.RecalcGlobalTransformationError(zxBestImage, token);
-            //LogMan.Warning(sC, "demo", $"{loPalette} : ERR = {error}");
-            //RaiseProcessPartialEvent(new ColorProcessingEventArgs()
-            //{
-            //    ProcessingResults = ColorTransformResult.CreateValidResult(null, zxBaseImage)
-            //});
 
             return tileManager;
         }
 
 
+        /// <summary>
+        /// Runs the processing with the given input seeds, for the palettes selected by <see cref="PaletteMode"/>.
+        /// </summary>
         protected ZxProcessingResults ExecuteTransformZx(ImageData zxBestImage, int colorSeedInLo, int colorSeedInHi, CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransformZx);
@@ -231,7 +359,8 @@ namespace ColourClashNet.Color.Transformation
             var zxTransformationMapHi = CreateZxMap(colorSeedInHi, ZxPaletteOutColorSeedHigh, IncludeBlackInHighColor);
 
             List<Task<TileManager>> taskList = new List<Task<TileManager>>();
-            var procResults = new ZxProcessingResults()
+            // Process the normal and the bright palette in parallel; a null slot means "palette not used"
+            var processingResults = new ZxProcessingResults()
             {
                 ColorSeedInLow = colorSeedInLo,
                 ColorSeedInHigh = colorSeedInHi,
@@ -260,16 +389,19 @@ namespace ColourClashNet.Color.Transformation
                     throw new ArgumentException($"Unknown ZX Spectrum palette mode: {PaletteMode}");
             }
 
-            // Await task completed
+            // Wait for completion, then merge picking the best attribute cell from either palette
             var taskListValid = taskList.Where(task => task != null).ToList();
             Task.WaitAll(taskListValid.ToArray());
-            procResults.Create(taskList[0]?.Result, taskList[1]?.Result, ImageSource, ColorDistanceEvaluationMode, token);
-            return procResults;
+            processingResults.Create(taskList[0]?.Result, taskList[1]?.Result, ImageSource, ColorDistanceEvaluationMode, token);
+            return processingResults;
         }
 
 
 
 
+        /// <summary>
+        /// Runs the processing with the configured seeds or, in autotune mode, searches the seeds with the lowest error.
+        /// </summary>
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransform);
@@ -277,7 +409,6 @@ namespace ColourClashNet.Color.Transformation
             BypassDithering = true;
 
             var bestZxImage = CreateBestZxImage(token);
-            //bestZxImage = ImageSource;
             if (PaletteMode == ZxPaletteMode.DebugPalette)
             {
                 return ColorTransformResult.CreateValidResult(ImageSource, bestZxImage);
@@ -287,10 +418,12 @@ namespace ColourClashNet.Color.Transformation
             {
                 var processingResult = ExecuteTransformZx(bestZxImage, ZxPaletteInColorSeedLow, ZxPaletteInColorSeedHigh, token);
                 TransformationError = processingResult.MergeError;
-                return ColorTransformResult.CreateValidResult(ImageSource, processingResult.MergeImage);// oTuple.Item1);
+                return ColorTransformResult.CreateValidResult(ImageSource, processingResult.MergeImage);
             }
             else
             {
+                // Autotune: grid search of the (low, high) input seeds, coarse (step 32) then,
+                // in detailed mode, refined (step 8) around the best result
                 ZxProcessingResults bestResult = null;
                 int step = 32;
                 int cycle = 0;
@@ -342,7 +475,7 @@ namespace ColourClashNet.Color.Transformation
 
                 if (bestResult?.MergeImage != null)
                 {
-                    return ColorTransformResult.CreateValidResult(ImageSource, bestResult?.MergeImage);// oFinalData);
+                    return ColorTransformResult.CreateValidResult(ImageSource, bestResult?.MergeImage);
                 }
                 else
                 {

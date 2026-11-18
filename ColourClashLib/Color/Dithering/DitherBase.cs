@@ -15,20 +15,43 @@ using System.Threading.Tasks;
 namespace ColourClashNet.Color.Dithering
 {
     /// <summary>
-    /// Base class for Dithering algorithms
+    /// Base class for dithering algorithms.
+    /// <para/>
+    /// Implements the <see cref="Dither"/> template: the algorithm specific <see cref="DitherImplementation"/>
+    /// runs first, then the optional <see cref="DitheringFx"/> post effect is applied.
     /// </summary>
     public abstract partial class DitherBase : DitherInterface
     {
         static string sC = nameof(DitherBase);
+
+        /// <inheritdoc/>
         public string Description { get; protected init; }
+
+        /// <inheritdoc/>
         public ColorDithering Type { get; protected init; }
+
+        /// <summary>Post-dithering effect applied after the algorithm.</summary>
         public ColorDitheringFx DitheringFx { get; set; } = ColorDitheringFx.None;
+
+        /// <inheritdoc/>
         public double DitheringStrenght { get; set; } = 1.0;
+
+        /// <inheritdoc/>
         public abstract DitherInterface Create();
+
+        /// <summary>
+        /// Algorithm specific dithering step.
+        /// </summary>
+        /// <param name="imageReference">Original image</param>
+        /// <param name="imageProcessed">Color-reduced image</param>
+        /// <param name="colorEvaluationMode">Color distance metric</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>The dithered image wrapped in a result.</returns>
         protected abstract ColorTransformResult DitherImplementation(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token=default);
 
         /// <summary>
-        /// Dither the imageProcessed using the imageReference as reference for the colors to be dithered, and the colorEvaluationMode to evaluate the color distance between the original and the dithered colors.
+        /// Dithers <paramref name="imageProcessed"/> towards the colors of <paramref name="imageReference"/>,
+        /// then applies <see cref="DitheringFx"/>.
         /// </summary>
         /// <param name="imageReference">The original image to be used as a reference for dithering</param>
         /// <param name="imageProcessed">The image to be dithered</param>
@@ -47,6 +70,14 @@ namespace ColourClashNet.Color.Dithering
             return retD;
         }
 
+        /// <summary>
+        /// Applies the <see cref="DitheringFx"/> effect: every other row (or column) of the dithered
+        /// image is replaced with the corresponding undithered pixels of <paramref name="imageProcessed"/>.
+        /// </summary>
+        /// <param name="imageProcessed">Undithered, color-reduced image</param>
+        /// <param name="ditheredResult">Result of the dithering step</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>The result with the effect applied, or <paramref name="ditheredResult"/> when no effect is set.</returns>
         protected ColorTransformResult ApplyDitherFx(ImageData imageProcessed, ColorTransformResult ditheredResult, CancellationToken token = default)
         {
             string sM = nameof(ApplyDitherFx);
@@ -64,47 +95,48 @@ namespace ColourClashNet.Color.Dithering
             }
             try
             {
-                var mi = imageProcessed.GetMatrix();
-                var mo = ditheredResult.DataOut.GetMatrix();
-                int rs = 0;
-                int stepr = 1;
-                int cs = 0;
-                int stepc = 1;
+                var matrixIn = imageProcessed.GetMatrix();
+                var matrixOut = ditheredResult.DataOut.GetMatrix();
+                // Start row/column and step of the pixels restored from the undithered image
+                int rowStart = 0;
+                int rowStep = 1;
+                int columnStart = 0;
+                int columnStep = 1;
 
                 switch (DitheringFx)
                 {
                     case ColorDitheringFx.ScanlineEven:
-                        rs = 1; 
-                        stepr=2;
+                        rowStart = 1; 
+                        rowStep =2;
                         break;
                     case ColorDitheringFx.ScanlineOdd:
-                        rs = 0;
-                        stepr = 2;
+                        rowStart = 0;
+                        rowStep = 2;
                         break;
                     case ColorDitheringFx.ColumnEven:
-                        cs = 1;
-                        stepc=2;
+                        columnStart = 1;
+                        columnStep =2;
                         break;
                     case ColorDitheringFx.ColumnOdd:
-                        cs = 0;
-                        stepc = 2;
+                        columnStart = 0;
+                        columnStep = 2;
                         break;
                     default:
                         return ColorTransformResult.CreateErrorResult($"unsupported dither fx : {DitheringFx}");
                 }
 
                
-                for (var r = rs; r < mi.GetLength(0); r += stepr)
+                for (var r = rowStart; r < matrixIn.GetLength(0); r += rowStep)
                 {
-                    for (int c = cs; c < mi.GetLength(1); c+=stepc)
+                    for (int c = columnStart; c < matrixIn.GetLength(1); c += columnStep)
                     {
-                        mo[r, c] = mi[r, c];
+                        matrixOut[r, c] = matrixIn[r, c];
                     }
                     token.ThrowIfCancellationRequested();
                 }
 
-                var imageFX = new ImageData().Create(mo);
-                return ColorTransformResult.CreateValidResult(ditheredResult.DataOut, imageFX);
+                var imageFx = new ImageData().Create(matrixOut);
+                return ColorTransformResult.CreateValidResult(ditheredResult.DataOut, imageFx);
             }
             catch (TaskCanceledException et)
             {

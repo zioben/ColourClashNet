@@ -6,21 +6,20 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Imaging
 {
+    /// <summary>
+    /// Standard image file formats.
+    /// </summary>
     public enum ImageSaveFormat
     {
         Unknown = 0,
-        //
         Bmp,
-       // BmpIndexed,
         Png,
-       // PngIndexed,
         Jpg,
-        //
-     //   CbmAmigaRawBitplane,
-     //   CbmAmigaRawBitplaneInterleaved,
-     //   CbmAmigaRawBitplaneCopperlist,
-     //   CbmAmigaRawBitplaneInterleavedCopperlist,
     }
+
+    /// <summary>
+    /// Export formats, including raw Amiga bitplane data.
+    /// </summary>
     public enum DataExportMode
     {
         Unknown = 0,
@@ -33,6 +32,10 @@ namespace ColourClashNet.Imaging
         CbmAmigaRawBitplaneInterleavedCopperlist,
     }
 
+    /// <summary>
+    /// Alignment of the image width (in pixels) required by the target hardware or file format.
+    /// The enum value is the alignment multiple.
+    /// </summary>
     public enum WidthAlignMode
     {
         Multiple001 = 1,
@@ -47,6 +50,9 @@ namespace ColourClashNet.Imaging
     }
 
 
+    /// <summary>
+    /// How the tile grid is highlighted on screen.
+    /// </summary>
     public enum TileMode
     {
         None,
@@ -56,6 +62,9 @@ namespace ColourClashNet.Imaging
         CheckerHighlight
     }
 
+    /// <summary>
+    /// Overlay drawing mode.
+    /// </summary>
     public enum OverlayMode
     {
         Draw,

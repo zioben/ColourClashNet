@@ -12,25 +12,31 @@ namespace ColourClashNet.Color
 {
     public partial class HistogramRGB
     {
+        // Shared counting buffer with one slot per RGB888 color (64 MB): allocated once, guarded by locker
         static readonly int[] colorArray = new int[256 * 256 * 256];
 
+        // Pixel count above which the array based counting is faster than the dictionary based one
         static readonly int sizeLimit = 1920 * 1080;
 
         static object locker = new object();
 
-        public static void AssertValid(HistogramRGB hitogram)
+        /// <summary>
+        /// Throws if <paramref name="histogram"/> is null.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static void AssertValid(HistogramRGB histogram)
         {
-            if (hitogram == null)
-                throw new ArgumentNullException($"{nameof(hitogram)} is null");
+            if (histogram == null)
+                throw new ArgumentNullException($"{nameof(histogram)} is null");
         }
 
-
-
         /// <summary>
-        /// 
+        /// Counts colors using the shared 16M entries array, then copies non-zero entries into the histogram.
+        /// <para/>
+        /// O(pixels + 16M): efficient for large images, serialized by a lock.
         /// </summary>
-        /// <param name="matrix"></param>
-        /// <param name="histogram"></param>
+        /// <param name="matrix">Image matrix</param>
+        /// <param name="histogram">Destination histogram</param>
         static void CreateHistogramArray(int[,] matrix, HistogramRGB histogram)
         {
             if (matrix == null)
@@ -64,12 +70,12 @@ namespace ColourClashNet.Color
             }
         }
 
-       /// <summary>
-       /// 
-       /// </summary>
-       /// <param name="matrix"></param>
-       /// <param name="histogram"></param>
-       /// <returns></returns>
+        /// <summary>
+        /// Counts colors directly into the histogram dictionary: efficient for small images.
+        /// </summary>
+        /// <param name="matrix">Image matrix</param>
+        /// <param name="histogram">Destination histogram</param>
+        /// <returns>Always true.</returns>
         static bool CreateHistogramDirect(int[,] matrix, HistogramRGB histogram)
         {
             if (matrix == null)
@@ -91,11 +97,11 @@ namespace ColourClashNet.Color
         }
 
         /// <summary>
-        /// 
+        /// Builds the histogram of a matrix, choosing the counting strategy by image size.
         /// </summary>
-        /// <param name="matrix"></param>
-        /// <param name="histogram"></param>
-        /// <returns></returns>
+        /// <param name="matrix">Image matrix</param>
+        /// <param name="histogram">Destination histogram (reset first)</param>
+        /// <returns><paramref name="histogram"/>.</returns>
         static HistogramRGB CreateHistogramStatic(int[,] matrix, HistogramRGB histogram)
         {
             string sMethod = nameof(CreateHistogramStatic);

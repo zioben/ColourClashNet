@@ -15,6 +15,9 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Imaging;
 
+/// <summary>
+/// Conversions between GDI+ images (<see cref="System.Drawing.Image"/>) and <see cref="ImageData"/> / color matrices.
+/// </summary>
 public static partial class ImageToolsGDI
 {
     static readonly string sClass = nameof(ImageToolsGDI);
@@ -107,9 +110,9 @@ public static partial class ImageToolsGDI
 
     #region Bitmap Export
 
-    //static string GetfileExt(ImageExportFormat eFormat)
+    //static string GetfileExt(ImageExportFormat format)
     //{
-    //    switch (eFormat)
+    //    switch (format)
     //    {
     //        case ImageExportFormat.BmpIndexed:
     //        case ImageExportFormat.Bmp:
@@ -133,7 +136,7 @@ public static partial class ImageToolsGDI
     //}
 
     
-    //public static Stream? GdiImageToStream(System.Drawing.Image image, ImageExportFormat eFormat, int iQuality = 100)
+    //public static Stream? GdiImageToStream(System.Drawing.Image image, ImageExportFormat format, int quality = 100)
     //{
     //    string sMethod = nameof(GdiImageToStream);
     //    try
@@ -143,27 +146,27 @@ public static partial class ImageToolsGDI
     //            LogMan.Error(sClass, sMethod, "image is null");
     //            return null;
     //        }
-    //        switch (eFormat)
+    //        switch (format)
     //        {
     //            case ImageExportFormat.Bmp:
     //            case ImageExportFormat.Png:
     //            case ImageExportFormat.Jpg:
     //                {
-    //                    using (var oImage2 = new Bitmap(image.Width, image.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb))
-    //                    using (Graphics g = Graphics.FromImage(oImage2))
+    //                    using (var image32 = new Bitmap(image.Width, image.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb))
+    //                    using (Graphics g = Graphics.FromImage(image32))
     //                    {
     //                        g.DrawImage(image, 0, 0, image.Width, image.Height);
     //                        MemoryStream stream = new MemoryStream();
-    //                        switch (eFormat)
+    //                        switch (format)
     //                        {
     //                            case ImageExportFormat.Bmp:
-    //                                oImage2.Save(stream, ImageFormat.Bmp);
+    //                                image32.Save(stream, ImageFormat.Bmp);
     //                                return stream;
     //                            case ImageExportFormat.Png:
-    //                                oImage2.Save(stream, ImageFormat.Png);
+    //                                image32.Save(stream, ImageFormat.Png);
     //                                return stream;
     //                            case ImageExportFormat.Jpg:
-    //                                oImage2.Save(stream, ImageFormat.Jpeg);
+    //                                image32.Save(stream, ImageFormat.Jpeg);
     //                                return stream;
     //                            default:
     //                                return null;
@@ -180,7 +183,7 @@ public static partial class ImageToolsGDI
     //            //        return null;
     //            //    }
     //            default:
-    //                LogMan.Error(sClass, sMethod, $"{eFormat} not yet supported!");
+    //                LogMan.Error(sClass, sMethod, $"{format} not yet supported!");
     //                return null;
     //        }
     //    }
@@ -191,18 +194,18 @@ public static partial class ImageToolsGDI
     //    }
     //}
 
-    //public static bool GdiImageToFile(System.Drawing.Image image, string fileName, ImageExportFormat eFormat)
+    //public static bool GdiImageToFile(System.Drawing.Image image, string fileName, ImageExportFormat format)
     //{
     //    string sMethod = nameof(GdiImageToFile);  
     //    try
     //    {
-    //        var ms = GdiImageToStream(image, eFormat);   
+    //        var ms = GdiImageToStream(image, format);   
     //        if (ms == null)
     //        {
     //            LogMan.Error(sClass, sMethod, $"{nameof(GdiImageToStream)} returned null");
     //            return false;
     //        }
-    //        using (var fs = File.Create(fileName + GetfileExt(eFormat)))
+    //        using (var fs = File.Create(fileName + GetfileExt(format)))
     //        {
     //            ms.Seek(0, SeekOrigin.Begin);
     //            ms.CopyTo(fs);
@@ -219,6 +222,10 @@ public static partial class ImageToolsGDI
     #endregion
 
     #region conversion Bitmap -> Matrix
+    /// <summary>
+    /// Reads an 8 bit indexed bitmap into a color matrix through its palette.
+    /// </summary>
+    /// <returns>The color matrix, or null on error.</returns>
     unsafe static int[,] ConvertFromBmp8BppIndex(System.Drawing.Image image)
     {
         string sM = nameof(ConvertFromBmp8BppIndex);
@@ -236,7 +243,7 @@ public static partial class ImageToolsGDI
                 rgbList.Add(ColorIntExtGdi.FromDrawingColor(rgb));
             }
 
-            var m = new int[bmp.Height, bmp.Width];
+            var matrix = new int[bmp.Height, bmp.Width];
 
             var bitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, bmp.PixelFormat);
             try
@@ -244,12 +251,12 @@ public static partial class ImageToolsGDI
                 byte* ptr = (byte*)bitmapData.Scan0.ToPointer();
                 for (int y = 0; y < bmp.Height; y++)
                 {
-                    int yoff = bitmapData.Stride * y;
+                    int rowOffset = bitmapData.Stride * y;
                     for (int x = 0; x < bmp.Width; x++)
                     {
-                        byte data = ptr[x + yoff];
+                        byte data = ptr[x + rowOffset];
                         var rgb = rgbList[data];
-                        m[y, x] = rgb;                        
+                        matrix[y, x] = rgb;                        
                     }
                 }
             }
@@ -261,7 +268,7 @@ public static partial class ImageToolsGDI
             {
                 bmp.UnlockBits(bitmapData);
             }
-            return m;
+            return matrix;
         }
         catch (Exception ex)
         {
@@ -270,6 +277,10 @@ public static partial class ImageToolsGDI
         }
     }
 
+    /// <summary>
+    /// Reads a 24 bit (BGR) bitmap into a color matrix.
+    /// </summary>
+    /// <returns>The color matrix, or null on error.</returns>
     unsafe static int[,] ConvertFromBmp24Bpp(System.Drawing.Image image)
     {
         string sM = nameof(ConvertFromBmp24Bpp);
@@ -281,7 +292,7 @@ public static partial class ImageToolsGDI
                 return null;
             }
 
-            var m = new int[bmp.Height, bmp.Width];
+            var matrix = new int[bmp.Height, bmp.Width];
 
             var bitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, bmp.PixelFormat);
             try
@@ -289,13 +300,13 @@ public static partial class ImageToolsGDI
                 byte* ptr = (byte*)bitmapData.Scan0.ToPointer();
                 for (int y = 0; y < bmp.Height; y++)
                 {
-                    int yoff = bitmapData.Stride * y;
-                    for (int x = 0,xx=0; x < bmp.Width; x++,xx+=3)
+                    int rowOffset = bitmapData.Stride * y;
+                    for (int x = 0,byteOffset=0; x < bmp.Width; x++,byteOffset+=3)
                     {
-                        byte b = ptr[xx + yoff + 0];
-                        byte g = ptr[xx + yoff + 1];
-                        byte r = ptr[xx + yoff + 2];
-                        m[y, x] = ColorIntExt.FromRGB(r,g,b);
+                        byte b = ptr[byteOffset + rowOffset + 0];
+                        byte g = ptr[byteOffset + rowOffset + 1];
+                        byte r = ptr[byteOffset + rowOffset + 2];
+                        matrix[y, x] = ColorIntExt.FromRGB(r,g,b);
                     }
                 }
             }
@@ -307,7 +318,7 @@ public static partial class ImageToolsGDI
             {
                 bmp.UnlockBits(bitmapData);
             }
-            return m;
+            return matrix;
         }
         catch (Exception ex)
         {
@@ -315,9 +326,13 @@ public static partial class ImageToolsGDI
             return null;
         }
     }
+    /// <summary>
+    /// Reads a 32 bit (BGRA) bitmap into a color matrix; alpha is ignored.
+    /// </summary>
+    /// <returns>The color matrix, or null on error.</returns>
     unsafe static int[,] ConvertFromBmp32Bpp(System.Drawing.Image image)
     {
-        string sM = nameof(ConvertFromBmp24Bpp);
+        string sM = nameof(ConvertFromBmp32Bpp);
         try
         {
             if (!(image is Bitmap bmp))
@@ -326,7 +341,7 @@ public static partial class ImageToolsGDI
                 return null;
             }
 
-            var m = new int[bmp.Height, bmp.Width];
+            var matrix = new int[bmp.Height, bmp.Width];
 
             var bitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, bmp.PixelFormat);
             try
@@ -334,13 +349,13 @@ public static partial class ImageToolsGDI
                 byte* ptr = (byte*)bitmapData.Scan0.ToPointer();
                 for (int y = 0; y < bmp.Height; y++)
                 {
-                    int yoff = bitmapData.Stride * y;
-                    for (int x = 0, xx = 0; x < bmp.Width; x++,xx+=4)
+                    int rowOffset = bitmapData.Stride * y;
+                    for (int x = 0, byteOffset = 0; x < bmp.Width; x++,byteOffset+=4)
                     {
-                        byte b = ptr[xx + yoff + 0];
-                        byte g = ptr[xx + yoff + 1];
-                        byte r = ptr[xx + yoff + 2];
-                        m[y, x] = ColorIntExt.FromRGB(r, g, b);
+                        byte b = ptr[byteOffset + rowOffset + 0];
+                        byte g = ptr[byteOffset + rowOffset + 1];
+                        byte r = ptr[byteOffset + rowOffset + 2];
+                        matrix[y, x] = ColorIntExt.FromRGB(r, g, b);
                     }
                 }
             }
@@ -352,7 +367,7 @@ public static partial class ImageToolsGDI
             {
                 bmp.UnlockBits(bitmapData);
             }
-            return m;
+            return matrix;
         }
         catch (Exception ex)
         {
@@ -361,6 +376,10 @@ public static partial class ImageToolsGDI
         }
     }
 
+    /// <summary>
+    /// Converts a GDI+ image (8 bpp indexed, 24 bpp or 32 bpp) into a color matrix.
+    /// </summary>
+    /// <returns>The color matrix, or null for unsupported formats or errors.</returns>
     static int[,] GdiImageToMatrixUnsafe(System.Drawing.Image image)
     {
         string sMethod = nameof(GdiImageToMatrixUnsafe);
@@ -368,7 +387,7 @@ public static partial class ImageToolsGDI
         {
             if( image == null)
             {
-                LogMan.Error(sClass, sMethod, "oImage is null");
+                LogMan.Error(sClass, sMethod, "image is null");
                 return null;
             }
 
@@ -383,8 +402,6 @@ public static partial class ImageToolsGDI
                 LogMan.Error(sClass, sMethod, $"Pixel format {image.PixelFormat} not supported in {sMethod}");
                 return null;
             }
-
-            var m = new int[image.Height, image.Width];
 
             switch ( image.PixelFormat)
             {
@@ -406,22 +423,30 @@ public static partial class ImageToolsGDI
         }
     }
 
+    /// <summary>
+    /// Converts a GDI+ image (8 bpp indexed, 24 bpp or 32 bpp) into a color matrix.
+    /// </summary>
+    /// <returns>The color matrix, or null on error.</returns>
     public static int[,] GdiImageToMatrix(System.Drawing.Image image)
         => GdiImageToMatrixUnsafe(image);
 
+    /// <summary>
+    /// Converts a GDI+ image into an <see cref="ImageData"/>.
+    /// </summary>
+    /// <returns>The image; empty when <paramref name="image"/> is null, null on error.</returns>
     public static ImageData? GdiImageToImageData(System.Drawing.Image image)
     {
         string sMethod = nameof(GdiImageToImageData);
         try
         {
-            var img = new ImageData();
+            var imageData = new ImageData();
             if (image == null)
             {
-                LogMan.Error(sClass, sMethod, "oImage is null");
-                return img;
+                LogMan.Error(sClass, sMethod, "image is null");
+                return imageData;
             }
             var data = GdiImageToMatrixUnsafe(image);
-            return img.Create(data);
+            return imageData.Create(data);
         }
         catch (Exception ex)
         {
@@ -434,30 +459,34 @@ public static partial class ImageToolsGDI
 
     #region Matrix -> Bitmap    
 
-    unsafe static System.Drawing.Image? MatrixToGdiImageUnsafe(int[,] m)
+    /// <summary>
+    /// Creates a 32 bpp bitmap from a color matrix; non-color values are drawn with the default background color.
+    /// </summary>
+    /// <returns>The bitmap (to be disposed by the caller), or null on error.</returns>
+    unsafe static System.Drawing.Image? MatrixToGdiImageUnsafe(int[,] matrix)
     {
         string sMethod = nameof(MatrixToGdiImageUnsafe);
-        if (m == null)
+        if (matrix == null)
         {
             LogMan.Error(sClass, sMethod, "Matrix is null");
             return null;
         }
         try
         {
-            var rows = m.GetLength(0);
-            var columns = m.GetLength(1);
+            var rows = matrix.GetLength(0);
+            var columns = matrix.GetLength(1);
             var bmp = new Bitmap(columns, rows, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
             var bitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
             try
             {
-                //byte* ptr = (byte*)bitmapData.Scan0.ToPointer();
                 for (int y = 0; y < bmp.Height; y++)
                 {
-                    int yoff = bitmapData.Stride * y;
-                    int* ptrRow = (int*)(bitmapData.Scan0 + yoff);
+                    int rowOffset = bitmapData.Stride * y;
+                    int* ptrRow = (int*)(bitmapData.Scan0 + rowOffset);
                     for (int x = 0; x < bmp.Width; x++)
                     {
-                        ptrRow[x] = m[y, x].IsColor() ? (int)(0xFF_00_00_00 | m[y, x]) : ColorDefaults.DefaultBkgColorInt;
+                        // Force opaque alpha; non-color values are drawn with the background color
+                        ptrRow[x] = matrix[y, x].IsColor() ? (int)(0xFF_00_00_00 | matrix[y, x]) : ColorDefaults.DefaultBkgColorInt;
                     }
                 }
                 bmp.UnlockBits(bitmapData);
@@ -471,20 +500,32 @@ public static partial class ImageToolsGDI
                 return null;
             }
         }
-        catch (Exception exx)
+        catch (Exception exOuter)
         {
-            LogMan.Exception(sClass, sMethod, exx);            
+            LogMan.Exception(sClass, sMethod, exOuter);            
             return null;
         }
     }
 
-    public static System.Drawing.Image? MatrixToGdiImage(int[,] m)
-     => MatrixToGdiImageUnsafe(m);
+    /// <summary>
+    /// Creates a 32 bpp bitmap from a color matrix.
+    /// </summary>
+    /// <returns>The bitmap (to be disposed by the caller), or null on error.</returns>
+    public static System.Drawing.Image? MatrixToGdiImage(int[,] matrix)
+     => MatrixToGdiImageUnsafe(matrix);
 
+    /// <summary>
+    /// Creates a 32 bpp bitmap from an <see cref="ImageData"/>.
+    /// </summary>
+    /// <returns>The bitmap (to be disposed by the caller), or null on error.</returns>
     public static System.Drawing.Image? ImageDataToGdiImage(ImageData image)
      => MatrixToGdiImage(image?.GetMatrix());
 
 
+    /// <summary>
+    /// Redraws any GDI+ image as a 32 bpp RGB bitmap.
+    /// </summary>
+    /// <returns>The new bitmap, or null on error.</returns>
     public static System.Drawing.Image? GdiImageToGdiImage32bpp(System.Drawing.Image image)
     {
         string sMethod = nameof(GdiImageToGdiImage32bpp);
@@ -502,8 +543,6 @@ public static partial class ImageToolsGDI
                     g.DrawImage(image, 0, 0);
                 }
             }
-            //Test OK
-            //imageDest.Save("columns:\\TestX\\Temp.bmp");
             return imageDest;
         }
         catch (Exception ex)
@@ -513,6 +552,15 @@ public static partial class ImageToolsGDI
         }
     }
 
+    /// <summary>
+    /// Creates an 8 bpp indexed bitmap from a color matrix, aligning the width as requested.
+    /// <para/>
+    /// Note: the bitmap palette is not set here.
+    /// </summary>
+    /// <param name="indexMatrix">Color matrix to index</param>
+    /// <param name="paletteSrc">Palette used for the indexing</param>
+    /// <param name="alignMode">Width alignment</param>
+    /// <returns>The bitmap, or null on error.</returns>
     unsafe static Bitmap? MatrixToGdiImageIndexedUnsafe(int[,] indexMatrix, List<int> paletteSrc, WidthAlignMode alignMode)
     {
         string sMethod = nameof(MatrixToGdiImageIndexed);
@@ -528,33 +576,33 @@ public static partial class ImageToolsGDI
                 LogMan.Error(sClass, sMethod, "Palette is null");
                 return null;
             }
-            ImageData img = new ImageData().Create(indexMatrix);
-            var mDataIndex = ImageTools.CreateIndexedMatrix(img, alignMode);
-            int height = mDataIndex.GetLength(0);
-            int width = mDataIndex.GetLength(1);
+            ImageData imageData = new ImageData().Create(indexMatrix);
+            var indexData = ImageTools.CreateIndexedMatrix(imageData, alignMode);
+            int height = indexData.GetLength(0);
+            int width = indexData.GetLength(1);
 
             var bmp = new Bitmap(width, height, PixelFormat.Format8bppIndexed);
 
-            var lockDst = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.WriteOnly, bmp.PixelFormat);
+            var lockedData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.WriteOnly, bmp.PixelFormat);
             try
             {
                 for (int y = 0; y < height; y++)
                 {
-                    byte* pucData = (byte*)(lockDst.Scan0 + lockDst.Stride * y);
+                    byte* rowPtr = (byte*)(lockedData.Scan0 + lockedData.Stride * y);
                     for (int x = 0; x < width; x++)
                     {
-                        pucData[x] = mDataIndex[y, x];
+                        rowPtr[x] = indexData[y, x];
                     }
                 }
             }
             catch (Exception ex)
             {
                 LogMan.Exception(sClass, sMethod, ex);
-                bmp.UnlockBits(lockDst);
+                bmp.UnlockBits(lockedData);
                 bmp.Dispose();
                 return null;
             }
-            bmp.UnlockBits(lockDst);
+            bmp.UnlockBits(lockedData);
             return bmp;
         }
         catch (Exception ex)
@@ -564,12 +612,21 @@ public static partial class ImageToolsGDI
         }
     }
 
+    /// <summary>
+    /// Creates an 8 bpp indexed bitmap from a color matrix.
+    /// </summary>
     public static Bitmap? MatrixToGdiImageIndexed(int[,] indexMatrix, List<int> paletteSrc, WidthAlignMode alignMode)
        => MatrixToGdiImageIndexedUnsafe(indexMatrix, paletteSrc, alignMode);
 
+    /// <summary>
+    /// Creates an 8 bpp indexed bitmap from a color matrix.
+    /// </summary>
     public static Bitmap? MatrixToGdiImageIndexed(int[,] indexMatrix, Palette paletteSrc, WidthAlignMode alignMode)
         => MatrixToGdiImageIndexed(indexMatrix, paletteSrc?.ToList(), alignMode);
 
+    /// <summary>
+    /// Creates an 8 bpp indexed bitmap from an <see cref="ImageData"/>.
+    /// </summary>
     public static Bitmap? ImageDataToGdiImageIndexed(ImageData image, WidthAlignMode alignMode)
         => MatrixToGdiImageIndexed(image?.GetMatrix(), image?.ColorPalette, alignMode);
 
@@ -580,6 +637,10 @@ public static partial class ImageToolsGDI
     #region GDI Palette Helpers
 
 
+    /// <summary>
+    /// Copies <paramref name="paletteSrc"/> into the palette of an indexed bitmap; unused entries become black.
+    /// </summary>
+    /// <returns>False when the image is not a bitmap or the palette is null.</returns>
     static bool SetGdiImageColorPalette(System.Drawing.Image image, List<int> paletteSrc)
     {
         string sMethod = nameof(SetGdiImageColorPalette);
@@ -590,7 +651,7 @@ public static partial class ImageToolsGDI
         }
         if (paletteSrc == null )
         {
-            LogMan.Error(sClass, sMethod, "lPaletteSrc is null");
+            LogMan.Error(sClass, sMethod, "paletteSrc is null");
             return false;
         }
         ColorPalette palette = bmp.Palette;
@@ -611,6 +672,10 @@ public static partial class ImageToolsGDI
     }
   
   
+    /// <summary>
+    /// Creates a 256 entry GDI+ palette; unused entries get the default background color.
+    /// </summary>
+    /// <returns>The palette, or null when <paramref name="palette"/> is null or empty.</returns>
     public static System.Drawing.Imaging.ColorPalette ToGdiColorPalette(List<int> palette)
     {
         string sMethod = nameof(ToGdiColorPalette);
@@ -634,6 +699,9 @@ public static partial class ImageToolsGDI
         }
     }
 
+    /// <summary>
+    /// Creates a 256 level gray scale GDI+ palette.
+    /// </summary>
     public static System.Drawing.Imaging.ColorPalette ToGdiGrayScalePalette()
     {
         string sMethod = nameof(ToGdiColorPalette);
@@ -647,6 +715,9 @@ public static partial class ImageToolsGDI
         }
     }
 
+    /// <summary>
+    /// Creates a 256 entry GDI+ palette from a <see cref="Palette"/>.
+    /// </summary>
     public static System.Drawing.Imaging.ColorPalette ToGdiColorPalette(ColourClashNet.Color.Palette palette)
     {
         string sMethod = nameof(ToGdiColorPalette);
@@ -658,6 +729,9 @@ public static partial class ImageToolsGDI
         return ToGdiColorPalette(palette?.ToList());
     }
 
+    /// <summary>
+    /// Creates a GDI+ palette with the distinct destination colors of a transformation map.
+    /// </summary>
     public static System.Drawing.Imaging.ColorPalette ToGdiColorPalette(Dictionary<int, int> transformationMap)
     {
         string sMethod = nameof(ToGdiColorPalette);
@@ -666,8 +740,8 @@ public static partial class ImageToolsGDI
             LogMan.Error(sClass, sMethod, "Palette Dictionary is null");
             return null;
         }
-        List<int> col = transformationMap.Where(x => x.Value >= 0).Select(x => x.Value).ToList().Distinct().ToList();
-        return ToGdiColorPalette(col);
+        List<int> colors = transformationMap.Where(x => x.Value >= 0).Select(x => x.Value).ToList().Distinct().ToList();
+        return ToGdiColorPalette(colors);
     }
 
 

@@ -11,20 +11,25 @@ namespace ColourClashNet.Color.Tile;
 
 public partial class TileProcessing
 {
-    public static void AssertValid(TileProcessing tileProc)
+    /// <summary>
+    /// Throws if the tile processing is null or its tile is invalid.
+    /// </summary>
+    public static void AssertValid(TileProcessing tileProcessing)
     {
-        if (tileProc == null)
-            throw new ArgumentNullException($"{nameof(tileProc) is null}");
-        TileItem.AssertValid(tileProc.tileItem);
+        if (tileProcessing == null)
+            throw new ArgumentNullException($"{nameof(tileProcessing) is null}");
+        TileItem.AssertValid(tileProcessing.tileItem);
     }
   
     /// <summary>
-    /// Copy the best tile (lower color error) on destination data
+    /// Copies the better of two tiles (lower transformation error) into the destination matrix.
+    /// <para/>
+    /// If one tile is null, the other one is copied.
     /// </summary>
-    /// <param name="destinationData"></param>
-    /// <param name="tileA"></param>
-    /// <param name="tileB"></param>
-    /// <returns>true if data</returns>
+    /// <param name="destinationData">Destination matrix</param>
+    /// <param name="tileA">First candidate</param>
+    /// <param name="tileB">Second candidate</param>
+    /// <returns>True if a tile was copied.</returns>
     public static bool MergeData(int[,] destinationData, TileProcessing tileA, TileProcessing tileB)
     {
         if (destinationData == null)
@@ -52,11 +57,11 @@ public partial class TileProcessing
     }
 
     /// <summary>
-    /// Copy the best tile (lower color error) on destination data
+    /// Copies the tile with the lowest transformation error into the destination matrix.
     /// </summary>
-    /// <param name="destinationData"></param>
-    /// <param name="tiles">List to tiles to compare</param>
-    /// <returns></returns>
+    /// <param name="destinationData">Destination matrix</param>
+    /// <param name="tiles">Candidate tiles covering the same area</param>
+    /// <returns>True if a tile was copied.</returns>
     public static bool MergeData(int[,]? destinationData, IEnumerable<TileProcessing> tiles)
     {
         if (destinationData == null)

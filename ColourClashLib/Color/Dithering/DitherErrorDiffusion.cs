@@ -13,14 +13,28 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Dithering;
 
+/// <summary>
+/// Base class for error diffusion dithering (Floyd-Steinberg, Atkinson, Stucki, ...).
+/// <para/>
+/// Pixels are scanned left to right, top to bottom. Each pixel is replaced by the nearest palette color
+/// and the quantization error is distributed to the not yet processed neighbours, weighted by
+/// <see cref="errorDiffusionMatrix"/>. Derived classes only provide the kernel.
+/// </summary>
 public abstract class DitherErrorDiffusion : DitherBase
 {
 
     static string sC = nameof(DitherErrorDiffusion);
 
+    /// <summary>
+    /// Error diffusion kernel. The first row is aligned with the current pixel, which sits in the
+    /// middle column; weights on the left of (and including) the current pixel in the first row must be zero.
+    /// </summary>
     protected double[,] errorDiffusionMatrix = null;
 
-
+    /// <summary>
+    /// Divides every kernel weight by <paramref name="n"/>.
+    /// </summary>
+    /// <param name="n">Divider; ignored when zero.</param>
     protected void Normalize(double n)
     {
         if (errorDiffusionMatrix == null)
@@ -42,6 +56,9 @@ public abstract class DitherErrorDiffusion : DitherBase
         }
     }
 
+    /// <summary>
+    /// Normalizes the kernel so that its weights sum to 1 (the whole error is diffused).
+    /// </summary>
     protected void Normalize()
     {
         if (errorDiffusionMatrix == null)
@@ -56,8 +73,15 @@ public abstract class DitherErrorDiffusion : DitherBase
         Normalize(n);
     }
 
+    /// <inheritdoc/>
     public override DitherInterface Create() => this;
 
+    /// <summary>
+    /// Runs the error diffusion over the whole image.
+    /// <para/>
+    /// The output palette is the palette of <paramref name="imageProcessed"/>; tagged (negative) pixels
+    /// of the processed image are copied unchanged to the output.
+    /// </summary>
     protected override ColorTransformResult DitherImplementation(ImageData imageReference, ImageData imageProcessed, ColorDistanceEvaluationMode colorEvaluationMode, CancellationToken token = default)
     {
 
@@ -81,6 +105,7 @@ public abstract class DitherErrorDiffusion : DitherBase
             int kernelColumns = errorDiffusionMatrix.GetLength(1);
             int kernelCenter = kernelColumns / 2;
 
+            // Work on per-channel double buffers: the accumulated error must not be clamped or truncated
             var redOriginal = new double[rows, columns];
             var greenOriginal = new double[rows, columns];
             var blueOriginal = new double[rows, columns];
@@ -116,6 +141,7 @@ public abstract class DitherErrorDiffusion : DitherBase
                 {
                     token.ThrowIfCancellationRequested();
 
+                    // Original color plus the error received so far, clamped to a valid range
                     var oldPixelR = Math.Max(0, Math.Min(255, redOriginal[r, c]));
                     var oldPixelG = Math.Max(0, Math.Min(255, greenOriginal[r, c]));
                     var oldPixelB = Math.Max(0, Math.Min(255, blueOriginal[r, c]));
@@ -131,6 +157,7 @@ public abstract class DitherErrorDiffusion : DitherBase
                     var errorG = oldPixelG - newPixelG;
                     var errorB = oldPixelB - newPixelB;
 
+                    // Spread the error over the neighbours covered by the kernel, centered on the current column
                     for (int rr = 0; rr < kernelRows; rr++)
                     {
                         int rOffset = rr + r;
@@ -153,6 +180,7 @@ public abstract class DitherErrorDiffusion : DitherBase
                 }
             }
 
+            // Restore tagged pixels (masks, tiles, ...) from the processed image
             for (int r = 0; r < rows; r++)
             {
                 token.ThrowIfCancellationRequested();

@@ -29,9 +29,12 @@ namespace ColourClashNet.Color.Conversion
         /// </summary>
         public float V { get; set; }
 
+        /// <inheritdoc/>
         public bool IsValid => H >= 0 && S >= 0 && V >= 0;
 
-
+        /// <summary>
+        /// Creates an HSV color from its components.
+        /// </summary>
         public HSV(float h, float s, float v)
         {
             H = h;
@@ -39,6 +42,9 @@ namespace ColourClashNet.Color.Conversion
             V = v;
         }
 
+        /// <summary>
+        /// Creates an HSV color from an integer RGB color.
+        /// </summary>
         public HSV(int rgb)
         {
             FromIntRGB(rgb);
@@ -46,6 +52,8 @@ namespace ColourClashNet.Color.Conversion
 
         /// <summary>
         /// Converts an RGB color (int representation) to HSV.
+        /// <para/>
+        /// Non-color values produce an invalid HSV (all components set to -1).
         /// </summary>
         public bool FromIntRGB(int rgb)
         {
@@ -59,6 +67,7 @@ namespace ColourClashNet.Color.Conversion
                 float min = Math.Min(r, Math.Min(g, b));
                 float delta = max - min;
 
+                // Hue depends on which channel is the maximum: each one covers a 120 degree sector
                 float h = 0;
                 if (delta > 0)
                 {
@@ -101,6 +110,8 @@ namespace ColourClashNet.Color.Conversion
                 return ColorIntExt.FromRGB(gray, gray, gray);
             }
 
+            // Standard sector based conversion:
+            // c = chroma, x = second largest component, m = offset added to match the value
             float c = v * s;
             float x = c * (1 - Math.Abs((h / 60f) % 2 - 1));
             float m = v - c;
@@ -126,7 +137,9 @@ namespace ColourClashNet.Color.Conversion
         }
 
         /// <summary>
-        /// Calculates the distance between two HSV colors.
+        /// Calculates the squared distance between two HSV colors.
+        /// <para/>
+        /// The hue difference is circular (the shortest arc on the color wheel).
         /// </summary>
         public static double Distance(HSV hsvA, HSV hsvB)
         {
@@ -141,8 +154,8 @@ namespace ColourClashNet.Color.Conversion
         /// <summary>
         /// Creates an HSV instance from an integer RGB representation.
         /// </summary>
-        /// <param name="rgb"></param>
-        /// <returns></returns>
+        /// <param name="rgb">Packed RGB color</param>
+        /// <returns>The HSV color; invalid if <paramref name="rgb"/> is not a color.</returns>
         public static HSV CreateFromIntRGB(int rgb)
             => new HSV(rgb);
 
