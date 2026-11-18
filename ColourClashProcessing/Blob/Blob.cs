@@ -154,7 +154,7 @@ namespace ColourClashProcessing.Blob
 
         public Blob WithFiltering(int minArea, int maxArea, int minWidth, int maxWidth, int minHeight, int maxHeight)
         {
-            config.WithFiltering(minWidth, maxWidth, minHeight, maxHeight, minArea, maxArea);
+            config.WithFiltering(minWidth, minHeight, minArea, maxWidth, maxHeight, maxArea);
             return this;
         }
         public Blob WithFiltering(BlobConfig config)

@@ -263,7 +263,8 @@ namespace ColourClashNet.Color.Transformation
                     throw new NotImplementedException($"{VideoMode} Unsupported video mode");
 
             }
-            WithReferencePalette(refPalette);
+            // Force the overwrite: the reference palette is locked after the first run, so mode changes would be ignored
+            WithReferencePalette(refPalette, true);
         }
 
         protected override ColorTransformResult CreateTransformationMap(CancellationToken oToken = default)
@@ -294,6 +295,8 @@ namespace ColourClashNet.Color.Transformation
                 case CGAVideoMode.Composite_0:
                     return base.ExecuteTransform(token);
                 case CGAVideoMode.Composite_1:
+                    return base.ExecuteTransform(token);
+                case CGAVideoMode.DebugPalette:
                     return base.ExecuteTransform(token);
                 default:
                     return ColorTransformResult.CreateErrorResult($"Unsupported video mode {VideoMode}");

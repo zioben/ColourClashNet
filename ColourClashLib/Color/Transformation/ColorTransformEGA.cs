@@ -31,6 +31,7 @@ namespace ColourClashNet.Color.Transformation
                     0x00_55_55_55,
                     0x00_55_55_FF,
                     0x00_55_FF_55,
+                    0x00_55_FF_FF,
                     0x00_FF_55_55,
                     0x00_FF_55_FF,
                     0x00_FF_FF_55,

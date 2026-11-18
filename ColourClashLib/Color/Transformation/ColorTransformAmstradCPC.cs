@@ -28,7 +28,7 @@ namespace ColourClashNet.Color.Transformation
         }
         public ColorTransformAmstradCPC()
         {
-            Type = ColorTransformType.ColorReductionCBM64;
+            Type = ColorTransformType.ColorReductionCPC;
             Description = "Reduce color to Amstrad CPC palette";
         }
 
@@ -72,7 +72,9 @@ namespace ColourClashNet.Color.Transformation
                    0x00_FF_FF_00,
                    0x00_FF_FF_80,
                    0x00_FF_FF_FF,
-                }
+                },
+                // Force the overwrite: the reference palette may already be locked (previous run or SetProperties)
+                true
             );
         }
 

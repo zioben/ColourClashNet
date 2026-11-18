@@ -83,7 +83,8 @@ public partial class TileManager
                 NormalizationError = normalizationError;
 
                 ImageSource = new ImageData().Create(image);
-                tileProcessingMatrix = new TileProcessing[(ImageSource.Height) / TileH, (ImageSource.Width) / TileW];
+                // Round up: partial tiles on the right/bottom edges must be processed too
+                tileProcessingMatrix = new TileProcessing[(ImageSource.Height + TileH - 1) / TileH, (ImageSource.Width + TileW - 1) / TileW];
 
                 //Parallel.For(0, TileRows, r =>
                 for (int r = 0; r < TileRows; r++)
@@ -97,8 +98,8 @@ public partial class TileManager
                             ImageSource,
                             xs,
                             ys,
-                            TileW,
-                            TileH,
+                            Math.Min(TileW, ImageSource.Width - xs),
+                            Math.Min(TileH, ImageSource.Height - ys),
                             NormalizationError,
                             colorTransformConfig);
                     }
@@ -137,7 +138,12 @@ public partial class TileManager
                     int rr = r;
                     int cc = c;
                     token.ThrowIfCancellationRequested();
-                    tileProcessingMatrix[rr, cc].ProcessTile(token);
+                    var tileResult = tileProcessingMatrix[rr, cc].ProcessTile(token);
+                    if (!tileResult.IsSuccess)
+                    {
+                        LogMan.Error(sC, sM, $"Tile ({rr},{cc}) processing failed : {tileResult.Message}");
+                        return ColorTransformResult.CreateErrorResult($"Tile ({rr},{cc}) processing failed : {tileResult.Message}", tileResult.Exception);
+                    }
                 };
             }//);
             var dError = RecalcGlobalTransformationError();

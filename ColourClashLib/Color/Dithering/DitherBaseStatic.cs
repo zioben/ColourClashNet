@@ -31,7 +31,7 @@ namespace ColourClashNet.Color.Dithering
                 case ColorDithering.Ordered_6x6:
                     return new DitherOrdered() { DitheringStrenght = ditheringStrength, Size = 6, DitheringFx = extraFxMode };
                 case ColorDithering.Ordered_8x8:
-                    return new DitherOrdered() { DitheringStrenght = ditheringStrength, Size = 5, DitheringFx = extraFxMode };
+                    return new DitherOrdered() { DitheringStrenght = ditheringStrength, Size = 8, DitheringFx = extraFxMode };
                 case ColorDithering.ScanLine:
                     return new DitherScanLine() { DitheringStrenght = ditheringStrength, DitheringFx = extraFxMode };
                 case ColorDithering.Sierra:

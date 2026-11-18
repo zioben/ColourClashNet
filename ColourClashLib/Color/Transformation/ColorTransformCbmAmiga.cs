@@ -71,7 +71,7 @@ namespace ColourClashNet.Color.Transformation
                 int iRgbPrev = ColorDefaults.DefaultInvalidColorInt; ;
                 var oPalette = new Palette();
                 token.ThrowIfCancellationRequested();
-                for (int c = 1; c < oDataSource.Columns; c++)
+                for (int c = 0; c < oDataSource.Columns; c++)
                 {
                     if (iRgbPrev < 0)
                     {
@@ -175,10 +175,10 @@ namespace ColourClashNet.Color.Transformation
                 switch (AmigaVideoMode)
                 {
                     case EnumAmigaVideoMode.Ham6:
-                        oAmigaData = ToHam(ImageSource, oDataPreprocessedResult.DataOut, ColorQuantizationMode.RGB444);
+                        oAmigaData = ToHam(ImageSource, oDataPreprocessedResult.DataOut, ColorQuantizationMode.RGB444, token);
                         break;
                     case EnumAmigaVideoMode.Ham8:
-                        oAmigaData = ToHam(ImageSource, oDataPreprocessedResult.DataOut, ColorQuantizationMode.RGB666);
+                        oAmigaData = ToHam(ImageSource, oDataPreprocessedResult.DataOut, ColorQuantizationMode.RGB666, token);
                         break;
                     default:
                         oAmigaData = null;

@@ -25,11 +25,13 @@ namespace ColourClashNet.Color.Transformation
             var rgbList = ImageSource.ColorPalette.ToList();
             Palette paletteEnhance = new ();
             paletteEnhance.Create(ReferencePalette);
-            for (int i = 0; i < ReferencePalette.Count; i++)
+            // Enhanced colors are the pairwise means of the reference palette colors
+            var refList = ReferencePalette.ToList();
+            for (int i = 0; i < refList.Count; i++)
             {
-                for (int j = i + 1; j < ReferencePalette.Count; j++)
+                for (int j = i + 1; j < refList.Count; j++)
                 {
-                    paletteEnhance.Add(ColorIntExt.GetColorMean(rgbList[i], rgbList[j]));
+                    paletteEnhance.Add(ColorIntExt.GetColorMean(refList[i], refList[j]));
                 }
             }
             //Parallel.ForEach(rgbListEnhance, rgb =>

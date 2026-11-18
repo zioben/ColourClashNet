@@ -116,6 +116,7 @@ namespace ColourClashNet.Color.Transformation
             return config.Clone()
                 .WithReferencePalette(palette)
                 .WithDithering(DitheringConfig)
+                .WithDitheringType(ditheringType)
                 .WithClustering(2, 6, ColorSelectionMode.UseColorPalette);                
         }
 
@@ -325,7 +326,7 @@ namespace ColourClashNet.Color.Transformation
                         }
                     }
                     step = 8;
-                    start = (int)(bestResult.ColorSeedInLow - 16);
+                    start = Math.Max(0, (int)(bestResult.ColorSeedInLow - 16));
                     endL = (int)(bestResult.ColorSeedInLow + 16);
                     endH = bestResult.ColorSeedInHigh + 9;
                     RaiseProcessPartialEvent(new ColorProcessingEventArgs()

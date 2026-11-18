@@ -111,6 +111,7 @@ namespace ColourClashNet.Color.Transformation
                     0x00_55_55_55,
                     0x00_80_80_80,
                     0x00_AC_EA_88,
+                    0x00_7C_70_DA,
                     0x00_AB_AB_AB,
                 });
 
@@ -173,6 +174,8 @@ namespace ColourClashNet.Color.Transformation
         TileManager CreateTileManager(int tileWidth, int tileHeight, int maxColors, ImageData image, Palette referencePalette, CancellationToken token = default)
         {
             var cfg = config.Clone().WithReferencePalette(referencePalette).WithDithering(DitheringConfig).WithMaxColorWanted(maxColors);
+            // Tile colors must be picked from the (C64) image colors, not evaluated as cluster means
+            cfg.ClusterColorSelectionMode = ColorSelectionMode.UseColorPalette;
             tileManager = new TileManager()
                 .WithTileBorder(TileBorderShow, TileBorderColor)
                 .Create(tileWidth, tileHeight, image, 1.0, cfg, token);
