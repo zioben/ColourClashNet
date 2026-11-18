@@ -37,9 +37,6 @@ public partial class TileManager
     public event EventHandler<ColorProcessingEventArgs>? ProcessPartial;
 
     /// <summary>
-    /// Raises <see cref="ProcessPartial"/> with a copy of <paramref name="args"/>.
-    /// </summary>
-    /// <summary>
     /// Minimum interval between two forwarded tile transformation events.
     /// <para/>
     /// Every tile runs its own transformation (e.g. 1000 tiles x 10 clustering loops for a C64 image):
@@ -66,6 +63,9 @@ public partial class TileManager
         RaiseProcessPartialEvent(sender, args);
     }
 
+    /// <summary>
+    /// Raises <see cref="ProcessPartial"/> with a copy of <paramref name="args"/>.
+    /// </summary>
     void RaiseProcessPartialEvent(object? sender, ColorProcessingEventArgs args)
     {
         if (ProcessPartial == null || args == null)
