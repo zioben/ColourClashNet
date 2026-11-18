@@ -171,19 +171,6 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        /// <summary>
-        /// Applies the transformation map.
-        /// </summary>
-        protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
-        {
-
-            var outputImage = TransformationMap.Transform(ImageSource, token);
-            if (outputImage != null)
-            {
-                return ColorTransformResult.CreateValidResult(ImageSource, outputImage);
-            }
-            return new();
-        }
     }
 
     /// <summary>

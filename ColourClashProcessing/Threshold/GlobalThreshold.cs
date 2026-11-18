@@ -79,7 +79,7 @@ namespace ColourClashProcessing.Threshold
         /// <summary>
         /// Applies the threshold.
         /// </summary>
-        /// <returns>A result whose output is the binary image (shape colors).</returns>
+        /// <returns>A result whose output is the binary image (shape colors), or an error result.</returns>
         public ColorTransformResult Process(ImageData image, CancellationToken cancellationToken = default)
         {
             string sM = nameof(Process);
@@ -112,12 +112,12 @@ namespace ColourClashProcessing.Threshold
             catch (OperationCanceledException cex)
             {
                 LogMan.Exception(sC, sM, $"Operation canceled",cex);
-                return ColorTransformResult.CreateErrorResult(image, null, $"Operation canceled", cex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, image, null, "threshold cancelled", cex);
             }
             catch (Exception ex)
             {
                 LogMan.Exception(sC, sM, $"Operation failed", ex);
-                throw;
+                return ColorTransformResult.CreateErrorResult(sC, sM, image, null, "threshold failed", ex);
             }
         }
     }

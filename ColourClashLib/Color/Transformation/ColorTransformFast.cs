@@ -79,13 +79,5 @@ namespace ColourClashNet.Color.Transformation
             return ColorTransformResult.CreateValidResult();
         }
 
-        /// <summary>
-        /// Applies the transformation map.
-        /// </summary>
-        protected override ColorTransformResult ExecuteTransform(CancellationToken token)
-        {
-            var outputImage = TransformationMap.Transform(ImageSource, token);
-            return ColorTransformResult.CreateValidResult(ImageSource, outputImage);
-        }
     }
 }

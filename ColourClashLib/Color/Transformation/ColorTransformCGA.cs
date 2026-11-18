@@ -13,6 +13,7 @@ namespace ColourClashNet.Color.Transformation
     /// </summary>
     public class ColorTransformCGA : ColorTransformFixedPalette
     {
+        static readonly string sC = nameof(ColorTransformCGA);
 
         /// <summary>
         /// CGA video modes.
@@ -369,7 +370,7 @@ namespace ColourClashNet.Color.Transformation
                 case CGAVideoMode.DebugPalette:
                     return base.ExecuteTransform(token);
                 default:
-                    return ColorTransformResult.CreateErrorResult($"Unsupported video mode {VideoMode}");
+                    return ColorTransformResult.CreateErrorResult(sC, nameof(ExecuteTransform), ImageSource, null, $"{Type} : unsupported video mode {VideoMode}");
             }
         }
     }

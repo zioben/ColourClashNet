@@ -39,11 +39,7 @@ namespace ColourClashNet.Color.Transformation
                 catch (Exception ex)
                 {
                     LogMan.Exception(sC, sM, $"{Type}", ex);
-                    return new ColorTransformResult()
-                    {
-                        Exception = ex,
-                        Message = ex.Message
-                    };
+                    return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : image copy failed", ex);
                 }
 
         }

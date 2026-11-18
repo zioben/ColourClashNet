@@ -269,7 +269,7 @@ namespace ColourClashProcessing.Blob
                 if (!thresholdResult.IsSuccess)
                 {
                     LogMan.Error(sC, sM, $"Threshold processing failed: {thresholdResult.Message}", thresholdResult.Exception);
-                    return thresholdResult;
+                    return ColorTransformResult.CreateErrorResultFrom(sC, sM, image, "threshold stage failed", thresholdResult);
                 }
 
                 // 2. horizontal run lengths of the foreground
@@ -277,7 +277,7 @@ namespace ColourClashProcessing.Blob
                 if (!shapeResult.IsSuccess)
                 {
                     LogMan.Error(sC, sM, $"Shape processing failed: {shapeResult.Message}", shapeResult.Exception);
-                    return shapeResult;
+                    return ColorTransformResult.CreateErrorResultFrom(sC, sM, image, "run length stage failed", shapeResult);
                 }
 
                 // 3. run lengths -> blobs
@@ -313,14 +313,14 @@ namespace ColourClashProcessing.Blob
             {
                 LogMan.Exception(sC, sM, "Operation canceled", cex);
                 timer.Update();
-                return ColorTransformResult.CreateErrorResult(image, null, "Operation canceled", cex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, image, null, "blob processing cancelled", cex);
             }
             catch (Exception ex)
             {
                 LogMan.Exception(sC, sM, "Blob processing failed", ex);
                 ResetResults();
                 timer.Update();
-                return ColorTransformResult.CreateErrorResult(image, null, $"Exception during blob processing: {ex.Message}", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, image, null, $"blob processing failed : {ex.Message}", ex);
             }
         }
 

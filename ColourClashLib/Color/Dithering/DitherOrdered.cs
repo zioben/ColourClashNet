@@ -200,15 +200,15 @@ namespace ColourClashNet.Color.Dithering
                 var ditheredImage = new ImageData().Create(dataOut);
                 return ColorTransformResult.CreateValidResult(imageReference, ditheredImage);
             }
-            catch (TaskCanceledException et)
-            {
-                LogMan.Exception(sC, sM, $"{Type}", et);
-                return ColorTransformResult.CreateErrorResult(et);
-            }
             catch (OperationCanceledException ex)
             {
-                LogMan.Exception(sC, sM, $"{Type}", ex);
-                return ColorTransformResult.CreateErrorResult(ex);
+                LogMan.Exception(sC, sM, $"{Type} : dithering cancelled", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, imageReference, null, $"{Type} : dithering cancelled", ex);
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, $"{Type} : dithering failed", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, imageReference, null, $"{Type} : dithering failed", ex);
             }
         }
     }

@@ -304,6 +304,13 @@ namespace ColourClashNet.Components
                     .SetProperties(noDitherConfig)
                     .Create(DataSourceX);
                 var bkgRemovedResult = transformBkgRemover.ProcessColors(cts.Token);
+                if (!bkgRemovedResult.IsSuccess)
+                {
+                    // Error results may carry a partial image: never use it as a pipeline stage
+                    LogMan.Error(sClass, sMethod, $"Background removal failed : {bkgRemovedResult.Message}");
+                    InvalidatePreProcess = true;
+                    return null;
+                }
                 DataBkgRemoved = bkgRemovedResult.DataOut;
                 ImageBkgRemoved = ImageToolsGDI.ImageDataToGdiImage(DataBkgRemoved);
 
@@ -313,6 +320,12 @@ namespace ColourClashNet.Components
                     .Create(DataBkgRemoved);
 
                 var quantizedResult = transformQuantizer.ProcessColors(cts.Token);
+                if (!quantizedResult.IsSuccess)
+                {
+                    LogMan.Error(sClass, sMethod, $"Quantization failed : {quantizedResult.Message}");
+                    InvalidatePreProcess = true;
+                    return null;
+                }
                 DataQuantized = quantizedResult.DataOut;
                 ImageQuantized = ImageToolsGDI.ImageDataToGdiImage(DataQuantized);
 
@@ -368,6 +381,13 @@ namespace ColourClashNet.Components
                 ProcessingForm.CreateProcessingForm(transformProcessing, cts);
                 transformProcessing.Create(DataQuantized);
                 var processedResult = transformProcessing.ProcessColors(cts.Token);
+                if (!processedResult.IsSuccess)
+                {
+                    LogMan.Error(sClass, sMethod, $"{transformType} failed : {processedResult.Message}");
+                    DataProcessed = null;
+                    ImageProcessed = null;
+                    return null;
+                }
                 DataProcessed = processedResult.DataOut;
                 ImageProcessed = ImageToolsGDI.ImageDataToGdiImage(DataProcessed);
                 OnProcess?.Invoke(this, new ColorManagerProcessEventArgs

@@ -1,6 +1,7 @@
 ﻿using ColourClashNet.Color;
 using ColourClashNet.Color.Dithering;
 using ColourClashNet.Imaging;
+using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,7 @@ namespace ColourClashNet.Color.Transformation
     /// </summary>
     public class ColorTransformAmstradCPC : ColorTransformFixedPalette
     {
+        static readonly string sC = nameof(ColorTransformAmstradCPC);
 
         /// <summary>
         /// Amstrad CPC video modes.
@@ -142,67 +144,51 @@ namespace ColourClashNet.Color.Transformation
         /// <summary>
         /// Reduces the mapped image to <paramref name="maxColors"/>, applies dithering and restores the horizontal resolution.
         /// </summary>
-        ImageData? PostProcess(ImageData image, int maxColors, bool doubleRes, CancellationToken token)
+        /// <returns>A valid result with the final image, or an error result describing the failed step.</returns>
+        ColorTransformResult PostProcess(ImageData image, int maxColors, bool doubleRes, CancellationToken token)
         {
+            string sM = nameof(PostProcess);
+
             // Keep only the colors allowed by the video mode among the mapped CPC colors
-            var result = new ColorTransformFast()
-                .WithProcessingParams(maxColors)
-                .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
-                .CreateAndProcessColors(image, token);
+            var fastReduction = ForwardEventsFrom(new ColorTransformFast());
+            fastReduction.WithProcessingParams(maxColors)
+                .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
+            var result = fastReduction.CreateAndProcessColors(image, token);
+            if (result == null || !result.IsSuccess)
+            {
+                LogMan.Error(sC, sM, $"{Type} : {maxColors} color reduction failed");
+                return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : {maxColors} color reduction failed", result);
+            }
 
             BypassDithering = true;
 
+            var reducedImage = result.DataOut;
             if (DitheringConfig.DitheringType != ColorDithering.None)
             {
                 var imageRef = doubleRes ? ImageTools.HalveXResolution(ImageSource,  HalveResolutionMode.OddPixel) : ImageSource;
                 var dithering = DitherBase.CreateDitherInterface(DitheringConfig);
-                var ditheredResult = dithering.Dither(imageRef, result.DataOut, ColorDistanceEvaluationMode, token);
-                return doubleRes ? ImageTools.DoubleXResolution(ditheredResult.DataOut) : ditheredResult.DataOut;
+                var ditheredResult = dithering.Dither(imageRef, reducedImage, ColorDistanceEvaluationMode, token);
+                if (ditheredResult == null || !ditheredResult.IsSuccess)
+                {
+                    LogMan.Error(sC, sM, $"{Type} : dithering failed");
+                    return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, reducedImage, $"{Type} : dithering failed : {ditheredResult?.Message}", ditheredResult?.Exception);
+                }
+                reducedImage = ditheredResult.DataOut;
             }
-            else
-            {
-                return doubleRes ? ImageTools.DoubleXResolution(result.DataOut) : result.DataOut;
-            }
-        }
-        
-
-        /// <summary>
-        /// Mode 0: 16 colors, wide pixels.
-        /// </summary>
-        ImageData? ToMode0( CancellationToken token)
-        {
-            var imagePre = PreProcess(true, token);
-            var imagePost = PostProcess(imagePre, 16, true, token);
-            return imagePost;
-        }
-        /// <summary>
-        /// Mode 1: 4 colors.
-        /// </summary>
-        ImageData? ToMode1( CancellationToken token)
-        {
-            var imagePre = PreProcess(false, token);
-            var imagePost = PostProcess(imagePre, 4, false, token);
-            return imagePost;
+            var outputImage = doubleRes ? ImageTools.DoubleXResolution(reducedImage) : reducedImage;
+            return ColorTransformResult.CreateValidResult(ImageSource, outputImage);
         }
 
         /// <summary>
-        /// Mode 2: 2 colors.
+        /// Maps the image to the CPC palette and reduces it to the colors of a video mode.
         /// </summary>
-        ImageData? ToMode2( CancellationToken token)
+        /// <param name="maxColors">Colors of the video mode</param>
+        /// <param name="widePixels">True for the wide-pixel modes (half horizontal resolution)</param>
+        /// <param name="token">Cancellation token</param>
+        ColorTransformResult ToMode(int maxColors, bool widePixels, CancellationToken token)
         {
-            var imagePre = PreProcess(false, token);
-            var imagePost = PostProcess(imagePre, 2, false, token);
-            return imagePost;
-        }
-
-        /// <summary>
-        /// Mode 3: 4 colors, wide pixels.
-        /// </summary>
-        ImageData? ToMode3( CancellationToken token)
-        {
-            var imagePre = PreProcess(true, token);
-            var imagePost = PostProcess(imagePre, 4, true, token);
-            return imagePost;
+            var imagePre = PreProcess(widePixels, token);
+            return PostProcess(imagePre, maxColors, widePixels, token);
         }
 
         /// <summary>
@@ -210,34 +196,41 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         protected override ColorTransformResult ExecuteTransform(CancellationToken token)
         {
-            ImageData? outputImage = null;
+            string sM = nameof(ExecuteTransform);
             BypassDithering = true;
-
-            switch (VideoMode)
+            try
             {
-                case CPCVideoMode.Mode0:
-                        outputImage= ToMode0(token );
-                    break;
-                case CPCVideoMode.Mode1:
-                        outputImage = ToMode1(token);
-                    break;
-                case CPCVideoMode.Mode2:
-                        outputImage = ToMode2(token);
-                    break;
-                case CPCVideoMode.Mode3:
-                        outputImage = ToMode3(token);
-                    break;
-                case CPCVideoMode.DebugPalette:
-                        outputImage = PreProcess(false, token);
-                    break;
-                default:
-                    break;
+                switch (VideoMode)
+                {
+                    case CPCVideoMode.Mode0:
+                        // 160x200, 16 colors, wide pixels
+                        return ToMode(16, true, token);
+                    case CPCVideoMode.Mode1:
+                        // 320x200, 4 colors
+                        return ToMode(4, false, token);
+                    case CPCVideoMode.Mode2:
+                        // 640x200, 2 colors
+                        return ToMode(2, false, token);
+                    case CPCVideoMode.Mode3:
+                        // 160x200, 4 colors, wide pixels
+                        return ToMode(4, true, token);
+                    case CPCVideoMode.DebugPalette:
+                        return ColorTransformResult.CreateValidResult(ImageSource, PreProcess(false, token));
+                    default:
+                        LogMan.Error(sC, sM, $"{Type} : unsupported video mode {VideoMode}");
+                        return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : unsupported video mode {VideoMode}");
+                }
             }
-            if (outputImage != null)
-            { 
-                return ColorTransformResult.CreateValidResult(ImageSource, outputImage);
+            catch (OperationCanceledException ex)
+            {
+                LogMan.Exception(sC, sM, $"{Type} : operation cancelled", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : operation cancelled", ex);
             }
-            return new ColorTransformResult();
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, $"{Type} : video mode {VideoMode} conversion failed", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : video mode {VideoMode} conversion failed", ex);
+            }
         }
     }
 }

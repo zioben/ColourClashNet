@@ -43,7 +43,7 @@ namespace ColourClashNet.Controls
                 {
                     cts = args.CancellationTokenSource;
                 }
-                if (args.ProcessingResults.Message != null)
+                if (args.ProcessingResults?.Message != null)
                 {
                     lbHistory.Items.Insert(0, args.ProcessingResults.Message);
                 }

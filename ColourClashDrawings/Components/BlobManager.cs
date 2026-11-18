@@ -140,7 +140,7 @@ namespace ColourClashNet.Components
                 var result = BlobAnalysis.Process(sourceImage, cts.Token);
                 if (!result.IsSuccess)
                 {
-                    LogMan.Error(sC, sM, "Blob analysis failed");
+                    LogMan.Error(sC, sM, $"Blob analysis failed : {result.Message}");
                     return null;
                 }
                 // Output: all blobs stacked vertically, with 1 pixel of padding

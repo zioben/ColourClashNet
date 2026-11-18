@@ -1,6 +1,7 @@
 ﻿using ColourClashNet.Color.Transformation;
 using ColourClashNet.Color;
 using ColourClashNet.Imaging;
+using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -137,15 +138,28 @@ namespace ColourClashNet.Color.Transformation
             String sM = nameof(ExecuteTransform);
             BypassDithering = true;
             ColorListRow.Clear();
-
-            switch (PaletteMode)
+            try
             {
-                case ScanlinePaletteMode.IndependentChunkPalette:
-                    return ExecuteTransformIndependentPalette(token);
-                case ScanlinePaletteMode.SharedChunksPalette:
-                    return ExecuteTransformSharedPalette(token);
-                default:
-                    throw new NotImplementedException($"{sC}.{sM} : ReductionModePalette {PaletteMode} not implemented");
+                switch (PaletteMode)
+                {
+                    case ScanlinePaletteMode.IndependentChunkPalette:
+                        return ExecuteTransformIndependentPalette(token);
+                    case ScanlinePaletteMode.SharedChunksPalette:
+                        return ExecuteTransformSharedPalette(token);
+                    default:
+                        LogMan.Error(sC, sM, $"{Type} : palette mode {PaletteMode} not implemented");
+                        return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : palette mode {PaletteMode} not implemented");
+                }
+            }
+            catch (OperationCanceledException ex)
+            {
+                LogMan.Exception(sC, sM, $"{Type} : operation cancelled", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : operation cancelled", ex);
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, $"{Type} : scanline processing failed", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : scanline processing failed", ex);
             }
         }
 
@@ -156,18 +170,7 @@ namespace ColourClashNet.Color.Transformation
         {
             string sM = nameof(ExecuteTransformIndependentPalette);
             var cfg = config.Clone().WithMaxColorWanted(MaxColorsPerChunk).WithReferencePalette(ReferencePalette);
-            TileManager = new TileManager()
-                .Create(ImageSource.Width, ChunkHeight, ImageSource, 1.0, cfg, token);
-            var tileResult = TileManager.ProcessColors(token);
-            if (tileResult.IsSuccess)
-            {
-                ImageOutput = TileManager.MergeToImage(new List<TileManager?>() { TileManager });
-                return ColorTransformResult.CreateValidResult(ImageSource, ImageOutput);
-            }
-            else
-            {
-                return ColorTransformResult.CreateErrorResult(ImageSource, ImageSource, $"{sC}.{sM} : Tile processing error : {tileResult.Message}");
-            }
+            return ProcessChunks(sM, ImageSource, cfg, token);
         }
 
         /// <summary>
@@ -181,26 +184,48 @@ namespace ColourClashNet.Color.Transformation
             if (mainPalette.Count > MaxColorsWanted)
             {
                 // Reduce the whole image first: its palette becomes the shared palette of all chunks
-                var transform = ColorTransformInternal.Alloc(config,config.ScanlineInternalTransformationModel).Create(ImageSource);
-                var result = transform.ProcessColors(token);
+                var transform = ForwardEventsFrom(ColorTransformInternal.Alloc(config, config.ScanlineInternalTransformationModel));
+                var result = transform.CreateAndProcessColors(ImageSource, token);
+                if (result == null || !result.IsSuccess || result.DataOut == null)
+                {
+                    LogMan.Error(sC, sM, $"{Type} : shared palette reduction failed");
+                    return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : shared palette reduction failed", result);
+                }
                 mainImage = result.DataOut;
             }
-            ImageData.AssertValid(mainImage);
             var cfg = config.Clone()
                 .WithMaxColorWanted(MaxColorsPerChunk)
                 .WithReferencePalette(new(), true);
-            TileManager = new TileManager()
-                .Create(mainImage.Width, ChunkHeight, mainImage, 1.0, cfg, token);
+            return ProcessChunks(sM, mainImage, cfg, token);
+        }
+
+        /// <summary>
+        /// Splits <paramref name="image"/> into chunks of <see cref="ChunkHeight"/> lines and reduces each one.
+        /// </summary>
+        /// <param name="sM">Calling method, used in error messages</param>
+        /// <param name="image">Image to split</param>
+        /// <param name="cfg">Configuration of each chunk reduction</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>A valid result with the merged chunks, or an error result.</returns>
+        ColorTransformResult ProcessChunks(string sM, ImageData image, ColorTransformConfig cfg, CancellationToken token)
+        {
+            TileManager = new TileManager();
+            // Subscribe before Create: the chunks forward their transformation events through the manager
+            ForwardEventsFrom(TileManager);
+            TileManager.Create(image.Width, ChunkHeight, image, 1.0, cfg, token);
             var tileResult = TileManager.ProcessColors(token);
-            if (tileResult.IsSuccess)
-            { 
-                ImageOutput = TileManager.MergeToImage(new List<TileManager?>() { TileManager });
-                return ColorTransformResult.CreateValidResult(ImageSource, ImageOutput);
-            }
-            else
+            if (tileResult == null || !tileResult.IsSuccess)
             {
-                return ColorTransformResult.CreateErrorResult(ImageSource, null, $"{sC}.{sM} : Tile processing error : {tileResult.Message}");
+                LogMan.Error(sC, sM, $"{Type} : chunk processing failed");
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, image, $"{Type} : chunk processing failed : {tileResult?.Message}", tileResult?.Exception);
             }
+            var outputImage = TileManager.MergeToImage(new List<TileManager?>() { TileManager });
+            if (outputImage == null)
+            {
+                LogMan.Error(sC, sM, $"{Type} : chunk merge failed");
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, image, $"{Type} : chunk merge failed");
+            }
+            return ColorTransformResult.CreateValidResult(ImageSource, outputImage);
         }
     }
 }

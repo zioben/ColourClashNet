@@ -62,26 +62,30 @@ namespace ColourClashNet.Color.Transformation
         {
             string sM = nameof(ExecuteTransform);
 
-            var quantization = new ColorTransformQuantization();
+            var quantization = ForwardEventsFrom(new ColorTransformQuantization());
             quantization.WithQuantization(ColorQuantizationMode.RGB666)
                          .WithReferencePalette(ReferencePalette)
                          .WithDithering( ColorDithering.None);
             var resultQuantized = quantization.CreateAndProcessColors(ImageSource, token);
+            if (resultQuantized == null || !resultQuantized.IsSuccess)
+            {
+                LogMan.Error(sC, sM, $"{Type} : RGB666 quantization failed");
+                return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : RGB666 quantization failed", resultQuantized);
+            }
 
-            var cluster = new ColorTransformClustering()
-            .WithProcessingParams(MaxColorUsed, 10, ColorSelectionMode.EvaluateColorMean)
+            var cluster = ForwardEventsFrom(new ColorTransformClustering());
+            cluster.WithProcessingParams(MaxColorUsed, 10, ColorSelectionMode.EvaluateColorMean)
             .WithColorDistanceEvaluationMode(config)
             .WithDithering(config)
             .WithReferencePalette(config);
 
-            cluster.ProcessPartial += (_, args) => RaiseProcessPartialEvent(args);
-
             var clusterResult = cluster.CreateAndProcessColors(resultQuantized.DataOut, token);
-            if(clusterResult.IsSuccess)
+            if (clusterResult == null || !clusterResult.IsSuccess)
             {
-                 return ColorTransformResult.CreateValidResult(ImageSource, clusterResult.DataOut);
+                LogMan.Error(sC, sM, $"{Type} : clustering failed");
+                return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : clustering failed", clusterResult);
             }
-            return ColorTransformResult.CreateErrorResult("Processing error");
+            return ColorTransformResult.CreateValidResult(ImageSource, clusterResult.DataOut);
         }
 
     }
