@@ -142,12 +142,13 @@ namespace ColourClashNet.Controls
             CreateComboBox(cbCgaVideoMode, Enum.GetNames(typeof(ColorTransformCGA.CGAVideoMode)).ToList());
             CreateComboBox(cbCgaVideoOutput, Enum.GetNames(typeof(ColorTransformCGA.CGACompositeOutputMode)).ToList());
             CreateComboBox(cbBlobConnectionMode, Enum.GetNames(typeof(BlobConnectionModes)).ToList());
+            pbBkgColor.BackColor = System.Drawing.Color.FromArgb(255, ColorDefaults.DefaultBkgColorInt.ToR(), ColorDefaults.DefaultBkgColorInt.ToG(), ColorDefaults.DefaultBkgColorInt.ToB());
             bitmapRenderSource.ColorAdded += (s, e) => { BuildBkgPalette(); };
             bitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };
             colorManager.OnQuantize += (s, e) => { Invoke(() => RefreshData()); };
             colorManager.OnProcess += (s, e) => { Invoke(() => { RefreshData(); RebuildParams(e.Transformation); }); };
             blobManager.OnPreProcess += (s, e) => { blobManager.WithProcessingParams(colorManager.TransformConfig.ColorBackgroundPalette, colorManager.TransformConfig.ColorBackgroundReplacementValue); };
-        }                
+        }
 
         /// <summary>
         /// Applies the UI settings and runs the pre-processing again.
@@ -189,7 +190,7 @@ namespace ColourClashNet.Controls
         /// </summary>
         void BuildBkgPalette()
         {
-            pbBkColor.Image = null;
+            pbBkgColorList.Image = null;
             var bkgColors = bitmapRenderSource.SelectedColors;
             if (bkgColors.Count > 0)
             {
@@ -206,8 +207,8 @@ namespace ColourClashNet.Controls
                         }
                     }
                 }
-                pbBkColor.SizeMode = PictureBoxSizeMode.StretchImage;
-                pbBkColor.Image = bmp;
+                pbBkgColorList.SizeMode = PictureBoxSizeMode.StretchImage;
+                pbBkgColorList.Image = bmp;
             }
             colorManager.TransformConfig.WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt);
             colorManager.PreProcess();
@@ -271,7 +272,7 @@ namespace ColourClashNet.Controls
             bitmapRenderSource.ResetMouseSelectedColors();
             bitmapRenderSource.OriginZero();
             //
-            colorManager.TransformConfig.WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt);
+            colorManager.TransformConfig.WithBackgroundColorReplacement(GetBkgColors(), ColorIntExtGdi.FromDrawingColor(pbBkgColor.BackColor));
             colorManager.Create(ResizeBitmap(loadedBmp));
             ImageCreated?.Invoke(this, new DataSourceEventArgs()
             {
@@ -332,7 +333,7 @@ namespace ColourClashNet.Controls
         {
             colorManager.TransformConfig.WithBackgroundColorReplacement(
                 GetBkgColors(),
-                ColorDefaults.DefaultBkgColorInt);
+                ColorIntExtGdi.FromDrawingColor(pbBkgColor.BackColor));
             //
             colorManager.TransformConfig.WithQuantizationMode(QuantizationMode);
             //
@@ -582,5 +583,16 @@ namespace ColourClashNet.Controls
                 BlobTools.ExportImages(blobManager.BlobAnalysis, path, prefix);
             }
         }
+
+        private void btnChangeBkg_Click(object sender, EventArgs e)
+        {
+            colorDialog1.Color = pbBkgColor.BackColor;
+            if (colorDialog1.ShowDialog() == DialogResult.OK)
+            {
+                pbBkgColor.BackColor = colorDialog1.Color;
+                Preprocess();
+            }
+        }
+
     }
 }
