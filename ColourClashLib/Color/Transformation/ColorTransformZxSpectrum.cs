@@ -173,6 +173,14 @@ namespace ColourClashNet.Color.Transformation
             set => config.ZxIncludeBlackInHighColorImage = value;
         }
         /// <summary>
+        /// Includes white in the bright palette.
+        /// </summary>
+        public bool IncludeWhiteInHighColor
+        {
+            get => config.ZxIncludeWhiteInHighColorImage;
+            set => config.ZxIncludeWhiteInHighColorImage = value;
+        }
+        /// <summary>
         /// Input seed search mode.
         /// </summary>
         public ZxAutotuneMode AutotuneMode 
@@ -241,7 +249,7 @@ namespace ColourClashNet.Color.Transformation
         /// <summary>
         /// Sets the processing settings (fluent).
         /// </summary>
-        public ColorTransformZxSpectrum WithProcessingParams(ZxAutotuneMode autotuneMode, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor)
+        public ColorTransformZxSpectrum WithProcessingParams(ZxAutotuneMode autotuneMode, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor, bool includeWhiteInHighColor)
         {
             DitherLowColorImage = ditherLowColorImage;
             DitherHighColorImage = ditherHighColorImage;
@@ -254,7 +262,7 @@ namespace ColourClashNet.Color.Transformation
         /// Sets the processing settings from a configuration (fluent).
         /// </summary>
         public ColorTransformZxSpectrum WithProcessingParams(ColorTransformConfig cfg)
-            => WithProcessingParams(cfg.ZxAutotuneMode, cfg.ZxDitherLowColorImage, cfg.ZxDitherHighColorImage, cfg.ZxIncludeBlackInHighColorImage);
+            => WithProcessingParams(cfg.ZxAutotuneMode, cfg.ZxDitherLowColorImage, cfg.ZxDitherHighColorImage, cfg.ZxIncludeBlackInHighColorImage, cfg.ZxIncludeWhiteInHighColorImage);
 
 
         /// <summary>
@@ -262,8 +270,10 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         /// <param name="colorSeedIn">Channel intensity of the colors in the source image</param>
         /// <param name="colorSeedOut">Channel intensity of the real ZX colors</param>
-        /// <param name="mapTheBlack">Includes black in the map</param>
-        ColorTransformationMap CreateZxMap(int colorSeedIn, int colorSeedOut, bool mapTheBlack)
+        /// <param name="mapTheBlack">Includes black in the map</param
+        /// <param name="mapTheWhite">Includes white in the map</param
+        /// 
+        ColorTransformationMap CreateZxMap(int colorSeedIn, int colorSeedOut, bool mapTheBlack, bool mapTheWhite)
         {
             ColorTransformationMap map = new ColorTransformationMap();
             if (mapTheBlack)
@@ -276,7 +286,10 @@ namespace ColourClashNet.Color.Transformation
             map.Add(ColorIntExt.FromRGB(0, colorSeedIn, 0), ColorIntExt.FromRGB(0, colorSeedOut, 0));
             map.Add(ColorIntExt.FromRGB(0, colorSeedIn, colorSeedIn), ColorIntExt.FromRGB(0, colorSeedOut, colorSeedOut));
             map.Add(ColorIntExt.FromRGB(colorSeedIn, colorSeedIn, 0), ColorIntExt.FromRGB(colorSeedOut, colorSeedOut, 0));
-            map.Add(ColorIntExt.FromRGB(colorSeedIn, colorSeedIn, colorSeedIn), ColorIntExt.FromRGB(colorSeedOut, colorSeedOut, colorSeedOut));
+            if (mapTheWhite)
+            {
+                map.Add(ColorIntExt.FromRGB(colorSeedIn, colorSeedIn, colorSeedIn), ColorIntExt.FromRGB(colorSeedOut, colorSeedOut, colorSeedOut));
+            }
             return map;
         }
 
@@ -370,8 +383,8 @@ namespace ColourClashNet.Color.Transformation
         protected ZxProcessingResults ExecuteTransformZx(ImageData zxBestImage, int colorSeedInLo, int colorSeedInHi, CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransformZx);
-            var zxTransformationMapLo = CreateZxMap(colorSeedInLo, ZxPaletteOutColorSeedLow, true);
-            var zxTransformationMapHi = CreateZxMap(colorSeedInHi, ZxPaletteOutColorSeedHigh, IncludeBlackInHighColor);
+            var zxTransformationMapLo = CreateZxMap(colorSeedInLo, ZxPaletteOutColorSeedLow, true,true);
+            var zxTransformationMapHi = CreateZxMap(colorSeedInHi, ZxPaletteOutColorSeedHigh, IncludeBlackInHighColor, IncludeWhiteInHighColor);
 
             List<Task<TileManager>> taskList = new List<Task<TileManager>>();
             // Process the normal and the bright palette in parallel; a null slot means "palette not used"

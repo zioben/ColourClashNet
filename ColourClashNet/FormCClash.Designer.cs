@@ -71,7 +71,6 @@ namespace ColourClashNet
             caTemplate.Name = "caTemplate";
             caTemplate.Size = new Size(1164, 737);
             caTemplate.TabIndex = 0;
-            caTemplate.WantedRes = null;
             // 
             // tableLayoutPanel1
             // 
@@ -116,7 +115,7 @@ namespace ColourClashNet
             toolStripMenuItem2.ImageTransparentColor = System.Drawing.Color.Magenta;
             toolStripMenuItem2.Name = "toolStripMenuItem2";
             toolStripMenuItem2.ShortcutKeys = Keys.Control | Keys.N;
-            toolStripMenuItem2.Size = new Size(180, 22);
+            toolStripMenuItem2.Size = new Size(146, 22);
             toolStripMenuItem2.Text = "&New";
             toolStripMenuItem2.Click += toolStripMenuItemNew_Click;
             // 
@@ -126,7 +125,7 @@ namespace ColourClashNet
             toolStripMenuItem3.ImageTransparentColor = System.Drawing.Color.Magenta;
             toolStripMenuItem3.Name = "toolStripMenuItem3";
             toolStripMenuItem3.ShortcutKeys = Keys.Control | Keys.O;
-            toolStripMenuItem3.Size = new Size(180, 22);
+            toolStripMenuItem3.Size = new Size(146, 22);
             toolStripMenuItem3.Text = "&Open";
             toolStripMenuItem3.Click += toolStripMenuItemOpen_Click;
             // 
@@ -136,7 +135,7 @@ namespace ColourClashNet
             toolStripMenuItemSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             toolStripMenuItemSave.Name = "toolStripMenuItemSave";
             toolStripMenuItemSave.ShortcutKeys = Keys.Control | Keys.S;
-            toolStripMenuItemSave.Size = new Size(180, 22);
+            toolStripMenuItemSave.Size = new Size(146, 22);
             toolStripMenuItemSave.Text = "&Save";
             toolStripMenuItemSave.Click += toolStripMenuItemSave_Click;
             // 
@@ -144,34 +143,34 @@ namespace ColourClashNet
             // 
             exportToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newContainerToolStripMenuItem, bitmapIndexedToolStripMenuItem, bitmapToolStripMenuItem, pngToolStripMenuItem, amigaToolStripMenuItem });
             exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            exportToolStripMenuItem.Size = new Size(180, 22);
+            exportToolStripMenuItem.Size = new Size(146, 22);
             exportToolStripMenuItem.Text = "Export";
             // 
             // newContainerToolStripMenuItem
             // 
             newContainerToolStripMenuItem.Name = "newContainerToolStripMenuItem";
-            newContainerToolStripMenuItem.Size = new Size(180, 22);
+            newContainerToolStripMenuItem.Size = new Size(156, 22);
             newContainerToolStripMenuItem.Text = "New Container";
             newContainerToolStripMenuItem.Click += newContainerToolStripMenuItem_Click;
             // 
             // bitmapIndexedToolStripMenuItem
             // 
             bitmapIndexedToolStripMenuItem.Name = "bitmapIndexedToolStripMenuItem";
-            bitmapIndexedToolStripMenuItem.Size = new Size(180, 22);
+            bitmapIndexedToolStripMenuItem.Size = new Size(156, 22);
             bitmapIndexedToolStripMenuItem.Text = "Bitmap Indexed";
             bitmapIndexedToolStripMenuItem.Click += bitmapIndexedToolStripMenuItem_Click;
             // 
             // bitmapToolStripMenuItem
             // 
             bitmapToolStripMenuItem.Name = "bitmapToolStripMenuItem";
-            bitmapToolStripMenuItem.Size = new Size(180, 22);
+            bitmapToolStripMenuItem.Size = new Size(156, 22);
             bitmapToolStripMenuItem.Text = "Bitmap";
             bitmapToolStripMenuItem.Click += bitmapToolStripMenuItem_Click;
             // 
             // pngToolStripMenuItem
             // 
-            pngToolStripMenuItem.Name = "pNGToolStripMenuItem";
-            pngToolStripMenuItem.Size = new Size(180, 22);
+            pngToolStripMenuItem.Name = "pngToolStripMenuItem";
+            pngToolStripMenuItem.Size = new Size(156, 22);
             pngToolStripMenuItem.Text = "PNG";
             pngToolStripMenuItem.Click += pngToolStripMenuItem_Click;
             // 
@@ -179,12 +178,12 @@ namespace ColourClashNet
             // 
             amigaToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { iffIlbmToolStripMenuItem, bitplaneToolStripMenuItem1, rawBitplaneAndOCSCopperlistToolStripMenuItem, sourceCodeToolStripMenuItem });
             amigaToolStripMenuItem.Name = "amigaToolStripMenuItem";
-            amigaToolStripMenuItem.Size = new Size(180, 22);
+            amigaToolStripMenuItem.Size = new Size(156, 22);
             amigaToolStripMenuItem.Text = "Amiga";
             // 
             // iffIlbmToolStripMenuItem
             // 
-            iffIlbmToolStripMenuItem.Name = "iFFILBMToolStripMenuItem";
+            iffIlbmToolStripMenuItem.Name = "iffIlbmToolStripMenuItem";
             iffIlbmToolStripMenuItem.Size = new Size(224, 22);
             iffIlbmToolStripMenuItem.Text = "IFF-ILBM";
             // 
@@ -208,14 +207,14 @@ namespace ColourClashNet
             // 
             // colorModeToolStripMenuItem
             // 
-            colorModeToolStripMenuItem.Name = "ColorModeToolStripMenuItem";
+            colorModeToolStripMenuItem.Name = "colorModeToolStripMenuItem";
             colorModeToolStripMenuItem.Size = new Size(87, 20);
             colorModeToolStripMenuItem.Tag = "FullColor";
             colorModeToolStripMenuItem.Text = "Quantization";
             // 
             // colorDistanceToolStripMenuItem
             // 
-            colorDistanceToolStripMenuItem.Name = "ColorDistanceToolStripMenuItem";
+            colorDistanceToolStripMenuItem.Name = "colorDistanceToolStripMenuItem";
             colorDistanceToolStripMenuItem.Size = new Size(93, 20);
             colorDistanceToolStripMenuItem.Text = "ColorDistance";
             // 
@@ -245,6 +244,7 @@ namespace ColourClashNet
             originalToolStripMenuItem.Name = "originalToolStripMenuItem";
             originalToolStripMenuItem.Size = new Size(203, 22);
             originalToolStripMenuItem.Text = "Samen as bitmap source";
+            originalToolStripMenuItem.Click += originalToolStripMenuItem_Click;
             // 
             // toolStripContainer1
             // 

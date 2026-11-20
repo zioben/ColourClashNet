@@ -586,7 +586,7 @@ namespace ColourClashNet.Components
         {
             if (Control != null && Image != null)
             {
-                UpdateControlAndImageRoi();
+                UpdateControlAndImageRoi();               
                 coordinateManager.DrawImage(e.Graphics, Image);
             }
             Paint?.Invoke(sender, e);

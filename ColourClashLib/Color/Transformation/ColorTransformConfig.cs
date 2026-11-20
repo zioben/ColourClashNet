@@ -252,7 +252,13 @@ namespace ColourClashNet.Color.Transformation
         /// Includes black in the bright palette candidate image.
         /// </summary>
         [Browsable(true), Category("ZX Spectrum")]
-        public bool ZxIncludeBlackInHighColorImage { get; set; } = false;
+        public bool ZxIncludeBlackInHighColorImage { get; set; } = true;
+
+        /// <summary>
+        /// Includes black in the bright palette candidate image.
+        /// </summary>
+        [Browsable(true), Category("ZX Spectrum")]
+        public bool ZxIncludeWhiteInHighColorImage { get; set; } = true;
 
         /// <summary>
         /// Dithers the normal palette candidate image.
@@ -552,11 +558,12 @@ namespace ColourClashNet.Color.Transformation
         /// <summary>
         /// Sets the ZX Spectrum processing settings (fluent).
         /// </summary>
-        public ColorTransformConfig WithZxProcessing( ColorTransformZxSpectrum.ZxAutotuneMode autotuneMode, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor, bool showTileBorders)
+        public ColorTransformConfig WithZxProcessing( ColorTransformZxSpectrum.ZxAutotuneMode autotuneMode, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor, bool includeWhiteInHighColor, bool showTileBorders)
         {
             ZxDitherLowColorImage = ditherLowColorImage;
             ZxDitherHighColorImage = ditherHighColorImage;
             ZxIncludeBlackInHighColorImage = includeBlackInHighColor;
+            ZxIncludeWhiteInHighColorImage = includeWhiteInHighColor;
             ZxAutotuneMode = autotuneMode;
             ShowTileBorders = showTileBorders;
             return this;

@@ -77,6 +77,7 @@ namespace ColourClashNet.Controls
         public event EventHandler<DataSourceEventArgs> ImageCreated;
 
         int panel1MaxWidth = 400;
+        int panel3MaxWidth = 400;
 
         FileInfo currentFileInfo = null;
         String currentName = "";
@@ -130,7 +131,7 @@ namespace ColourClashNet.Controls
         {
             InitializeComponent();
             colorManager.TransformConfig
-                .WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt)
+                .WithBackgroundColorReplacement(GetBkgPalette(), ColorDefaults.DefaultBkgColorInt)
                 .WithQuantizationMode(QuantizationMode)
                 .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
                 .WithDithering(DitheringType, 1.0, DitheringFx);
@@ -190,28 +191,16 @@ namespace ColourClashNet.Controls
         /// </summary>
         void BuildBkgPalette()
         {
-            pbBkgColorList.Image = null;
-            var bkgColors = bitmapRenderSource.SelectedColors;
-            if (bkgColors.Count > 0)
-            {
-                Bitmap bmp = new Bitmap((int)bkgColors.Count * 16, (int)16);
-                // Draw one 16x16 swatch per background color
-                using (var g = Graphics.FromImage(bmp))
-                {
-                    for (int i = 0; i < bkgColors.Count; i++)
-                    {
-                        var item = bkgColors[i];
-                        using (var brush = new SolidBrush(item))
-                        {
-                            g.FillRectangle(brush, i * 16, 0, 16, 16);
-                        }
-                    }
-                }
-                pbBkgColorList.SizeMode = PictureBoxSizeMode.StretchImage;
-                pbBkgColorList.Image = bmp;
-            }
-            colorManager.TransformConfig.WithBackgroundColorReplacement(GetBkgColors(), ColorDefaults.DefaultBkgColorInt);
+            var bkgPalette = GetBkgPalette();
+            palViewerBkg.SetPalette(bkgPalette);
+            colorManager.TransformConfig.WithBackgroundColorReplacement(bkgPalette, GetBkgColorReplacement());
             colorManager.PreProcess();
+        }
+
+        void ResetBkgPalette()
+        {
+            palViewerBkg.ResetPalette();
+            bitmapRenderSource.SelectedColors.Clear();
         }
 
         /// <summary>
@@ -231,6 +220,7 @@ namespace ColourClashNet.Controls
         {
             pgColorProcessor.SelectedObject = colorManager;
             pgColorProcessorConfig.SelectedObject = colorManager?.TransformConfig;
+            palViewerOutput.SetPalette(colorManager?.DataProcessed?.ColorPalette);
             ShowImage();
         }
 
@@ -246,7 +236,7 @@ namespace ColourClashNet.Controls
             {
                 return null;
             }
-            if (WantedRes == null)
+            if (WantedRes == null || WantedRes.Width == 0 || WantedRes.Height ==0)
             {
                 return srcBmp;
             }
@@ -272,7 +262,7 @@ namespace ColourClashNet.Controls
             bitmapRenderSource.ResetMouseSelectedColors();
             bitmapRenderSource.OriginZero();
             //
-            colorManager.TransformConfig.WithBackgroundColorReplacement(GetBkgColors(), ColorIntExtGdi.FromDrawingColor(pbBkgColor.BackColor));
+            colorManager.TransformConfig.WithBackgroundColorReplacement(GetBkgPalette(), GetBkgColorReplacement());
             colorManager.Create(ResizeBitmap(loadedBmp));
             ImageCreated?.Invoke(this, new DataSourceEventArgs()
             {
@@ -315,7 +305,7 @@ namespace ColourClashNet.Controls
         /// <summary>
         /// Returns the background colors picked on the source image.
         /// </summary>
-        Palette GetBkgColors()
+        Palette GetBkgPalette()
         {
             var colors = new List<int>();
             foreach (var item in bitmapRenderSource.SelectedColors)
@@ -323,6 +313,10 @@ namespace ColourClashNet.Controls
             return new Palette().Create(colors);
         }
 
+        int GetBkgColorReplacement()
+        {
+            return ColorIntExtGdi.FromDrawingColor(pbBkgColor.BackColor);
+        }
 
 
 
@@ -332,8 +326,8 @@ namespace ColourClashNet.Controls
         private void SetControlToConfig()
         {
             colorManager.TransformConfig.WithBackgroundColorReplacement(
-                GetBkgColors(),
-                ColorIntExtGdi.FromDrawingColor(pbBkgColor.BackColor));
+                GetBkgPalette(),
+                GetBkgColorReplacement());
             //
             colorManager.TransformConfig.WithQuantizationMode(QuantizationMode);
             //
@@ -379,6 +373,7 @@ namespace ColourClashNet.Controls
                  chkZxDitherImageLo.Checked,
                  chkZxDitherHI.Checked,
                  chkZxBlackHI.Checked,
+                 chkZxWhiteHI.Checked,
                  chkShowTileBorders.Checked);
             //
             colorManager.TransformConfig.WithAmigaScreenMode(
@@ -395,10 +390,6 @@ namespace ColourClashNet.Controls
 
 
 
-        }
-
-        private void pbBkColor_DoubleClick(object sender, EventArgs e)
-        {
         }
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
@@ -483,29 +474,36 @@ namespace ColourClashNet.Controls
 
 
 
-
-        private void scMain_SplitterMoved(object sender, SplitterEventArgs e)
+        void FixPanelSize()
         {
             if (splitMainA_BC.Panel1.Width > panel1MaxWidth)
             {
                 splitMainA_BC.SplitterDistance = panel1MaxWidth;
             }
-            if (splitMainB_C.Panel2.Width > panel1MaxWidth)
+            if (splitMainB_C.Panel2.Width > panel3MaxWidth)
             {
-                splitMainB_C.SplitterDistance = panel1MaxWidth;
+                splitMainB_C.SplitterDistance = splitMainB_C.Width - panel3MaxWidth;
             }
+        }
+
+        private void scMain_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            FixPanelSize();
         }
 
         private void scMain_SizeChanged(object sender, EventArgs e)
         {
-            if (splitMainA_BC.Panel1.Width > panel1MaxWidth)
-            {
-                splitMainA_BC.SplitterDistance = panel1MaxWidth;
-            }
-            if (splitMainB_C.Panel2.Width > panel1MaxWidth)
-            {
-                splitMainB_C.SplitterDistance = panel1MaxWidth;
-            }
+            FixPanelSize();
+        }
+
+        private void splitMainB_C_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            FixPanelSize();
+        }
+
+        private void splitMainB_C_SplitterMoving(object sender, SplitterCancelEventArgs e)
+        {
+            FixPanelSize();
         }
 
         private void bitmapRenderSource_MouseMove(object sender, MouseEventArgs e)
@@ -594,5 +592,10 @@ namespace ColourClashNet.Controls
             }
         }
 
+        private void btnResetBackground_Click(object sender, EventArgs e)
+        {
+            ResetBkgPalette();
+            Preprocess();
+        }
     }
 }

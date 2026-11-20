@@ -48,7 +48,11 @@ namespace ColourClashNet.Components
             Reset();
         }
 
-
+        /// <summary>
+        /// Evaluate color transform Error
+        /// </summary>
+        public double TransformationError => transformProcessing?.TransformationError ?? 0.0;
+        public int TransformationResultingColors => DataProcessed?.Colors ?? 0;
 
         #region Properties
 
