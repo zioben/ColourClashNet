@@ -17,12 +17,12 @@ namespace ColourClashNet.Color.Transformation
     /// <summary>
     /// Raster (scanline) color reduction, emulating palette changes during the video beam (e.g. Amiga copper).
     /// <para/>
-    /// The image is split into horizontal chunks of <see cref="ChunkHeight"/> lines, each with its own palette:
-    /// <see cref="ScanlinePaletteMode.IndependentChunkPalette"/> reduces each chunk independently to <see cref="MaxColorsPerChunk"/> colors;
-    /// <see cref="ScanlinePaletteMode.SharedChunksPalette"/> first reduces the whole image to <see cref="MaxColorsWanted"/> colors,
-    /// then picks at most <see cref="MaxColorsPerChunk"/> of them for each chunk. Dithering is always bypassed.
+    /// The image is split into horizontal chunks of <see cref="ScanlineOptions.ChunkHeight"/> lines, each with its own palette:
+    /// <see cref="ScanlinePaletteMode.IndependentChunkPalette"/> reduces each chunk independently with <see cref="ScanlineOptions.ChunkReduction"/>;
+    /// <see cref="ScanlinePaletteMode.SharedChunksPalette"/> first reduces the whole image with <see cref="ScanlineOptions.SharedReduction"/>,
+    /// then reduces every chunk within that palette. Dithering is always bypassed (each chunk reduction dithers itself).
     /// </summary>
-    public class ColorTransformScanLine : ColorTransformBase
+    public class ColorTransformScanLine : ColorTransformBase<ScanlineOptions>
     {
         static string sC = nameof(ColorTransformScanLine);
 
@@ -55,46 +55,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public TileManager? TileManager { get; private set; } = null;
 
-        /// <summary>
-        /// Number of lines per chunk.
-        /// </summary>
-        public int ChunkHeight
-        {
-            get => config.ScanlineChunkHeight;
-            set => config.ScanlineChunkHeight = value;
-        }
-        /// <summary>
-        /// Chunk palette mode.
-        /// </summary>
-        public ScanlinePaletteMode PaletteMode
-        {
-            get => config.ScanlinePaletteMode;
-            set => config.ScanlinePaletteMode = value;
-        }
-        /// <summary>
-        /// Size of the global palette in shared mode.
-        /// </summary>
-        public int MaxColorsWanted
-        {
-            get => config.MaxColorsWanted;
-            set => config.MaxColorsWanted = value;
-        }
-        /// <summary>
-        /// Maximum number of colors per chunk.
-        /// </summary>
-        public int MaxColorsPerChunk
-        {
-            get => config.ScanlineMaxColorsPerChunk;
-            set => config.ScanlineMaxColorsPerChunk = value;
-        }
-        /// <summary>
-        /// Reduction used for the global palette in shared mode.
-        /// </summary>
-        public ColorTransformType InternalTransformationModel 
-        { 
-            get => config.ScanlineInternalTransformationModel;
-            set => config.ScanlineInternalTransformationModel = value;
-        }
 
 
 
@@ -108,47 +68,29 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public List<UInt16> ColorListMask { get; private set; } = new List<UInt16>();
 
-        /// <summary>
-        /// Sets the processing parameters (fluent).
-        /// </summary>
-        public ColorTransformScanLine WithProcessingParams(int chunkHeight, ScanlinePaletteMode scanlinePaletteMode, int maxColorsWanted, int maxColorsPerChunk, ColorTransformType internalTransformationModel )
-        {
-            ChunkHeight=chunkHeight;
-            PaletteMode = scanlinePaletteMode;
-            MaxColorsWanted = maxColorsWanted;
-            MaxColorsPerChunk = maxColorsPerChunk;
-            InternalTransformationModel = internalTransformationModel;
-            return this;
-        }
 
 
-        /// <summary>
-        /// Sets the processing parameters from a configuration (fluent).
-        /// </summary>
-        public ColorTransformScanLine WithProcessingParams(ColorTransformConfig cfg) 
-            => WithProcessingParams(cfg.ScanlineChunkHeight, cfg.ScanlinePaletteMode, cfg.MaxColorsWanted, cfg.ScanlineMaxColorsPerChunk, cfg.ScanlineInternalTransformationModel);
 
 
         /// <summary>
         /// Dispatches to the independent or shared palette processing.
         /// </summary>
-        /// <exception cref="NotImplementedException">Unknown <see cref="PaletteMode"/>.</exception>
-        protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
+                protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             String sM = nameof(ExecuteTransform);
             BypassDithering = true;
             ColorListRow.Clear();
             try
             {
-                switch (PaletteMode)
+                switch (Options.PaletteMode)
                 {
                     case ScanlinePaletteMode.IndependentChunkPalette:
                         return ExecuteTransformIndependentPalette(token);
                     case ScanlinePaletteMode.SharedChunksPalette:
                         return ExecuteTransformSharedPalette(token);
                     default:
-                        LogMan.Error(sC, sM, $"{Type} : palette mode {PaletteMode} not implemented");
-                        return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : palette mode {PaletteMode} not implemented");
+                        LogMan.Error(sC, sM, $"{Type} : palette mode {Options.PaletteMode} not implemented");
+                        return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : palette mode {Options.PaletteMode} not implemented");
                 }
             }
             catch (OperationCanceledException ex)
@@ -169,7 +111,8 @@ namespace ColourClashNet.Color.Transformation
         ColorTransformResult ExecuteTransformIndependentPalette(CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransformIndependentPalette);
-            var cfg = config.Clone().WithMaxColorWanted(MaxColorsPerChunk).WithReferencePalette(ReferencePalette);
+            // Every chunk is reduced independently, keeping the user palette colors
+            var cfg = Options.InheritCommon(Options.ChunkReduction);
             return ProcessChunks(sM, ImageSource, cfg, token);
         }
 
@@ -181,10 +124,11 @@ namespace ColourClashNet.Color.Transformation
             string sM = nameof(ExecuteTransformSharedPalette);
             var mainImage = ImageSource;
             var mainPalette = mainImage.ColorPalette;
-            if (mainPalette.Count > MaxColorsWanted)
+            var sharedOptions = Options.InheritCommon(Options.SharedReduction);
+            if (mainPalette.Count > sharedOptions.MaxColors)
             {
                 // Reduce the whole image first: its palette becomes the shared palette of all chunks
-                var transform = ForwardEventsFrom(ColorTransformInternal.Alloc(config, config.ScanlineInternalTransformationModel));
+                var transform = ForwardEventsFrom(ColorTransformInternal.Alloc(sharedOptions));
                 var result = transform.CreateAndProcessColors(ImageSource, token);
                 if (result == null || !result.IsSuccess || result.DataOut == null)
                 {
@@ -193,26 +137,25 @@ namespace ColourClashNet.Color.Transformation
                 }
                 mainImage = result.DataOut;
             }
-            var cfg = config.Clone()
-                .WithMaxColorWanted(MaxColorsPerChunk)
-                .WithReferencePalette(new(), true);
+            // Chunks pick their colors among the shared palette: the user palette is already part of it
+            var cfg = Options.InheritCommon(Options.ChunkReduction) with { UserPalette = Array.Empty<int>() };
             return ProcessChunks(sM, mainImage, cfg, token);
         }
 
         /// <summary>
-        /// Splits <paramref name="image"/> into chunks of <see cref="ChunkHeight"/> lines and reduces each one.
+        /// Splits <paramref name="image"/> into chunks of <see cref="ScanlineOptions.ChunkHeight"/> lines and reduces each one.
         /// </summary>
         /// <param name="sM">Calling method, used in error messages</param>
         /// <param name="image">Image to split</param>
-        /// <param name="cfg">Configuration of each chunk reduction</param>
+        /// <param name="cfg">Options of each chunk reduction</param>
         /// <param name="token">Cancellation token</param>
         /// <returns>A valid result with the merged chunks, or an error result.</returns>
-        ColorTransformResult ProcessChunks(string sM, ImageData image, ColorTransformConfig cfg, CancellationToken token)
+        ColorTransformResult ProcessChunks(string sM, ImageData image, TransformOptions cfg, CancellationToken token)
         {
             TileManager = new TileManager();
             // Subscribe before Create: the chunks forward their transformation events through the manager
             ForwardEventsFrom(TileManager);
-            TileManager.Create(image.Width, ChunkHeight, image, 1.0, cfg, token);
+            TileManager.Create(image.Width, Options.ChunkHeight, image, 1.0, cfg, token);
             var tileResult = TileManager.ProcessColors(token);
             if (tileResult == null || !tileResult.IsSuccess)
             {

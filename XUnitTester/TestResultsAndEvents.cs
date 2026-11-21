@@ -66,14 +66,15 @@ namespace XUnitTester
         public void UnsupportedVideoModeReturnsContextualErrorResult()
         {
             var source = CreateGradient(16, 8);
-            var transform = new ColorTransformCbm64()
-                .WithC64ScreenMode(ColorTransformCbm64.C64VideoMode.CharsetMulticolor, ColorTransformCbm64.C64DitheringMode.PreDitherImage, false);
+            var transform = new ColorTransformCbm64 { Options = new C64Options { VideoMode = ColorTransformCbm64.C64VideoMode.CharsetMulticolor } };
 
             var result = transform.CreateAndProcessColors(source);
 
             Assert.False(result.IsSuccess);
             Assert.Contains("ColorTransformBase.ProcessColors", result.Message);
-            Assert.Contains("ColorTransformCbm64.ExecuteTransform", result.Message);
+            // Caught by the options validation, before any processing
+            Assert.Contains("invalid options", result.Message);
+            Assert.Contains("CharsetMulticolor is not implemented", result.Message);
             Assert.NotNull(result.DataIn);
         }
 
@@ -82,7 +83,7 @@ namespace XUnitTester
         {
             // VGA = quantization + clustering: the clustering loop events must be re-raised by the VGA transformation
             var source = CreateGradient(64, 8);
-            var transform = new ColorTransformVGA().WithProperties(4);
+            var transform = new ColorTransformVGA { Options = new VgaOptions { Reduction = new ClusteringOptions { MaxColors = 4 } } };
             var events = new ConcurrentBag<ColorProcessingEventArgs>();
             transform.ProcessPartial += (s, e) => events.Add(e);
 
@@ -97,8 +98,7 @@ namespace XUnitTester
         public void TileManagerEventsReachTheOuterTransformation()
         {
             var source = CreateGradient(16, 16);
-            var transform = new ColorTransformCbm64()
-                .WithC64ScreenMode(ColorTransformCbm64.C64VideoMode.HiRes, ColorTransformCbm64.C64DitheringMode.PreDitherImage, false);
+            var transform = new ColorTransformCbm64 { Options = new C64Options { VideoMode = ColorTransformCbm64.C64VideoMode.HiRes } };
             var events = new ConcurrentBag<ColorProcessingEventArgs>();
             transform.ProcessPartial += (s, e) => events.Add(e);
 

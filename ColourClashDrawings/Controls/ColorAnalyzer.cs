@@ -1,4 +1,6 @@
-﻿using ColourClashLib;
+﻿using ColourClashProcessing.Threshold;
+using ColourClashNet.Color.Dithering;
+using ColourClashLib;
 using ColourClashLib.Color.Transformation;
 using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
@@ -130,11 +132,7 @@ namespace ColourClashNet.Controls
         public ColorAnalyzer()
         {
             InitializeComponent();
-            colorManager.TransformConfig
-                .WithBackgroundColorReplacement(GetBkgPalette(), ColorDefaults.DefaultBkgColorInt)
-                .WithQuantizationMode(QuantizationMode)
-                .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
-                .WithDithering(DitheringType, 1.0, DitheringFx);
+            ApplyPreprocessingSettings();
             CreateComboBox(cbC64VideoMode, Enum.GetNames(typeof(ColorTransformCbm64.C64VideoMode)).ToList());
             CreateComboBox(cbCpcVideoMode, Enum.GetNames(typeof(ColorTransformAmstradCPC.CPCVideoMode)).ToList());
             CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformCbmAmiga.EnumAmigaVideoMode)).ToList());
@@ -148,7 +146,6 @@ namespace ColourClashNet.Controls
             bitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };
             colorManager.OnQuantize += (s, e) => { Invoke(() => RefreshData()); };
             colorManager.OnProcess += (s, e) => { Invoke(() => { RefreshData(); RebuildParams(e.Transformation); }); };
-            blobManager.OnPreProcess += (s, e) => { blobManager.WithProcessingParams(colorManager.TransformConfig.ColorBackgroundPalette, colorManager.TransformConfig.ColorBackgroundReplacementValue); };
         }
 
         /// <summary>
@@ -156,7 +153,7 @@ namespace ColourClashNet.Controls
         /// </summary>
         public void Preprocess()
         {
-            SetControlToConfig();
+            ApplyPreprocessingSettings();
             colorManager.PreProcess();
         }
 
@@ -178,8 +175,9 @@ namespace ColourClashNet.Controls
         {
             if (sender is ColorTransformZxSpectrum zxTransform)
             {
-                nudZxColorLO.Value = zxTransform.ZxPaletteInColorSeedLow;
-                nudZxColorHI.Value = zxTransform.ZxPaletteInColorSeedHigh;
+                // Show the seeds of the result: the best ones when the autotune is enabled
+                nudZxColorLO.Value = zxTransform.BestSeedLow;
+                nudZxColorHI.Value = zxTransform.BestSeedHigh;
             }
         }
 
@@ -193,7 +191,7 @@ namespace ColourClashNet.Controls
         {
             var bkgPalette = GetBkgPalette();
             palViewerBkg.SetPalette(bkgPalette);
-            colorManager.TransformConfig.WithBackgroundColorReplacement(bkgPalette, GetBkgColorReplacement());
+            ApplyPreprocessingSettings();
             colorManager.PreProcess();
         }
 
@@ -219,7 +217,8 @@ namespace ColourClashNet.Controls
         void RefreshData()
         {
             pgColorProcessor.SelectedObject = colorManager;
-            pgColorProcessorConfig.SelectedObject = colorManager?.TransformConfig;
+            // Show only the options of the selected transformation
+            pgColorProcessorConfig.SelectedObject = colorManager?.Pipeline.Transform;
             palViewerOutput.SetPalette(colorManager?.DataProcessed?.ColorPalette);
             ShowImage();
         }
@@ -262,7 +261,7 @@ namespace ColourClashNet.Controls
             bitmapRenderSource.ResetMouseSelectedColors();
             bitmapRenderSource.OriginZero();
             //
-            colorManager.TransformConfig.WithBackgroundColorReplacement(GetBkgPalette(), GetBkgColorReplacement());
+            ApplyPreprocessingSettings();
             colorManager.Create(ResizeBitmap(loadedBmp));
             ImageCreated?.Invoke(this, new DataSourceEventArgs()
             {
@@ -313,6 +312,9 @@ namespace ColourClashNet.Controls
             return new Palette().Create(colors);
         }
 
+        /// <summary>
+        /// Returns the color that replaces the background colors.
+        /// </summary>
         int GetBkgColorReplacement()
         {
             return ColorIntExtGdi.FromDrawingColor(pbBkgColor.BackColor);
@@ -321,76 +323,111 @@ namespace ColourClashNet.Controls
 
 
         /// <summary>
-        /// Copies all the UI settings into the transformation configuration.
+        /// Copies the pre-processing settings of the UI (background colors, quantization) into the pipeline.
         /// </summary>
-        private void SetControlToConfig()
+        private void ApplyPreprocessingSettings()
         {
-            colorManager.TransformConfig.WithBackgroundColorReplacement(
-                GetBkgPalette(),
-                GetBkgColorReplacement());
-            //
-            colorManager.TransformConfig.WithQuantizationMode(QuantizationMode);
-            //
-            colorManager.TransformConfig.WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
-            //
-            colorManager.TransformConfig.WithScanline(
-                (int)numLinesPerBlock.Value,
-                chkScanlineSharedPal.Checked ? ColorTransformScanLine.ScanlinePaletteMode.SharedChunksPalette : ColorTransformScanLine.ScanlinePaletteMode.IndependentChunkPalette,
-                (int)nudColorsWanted.Value,
-                (int)nudScanlineLineColors.Value,
-                ColorTransformType.ColorReductionClustering);
-            //
-            colorManager.TransformConfig.WithClustering(
-                (int)nudColorsWanted.Value,
-                (int)nudClusterLoop.Value,
-                ColorSelectionMode.UseColorPalette);
-            // Dithering type and effect are set by the hosting form
-            colorManager.TransformConfig.WithDithering(
-                DitheringType,
-                (double)nudDitheringStrenght.Value,
-                DitheringFx);
-            //
-            colorManager.TransformConfig.WithHSV(
-                (double)nudHue.Value,
-                (double)nudSat.Value,
-                (double)nudBright.Value);
-            //
-            colorManager.TransformConfig.WithC64ScreenMode(
-               (ColorTransformCbm64.C64VideoMode)Enum.Parse(typeof(ColorTransformCbm64.C64VideoMode), cbC64VideoMode.SelectedItem.ToString()),
-               ColorTransformCbm64.C64DitheringMode.PreDitherImage,
-               chkShowTileBorders.Checked);
-            //
-            colorManager.TransformConfig.WithCpcVideoMode(
-                (ColorTransformAmstradCPC.CPCVideoMode)Enum.Parse(typeof(ColorTransformAmstradCPC.CPCVideoMode), cbCpcVideoMode.SelectedItem.ToString()));
-            //
-            colorManager.TransformConfig.WithZxScreenMode(
-                 (ColorTransformZxSpectrum.ZxPaletteMode)Enum.Parse(typeof(ColorTransformZxSpectrum.ZxPaletteMode), cbZxPaletteMode.SelectedItem.ToString()),
-                 (int)nudZxColorLO.Value,
-                 (int)nudZxColorHI.Value);
-            //
-            colorManager.TransformConfig.WithZxProcessing(
-                 (ColorTransformZxSpectrum.ZxAutotuneMode)Enum.Parse(typeof(ColorTransformZxSpectrum.ZxAutotuneMode), cbZxAutotuneMode.SelectedItem.ToString()),
-                 chkZxDitherImageLo.Checked,
-                 chkZxDitherHI.Checked,
-                 chkZxBlackHI.Checked,
-                 chkZxWhiteHI.Checked,
-                 chkShowTileBorders.Checked);
-            //
-            colorManager.TransformConfig.WithAmigaScreenMode(
-                (ColorTransformCbmAmiga.EnumAmigaVideoMode)Enum.Parse(typeof(ColorTransformCbmAmiga.EnumAmigaVideoMode),
-                 cbAmigaVideoMode.SelectedItem.ToString()),
-                 ColorTransformType.ColorReductionClustering,
-                 ColorSelectionMode.UseColorPalette
-                 );
-
-            colorManager.TransformConfig.WithCGAScreenMode(
-                (ColorTransformCGA.CGAVideoMode)Enum.Parse(typeof(ColorTransformCGA.CGAVideoMode), cbCgaVideoMode.SelectedItem.ToString()),
-                (ColorTransformCGA.CGACompositeOutputMode)Enum.Parse(typeof(ColorTransformCGA.CGACompositeOutputMode), cbCgaVideoOutput.SelectedItem.ToString())
-                );
-
-
-
+            colorManager.Pipeline = colorManager.Pipeline with
+            {
+                Background = new BackgroundRemovalOptions
+                {
+                    BackgroundColors = GetBkgPalette().ToList(),
+                    ReplacementColor = GetBkgColorReplacement(),
+                },
+                Quantization = QuantizationMode,
+            };
         }
+
+        /// <summary>
+        /// Builds the options of the transformation <paramref name="type"/> from the UI controls.
+        /// <para/>
+        /// Common settings (metric and dithering) come from the hosting form; each transformation
+        /// reads only the controls of its own section.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">Transformation not available in the UI.</exception>
+        private TransformOptions BuildTransformOptions(ColorTransformType type)
+        {
+            var dithering = new DitherOptions
+            {
+                DitheringType = DitheringType,
+                DitheringStrength = (double)nudDitheringStrenght.Value,
+                DitheringFx = DitheringFx,
+            };
+            int colorsWanted = (int)nudColorsWanted.Value;
+            int trainingLoops = (int)nudClusterLoop.Value;
+            var clustering = new ClusteringOptions
+            {
+                MaxColors = colorsWanted,
+                TrainingLoops = trainingLoops,
+                Selection = ColorSelectionMode.UseColorPalette,
+            };
+
+            TransformOptions options = type switch
+            {
+                ColorTransformType.ColorReductionClustering => clustering,
+                ColorTransformType.ColorReductionMedianCut => new MedianCutOptions { MaxColors = colorsWanted },
+                ColorTransformType.ColorReductionScanline => new ScanlineOptions
+                {
+                    ChunkHeight = (int)numLinesPerBlock.Value,
+                    PaletteMode = chkScanlineSharedPal.Checked
+                        ? ColorTransformScanLine.ScanlinePaletteMode.SharedChunksPalette
+                        : ColorTransformScanLine.ScanlinePaletteMode.IndependentChunkPalette,
+                    ChunkReduction = clustering with { MaxColors = (int)nudScanlineLineColors.Value },
+                    SharedReduction = clustering,
+                },
+                ColorTransformType.ColorReductionVGA => new VgaOptions
+                {
+                    Reduction = clustering with { MaxColors = Math.Min(256, colorsWanted), Selection = ColorSelectionMode.EvaluateColorMean },
+                },
+                ColorTransformType.ColorReductionHercules => new HerculesOptions(),
+                ColorTransformType.ColorReductionEGA => new EgaOptions(),
+                ColorTransformType.ColorReductionCGA => new CgaOptions
+                {
+                    VideoMode = ParseCombo<ColorTransformCGA.CGAVideoMode>(cbCgaVideoMode),
+                    OutputMode = ParseCombo<ColorTransformCGA.CGACompositeOutputMode>(cbCgaVideoOutput),
+                },
+                ColorTransformType.ColorReductionSaturation => new HsvOptions
+                {
+                    HueShift = (double)nudHue.Value,
+                    SaturationFactor = (double)nudSat.Value,
+                    BrightnessFactor = (double)nudBright.Value,
+                },
+                ColorTransformType.ColorReductionCBM64 => new C64Options
+                {
+                    VideoMode = ParseCombo<ColorTransformCbm64.C64VideoMode>(cbC64VideoMode),
+                    ShowTileBorders = chkShowTileBorders.Checked,
+                    TileReduction = new C64Options().TileReduction with { TrainingLoops = trainingLoops },
+                },
+                ColorTransformType.ColorReductionCPC => new CpcOptions
+                {
+                    VideoMode = ParseCombo<ColorTransformAmstradCPC.CPCVideoMode>(cbCpcVideoMode),
+                },
+                ColorTransformType.ColorReductionZxSpectrum => new ZxOptions
+                {
+                    PaletteMode = ParseCombo<ColorTransformZxSpectrum.ZxPaletteMode>(cbZxPaletteMode),
+                    SeedLow = (int)nudZxColorLO.Value,
+                    SeedHigh = (int)nudZxColorHI.Value,
+                    Autotune = ParseCombo<ColorTransformZxSpectrum.ZxAutotuneMode>(cbZxAutotuneMode),
+                    DitherLowColorImage = chkZxDitherImageLo.Checked,
+                    DitherHighColorImage = chkZxDitherHI.Checked,
+                    IncludeBlackInHighColor = chkZxBlackHI.Checked,
+                    IncludeWhiteInHighColor = chkZxWhiteHI.Checked,
+                },
+                ColorTransformType.ColorReductionHam => new AmigaOptions
+                {
+                    VideoMode = ParseCombo<ColorTransformCbmAmiga.EnumAmigaVideoMode>(cbAmigaVideoMode),
+                    BasePaletteReduction = clustering,
+                },
+                _ => throw new ArgumentOutOfRangeException(nameof(type), $"{type} is not available in the UI"),
+            };
+            return options with { DistanceMode = ColorDistanceEvaluationMode, Dithering = dithering };
+        }
+
+        /// <summary>
+        /// Parses the selected item of a combo box filled with the names of <typeparamref name="T"/>.
+        /// </summary>
+        static T ParseCombo<T>(ComboBox comboBox) where T : struct, Enum
+            => Enum.Parse<T>(comboBox.SelectedItem?.ToString() ?? default(T).ToString());
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -409,8 +446,8 @@ namespace ColourClashNet.Controls
         /// </summary>
         private async void ReduceColorsAsync(ColorTransformType type)
         {
-            SetControlToConfig();
-            await colorManager.ProcessColorsAsync(type);
+            ApplyPreprocessingSettings();
+            await colorManager.ProcessColorsAsync(BuildTransformOptions(type));
         }
 
         private async void btnReduceColors_Click(object sender, EventArgs e)
@@ -564,9 +601,26 @@ namespace ColourClashNet.Controls
 
         private async void btnProcessBlob_Click(object sender, EventArgs e)
         {
-            blobManager.BlobConfig.WithProcessing((BlobConnectionModes)Enum.Parse(typeof(BlobConnectionModes), cbBlobConnectionMode.SelectedItem?.ToString() ?? string.Empty));
-            blobManager.BlobConfig.WithFiltering((int)numBlobMinW.Value, (int)numBlobMinH.Value, (int)numBlobMinA.Value, (int)numBlobMaxW.Value, (int)numBlobMaxH.Value, (int)numBlobMaxA.Value);
-            blobManager.BlobConfig.WithThreshold(ColorManager.TransformConfig.ColorBackgroundPalette, (double)numBlobThreshold.Value, chkBlobInvertSelection.Checked);
+            // Background colors picked on the source image are the threshold reference;
+            // the rebuilt images use the same replacement color as the background removal
+            var background = ColorManager.Pipeline.Background;
+            blobManager.BlobOptions = new BlobOptions
+            {
+                Threshold = new ThresholdOptions
+                {
+                    BackgroundColors = background.BackgroundColors,
+                    Tolerance = (double)numBlobThreshold.Value,
+                    InvertResults = chkBlobInvertSelection.Checked,
+                },
+                ConnectionMode = ParseCombo<BlobConnectionModes>(cbBlobConnectionMode),
+                MinWidth = (int)numBlobMinW.Value,
+                MinHeight = (int)numBlobMinH.Value,
+                MinArea = (int)numBlobMinA.Value,
+                MaxWidth = (int)numBlobMaxW.Value,
+                MaxHeight = (int)numBlobMaxH.Value,
+                MaxArea = (int)numBlobMaxA.Value,
+                BackgroundColor = background.ReplacementColor,
+            };
             var dataOut = await blobManager.ProcessBlobAsync(colorManager.DataSourceX);
             colorManager.InjectOutput(dataOut);
             RefreshData();

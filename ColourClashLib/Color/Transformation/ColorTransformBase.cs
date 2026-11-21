@@ -47,9 +47,31 @@ namespace ColourClashNet.Color.Transformation
         private readonly SemaphoreSlim semaphore = new(1, 1);
 
         /// <summary>
-        /// Current configuration; derived classes expose its fields through typed properties.
+        /// Returns the current options (typed in <see cref="ColorTransformBase{TOptions}"/>).
         /// </summary>
-        protected ColorTransformConfig config = new ColorTransformConfig();
+        protected abstract TransformOptions GetOptions();
+
+        /// <summary>
+        /// Replaces the current options.
+        /// </summary>
+        /// <exception cref="ArgumentException"><paramref name="options"/> is not of the type expected by the transformation.</exception>
+        protected abstract void SetOptionsCore(TransformOptions options);
+
+        /// <inheritdoc/>
+        public TransformOptions Options => GetOptions();
+
+        /// <inheritdoc/>
+        public ColorTransformInterface SetOptions(TransformOptions options)
+        {
+            ArgumentNullException.ThrowIfNull(options);
+            SetOptionsCore(options);
+            return this;
+        }
+
+        /// <summary>
+        /// Colors chosen by the user (<see cref="TransformOptions.UserPalette"/>) as a <see cref="Palette"/>.
+        /// </summary>
+        protected Palette UserPalette => new Palette().Create(GetOptions().UserPalette ?? Array.Empty<int>());
 
         //-------------------------------------------------------------------------------------------------------------------------------
         /// <inheritdoc/>
@@ -70,18 +92,6 @@ namespace ColourClashNet.Color.Transformation
         public ImageData ImageOutput { get; protected set; } = new ImageData();
 
         //-------------------------------------------------------------------------------------------------------------------------------
-        /// <inheritdoc/>
-        public Palette ReferencePalette 
-        {
-            get => config.ReferencePalette;
-            private set => config.WithReferencePalette( value ?? new Palette() );
-        }
-        /// <summary>
-        /// When true the reference palette must not be overwritten by derived classes.
-        /// </summary>
-        public bool ReferencePaletteWriteLock { get; private set; } = false;
-        /// <inheritdoc/>
-        public int ReferenceColors => ReferencePalette?.Count ?? 0;
         /// <summary>
         /// Enables the intermediate result events.
         /// </summary>
@@ -92,11 +102,7 @@ namespace ColourClashNet.Color.Transformation
         public ColorTransformationMap TransformationMap { get; protected set; } = new ColorTransformationMap();
         
         /// <inheritdoc/>
-        public ColorDistanceEvaluationMode ColorDistanceEvaluationMode 
-        { 
-            get => config.ColorDistanceEvaluationMode;
-            set => config.ColorDistanceEvaluationMode = value;
-        }
+        public ColorDistanceEvaluationMode ColorDistanceEvaluationMode => GetOptions().DistanceMode;
 
         /// <inheritdoc/>
         public double TransformationError { get; set; } = double.NaN;
@@ -105,13 +111,10 @@ namespace ColourClashNet.Color.Transformation
         /// <inheritdoc/>
         public bool BypassDithering { get; set; }
 
-        /// <inheritdoc/>
-        public DitherConfig DitheringConfig 
-        { 
-            get => config.DitheringCfg;
-            set => config.DitheringCfg = value ?? new DitherConfig();
-        }
-            
+        /// <summary>
+        /// Dithering settings of the current options.
+        /// </summary>
+        protected DitherOptions DitheringOptions => GetOptions().Dithering ?? DitherOptions.None;
 
         #endregion
 
@@ -281,95 +284,6 @@ namespace ColourClashNet.Color.Transformation
 
         
 
-        #region with helpers
-
-        /// <summary>
-        /// Configures the dithering (fluent).
-        /// </summary>
-        /// <param name="ditheringType">Dithering algorithm</param>
-        /// <param name="strength">Strength, clamped to [0, 1]</param>
-        /// <param name="fx">Post-dithering effect</param>
-        public ColorTransformBase WithDithering(ColorDithering ditheringType, double strength = 1.0, ColorDitheringFx fx = ColorDitheringFx.None)
-        {
-            DitheringConfig.DitheringType = ditheringType;
-            DitheringConfig.DitheringStrength = ColourTools.Clamp(strength, 0.0, 1.0);
-            DitheringConfig.DitheringFx = fx;
-            return this;
-        }
-        /// <summary>
-        /// Configures the dithering with a copy of <paramref name="cfg"/> (fluent).
-        /// </summary>
-        public ColorTransformBase WithDithering(DitherConfig cfg)
-        {
-            DitheringConfig = cfg?.Clone() as DitherConfig ?? throw new ArgumentNullException(nameof(cfg));
-            return this;
-        }
-
-        /// <summary>
-        /// Configures the dithering from a full configuration (fluent).
-        /// </summary>
-        public ColorTransformBase WithDithering(ColorTransformConfig cfg) => WithDithering(cfg.DitheringCfg);
-
-        /// <summary>
-        /// Sets the color distance metric (fluent).
-        /// </summary>
-        public ColorTransformBase WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode mode)
-        {
-            ColorDistanceEvaluationMode = mode;
-            return this;
-        }
-
-       
-
-        /// <summary>
-        /// Sets the color distance metric from a full configuration (fluent).
-        /// </summary>
-        public ColorTransformBase WithColorDistanceEvaluationMode(ColorTransformConfig cfg) => WithColorDistanceEvaluationMode(cfg.ColorDistanceEvaluationMode);
-
-        /// <summary>
-        /// Sets the reference palette (fluent).
-        /// </summary>
-        /// <param name="palette">Palette colors</param>
-        /// <param name="forcePaletteOverwrite">Overwrite even when the palette is write-locked</param>
-        protected ColorTransformBase WithReferencePalette(IEnumerable<int> palette, bool forcePaletteOverwrite)
-        {
-            config.WithReferencePalette(palette, forcePaletteOverwrite);
-            return this;
-        }
-        /// <summary>
-        /// Sets the reference palette (fluent).
-        /// </summary>
-        public ColorTransformBase WithReferencePalette(Palette palette) => WithReferencePalette(palette, false);
-        /// <summary>
-        /// Sets the reference palette (fluent).
-        /// </summary>
-        public ColorTransformBase WithReferencePalette(IEnumerable<int> palette)=> WithReferencePalette(new Palette().Create(palette));
-        /// <summary>
-        /// Sets the reference palette (fluent).
-        /// </summary>
-        public ColorTransformBase WithReferencePalette(List<int> palette) => WithReferencePalette(new Palette().Create(palette));
-        /// <summary>
-        /// Sets the reference palette (fluent).
-        /// </summary>
-        public ColorTransformBase WithReferencePalette(params int[] palette) => WithReferencePalette(new Palette().Create(palette));
-        /// <summary>
-        /// Sets the reference palette from a full configuration (fluent).
-        /// </summary>
-        public ColorTransformBase WithReferencePalette(ColorTransformConfig cfg) => WithReferencePalette(cfg.ReferencePalette);
-
-        /// <inheritdoc/>
-        public ColorTransformInterface SetProperties(ColorTransformConfig cfg)
-        {
-            config = cfg?.Clone() as ColorTransformConfig ?? throw new ArgumentNullException(nameof(cfg));
-            return this;           
-        }
-        /// <inheritdoc/>
-        public ColorTransformConfig GetProperties()
-        {
-            return config?.Clone() as ColorTransformConfig ?? throw new ArgumentNullException(nameof(config));
-        }
-
-        #endregion
         /// <summary>
         /// Builds the event data for the processing events.
         /// </summary>
@@ -465,10 +379,18 @@ namespace ColourClashNet.Color.Transformation
 
                 ColorTransformResult result;
 
-                // Creating Transformation Map
-                var mapResult = CreateTransformationMap(token);
+                // Validate the options before doing any work
+                var validationErrors = GetOptions()?.Validate().ToList() ?? new List<string> { "options are missing" };
+
+                ColorTransformResult? mapResult = null;
                 ColorTransformResult? transformResult = null;
-                if (mapResult == null || !mapResult.IsSuccess)
+                if (validationErrors.Count > 0)
+                {
+                    LogMan.Error(sC, sM, $"{Type} : invalid options : {string.Join("; ", validationErrors)}");
+                    result = ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : invalid options : {string.Join("; ", validationErrors)}");
+                }
+                // Creating Transformation Map
+                else if ((mapResult = CreateTransformationMap(token)) == null || !mapResult.IsSuccess)
                 {
                     LogMan.Error(sC, sM, $"{Type} : {nameof(CreateTransformationMap)} Error");
                     result = ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : {nameof(CreateTransformationMap)} failed", mapResult);
@@ -482,7 +404,7 @@ namespace ColourClashNet.Color.Transformation
                 else
                 {
 
-                    if (BypassDithering || DitheringConfig.DitheringType == ColorDithering.None)
+                    if (BypassDithering || DitheringOptions.DitheringType == ColorDithering.None)
                     {
                         ImageOutput.Create(transformResult.DataOut);
                         result = ColorTransformResult.CreateValidResult(ImageSource, ImageOutput);
@@ -504,13 +426,13 @@ namespace ColourClashNet.Color.Transformation
 
                         if (colorSet.Count > 256)
                         {
-                            LogMan.Warning(sC, sM, $"{Name} : Processing Completed - {DitheringConfig} : Too many colors to apply a dither : {colorSet.Count}");
+                            LogMan.Warning(sC, sM, $"{Name} : Processing Completed - {DitheringOptions} : Too many colors to apply a dither : {colorSet.Count}");
                             ImageOutput.Create(processedImage);
                             result = ColorTransformResult.CreateValidResult(ImageSource, ImageOutput);
                         }
                         else
                         {
-                            var dithering = DitherBase.CreateDitherInterface(DitheringConfig);
+                            var dithering = DitherBase.CreateDitherInterface(DitheringOptions);
                             var imageDataDither = dithering.Dither(ImageReference, processedImage, ColorDistanceEvaluationMode, token);
                             if (imageDataDither.IsSuccess)
                             {

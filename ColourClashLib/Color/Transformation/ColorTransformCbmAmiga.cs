@@ -19,7 +19,7 @@ namespace ColourClashNet.Color.Transformation
     /// HAM (Hold And Modify) pixels either use a base palette color or copy the previous pixel changing only one channel:
     /// the image is quantized, a base palette is computed, then each line is encoded choosing the best HAM option per pixel.
     /// </summary>
-    public class ColorTransformCbmAmiga : ColorTransformBase
+    public class ColorTransformCbmAmiga : ColorTransformBase<AmigaOptions>
     {
         static string sC = nameof(ColorTransformCbmAmiga);
 
@@ -43,48 +43,19 @@ namespace ColourClashNet.Color.Transformation
             ExtraHalfBright
         }
 
-        /// <summary>
-        /// Target video mode.
-        /// </summary>
-        public EnumAmigaVideoMode AmigaVideoMode 
-        { 
-            get => config.AmigaVideoMode;
-            set => config.AmigaVideoMode = value;
-        }
             
-        /// <summary>
-        /// Reduction used to compute the base palette.
-        /// </summary>
-        public  ColorTransformType HamColorTransformationModel
-        { 
-            get => config.AmigaInternalTransformationModel;
-            set => config.AmigaInternalTransformationModel = value;
-        }
 
         /// <summary>
         /// Creates the Amiga transformation.
         /// </summary>
         public ColorTransformCbmAmiga()
         {
-            Type = ColorTransformType.ColorReductionClustering;
+            Type = ColorTransformType.ColorReductionHam;
             Description = "Commodore Amiga specific color reduction";
         }
 
 
-        /// <summary>
-        /// Sets the Amiga settings (fluent).
-        /// </summary>
-        public ColorTransformCbmAmiga WithAmigaProperties(EnumAmigaVideoMode videoMode, ColorTransformType hamColorTransformationModel )
-        {
-            AmigaVideoMode = videoMode;
-            HamColorTransformationModel = hamColorTransformationModel;
-            return this;
-        }
 
-        /// <summary>
-        /// Sets the Amiga settings from a configuration (fluent).
-        /// </summary>
-        public ColorTransformCbmAmiga WithAmigaProperties(ColorTransformConfig cfg) => WithAmigaProperties(cfg.AmigaVideoMode, cfg.AmigaInternalTransformationModel);
 
 
 
@@ -101,9 +72,6 @@ namespace ColourClashNet.Color.Transformation
         ImageData ToHam(ImageData dataSource, ImageData dataPreProcessed, ColorQuantizationMode quantization, CancellationToken token = default)
         {
 
-            var quantizer = new ColorTransformQuantization();
-            quantizer.QuantizationMode = quantization;
-            quantizer.Create(dataPreProcessed);
 
             var hamData = new int[dataSource.Rows, dataSource.Columns];
             for (int r = 0; r < dataSource.Rows; r++)
@@ -123,7 +91,7 @@ namespace ColourClashNet.Color.Transformation
                     }
                     else
                     {
-                        int rgbSrc = quantizer.QuantizeColor( dataSource.matrix[r, c] );
+                        int rgbSrc = ColorTransformQuantization.QuantizeColor(quantization, dataSource.matrix[r, c] );
                         if (rgbSrc < 0)
                         {
                             rgbPrev = ColorDefaults.DefaultInvalidColorInt;
@@ -137,7 +105,7 @@ namespace ColourClashNet.Color.Transformation
                         int srcG = rgbSrc.ToG();
                         int srcB = rgbSrc.ToB();
                         // HAM candidates: the base palette color, or the previous pixel with one channel modified
-                        int hamOriginal = quantizer.QuantizeColor( dataPreProcessed.matrix[r,c] );
+                        int hamOriginal = ColorTransformQuantization.QuantizeColor(quantization, dataPreProcessed.matrix[r,c] );
                         int hamR = ColorIntExt.FromRGB(srcR, prevG, prevB);
                         int hamG = ColorIntExt.FromRGB(prevR, srcG, prevB);
                         int hamB = ColorIntExt.FromRGB(prevR, prevG, srcB);
@@ -146,7 +114,7 @@ namespace ColourClashNet.Color.Transformation
                         palette.Add(hamR);
                         palette.Add(hamG);
                         palette.Add(hamB);
-                        var hamColor = quantizer.QuantizeColor( ColorIntExt.GetNearestColor(rgbSrc, palette, ColorDistanceEvaluationMode) );
+                        var hamColor = ColorTransformQuantization.QuantizeColor(quantization, ColorIntExt.GetNearestColor(rgbSrc, palette, ColorDistanceEvaluationMode) );
                         rgbPrev = hamColor;
                         hamData[r,c] = hamColor;
                     }
@@ -164,11 +132,12 @@ namespace ColourClashNet.Color.Transformation
         ColorTransformResult ToEHB(ImageData dataSource, ImageData dataPreProcessed, CancellationToken token = default)
         {
             string sM = nameof(ToEHB);
-            var transform = ForwardEventsFrom(new ColorTransformClusteringEHB());
-            transform.WithClustering(config)
-                .WithColorDistanceEvaluationMode(config)
-                .WithDithering(DitheringConfig);
-            transform.MaxColorsWanted = 32;
+            // Reuse the clustering settings of the base palette reduction, if any, with 32 base colors
+            var clustering = Options.BasePaletteReduction as ClusteringOptions ?? new ClusteringOptions { Selection = ColorSelectionMode.UseColorPalette };
+            var transform = ForwardEventsFrom(new ColorTransformClusteringEHB
+            {
+                Options = Options.InheritCommon(clustering) with { MaxColors = 32 },
+            });
             var result = transform.CreateAndProcessColors(dataPreProcessed, token);
             if (result == null || !result.IsSuccess || result.DataOut == null)
             {
@@ -187,14 +156,14 @@ namespace ColourClashNet.Color.Transformation
             string sM = nameof(ExecuteTransform);
             try
             {
-                var quantization = ForwardEventsFrom(new ColorTransformQuantization());
-                quantization.WithQuantization(ColorQuantizationMode.RGB444)
-                             .WithReferencePalette(ReferencePalette)
-                             .WithDithering(DitheringConfig);
+                var quantization = ForwardEventsFrom(new ColorTransformQuantization
+                {
+                    Options = Options.InheritCommon(new QuantizationOptions { Mode = ColorQuantizationMode.RGB444 }),
+                });
 
                 int maxColors;
                 ColorQuantizationMode hamQuantization;
-                switch (AmigaVideoMode)
+                switch (Options.VideoMode)
                 {
                     case EnumAmigaVideoMode.ExtraHalfBright:
                         {
@@ -218,11 +187,11 @@ namespace ColourClashNet.Color.Transformation
                         hamQuantization = ColorQuantizationMode.RGB666;
                         break;
                     default:
-                        LogMan.Error(sC, sM, $"{Type} : unsupported video mode {AmigaVideoMode}");
-                        return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : unsupported video mode {AmigaVideoMode}");
+                        LogMan.Error(sC, sM, $"{Type} : unsupported video mode {Options.VideoMode}");
+                        return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : unsupported video mode {Options.VideoMode}");
                 }
 
-                quantization.WithQuantization(hamQuantization);
+                quantization.Options = quantization.Options with { Mode = hamQuantization };
                 var quantizedResult = quantization.CreateAndProcessColors(ImageSource, token);
                 if (quantizedResult == null || !quantizedResult.IsSuccess)
                 {
@@ -231,10 +200,8 @@ namespace ColourClashNet.Color.Transformation
                 }
 
                 // Compute the HAM base palette (16 or 64 colors) on the quantized image
-                var cfg = config.Clone()
-                    .WithMaxColorWanted(maxColors);
-                var colorReduction = ForwardEventsFrom(ColorTransformInternal.Alloc(cfg, cfg.AmigaInternalTransformationModel));
-                colorReduction.SetProperties(cfg);
+                var cfg = Options.InheritCommon(Options.BasePaletteReduction) with { MaxColors = maxColors };
+                var colorReduction = ForwardEventsFrom(ColorTransformInternal.Alloc(cfg));
                 var dataPreprocessedResult = colorReduction.CreateAndProcessColors(quantizedResult.DataOut, token);
                 if (dataPreprocessedResult == null || !dataPreprocessedResult.IsSuccess)
                 {
@@ -253,8 +220,8 @@ namespace ColourClashNet.Color.Transformation
             }
             catch (Exception ex)
             {
-                LogMan.Exception(sC, sM, $"{Type} : {AmigaVideoMode} conversion failed", ex);
-                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : {AmigaVideoMode} conversion failed", ex);
+                LogMan.Exception(sC, sM, $"{Type} : {Options.VideoMode} conversion failed", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : {Options.VideoMode} conversion failed", ex);
             }
         }
 

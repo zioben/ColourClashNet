@@ -22,38 +22,14 @@ namespace ColourClashNet.Color.Transformation
     /// <summary>
     /// K-means color reduction.
     /// <para/>
-    /// Clusters are seeded with the reference palette plus random colors and refined for <see cref="TrainingLoop"/>
+    /// Clusters are seeded with the user palette plus random colors and refined for <see cref="ClusteringOptions.TrainingLoops"/>
     /// iterations; <typeparamref name="T"/> defines how a cluster computes its color (e.g. Amiga EHB half-bright pairs).
     /// </summary>
     /// <typeparam name="T">Cluster evolution strategy</typeparam>
-    public class ColorTransformClusteringTemplate<T> : ColorTransformBase where T : IColorEvolution, new()
+    public class ColorTransformClusteringTemplate<T> : ColorTransformBase<ClusteringOptions> where T : IColorEvolution, new()
     {
         static string sC = nameof(ColorTransformClusteringTemplate<T>);
-        /// <summary>
-        /// Number of clusters (output colors).
-        /// </summary>
-        public int MaxColorsWanted
-        {
-            get => config.MaxColorsWanted;
-            set => config.MaxColorsWanted = value;
-        }
-        /// <summary>
-        /// How the color of each cluster is recomputed.
-        /// </summary>
-        public ColorSelectionMode ClusterColorSelectionMode
-        {
-            get => config.ClusterColorSelectionMode;
-            set => config.ClusterColorSelectionMode = value;
-        }
 
-        /// <summary>
-        /// Number of clustering iterations.
-        /// </summary>
-        public int TrainingLoop
-        {
-            get => config.ClusterTrainingLoop;
-            set => config.ClusterTrainingLoop = value;
-        }
 
 
         /// <summary>
@@ -65,22 +41,7 @@ namespace ColourClashNet.Color.Transformation
             Description = "K-Means color reduction";
         }
 
-        /// <summary>
-        /// Sets the processing parameters (fluent).
-        /// </summary>
-        public ColorTransformClusteringTemplate<T> WithProcessingParams(int maxColorsWanted, int trainingLoop, ColorSelectionMode clusterColorSelectionMode)
-        {
-            MaxColorsWanted = maxColorsWanted;
-            TrainingLoop = trainingLoop;
-            ClusterColorSelectionMode = clusterColorSelectionMode;
-            return this;
-        }
 
-        /// <summary>
-        /// Sets the processing parameters from a configuration (fluent).
-        /// </summary>
-        public ColorTransformClusteringTemplate<T> WithClustering(ColorTransformConfig cfg) =>
-         WithProcessingParams(cfg.MaxColorsWanted, cfg.ClusterTrainingLoop, cfg.ClusterColorSelectionMode);
 
 
 
@@ -92,14 +53,16 @@ namespace ColourClashNet.Color.Transformation
         protected override ColorTransformResult CreateTransformationMap(CancellationToken token = default)
         {
             string sMethod = nameof(CreateTransformationMap);
+            var options = Options;
+            var userPalette = UserPalette;
             Random random = new Random(1);
 
             // Creating initial color seeds for the clustering algorithm
             var sortedHistogram = new HistogramRGB().Create(ImageSource).SortColorsDescending();
             var imagePalette = ImageSource.ColorPalette;
-            var seedPalette = Palette.MergePalette(ReferencePalette, imagePalette);
+            var seedPalette = Palette.MergePalette(userPalette, imagePalette);
             // If got less colors than wanted, just map them directly
-            if (seedPalette.Count <= MaxColorsWanted)
+            if (seedPalette.Count <= options.MaxColors)
             {
                 foreach (var rgb in seedPalette)
                 {
@@ -110,8 +73,8 @@ namespace ColourClashNet.Color.Transformation
             // Otherwise seed the clusters with the reference palette plus random colors (fixed seed: reproducible)
             else
             {
-                seedPalette = new Palette().Create(ReferencePalette);
-                while (seedPalette.Count < MaxColorsWanted)
+                seedPalette = new Palette().Create(userPalette);
+                while (seedPalette.Count < options.MaxColors)
                 {
                     seedPalette.Add(ColorIntExt.FromRGB(255.0 * random.NextDouble(), 255.0 * random.NextDouble(), 255.0 * random.NextDouble()));
                 }
@@ -123,13 +86,13 @@ namespace ColourClashNet.Color.Transformation
             //    - UseColorPalette   -> the most representative color already in the cluster.
             // Reference palette colors are fixed and never move; empty or duplicated clusters are reseeded.
             // Each loop is stored as a new ColorEvolutionList, so the whole evolution can be inspected.
-            var rgbFixedList = ReferencePalette.ToList();
+            var rgbFixedList = userPalette.ToList();
 
             // Prepare the evolutions
             List<ColorEvolutionList<T>> evolutions = new();
-            var rgbFixedSet = new HashSet<int>(ReferencePalette);
+            var rgbFixedSet = new HashSet<int>(userPalette);
 
-            for (int train = 0; train < TrainingLoop; train++)
+            for (int train = 0; train < options.TrainingLoops; train++)
             {
                 LogMan.Trace(sC, sMethod, $"{Type} : Training loop {train}");
 
@@ -142,7 +105,7 @@ namespace ColourClashNet.Color.Transformation
                 else
                 {
                     var lastEvolution = evolutions.Last();
-                    var nextClusterColors = lastEvolution.ComputeNextEvolution(ReferencePalette, ClusterColorSelectionMode, ColorDistanceEvaluationMode);
+                    var nextClusterColors = lastEvolution.ComputeNextEvolution(userPalette, options.Selection, ColorDistanceEvaluationMode);
                     foreach (var rgb in nextClusterColors)
                     {
                         nextEvolution.SetClusterColor(rgb);
@@ -155,8 +118,8 @@ namespace ColourClashNet.Color.Transformation
                 var args = new ColorProcessingEventArgs()
                 {
                     ColorTransformInterface = this,
-                    ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, null, $"Loop {train}/{TrainingLoop}"),
-                    CompletedPercent = 100 * (train + 1) / TrainingLoop
+                    ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, null, $"Loop {train}/{options.TrainingLoops}"),
+                    CompletedPercent = 100 * (train + 1) / options.TrainingLoops
                 };
                 if (EnablePreviewEvents)
                 {

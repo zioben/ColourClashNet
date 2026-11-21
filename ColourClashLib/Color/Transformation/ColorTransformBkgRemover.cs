@@ -12,9 +12,10 @@ using System.Threading.Tasks;
 namespace ColourClashNet.Color.Transformation
 {
     /// <summary>
-    /// Replaces every color of <see cref="BackgroundPalette"/> with <see cref="ColorBackgroundReplacement"/>; other colors are kept.
+    /// Replaces every color of <see cref="BackgroundRemovalOptions.BackgroundColors"/> with
+    /// <see cref="BackgroundRemovalOptions.ReplacementColor"/>; other colors are kept.
     /// </summary>
-    public class ColorTransformBkgRemover : ColorTransformBase
+    public class ColorTransformBkgRemover : ColorTransformBase<BackgroundRemovalOptions>
     {
         static string sC = nameof(ColorTransformBkgRemover);
         /// <summary>
@@ -26,38 +27,9 @@ namespace ColourClashNet.Color.Transformation
             Description = "Basic Background Color Replacement";
         }
 
-        /// <summary>
-        /// Colors treated as background.
-        /// </summary>
-        public Palette BackgroundPalette
-        {
-            get => config.ColorBackgroundPalette;
-            set => config.ColorBackgroundPalette = value ?? new Palette();
-        }
 
-        /// <summary>
-        /// Color that replaces the background colors.
-        /// </summary>
-        public int ColorBackgroundReplacement 
-        { 
-            get => config.ColorBackgroundReplacementValue;
-            set => config.ColorBackgroundReplacementValue = value;
-        } 
 
-        /// <summary>
-        /// Sets the background colors and their replacement (fluent).
-        /// </summary>
-        public ColorTransformInterface WithColorReplacement( Palette colorPalette, int replacementColor)
-        {
-            BackgroundPalette = new Palette().Create(colorPalette);
-            ColorBackgroundReplacement = replacementColor;
-            return this;
-        }
 
-        /// <summary>
-        /// Sets the background colors and their replacement from a configuration (fluent).
-        /// </summary>
-        public ColorTransformInterface WithColorReplacement(ColorTransformConfig cfg) => WithColorReplacement(cfg.ColorBackgroundPalette, cfg.ColorBackgroundReplacementValue);
 
 
         /// <summary>
@@ -70,7 +42,7 @@ namespace ColourClashNet.Color.Transformation
                 LogMan.Trace(sC, sM, $"{Type} : Creating transformation map");
 
                 TransformationMap.Reset();
-                var bkgList = BackgroundPalette.ToList();
+                var bkgList = Options.BackgroundColors ?? Array.Empty<int>();
                 var sourceList = ImageSource.ColorPalette.ToList();
                 foreach (var rgb in sourceList)
                 {
@@ -79,7 +51,7 @@ namespace ColourClashNet.Color.Transformation
                 foreach (var rgb in bkgList)
                 {
                     TransformationMap.Remove(rgb);
-                    TransformationMap.Add(rgb, ColorBackgroundReplacement);
+                    TransformationMap.Add(rgb, Options.ReplacementColor);
                 }
             return base.ExecuteTransform(token);
         }

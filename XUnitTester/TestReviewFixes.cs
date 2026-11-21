@@ -1,3 +1,4 @@
+using ColourClashProcessing.Threshold;
 using ColourClashNet;
 using ColourClashNet.Color;
 using ColourClashNet.Color.Dithering;
@@ -48,9 +49,7 @@ namespace XUnitTester
         [Fact]
         public void C64_HiRes_OutputUsesOnlyC64Colors_TwoPerCell()
         {
-            var t = new ColorTransformCbm64();
-            t.WithC64ScreenMode(ColorTransformCbm64.C64VideoMode.HiRes, ColorTransformCbm64.C64DitheringMode.PreDitherImage, false);
-            t.WithDithering(ColorDithering.None);
+            var t = new ColorTransformCbm64 { Options = new C64Options { VideoMode = ColorTransformCbm64.C64VideoMode.HiRes } };
 
             var res = t.CreateAndProcessColors(Random(16, 16));
 
@@ -71,9 +70,7 @@ namespace XUnitTester
         [Fact]
         public void C64_LightBlue_IsInPalette()
         {
-            var t = new ColorTransformCbm64();
-            t.WithC64ScreenMode(ColorTransformCbm64.C64VideoMode.HiRes, ColorTransformCbm64.C64DitheringMode.PreDitherImage, false);
-            t.WithDithering(ColorDithering.None);
+            var t = new ColorTransformCbm64 { Options = new C64Options { VideoMode = ColorTransformCbm64.C64VideoMode.HiRes } };
 
             var res = t.CreateAndProcessColors(Solid(8, 8, 0x7C70DA));
 
@@ -86,9 +83,7 @@ namespace XUnitTester
         [Fact]
         public void TileManager_PartialEdgeTiles_AreProcessed()
         {
-            var t = new ColorTransformCbm64();
-            t.WithC64ScreenMode(ColorTransformCbm64.C64VideoMode.HiRes, ColorTransformCbm64.C64DitheringMode.PreDitherImage, false);
-            t.WithDithering(ColorDithering.None);
+            var t = new ColorTransformCbm64 { Options = new C64Options { VideoMode = ColorTransformCbm64.C64VideoMode.HiRes } };
 
             var res = t.CreateAndProcessColors(Solid(12, 12, 0xFFFFFF));
 
@@ -102,7 +97,7 @@ namespace XUnitTester
         // ---------------------------------------------------------------- Fixed palette enhanced
 
         [Fact]
-        public void FixedPaletteEnhanced_UsesReferencePaletteMeans()
+        public void FixedPaletteEnhanced_UsesUserPaletteMeans()
         {
             var reference = new List<int> { 0x000000, 0xFF0000, 0x00FF00, 0x0000FF };
             var allowed = new HashSet<int>(reference);
@@ -112,12 +107,10 @@ namespace XUnitTester
 
             // Fewer image colors than reference colors used to throw ArgumentOutOfRangeException
             var twoColors = new ImageData().Create(new int[,] { { 0x000000, 0xFFFFFF } });
-            var t1 = new ColorTransformFixedPaletteEnhanced();
-            t1.WithReferencePalette(reference);
+            var t1 = new ColorTransformFixedPaletteEnhanced { Options = new EnhancedPaletteOptions { UserPalette = reference } };
             Assert.True(t1.CreateAndProcessColors(twoColors).IsSuccess);
 
-            var t2 = new ColorTransformFixedPaletteEnhanced();
-            t2.WithReferencePalette(reference);
+            var t2 = new ColorTransformFixedPaletteEnhanced { Options = new EnhancedPaletteOptions { UserPalette = reference } };
             var res = t2.CreateAndProcessColors(Random(16, 16));
             Assert.True(res.IsSuccess, res.Message);
             Assert.All(Colors(t2.ImageOutput), rgb => Assert.Contains(rgb, allowed));
@@ -129,8 +122,7 @@ namespace XUnitTester
         public void MedianCut_WithTies_DoesNotCollapseToOneColor()
         {
             var image = new ImageData().Create(new int[,] { { 0x000000, 0x0000FF, 0xFF0000, 0xFFFFFF, 0x00FF00 } });
-            var t = new ColorTransformMedianCut();
-            t.MaxColorsWanted = 4;
+            var t = new ColorTransformMedianCut { Options = new MedianCutOptions { MaxColors = 4 } };
 
             var res = t.CreateAndProcessColors(image);
 
@@ -142,8 +134,7 @@ namespace XUnitTester
         public void MedianCut_ExactColorCount_IsKept()
         {
             var image = new ImageData().Create(new int[,] { { 0x000000, 0x0000FF, 0xFF0000, 0xFFFFFF } });
-            var t = new ColorTransformMedianCut();
-            t.MaxColorsWanted = 4;
+            var t = new ColorTransformMedianCut { Options = new MedianCutOptions { MaxColors = 4 } };
 
             t.CreateAndProcessColors(image);
 
@@ -151,10 +142,12 @@ namespace XUnitTester
         }
 
         [Fact]
-        public void MedianCut_WithProcessingParams_SetsColorSelectionMode()
+        public void MedianCut_Options_AreStoredAsGiven()
         {
-            var t = new ColorTransformMedianCut().WithProcessingParams(8, ColorSelectionMode.UseColorPalette);
-            Assert.Equal(ColorSelectionMode.UseColorPalette, t.ColorSelectionMode);
+            var options = new MedianCutOptions { MaxColors = 8, Selection = ColorSelectionMode.UseColorPalette };
+            var t = new ColorTransformMedianCut { Options = options };
+            Assert.Same(options, t.Options);
+            Assert.Equal(ColorSelectionMode.UseColorPalette, t.Options.Selection);
         }
 
         // ---------------------------------------------------------------- Amiga HAM
@@ -162,8 +155,7 @@ namespace XUnitTester
         [Fact]
         public void AmigaHam6_FirstColumn_IsNotBlack()
         {
-            var t = new ColorTransformCbmAmiga();
-            t.AmigaVideoMode = ColorTransformCbmAmiga.EnumAmigaVideoMode.Ham6;
+            var t = new ColorTransformCbmAmiga { Options = new AmigaOptions { VideoMode = ColorTransformCbmAmiga.EnumAmigaVideoMode.Ham6 } };
 
             var res = t.CreateAndProcessColors(Solid(8, 4, 0xFFFFFF));
 
@@ -180,15 +172,14 @@ namespace XUnitTester
         {
             var image = Random(8, 8);
             var t = new ColorTransformCGA();
-            t.WithDithering(ColorDithering.None);
 
-            t.VideoMode = ColorTransformCGA.CGAVideoMode.Mode6;
+            t.Options = new CgaOptions { VideoMode = ColorTransformCGA.CGAVideoMode.Mode6 };
             Assert.True(t.CreateAndProcessColors(image).IsSuccess);
-            var palMode6 = t.ReferencePalette.ToList().OrderBy(x => x).ToList();
+            var palMode6 = t.TargetPalette.ToList().OrderBy(x => x).ToList();
 
-            t.VideoMode = ColorTransformCGA.CGAVideoMode.Mode4_0L;
+            t.Options = t.Options with { VideoMode = ColorTransformCGA.CGAVideoMode.Mode4_0L };
             Assert.True(t.CreateAndProcessColors(image).IsSuccess);
-            var palMode4 = t.ReferencePalette.ToList().OrderBy(x => x).ToList();
+            var palMode4 = t.TargetPalette.ToList().OrderBy(x => x).ToList();
 
             Assert.NotEqual(palMode6, palMode4);
         }
@@ -196,9 +187,7 @@ namespace XUnitTester
         [Fact]
         public void CGA_DebugPalette_Succeeds()
         {
-            var t = new ColorTransformCGA();
-            t.WithDithering(ColorDithering.None);
-            t.VideoMode = ColorTransformCGA.CGAVideoMode.DebugPalette;
+            var t = new ColorTransformCGA { Options = new CgaOptions { VideoMode = ColorTransformCGA.CGAVideoMode.DebugPalette } };
 
             Assert.True(t.CreateAndProcessColors(Random(8, 8)).IsSuccess);
         }
@@ -207,11 +196,10 @@ namespace XUnitTester
         public void EGA_LightCyan_IsInPalette()
         {
             var t = new ColorTransformEGA();
-            t.WithDithering(ColorDithering.None);
 
             t.CreateAndProcessColors(Solid(4, 4, 0x55FFFF));
 
-            Assert.Equal(16, t.ReferencePalette.Count);
+            Assert.Equal(16, t.TargetPalette.Count);
             Assert.Equal(0x55FFFF, t.ImageOutput.GetMatrix()[0, 0]);
         }
 
@@ -225,7 +213,7 @@ namespace XUnitTester
         [Fact]
         public void LumSat_NegativeHueShift_WrapsHue()
         {
-            var t = new ColorTransformLumSat().WithHueShiftValue(-60, 1, 1);
+            var t = new ColorTransformLumSat { Options = new HsvOptions { HueShift = -60 } };
 
             var res = t.CreateAndProcessColors(Solid(2, 2, 0xFF0000));
 
@@ -238,8 +226,7 @@ namespace XUnitTester
         [Fact]
         public void QuantizationRGB333_White_StaysWhite()
         {
-            var t = new ColorTransformQuantization();
-            t.QuantizationMode = ColorQuantizationMode.RGB333;
+            var t = new ColorTransformQuantization { Options = new QuantizationOptions { Mode = ColorQuantizationMode.RGB333 } };
 
             t.CreateAndProcessColors(Solid(2, 2, 0xFFFFFF));
 
@@ -251,9 +238,7 @@ namespace XUnitTester
         {
             int tagged = ColorIntExt.FromRGB(10, 10, 10, ColorInfo.IsTransparent);
             var image = new ImageData().Create(new int[,] { { tagged, 0x102030 } });
-            var t = new ColorTransformFixedPalette();
-            t.WithReferencePalette(new List<int> { 0x000000, 0xFFFFFF });
-            t.WithDithering(ColorDithering.None);
+            var t = new ColorTransformFixedPalette { Options = new FixedPaletteOptions { UserPalette = new List<int> { 0x000000, 0xFFFFFF } } };
 
             t.CreateAndProcessColors(image);
 
@@ -267,7 +252,7 @@ namespace XUnitTester
         [InlineData(ColorDithering.Ordered_8x8, ColorDithering.Ordered_8x8)]
         public void OrderedDither_Size_MatchesRequested(ColorDithering requested, ColorDithering expected)
         {
-            var dither = DitherBase.CreateDitherInterface(new DitherConfig { DitheringType = requested }) as DitherOrdered;
+            var dither = DitherBase.CreateDitherInterface(new DitherOptions { DitheringType = requested }) as DitherOrdered;
             Assert.NotNull(dither);
             Assert.Equal(expected, dither.Type);
         }
@@ -284,7 +269,7 @@ namespace XUnitTester
                     pm[r, c] = (r + c) % 2 == 0 ? 0x000000 : 0xFFFFFF;
             var processed = new ImageData().Create(pm);
 
-            var dither = DitherBase.CreateDitherInterface(new DitherConfig { DitheringType = ColorDithering.Ordered_2x2, DitheringStrength = 1.0 });
+            var dither = DitherBase.CreateDitherInterface(new DitherOptions { DitheringType = ColorDithering.Ordered_2x2, DitheringStrength = 1.0 });
             var res = dither.Dither(reference, processed, ColorDistanceEvaluationMode.RGB);
 
             Assert.True(res.IsSuccess, res.Message);
@@ -295,20 +280,57 @@ namespace XUnitTester
         // ---------------------------------------------------------------- Blob
 
         [Fact]
-        public void Blob_WithFiltering_UsesArgumentsInTheRightOrder()
+        public void Blob_SizeFilters_KeepBlobsWithinTheLimits()
         {
             int colBkg = ColorIntExt.FromRGB(255, 0, 255);
             int colFgd = ColorIntExt.FromRGB(128, 128, 128);
             var m = MatrixTools.CreateMatrix(20, 20, colBkg);
             MatrixTools.Blit(MatrixTools.CreateMatrix(3, 3, colFgd), m, 0, 0, 5, 5, 3, 3);
 
-            var blob = new Blob()
-                .WithThreshold(colBkg, 0, false)
-                .WithFiltering(0, 1000000, 0, 100, 0, 100)
-                .WithProcessing(BlobConnectionModes.FourConnected);
+            var blob = new Blob
+            {
+                Options = new BlobOptions
+                {
+                    Threshold = new ThresholdOptions { BackgroundColors = new[] { colBkg } },
+                    MaxArea = 1000000,
+                    MaxWidth = 100,
+                    MaxHeight = 100,
+                    ConnectionMode = BlobConnectionModes.FourConnected,
+                },
+            };
             blob.Process(new ImageData().Create(m));
 
             Assert.Single(blob.BlobList);
+
+            // A minimum width above the blob width filters it out
+            blob.Options = blob.Options with { MinWidth = 4 };
+            blob.Process(new ImageData().Create(m));
+            Assert.Empty(blob.BlobList);
+        }
+
+        [Fact]
+        public void Blob_InvalidOptions_ReturnAnErrorResult()
+        {
+            var image = new ImageData().Create(MatrixTools.CreateMatrix(8, 8, 0));
+            var blob = new Blob { Options = new BlobOptions { MinArea = 50, MaxArea = 10, Threshold = new ThresholdOptions { BackgroundColors = Array.Empty<int>() } } };
+
+            var result = blob.Process(image);
+
+            Assert.False(result.IsSuccess);
+            Assert.Contains("MinArea (50) is greater than MaxArea (10)", result.Message);
+            Assert.Contains("Threshold : BackgroundColors", result.Message);
+        }
+
+        [Fact]
+        public void BlobOptions_With_LeavesTheOriginalUnchanged()
+        {
+            var original = new BlobOptions { MinArea = 5 };
+            var changed = original with { MinArea = 9, Threshold = original.Threshold with { Tolerance = 3 } };
+
+            Assert.Equal(5, original.MinArea);
+            Assert.Equal(0, original.Threshold.Tolerance);
+            Assert.Equal(9, changed.MinArea);
+            Assert.Equal(3, changed.Threshold.Tolerance);
         }
 
         // ---------------------------------------------------------------- MatrixTools

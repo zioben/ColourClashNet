@@ -29,7 +29,7 @@ namespace ColourClashProcessing.Blob
 
         #region private fields
 
-        BlobConfig config = new BlobConfig();
+        BlobOptions options = new();
 
         // Run lengths of each blob, by blob id
         Dictionary<int, List<RunLength>>? connectedComponents = null;
@@ -39,78 +39,17 @@ namespace ColourClashProcessing.Blob
 
         #endregion
 
-        #region config properties
+
 
         /// <summary>
-        /// Background reference colors.
+        /// Detection settings (threshold, connectivity, size filters, rebuild color).
         /// </summary>
-        [Browsable(true), Category("Input")]
-        public Palette ThresholdPalette => config.ThresholdRGB.ThresholdPalette;
-
-        /// <summary>
-        /// Threshold tolerance.
-        /// </summary>
-        [Browsable(true), Category("Input")]
-        public double ThresholdTolerance => config.ThresholdRGB.ToleranceFactor;
-
-        /// <summary>
-        /// Swaps foreground and background.
-        /// </summary>
-        [Browsable(true), Category("Input")]
-        public bool ThresholdInvertResults => config.ThresholdRGB.InvertResults;
-
-        /// <summary>
-        /// Pixel connectivity.
-        /// </summary>
-        [Browsable(true), Category("Input")]
-        public BlobConnectionModes ConnectionMode => config.ConnectionMode;
-
-        #endregion
-
-        #region filtering properties
-
-        /// <summary>
-        /// Minimum blob width (0 = no limit).
-        /// </summary>
-        [Browsable(true), Category("Filtering")]
-        public int MinBlobWidth => config.MinBlobWidth;
-
-        /// <summary>
-        /// Minimum blob height (0 = no limit).
-        /// </summary>
-        [Browsable(true), Category("Filtering")]
-        public int MinBlobHeight => config.MinBlobHeight;
-
-        /// <summary>
-        /// Minimum blob area (0 = no limit).
-        /// </summary>
-        [Browsable(true), Category("Filtering")]
-        public int MinBlobArea => config.MinBlobArea;
-
-        /// <summary>
-        /// Maximum blob width (0 = no limit).
-        /// </summary>
-        [Browsable(true), Category("Filtering")]
-        public int MaxBlobWidth => config.MaxBlobWidth;
-
-        /// <summary>
-        /// Maximum blob height (0 = no limit).
-        /// </summary>
-        [Browsable(true), Category("Filtering")]
-        public int MaxBlobHeight => config.MaxBlobHeight;
-
-        /// <summary>
-        /// Maximum blob area (0 = no limit).
-        /// </summary>
-        [Browsable(true), Category("Filtering")]
-        public int MaxBlobArea => config.MaxBlobArea;
-
-        /// <summary>
-        /// Background color of the rebuilt blob images.
-        /// </summary>
-        public int BlobBkgColor => config.BlobBkgColor;
-
-        #endregion
+        /// <exception cref="ArgumentNullException">Set to null.</exception>
+        public BlobOptions Options
+        {
+            get => options;
+            set => options = value ?? throw new ArgumentNullException(nameof(value));
+        }
 
         #region output
 
@@ -143,17 +82,17 @@ namespace ColourClashProcessing.Blob
             Reset();
         }
 
-        /// <summary>Restores the default configuration and clears the results.</summary>
+        /// <summary>Restores the default options and clears the results.</summary>
         public void Reset()
         {
-            config = new BlobConfig();
+            options = new BlobOptions();
             shape = new Shape();
             ResetResults();
         }
 
         /// <summary>
         /// Clears only the results. Process() calls this one: calling Reset() there would
-        /// throw away what WithThreshold()/WithProcessing() have just configured.
+        /// throw away the configured <see cref="Options"/>.
         /// </summary>
         void ResetResults()
         {
@@ -163,91 +102,6 @@ namespace ColourClashProcessing.Blob
             connectedComponents = null;
         }
 
-        #region setup fluent
-
-        /// <summary>
-        /// Sets the threshold (fluent).
-        /// </summary>
-        public Blob WithThreshold(Palette thresholdPalette, double toleranceFactor, bool invertResults)
-        {
-            config.ThresholdRGB.WithThreshold( new Palette().Create(thresholdPalette),toleranceFactor,invertResults);
-            return this;
-        }
-
-        /// <summary>
-        /// Sets a single threshold color (fluent).
-        /// </summary>
-        public Blob WithThreshold(int rgbThreshold, double toleranceFactor, bool invertResults)
-        {
-            config.ThresholdRGB.WithThreshold( new Palette().Create(new List<int> { rgbThreshold }), toleranceFactor, invertResults);
-            return this;
-        }
-
-        /// <summary>
-        /// Copies the threshold settings (fluent).
-        /// </summary>
-        public Blob WithThreshold(GlobalThreshold thresholdRGB)
-            => WithThreshold(thresholdRGB.ThresholdPalette, thresholdRGB.ToleranceFactor, thresholdRGB.InvertResults);
-
-        /// <summary>
-        /// Copies the threshold settings from a configuration (fluent).
-        /// </summary>
-        public Blob WithThreshold(BlobConfig blobConfig)
-            => WithThreshold(blobConfig.ThresholdRGB);
-
-        /// <summary>
-        /// Sets the connectivity (fluent).
-        /// </summary>
-        public Blob WithProcessing(BlobConnectionModes connectionMode)
-        {
-            config.WithProcessing(connectionMode);
-            return this;
-        }
-
-        /// <summary>
-        /// Copies the connectivity from a configuration (fluent).
-        /// </summary>
-        public Blob WithProcessing(BlobConfig blobConfig)
-            => WithProcessing(blobConfig.ConnectionMode);
-
-        /// <summary>
-        /// Sets the background color of the rebuilt images (fluent).
-        /// </summary>
-        public Blob WithColors( int bkgColorRGB)
-        {
-            config.WithColors( bkgColorRGB);
-            return this;
-        }
-
-        /// <summary>
-        /// Copies the colors from a configuration (fluent).
-        /// </summary>
-        public Blob WithColors(BlobConfig blobConfig)
-        { 
-            config.WithColors(blobConfig);
-            return this;
-        }
-
-        /// <summary>
-        /// Sets the size filters; 0 disables a limit (fluent).
-        /// </summary>
-        public Blob WithFiltering(int minArea, int maxArea, int minWidth, int maxWidth, int minHeight, int maxHeight)
-        {
-            config.WithFiltering(minWidth, minHeight, minArea, maxWidth, maxHeight, maxArea);
-            return this;
-        }
-        /// <summary>
-        /// Copies the size filters from a configuration (fluent).
-        /// </summary>
-        public Blob WithFiltering(BlobConfig config)
-        {
-            this.config.WithFiltering(config.MinBlobWidth, config.MinBlobHeight, config.MinBlobArea, config.MaxBlobWidth, config.MaxBlobHeight, config.MaxBlobArea);
-            return this;
-        }
-
-       
-
-        #endregion
 
         /// <summary>
         /// Detects the blobs of <paramref name="image"/>.
@@ -264,8 +118,19 @@ namespace ColourClashProcessing.Blob
                 ImageSource = new ImageData().Create(image);
                 ImageData.AssertValid(ImageSource);
 
+                // Snapshot of the options: records are immutable, later changes do not affect this run
+                var opts = Options;
+                var errors = opts.Validate().ToList();
+                if (errors.Count > 0)
+                {
+                    LogMan.Error(sC, sM, $"invalid options : {string.Join("; ", errors)}");
+                    timer.Update();
+                    return ColorTransformResult.CreateErrorResult(sC, sM, image, null, $"invalid options : {string.Join("; ", errors)}");
+                }
+
                 // 1. foreground / background split
-                var thresholdResult = config.ThresholdRGB.Process(ImageSource, cancellationToken);
+                var threshold = new GlobalThreshold { Options = opts.Threshold };
+                var thresholdResult = threshold.Process(ImageSource, cancellationToken);
                 if (!thresholdResult.IsSuccess)
                 {
                     LogMan.Error(sC, sM, $"Threshold processing failed: {thresholdResult.Message}", thresholdResult.Exception);
@@ -281,23 +146,23 @@ namespace ColourClashProcessing.Blob
                 }
 
                 // 3. run lengths -> blobs
-                var blobs = BlobBuilder.Build(shape.RunLengths, ConnectionMode, cancellationToken);
+                var blobs = BlobBuilder.Build(shape.RunLengths, opts.ConnectionMode, cancellationToken);
 
                 // 4. filter blobs by size
-                if (MinBlobArea > 0)
-                    blobs.RemoveAll(b => b.Area < MinBlobArea);
-                if (MaxBlobArea > 0)
-                    blobs.RemoveAll(b => b.Area > MaxBlobArea);
+                if (opts.MinArea > 0)
+                    blobs.RemoveAll(b => b.Area < opts.MinArea);
+                if (opts.MaxArea > 0)
+                    blobs.RemoveAll(b => b.Area > opts.MaxArea);
                 //
-                if (MinBlobWidth > 0)
-                    blobs.RemoveAll(b => b.Width < MinBlobWidth);
-                if (MaxBlobWidth > 0)
-                    blobs.RemoveAll(b => b.Width > MaxBlobWidth);
+                if (opts.MinWidth > 0)
+                    blobs.RemoveAll(b => b.Width < opts.MinWidth);
+                if (opts.MaxWidth > 0)
+                    blobs.RemoveAll(b => b.Width > opts.MaxWidth);
                 //
-                if (MinBlobHeight > 0)
-                    blobs.RemoveAll(b => b.Height < MinBlobHeight);
-                if (MaxBlobHeight > 0)
-                    blobs.RemoveAll(b => b.Height > MaxBlobHeight);
+                if (opts.MinHeight > 0)
+                    blobs.RemoveAll(b => b.Height < opts.MinHeight);
+                if (opts.MaxHeight > 0)
+                    blobs.RemoveAll(b => b.Height > opts.MaxHeight);
 
                 BlobList = blobs;
                 connectedComponents = blobs.ToDictionary(b => b.BlobId, b => b.RunLengths);
@@ -307,7 +172,7 @@ namespace ColourClashProcessing.Blob
                 return ColorTransformResult.CreateValidResult(
                     image,
                     thresholdResult.DataOut,
-                    $"Blob processing completed: {blobs.Count} blobs from {shape.RunLengths.Count} run lengths ({ConnectionMode}).");
+                    $"Blob processing completed: {blobs.Count} blobs from {shape.RunLengths.Count} run lengths ({opts.ConnectionMode}).");
             }
             catch (OperationCanceledException cex)
             {
@@ -381,7 +246,7 @@ namespace ColourClashProcessing.Blob
             {
                 return null;
             }
-            var matrixDst = MatrixTools.CreateMatrix(blob.Width, blob.Height, config.BlobBkgColor);
+            var matrixDst = MatrixTools.CreateMatrix(blob.Width, blob.Height, Options.BackgroundColor);
             var imageMask = RunLength.ToShapeImageData(blob.RunLengths);
             MatrixTools.CoockieCut(ImageSource, imageMask, matrixDst, blob.XMin,blob.YMin,0,0, 0, 0, blob.Width, blob.Height);
             var imageData = new ImageData().Create(matrixDst);

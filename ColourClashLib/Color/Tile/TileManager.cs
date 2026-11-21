@@ -102,7 +102,7 @@ public partial class TileManager
     public ImageData ImageSource { get; private set; } = new ImageData();
 
     /// <summary>Transformation settings applied to each tile.</summary>
-    public ColorTransformConfig TransformationConfig { get; private set; } = new ();
+    public TransformOptions TileOptions { get; private set; } = new ClusteringOptions();
 
     /// <summary>Sum of the transformation errors of all tiles; NaN when not computed.</summary>
     public double GlobalTransformationError { get; set; } = double.NaN;
@@ -135,7 +135,7 @@ public partial class TileManager
             tileProcessingMatrix = null;
             ImageSource = new ImageData();
             GlobalTransformationError = double.NaN;
-            TransformationConfig = new ();
+            TileOptions = new ClusteringOptions();
             NormalizationError = 1.0;
         }
     }
@@ -149,11 +149,11 @@ public partial class TileManager
     /// <param name="tileHeight">Tile height in pixels</param>
     /// <param name="image">Source image</param>
     /// <param name="normalizationError">Divider applied to each tile error</param>
-    /// <param name="colorTransformConfig">Transformation settings for every tile</param>
+    /// <param name="tileOptions">Options of the transformation applied to every tile (usually <see cref="ClusteringOptions"/>)</param>
     /// <param name="token">Cancellation token</param>
     /// <returns>This instance; reset when cancelled.</returns>
     /// <exception cref="InvalidConstraintException">Invalid tile size.</exception>
-    public TileManager Create(int tileWidth, int tileHeight, ImageData image, double normalizationError, ColorTransformConfig colorTransformConfig , CancellationToken token=default)
+    public TileManager Create(int tileWidth, int tileHeight, ImageData image, double normalizationError, TransformOptions tileOptions, CancellationToken token=default)
     {
 
         string sM = nameof(Create);
@@ -172,6 +172,7 @@ public partial class TileManager
                 TileH = tileHeight;
                 NormalizationError = normalizationError;
 
+                TileOptions = tileOptions ?? throw new ArgumentNullException(nameof(tileOptions));
                 ImageSource = new ImageData().Create(image);
                 // Round up: partial tiles on the right/bottom edges must be processed too
                 tileProcessingMatrix = new TileProcessing[(ImageSource.Height + TileH - 1) / TileH, (ImageSource.Width + TileW - 1) / TileW];
@@ -191,7 +192,7 @@ public partial class TileManager
                             Math.Min(TileW, ImageSource.Width - xs),
                             Math.Min(TileH, ImageSource.Height - ys),
                             NormalizationError,
-                            colorTransformConfig);
+                            tileOptions);
                         tileProcessingMatrix[r, c].ProcessPartial += ForwardTileEvent;
                     }
                 }//);

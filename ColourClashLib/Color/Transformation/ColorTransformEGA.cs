@@ -9,7 +9,7 @@ namespace ColourClashNet.Color.Transformation
     /// <summary>
     /// Maps the image to the 16 color IBM EGA default palette.
     /// </summary>
-    public class ColorTransformEGA : ColorTransformFixedPalette
+    public class ColorTransformEGA : ColorTransformPaletteMapping<EgaOptions>
     {
         /// <summary>
         /// Creates the EGA transformation.
@@ -21,31 +21,30 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        /// <summary>
-        /// Loads the EGA palette.
-        /// </summary>
-        protected override void RebuildReferencePalette()     
+        // IBM EGA default 16 color palette
+        static readonly Palette egaPalette = new Palette().Create(new[]
         {
-            WithFixedPalette(
-                new List<int>
-                {
-                    0x00_00_00_00,
-                    0x00_00_00_AA,
-                    0x00_00_AA_00,
-                    0x00_00_AA_AA,
-                    0x00_AA_00_00,
-                    0x00_AA_00_AA,
-                    0x00_AA_55_00,
-                    0x00_AA_AA_AA,
-                    0x00_55_55_55,
-                    0x00_55_55_FF,
-                    0x00_55_FF_55,
-                    0x00_55_FF_FF,
-                    0x00_FF_55_55,
-                    0x00_FF_55_FF,
-                    0x00_FF_FF_55,
-                    0x00_FF_FF_FF,
-                });
-        }
+            0x00_00_00_00,
+            0x00_00_00_AA,
+            0x00_00_AA_00,
+            0x00_00_AA_AA,
+            0x00_AA_00_00,
+            0x00_AA_00_AA,
+            0x00_AA_55_00,
+            0x00_AA_AA_AA,
+            0x00_55_55_55,
+            0x00_55_55_FF,
+            0x00_55_FF_55,
+            0x00_55_FF_FF,
+            0x00_FF_55_55,
+            0x00_FF_55_FF,
+            0x00_FF_FF_55,
+            0x00_FF_FF_FF,
+        });
+
+        /// <summary>
+        /// Returns the EGA palette.
+        /// </summary>
+        protected override Palette GetTargetPalette() => egaPalette;
     }
 }

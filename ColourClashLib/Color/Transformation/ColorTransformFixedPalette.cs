@@ -7,53 +7,56 @@ using System.Threading.Tasks;
 namespace ColourClashNet.Color.Transformation
 {
     /// <summary>
-    /// Maps each source color to the nearest color of a fixed palette (<see cref="ColorTransformBase.ReferencePalette"/>).
+    /// Base of the transformations that map every source color to the nearest color of a target palette.
     /// <para/>
-    /// Hardware specific subclasses provide their palette by overriding <see cref="RebuildReferencePalette"/>.
+    /// The target palette is supplied by the derived class through <see cref="GetTargetPalette"/>:
+    /// hardware transformations return their own palette (it is never stored in the options),
+    /// <see cref="ColorTransformFixedPalette"/> returns <see cref="TransformOptions.UserPalette"/>.
     /// </summary>
-    public class ColorTransformFixedPalette : ColorTransformBase
+    /// <typeparam name="TOptions">Option record of the transformation</typeparam>
+    public abstract class ColorTransformPaletteMapping<TOptions> : ColorTransformBase<TOptions> where TOptions : TransformOptions, new()
     {
         /// <summary>
-        /// Creates a transformation that uses the configured reference palette.
+        /// Returns the palette the image is mapped to, for the current options.
+        /// </summary>
+        protected abstract Palette GetTargetPalette();
+
+        /// <summary>
+        /// Palette the image is mapped to, for the current options.
+        /// </summary>
+        public Palette TargetPalette => GetTargetPalette();
+
+        /// <summary>
+        /// Maps each source color to the nearest color of <see cref="TargetPalette"/>.
+        /// </summary>
+        protected override ColorTransformResult CreateTransformationMap(CancellationToken token = default)
+        {
+            TransformationMap.Reset();
+            var targetPalette = GetTargetPalette();
+            var rgbList = ImageSource.ColorPalette.ToList();
+            foreach (var rgb in rgbList)
+            {
+                TransformationMap.Add(rgb, ColorIntExt.GetNearestColor(rgb, targetPalette, ColorDistanceEvaluationMode));
+            }
+            return ColorTransformResult.CreateValidResult();
+        }
+    }
+
+    /// <summary>
+    /// Maps each source color to the nearest color of a user palette (<see cref="TransformOptions.UserPalette"/>).
+    /// </summary>
+    public class ColorTransformFixedPalette : ColorTransformPaletteMapping<FixedPaletteOptions>
+    {
+        /// <summary>
+        /// Creates the fixed palette transformation.
         /// </summary>
         public ColorTransformFixedPalette()
         {
             Type = ColorTransformType.ColorReductionGenericPalette;
             Description = "Color palette transformation";
         }
-        /// <summary>
-        /// Sets the fixed palette, overwriting any previous one (fluent).
-        /// </summary>
-        public ColorTransformFixedPalette WithFixedPalette(List<int> palette)
-        {
-            config.WithFixedPalette(palette,true);
-            return this;
-        }
 
-        /// <summary>
-        /// Loads the hardware palette; the base implementation keeps the configured palette.
-        /// </summary>
-        protected virtual void RebuildReferencePalette()
-        {
-            
-        }
-
-        /// <summary>
-        /// Maps each source color to the nearest reference palette color.
-        /// </summary>
-        protected override ColorTransformResult CreateTransformationMap(CancellationToken token = default)
-        {
-            TransformationMap.Reset();
-            RebuildReferencePalette();
-            var rgbList = ImageSource.ColorPalette.ToList();
-
-            //Parallel.ForEach(rgbList, rgb =>
-            foreach (var rgb in rgbList)    
-            {
-                TransformationMap.Add(rgb, ColorIntExt.GetNearestColor(rgb, ReferencePalette, this.ColorDistanceEvaluationMode));
-            }//);
-            return ColorTransformResult.CreateValidResult();
-        }
+        /// <inheritdoc/>
+        protected override Palette GetTargetPalette() => UserPalette;
     }
 }
-

@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color.Transformation;
+﻿using ColourClashNet.Color.Dithering;
+using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
@@ -14,9 +15,10 @@ using System.Threading.Tasks;
 namespace ColourClashNet.Color.Transformation
 {
     /// <summary>
-    /// IBM VGA 256 color mode: quantizes the image to RGB666, then reduces it to <see cref="MaxColorUsed"/> colors by clustering.
+    /// IBM VGA 256 color mode: quantizes the image to RGB666, then reduces it with <see cref="VgaOptions.Reduction"/>
+    /// (clustering to 256 colors by default).
     /// </summary>
-    public class ColorTransformVGA : ColorTransformBase
+    public class ColorTransformVGA : ColorTransformBase<VgaOptions>
     {
         static string sC = nameof(ColorTransformVGA);
 
@@ -30,42 +32,22 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
-        /// <summary>
-        /// Maximum number of output colors.
-        /// </summary>
-        public int MaxColorUsed
-        {
-            get => config.MaxColorsWanted;
-            set => config.MaxColorsWanted = value;
-        }   
 
-        /// <summary>
-        /// Sets the maximum number of output colors (fluent).
-        /// </summary>
-        public ColorTransformVGA WithProperties(int maxColors)
-        {
-            MaxColorUsed = maxColors;
-            return this;
-        }
 
-        /// <summary>
-        /// Sets the maximum number of output colors from a configuration (fluent).
-        /// </summary>
-        public ColorTransformVGA WithProperties(ColorTransformConfig cfg) => WithProperties(cfg.MaxColorsWanted);
 
 
 
         /// <summary>
-        /// Runs the RGB666 quantization followed by the clustering reduction.
+        /// Runs the RGB666 quantization followed by the palette reduction.
         /// </summary>
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransform);
 
-            var quantization = ForwardEventsFrom(new ColorTransformQuantization());
-            quantization.WithQuantization(ColorQuantizationMode.RGB666)
-                         .WithReferencePalette(ReferencePalette)
-                         .WithDithering( ColorDithering.None);
+            var quantization = ForwardEventsFrom(new ColorTransformQuantization
+            {
+                Options = new QuantizationOptions { Mode = ColorQuantizationMode.RGB666, DistanceMode = Options.DistanceMode },
+            });
             var resultQuantized = quantization.CreateAndProcessColors(ImageSource, token);
             if (resultQuantized == null || !resultQuantized.IsSuccess)
             {
@@ -73,19 +55,17 @@ namespace ColourClashNet.Color.Transformation
                 return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : RGB666 quantization failed", resultQuantized);
             }
 
-            var cluster = ForwardEventsFrom(new ColorTransformClustering());
-            cluster.WithProcessingParams(MaxColorUsed, 10, ColorSelectionMode.EvaluateColorMean)
-            .WithColorDistanceEvaluationMode(config)
-            .WithDithering(config)
-            .WithReferencePalette(config);
+            // The nested reduction inherits metric and user palette; dithering is applied once, by this transformation
+            var reductionOptions = Options.InheritCommon(Options.Reduction) with { Dithering = DitherOptions.None };
+            var reduction = ForwardEventsFrom(ColorTransformInternal.Alloc(reductionOptions));
 
-            var clusterResult = cluster.CreateAndProcessColors(resultQuantized.DataOut, token);
-            if (clusterResult == null || !clusterResult.IsSuccess)
+            var reductionResult = reduction.CreateAndProcessColors(resultQuantized.DataOut, token);
+            if (reductionResult == null || !reductionResult.IsSuccess)
             {
-                LogMan.Error(sC, sM, $"{Type} : clustering failed");
-                return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : clustering failed", clusterResult);
+                LogMan.Error(sC, sM, $"{Type} : palette reduction failed");
+                return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : palette reduction failed", reductionResult);
             }
-            return ColorTransformResult.CreateValidResult(ImageSource, clusterResult.DataOut);
+            return ColorTransformResult.CreateValidResult(ImageSource, reductionResult.DataOut);
         }
 
     }

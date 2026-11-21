@@ -11,7 +11,7 @@ namespace ColourClashNet.Color.Transformation
     /// <para/>
     /// The mean colors represent the visual result of a 50% checkerboard dither between the two colors.
     /// </summary>
-    public class ColorTransformFixedPaletteEnhanced : ColorTransformBase
+    public class ColorTransformFixedPaletteEnhanced : ColorTransformBase<EnhancedPaletteOptions>
     {
         /// <summary>
         /// Creates the enhanced palette transformation.
@@ -32,9 +32,9 @@ namespace ColourClashNet.Color.Transformation
 
             var rgbList = ImageSource.ColorPalette.ToList();
             Palette paletteEnhance = new ();
-            paletteEnhance.Create(ReferencePalette);
+            paletteEnhance.Create(UserPalette);
             // Enhanced colors are the pairwise means of the reference palette colors
-            var refList = ReferencePalette.ToList();
+            var refList = UserPalette.ToList();
             for (int i = 0; i < refList.Count; i++)
             {
                 for (int j = i + 1; j < refList.Count; j++)

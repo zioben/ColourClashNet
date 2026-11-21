@@ -15,7 +15,7 @@ namespace XUnitTester
         /// <summary>
         /// Transformation whose ExecuteTransform always fails
         /// </summary>
-        class FailingTransform : ColorTransformBase
+        class FailingTransform : ColorTransformBase<IdentityOptions>
         {
             public const string ErrorMessage = "ExecuteTransform test failure";
             protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
@@ -25,7 +25,7 @@ namespace XUnitTester
         /// <summary>
         /// Transformation whose Create always fails (and therefore returns null)
         /// </summary>
-        class FailingCreateTransform : ColorTransformBase
+        class FailingCreateTransform : ColorTransformBase<IdentityOptions>
         {
             public override void Reset() => throw new InvalidOperationException("Reset test failure");
         }

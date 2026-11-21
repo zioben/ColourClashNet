@@ -13,7 +13,7 @@ namespace ColourClashNet.Color.Transformation
     /// <summary>
     /// Identity transformation: the output is a copy of the source image (dithering may still apply).
     /// </summary>
-    public class ColorTransformIdentity : ColorTransformBase
+    public class ColorTransformIdentity : ColorTransformBase<IdentityOptions>
     {
         static string sC = nameof(ColorTransformIdentity);
         /// <summary>

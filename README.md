@@ -29,32 +29,71 @@ Old systems usually have 3 channels with 3 or 4-bit for color, for a total of 51
 | `XUnitTester` | net10.0-windows | xUnit v3 tests |
 
 ## How to
-Create a color transformation, configure it with the fluent `With...` methods (or a `ColorTransformConfig`),
-feed it with an input image and get the transformed image.
+Create a color transformation, configure it with its options record, feed it with an input image
+and get the transformed image.
 
 ```csharp
 using ColourClashNet.Color;
+using ColourClashNet.Color.Dithering;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
 
 var source = ImageTools.LoadImage("input.png");
 
-var transform = new ColorTransformClustering()
-    .WithProcessingParams(16, 10, ColorSelectionMode.EvaluateColorMean)   // 16 colors, 10 training loops
-    .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode.RGB)
-    .WithDithering(ColorDithering.FloydSteinberg, 1.0);
+var transform = new ColorTransformClustering
+{
+    Options = new ClusteringOptions
+    {
+        MaxColors = 16,
+        TrainingLoops = 10,
+        Selection = ColorSelectionMode.EvaluateColorMean,
+        DistanceMode = ColorDistanceEvaluationMode.RGB,
+        Dithering = new DitherOptions { DitheringType = ColorDithering.FloydSteinberg },
+    },
+};
 
 var result = transform.CreateAndProcessColors(source);
 if (result.IsSuccess)
 {
     ImageTools.SaveImage(transform.ImageOutput, "output.png", ImageSaveFormat.Png);
 }
+else
+{
+    Console.WriteLine(result.Message);   // "Class.Method : what failed : nested cause"
+}
 ```
 
-Any transformation can also be created from its type with
-`ColorTransformBase.CreateColorTransformInterface(ColorTransformType, ColorTransformConfig)`.
-Long transformations raise `Processing`, `ProcessPartial` (intermediate results) and `Processed` events,
-and can be cancelled with a `CancellationToken`.
+The options record also selects the algorithm: `ColorTransformBase.CreateColorTransformInterface(options)`
+creates the matching transformation (`CreateColorTransformInterface(ColorTransformType)` uses the default options).
+Long transformations raise `Processing`, `ProcessPartial` (intermediate results, also from nested
+transformations and tiles) and `Processed` events, and can be cancelled with a `CancellationToken`.
+
+### Options
+Every transformation is configured by an immutable `record` derived from `TransformOptions`:
+
+- **Common settings** (`TransformOptions`): `DistanceMode`, `Dithering` (`DitherOptions`) and `UserPalette`
+  (colors chosen by the user: kept by the fast and clustering reductions, used as target palette by the fixed palette mappings).
+- **Specific settings**, one record per transformation: `ClusteringOptions`, `MedianCutOptions`, `FastOptions`,
+  `QuantizationOptions`, `HsvOptions`, `ScanlineOptions`, `CgaOptions`, `VgaOptions`, `C64Options`,
+  `AmigaOptions`, `CpcOptions`, `ZxOptions`, ...
+- **Nested steps** are options too: e.g. `ScanlineOptions.ChunkReduction`, `VgaOptions.Reduction` and
+  `AmigaOptions.BasePaletteReduction` accept any `ColorReductionOptions` (fast, median cut or clustering).
+- **Hardware palettes** (CGA, EGA, CPC, C64, ZX ...) belong to the transformation and are never stored in the options.
+
+Change a value with a `with` expression; the same instance can be shared freely:
+```csharp
+transform.Options = transform.Options with { MaxColors = 8 };
+```
+
+Options are validated when processing starts (`Validate()`): invalid values produce an error result
+instead of an exception. Presets can be saved and loaded as JSON with `TransformOptionsSerializer`:
+```csharp
+TransformOptionsSerializer.Save(transform.Options, "c64-multicolor.json");
+var preset = TransformOptionsSerializer.Load("c64-multicolor.json");
+var transform2 = ColorTransformBase.CreateColorTransformInterface(preset);
+```
+
+The UI pipeline (background removal, quantization, transformation) is described by `PipelineOptions`.
 
 ### Processing
 
@@ -176,6 +215,21 @@ Tile based modes (C64, ZX Spectrum, scanline) use `TileManager`, which splits th
 
 Each blob can be cut from the source image with a cookie-cut mask, exported as a separate image (`BlobTools.ExportImages`)
 or stacked into a single image (`BlobTools.ReshapeVertical`).
+
+The detector is configured, like the transformations, with immutable records:
+```csharp
+var blob = new Blob
+{
+    Options = new BlobOptions
+    {
+        Threshold = new ThresholdOptions { BackgroundColors = new[] { 0xFF00FF }, Tolerance = 0 },
+        ConnectionMode = BlobConnectionModes.EightConnected,
+        MinArea = 10,          // size limits set to 0 are disabled
+    },
+};
+var result = blob.Process(spriteSheet);
+blob.Options = blob.Options with { MinArea = 20 };
+```
 
 ### Export
 - PNG, BMP and JPG through SkiaSharp (`ImageTools.SaveImage`);

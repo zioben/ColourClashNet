@@ -13,7 +13,7 @@ namespace ColourClashNet.Color.Transformation
     /// <summary>
     /// Reduces the bit depth of each RGB channel (see <see cref="ColorQuantizationMode"/>).
     /// </summary>
-    public class ColorTransformQuantization : ColorTransformBase
+    public class ColorTransformQuantization : ColorTransformBase<QuantizationOptions>
     {
 
         static string sC = nameof(ColorTransformQuantization);
@@ -26,28 +26,8 @@ namespace ColourClashNet.Color.Transformation
             Description = "Reduces color bit spectrum";
         }
 
-        /// <summary>
-        /// Target channel bit depth.
-        /// </summary>
-        public ColorQuantizationMode QuantizationMode 
-        { 
-            get => config.QuantizationMode; 
-            set => config.QuantizationMode = value;
-        }  
 
-        /// <summary>
-        /// Sets the quantization mode (fluent).
-        /// </summary>
-        public ColorTransformQuantization WithQuantization(ColorQuantizationMode mode)
-        {
-            QuantizationMode = mode;
-            return this;
-        }
 
-        /// <summary>
-        /// Sets the quantization mode from a configuration (fluent).
-        /// </summary>
-        public ColorTransformQuantization WithQuantization(ColorTransformConfig cfg) => WithQuantization(cfg.QuantizationMode);
 
 
         /// <summary>
@@ -139,10 +119,10 @@ namespace ColourClashNet.Color.Transformation
         }
 
         /// <summary>
-        /// Quantizes a color with the current <see cref="QuantizationMode"/>.
+        /// Quantizes a color with the current <see cref="QuantizationOptions.Mode"/>.
         /// </summary>
         public int QuantizeColor(int rgb)
-            => QuantizeColor(QuantizationMode,rgb);
+            => QuantizeColor(Options.Mode, rgb);
 
         /// <summary>
         /// Maps each source color to its quantized value.
@@ -156,7 +136,7 @@ namespace ColourClashNet.Color.Transformation
             var rgbList = ImageSource.ColorPalette.ToList();
             foreach (var rgb in rgbList)
             {
-                int quantized = QuantizeColor(QuantizationMode, rgb);
+                int quantized = QuantizeColor(Options.Mode, rgb);
                 TransformationMap.Add(rgb, quantized);
             }
             return ColorTransformResult.CreateValidResult();

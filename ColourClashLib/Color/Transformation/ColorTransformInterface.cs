@@ -12,7 +12,7 @@ namespace ColourClashNet.Color.Transformation
     /// <summary>
     /// Contract of a color transformation (color reduction) algorithm.
     /// <para/>
-    /// Typical usage: <see cref="SetProperties"/> (optional), <see cref="Create(ImageData)"/> with the source image,
+    /// Typical usage: <see cref="SetOptions"/> (optional), <see cref="Create(ImageData)"/> with the source image,
     /// then <see cref="ProcessColors"/>; or the one-shot <see cref="CreateAndProcessColors(ImageData, CancellationToken)"/>.
     /// </summary>
     public interface ColorTransformInterface
@@ -48,14 +48,6 @@ namespace ColourClashNet.Color.Transformation
 
         //------------------------------------------------------------
         /// <summary>
-        /// Optional palette that drives the transformation (e.g. fixed hardware palette).
-        /// </summary>
-        Palette ReferencePalette { get; }       
-        /// <summary>
-        /// Number of colors in <see cref="ReferencePalette"/>.
-        /// </summary>
-        Int32 ReferenceColors { get; }
-        /// <summary>
         /// Source color to output color map built during processing.
         /// </summary>
         ColorTransformationMap TransformationMap { get; }
@@ -65,24 +57,23 @@ namespace ColourClashNet.Color.Transformation
         /// When true, dithering is skipped even if configured.
         /// </summary>
         public bool BypassDithering { get; set; }
-        /// <summary>
-        /// Dithering settings.
-        /// </summary>
-        DitherConfig DitheringConfig { get; }
 
         //------------------------------------------------------------
 
         //------------------------------------------------------------
 
         /// <summary>
-        /// Replaces the configuration with a copy of <paramref name="cfg"/>.
+        /// Current options. The record type depends on the transformation (e.g. <see cref="ClusteringOptions"/>).
         /// </summary>
-        ColorTransformInterface SetProperties(ColorTransformConfig cfg);
+        TransformOptions Options { get; }
 
         /// <summary>
-        /// Returns a copy of the current configuration.
+        /// Replaces the options. Records are immutable, so the instance is stored without copying.
         /// </summary>
-        ColorTransformConfig GetProperties();
+        /// <returns>This instance (fluent).</returns>
+        /// <exception cref="ArgumentException"><paramref name="options"/> is not of the type expected by the transformation.</exception>
+        ColorTransformInterface SetOptions(TransformOptions options);
+
 
         //------------------------------------------------------------
 
@@ -125,7 +116,7 @@ namespace ColourClashNet.Color.Transformation
 
 
         /// <summary>
-        /// Metric used to compare colors.
+        /// Metric used to compare colors (from <see cref="Options"/>).
         /// </summary>
         ColorDistanceEvaluationMode ColorDistanceEvaluationMode { get; }
         /// <summary>
