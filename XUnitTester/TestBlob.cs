@@ -109,47 +109,5 @@ namespace XUnitTester
             var blobSegmetedOut = blob.GetBlobSegmentedImage();
             ImageTools.SaveImage(blobSegmetedOut, $"C:\\Temp\\{connectionMode}_BlobSegment_{blob.BlobList.Count}");
         }
-
-        [Fact]
-        public void TestBlobRyu()
-        {
-            int colBkg = ColorIntExt.FromRGB(255, 0, 255);
-            int colFgd = ColorIntExt.FromRGB(128, 128, 128);
-
-            string fileName = "ChunLi";
-            // Create an image with 4 blobs
-
-            Directory.CreateDirectory($"C:\\Temp\\{fileName}\\Frames");
-            ImageData image = ImageTools.LoadImage($"C:\\Temp\\{fileName}.png");
-            ImageTools.SaveImage(image, $"C:\\Temp\\{fileName}\\Test{fileName}_BlobIn");
-
-            ColourClashProcessing.Blob.Blob blob = new ColourClashProcessing.Blob.Blob
-            {
-                Options = new BlobOptions
-                {
-                    Threshold = new ThresholdOptions { BackgroundColors = new[] { ColorIntExt.FromRGB(255, 0, 255) } },
-                    MinArea = 10, MaxArea = 1000000,
-                    MinWidth = 10, MaxWidth = 1000000,
-                    MinHeight = 10, MaxHeight = 1000000,
-                    ConnectionMode = BlobConnectionModes.FourConnected,
-                },
-            };
-
-            var result = blob.Process(image);
-
-            var shapeOut = blob.GetShapeImage();
-            ImageTools.SaveImage(shapeOut, $"C:\\Temp\\{fileName}\\Test{fileName}_ShapeOut");
-
-            var blobOut = blob.GetBlobImage();
-            ImageTools.SaveImage(blobOut, $"C:\\Temp\\{fileName}\\Test{fileName}_BlobOut");
-
-            var blobSegmetedOut = blob.GetBlobSegmentedImage();
-            ImageTools.SaveImage(blobSegmetedOut, $"C:\\Temp\\{fileName}\\Test{fileName}_SegmentedOut");
-
-
-            BlobTools.ExportImages(blob, $"C:\\Temp\\{fileName}\\Frames", $"{fileName}");
-
-
-        }
     }
 }
