@@ -111,7 +111,7 @@ namespace ColourClashNet.Color.Transformation
         public override ColorTransformType TransformType => ColorTransformType.ColorReductionSaturation;
 
         /// <summary>
-        /// Hue rotation in degrees [-360, 360].
+        /// Hue rotation in degrees: any finite value, wrapped on the color wheel (e.g. 390 = 30, -90 = 270).
         /// </summary>
         [Category("HSV"), Description("Hue rotation in degrees")]
         public double HueShift { get; init; } = 0.0;
@@ -133,8 +133,8 @@ namespace ColourClashNet.Color.Transformation
         {
             foreach (var error in base.Validate())
                 yield return error;
-            if (double.IsNaN(HueShift) || HueShift < -360 || HueShift > 360)
-                yield return $"{nameof(HueShift)} must be in [-360, 360] (is {HueShift})";
+            if (!double.IsFinite(HueShift))
+                yield return $"{nameof(HueShift)} must be a finite number (is {HueShift})";
             if (double.IsNaN(SaturationFactor) || SaturationFactor < 0)
                 yield return $"{nameof(SaturationFactor)} must not be negative (is {SaturationFactor})";
             if (double.IsNaN(BrightnessFactor) || BrightnessFactor < 0)

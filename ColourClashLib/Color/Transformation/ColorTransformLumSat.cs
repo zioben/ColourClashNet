@@ -31,7 +31,10 @@ namespace ColourClashNet.Color.Transformation
 
 
         /// <summary>
-        /// Applies the adjustments to every pixel in parallel; non-color pixels become black.
+        /// Applies the adjustments to every pixel in parallel; non-color pixels (e.g. background tags) are kept unchanged.
+        /// <para/>
+        /// The hue shift is a rotation on the color wheel: any value is wrapped into [0, 360),
+        /// so shifting by 360 (or 0) gives back the original hues.
         /// </summary>
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
@@ -48,15 +51,17 @@ namespace ColourClashNet.Color.Transformation
                 {
                     for (int c = 0; c < ImageSource.Columns; c++)
                     {
-                        var hsv = HSV.CreateFromIntRGB(ImageSource.matrix[r, c]);
-                        if (hsv.IsValid)
+                        int rgb = ImageSource.matrix[r, c];
+                        var hsv = HSV.CreateFromIntRGB(rgb);
+                        if (!hsv.IsValid)
                         {
-                            // Wrap hue into [0,360): HSV.ToIntRGB expects a normalized hue
-                            hsv.H = (float)((((hsv.H + options.HueShift) % 360.0) + 360.0) % 360.0);
-                            hsv.S = (float)Math.Min(100, hsv.S * options.SaturationFactor);
-                            hsv.V = (float)Math.Min(100, hsv.V * options.BrightnessFactor);
-                            processed[r, c] = hsv.ToIntRGB();
+                            processed[r, c] = rgb;
+                            continue;
                         }
+                        hsv.H = (float)WrapHue(hsv.H + options.HueShift);
+                        hsv.S = (float)Math.Min(100, hsv.S * options.SaturationFactor);
+                        hsv.V = (float)Math.Min(100, hsv.V * options.BrightnessFactor);
+                        processed[r, c] = hsv.ToIntRGB();
                     }
                     token.ThrowIfCancellationRequested();
                 });
@@ -74,6 +79,17 @@ namespace ColourClashNet.Color.Transformation
 
             return ColorTransformResult.CreateValidResult(ImageSource, new ImageData().Create(processed));
 
+        }
+
+        /// <summary>
+        /// Wraps a hue into [0, 360).
+        /// <para/>
+        /// The float conversion can round a value just below 360 up to 360: it is folded back to 0.
+        /// </summary>
+        public static double WrapHue(double hue)
+        {
+            double wrapped = ((hue % 360.0) + 360.0) % 360.0;
+            return (float)wrapped >= 360f ? 0.0 : wrapped;
         }
     }
 }

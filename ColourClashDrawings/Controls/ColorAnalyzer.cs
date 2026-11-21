@@ -133,6 +133,10 @@ namespace ColourClashNet.Controls
         {
             InitializeComponent();
             ApplyPreprocessingSettings();
+            // The hue is a rotation: the control wraps around instead of stopping at 0 or 360
+            nudHue.Minimum = -nudHue.Increment;
+            nudHue.Maximum = 360;
+            nudHue.ValueChanged += (s, e) => WrapHueControl();
             CreateComboBox(cbC64VideoMode, Enum.GetNames(typeof(ColorTransformCbm64.C64VideoMode)).ToList());
             CreateComboBox(cbCpcVideoMode, Enum.GetNames(typeof(ColorTransformAmstradCPC.CPCVideoMode)).ToList());
             CreateComboBox(cbAmigaVideoMode, Enum.GetNames(typeof(ColorTransformCbmAmiga.EnumAmigaVideoMode)).ToList());
@@ -155,6 +159,17 @@ namespace ColourClashNet.Controls
         {
             ApplyPreprocessingSettings();
             colorManager.PreProcess();
+        }
+
+        /// <summary>
+        /// Keeps the hue control in [0, 360): stepping up from the last value goes back to 0, stepping down from 0 goes to the last value.
+        /// </summary>
+        void WrapHueControl()
+        {
+            if (nudHue.Value >= 360)
+                nudHue.Value -= 360;
+            else if (nudHue.Value < 0)
+                nudHue.Value += 360;
         }
 
         /// <summary>

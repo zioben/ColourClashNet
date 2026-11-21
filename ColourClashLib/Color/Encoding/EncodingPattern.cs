@@ -61,6 +61,12 @@ namespace ColourClashNet.Color.Transformation
         }
 
         /// <summary>
+        /// Returns the pattern registered for <paramref name="rgb"/>, or null when the color is unknown or has no pattern.
+        /// </summary>
+        internal T? GetPattern(int rgb)
+            => patterns.TryGetValue(rgb, out var pattern) ? pattern.Pattern : null;
+
+        /// <summary>
         /// Returns the palette of all registered colors.
         /// </summary>
         internal Palette GetPalette()

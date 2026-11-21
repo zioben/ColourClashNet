@@ -61,6 +61,29 @@ public static partial class ImageTools
     }
 
     /// <summary>
+    /// Doubles the horizontal resolution and crops the result to <paramref name="width"/> columns.
+    /// <para/>
+    /// Undoes <see cref="HalveXResolution"/> on odd widths, where halving rounds up and doubling would add a column.
+    /// </summary>
+    /// <param name="image">Half resolution image</param>
+    /// <param name="width">Width of the original image</param>
+    /// <returns>A new image <paramref name="width"/> columns wide (or twice as wide, if smaller).</returns>
+    public static ImageData DoubleXResolution(ImageData image, int width)
+    {
+        ImageData.AssertValid(image);
+        var doubled = MatrixTools.DoubleMatrixColumns(image.matrix);
+        int rows = doubled.GetLength(0);
+        int columns = Math.Min(width, doubled.GetLength(1));
+        if (columns == doubled.GetLength(1))
+            return new ImageData().Create(doubled);
+        var cropped = new int[rows, columns];
+        for (int r = 0; r < rows; r++)
+            for (int c = 0; c < columns; c++)
+                cropped[r, c] = doubled[r, c];
+        return new ImageData().Create(cropped);
+    }
+
+    /// <summary>
     /// Halves the horizontal resolution by merging pairs of adjacent columns.
     /// </summary>
     /// <param name="image">Source image</param>

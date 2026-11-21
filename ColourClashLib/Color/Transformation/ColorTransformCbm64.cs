@@ -231,7 +231,7 @@ namespace ColourClashNet.Color.Transformation
                 return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, mappedImage, $"{Type} : {Options.VideoMode} tile processing failed : {tileResult?.Message}", tileResult?.Exception);
             }
             var tileImage = manager.CreateImageFromTiles();
-            return ColorTransformResult.CreateValidResult(ImageSource, multicolor ? ImageTools.DoubleXResolution(tileImage) : tileImage);
+            return ColorTransformResult.CreateValidResult(ImageSource, multicolor ? ImageTools.DoubleXResolution(tileImage, ImageSource.Columns) : tileImage);
         }
 
         /// <summary>

@@ -128,7 +128,7 @@ namespace ColourClashNet.Color.Transformation
                 }
                 reducedImage = ditheredResult.DataOut;
             }
-            var outputImage = doubleRes ? ImageTools.DoubleXResolution(reducedImage) : reducedImage;
+            var outputImage = doubleRes ? ImageTools.DoubleXResolution(reducedImage, ImageSource.Columns) : reducedImage;
             return ColorTransformResult.CreateValidResult(ImageSource, outputImage);
         }
 

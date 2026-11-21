@@ -181,9 +181,9 @@ There are lots of classic color reduction algorithms. The majority simply reduce
 | Scanline | `ColorTransformScanLine` | Palette per group of lines (Amiga copper style), independent or shared palette |
 | HSV adjust | `ColorTransformLumSat` | Hue shift, saturation and brightness multipliers |
 | Background removal | `ColorTransformBkgRemover` | Replaces selected background colors |
-| IBM PC | `ColorTransformHercules`, `ColorTransformCGA`, `ColorTransformEGA`, `ColorTransformVGA` | Hercules, CGA modes 4/5/6, RGBI and composite palettes, EGA 16 colors, VGA 256 colors (RGB666) |
+| IBM PC | `ColorTransformHercules`, `ColorTransformCGA`, `ColorTransformEGA`, `ColorTransformVGA` | Hercules, CGA modes 4/5/6 and composite artifact colors (half horizontal resolution, raw output as mode 4 pixel pairs), EGA 16 colors, VGA 256 colors (RGB666) |
 | Commodore 64 | `ColorTransformCbm64` | Hires, Multicolor, FLI, Hires FLI, base and enhanced palette |
-| Commodore Amiga | `ColorTransformCbmAmiga` | HAM6, HAM8, Extra Half-Brite |
+| Commodore Amiga | `ColorTransformCbmAmiga` | HAM6, HAM8 (each pixel choice scored on the next `HamLookahead` pixels to reduce fringes), Extra Half-Brite |
 | Amstrad CPC | `ColorTransformAmstradCPC` | Modes 0, 1, 2 and 3 on the 27 color palette |
 | ZX Spectrum | `ColorTransformZxSpectrum` | 8x8 attribute cells, normal/bright palettes, automatic seed tuning |
 
