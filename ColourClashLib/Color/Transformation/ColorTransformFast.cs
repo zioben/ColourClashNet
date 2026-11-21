@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 namespace ColourClashNet.Color.Transformation
 {
     /// <summary>
-    /// Fast color reduction: keeps the <see cref="MaxColorWanted"/> most frequent colors (after the reference palette)
+    /// Fast color reduction: keeps the <see cref="ColorReductionOptions.MaxColors"/> most frequent colors (after the user palette)
     /// and maps every other color to the nearest kept one.
     /// </summary>
-    public class ColorTransformFast : ColorTransformBase
+    public class ColorTransformFast : ColorTransformBase<FastOptions>
     {
 
         /// <summary>
@@ -22,27 +22,7 @@ namespace ColourClashNet.Color.Transformation
             Description = "Quantitative color reduction";
         }
 
-        /// <summary>
-        /// Maximum number of output colors.
-        /// </summary>
-        public int MaxColorWanted 
-        { 
-            get => config.MaxColorsWanted;
-            set => config.MaxColorsWanted = value;
-        }
             
-        /// <summary>
-        /// Sets the maximum number of output colors (fluent).
-        /// </summary>
-        public ColorTransformFast WithProcessingParams(int maxColors)
-        {
-             MaxColorWanted = maxColors;
-            return this;
-        }
-        /// <summary>
-        /// Sets the maximum number of output colors from a configuration (fluent).
-        /// </summary>
-        public ColorTransformFast WithProcessingParams(ColorTransformConfig cfg) => WithProcessingParams(cfg.MaxColorsWanted);
 
 
 
@@ -53,10 +33,15 @@ namespace ColourClashNet.Color.Transformation
         {
             TransformationMap.Reset();
             var sourceHistogram = new HistogramRGB().Create(ImageSource);
-            // Reference palette colors first, then the image colors from the most to the least frequent
-            var sortedHistogram = sourceHistogram.SortColorsDescending();
-            var candidatePalette = Palette.MergePalette(ReferencePalette, sortedHistogram.ToPalette());
-            if (candidatePalette.Count <= MaxColorWanted)
+            // Candidate colors in priority order: user palette first, then the image colors from the most to the least frequent
+            var candidates = new List<int>();
+            var added = new HashSet<int>();
+            foreach (var rgb in UserPalette.Concat(sourceHistogram.HistogramDictionary.OrderByDescending(kvp => kvp.Value).Select(kvp => kvp.Key)))
+            {
+                if (added.Add(rgb))
+                    candidates.Add(rgb);
+            }
+            if (candidates.Count <= Options.MaxColors)
             {
                 foreach (var kvp in sourceHistogram.HistogramDictionary)
                 {
@@ -65,8 +50,8 @@ namespace ColourClashNet.Color.Transformation
             }
             else
             {
-                var listAll = candidatePalette.ToList();
-                var listMax = listAll.Take(MaxColorWanted).ToList();
+                var listAll = candidates;
+                var listMax = listAll.Take(Options.MaxColors).ToList();
                 var palette = new Palette().Create(listMax);
                 listAll.ForEach(rgbItem =>
                 {

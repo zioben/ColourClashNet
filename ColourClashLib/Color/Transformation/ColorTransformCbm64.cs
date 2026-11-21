@@ -18,7 +18,7 @@ namespace ColourClashNet.Color.Transformation
     /// The image is mapped to the C64 palette (base or enhanced), then split into tiles that are color-reduced
     /// independently, emulating the per-cell color limits of the VIC-II. Multicolor modes work at half horizontal resolution.
     /// </summary>
-    public class ColorTransformCbm64 : ColorTransformBase
+    public class ColorTransformCbm64 : ColorTransformBase<C64Options>
     {
         static readonly string sC = nameof(ColorTransformCbm64);
 
@@ -70,54 +70,12 @@ namespace ColourClashNet.Color.Transformation
             DebugEnhancedPalette,
         }
 
-        /// <summary>
-        /// When dithering is applied in the C64 pipeline.
-        /// </summary>
-        public enum C64DitheringMode
-        {
-            /// <summary>Dither each tile after its color reduction.</summary>
-            PostDitherTile,
-            /// <summary>Dither the whole image on the C64 palette before the tile reduction.</summary>
-            PreDitherImage,
-        }
 
         #endregion
 
         #region properties
 
-        /// <summary>
-        /// Target video mode.
-        /// </summary>
-        public C64VideoMode VideoMode 
-        { 
-            get => config.C64VideoMode;
-            set => config.C64VideoMode = value; 
-        }
-        /// <summary>
-        /// When dithering is applied.
-        /// </summary>
-        public C64DitheringMode VideoDithering 
-        { 
-            get => config.C64DitheringMode;
-            private set => config.C64DitheringMode = value; 
-        }
 
-        /// <summary>
-        /// Marks the tile grid on the output image.
-        /// </summary>
-        public bool TileBorderShow 
-        { 
-            get => config.ShowTileBorders;
-            set => config.ShowTileBorders = value;
-        }
-        /// <summary>
-        /// Color used to mark the tile grid.
-        /// </summary>
-        public int TileBorderColor
-        {
-            get => config.TileBorderColor;
-            set => config.TileBorderColor = value;
-        }
 
         // C64 hardware palette (VIC-II, 16 colors)
         Palette basePalette = new Palette().Create(
@@ -144,15 +102,7 @@ namespace ColourClashNet.Color.Transformation
         // Base palette plus the mean of color pairs with similar brightness (simulated by dithering/interlace)
         Palette enhancedPalette = new();
         
-        /// <summary>
-        /// Reduction used for each tile.
-        /// </summary>
-        ColorTransformType ColorTransformationModel { get; } = ColorTransformType.ColorReductionClustering;
 
-        /// <summary>
-        /// Dithering stage used internally.
-        /// </summary>
-        C64DitheringMode DitheringProcessing { get; set; } = C64DitheringMode.PreDitherImage;
 
         TileManager tileManager = new TileManager();
 
@@ -198,21 +148,7 @@ namespace ColourClashNet.Color.Transformation
 
         #region fluent with - set
 
-        /// <summary>
-        /// Sets the C64 settings (fluent).
-        /// </summary>
-        public ColorTransformCbm64 WithC64ScreenMode(C64VideoMode mode, C64DitheringMode ditheringMode,bool showTileBorders)
-        {
-            TileBorderShow = showTileBorders;
-            VideoMode = mode;
-            VideoDithering = ditheringMode;
-            return this;
-        }
 
-        /// <summary>
-        /// Sets the C64 settings from a configuration (fluent).
-        /// </summary>
-        public ColorTransformCbm64 WithC64ScreenMode(ColorTransformConfig cfg) => WithC64ScreenMode(cfg.C64VideoMode, cfg.C64DitheringMode, cfg.ShowTileBorders);
 
 
         #endregion
@@ -228,11 +164,10 @@ namespace ColourClashNet.Color.Transformation
         /// <param name="token">Cancellation token</param>
         TileManager CreateTileManager(int tileWidth, int tileHeight, int maxColors, ImageData image, Palette referencePalette, CancellationToken token = default)
         {
-            var cfg = config.Clone().WithReferencePalette(referencePalette).WithDithering(DitheringConfig).WithMaxColorWanted(maxColors);
-            // Tile colors must be picked from the (C64) image colors, not evaluated as cluster means
-            cfg.ClusterColorSelectionMode = ColorSelectionMode.UseColorPalette;
+            // Tile colors must be picked from the (C64) image colors: the default tile reduction uses the palette selection
+            var cfg = Options.InheritCommon(Options.TileReduction) with { MaxColors = maxColors, UserPalette = referencePalette.ToList() };
             tileManager = new TileManager()
-                .WithTileBorder(TileBorderShow, TileBorderColor);
+                .WithTileBorder(Options.ShowTileBorders, Options.TileBorderColor);
             // Subscribe before Create: the tiles forward their transformation events through the manager
             ForwardEventsFrom(tileManager);
             tileManager.Create(tileWidth, tileHeight, image, 1.0, cfg, token);
@@ -246,10 +181,10 @@ namespace ColourClashNet.Color.Transformation
         ColorTransformResult ToDebugImage(ImageData image, Palette palette, CancellationToken token = default)
         {
             string sM = nameof(ToDebugImage);
-            var paletteTransform = ForwardEventsFrom(new ColorTransformFixedPalette());
-            paletteTransform.WithReferencePalette(palette)
-                .WithDithering(DitheringConfig)
-                .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
+            var paletteTransform = ForwardEventsFrom(new ColorTransformFixedPalette
+            {
+                Options = new FixedPaletteOptions { UserPalette = palette.ToList(), Dithering = DitheringOptions, DistanceMode = Options.DistanceMode },
+            });
             var result = paletteTransform.CreateAndProcessColors(image, token);
             if (result == null || !result.IsSuccess || result.DataOut == null)
             {
@@ -280,7 +215,7 @@ namespace ColourClashNet.Color.Transformation
             var mappedResult = ToDebugImage(workImage, palette, token);
             if (!mappedResult.IsSuccess)
             {
-                return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : {VideoMode} palette mapping failed", mappedResult);
+                return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : {Options.VideoMode} palette mapping failed", mappedResult);
             }
             var mappedImage = mappedResult.DataOut;
 
@@ -292,8 +227,8 @@ namespace ColourClashNet.Color.Transformation
             var tileResult = manager.ProcessColors(token);
             if (tileResult == null || !tileResult.IsSuccess)
             {
-                LogMan.Error(sC, sM, $"{Type} : {VideoMode} tile processing failed");
-                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, mappedImage, $"{Type} : {VideoMode} tile processing failed : {tileResult?.Message}", tileResult?.Exception);
+                LogMan.Error(sC, sM, $"{Type} : {Options.VideoMode} tile processing failed");
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, mappedImage, $"{Type} : {Options.VideoMode} tile processing failed : {tileResult?.Message}", tileResult?.Exception);
             }
             var tileImage = manager.CreateImageFromTiles();
             return ColorTransformResult.CreateValidResult(ImageSource, multicolor ? ImageTools.DoubleXResolution(tileImage) : tileImage);
@@ -309,7 +244,7 @@ namespace ColourClashNet.Color.Transformation
             try
             {
                 ColorTransformResult result;
-                switch (VideoMode)
+                switch (Options.VideoMode)
                 {
                     case C64VideoMode.DebugEnhancedPalette:
                         result = ToDebugImage(ImageSource, enhancedPalette, token);
@@ -338,12 +273,12 @@ namespace ColourClashNet.Color.Transformation
                         break;
                     case C64VideoMode.CharsetMulticolor:
                     default:
-                        LogMan.Error(sC, sM, $"{Type} : video mode {VideoMode} not supported");
-                        return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : video mode {VideoMode} not supported");
+                        LogMan.Error(sC, sM, $"{Type} : video mode {Options.VideoMode} not supported");
+                        return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : video mode {Options.VideoMode} not supported");
                 }
                 if (!result.IsSuccess)
                 {
-                    return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : video mode {VideoMode} conversion failed", result);
+                    return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : video mode {Options.VideoMode} conversion failed", result);
                 }
                 return ColorTransformResult.CreateValidResult(ImageSource, result.DataOut);
             }
@@ -354,8 +289,8 @@ namespace ColourClashNet.Color.Transformation
             }
             catch (Exception ex)
             {
-                LogMan.Exception(sC, sM, $"{Type} : video mode {VideoMode} conversion failed", ex);
-                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : video mode {VideoMode} conversion failed", ex);
+                LogMan.Exception(sC, sM, $"{Type} : video mode {Options.VideoMode} conversion failed", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : video mode {Options.VideoMode} conversion failed", ex);
             }
         }
     }

@@ -13,7 +13,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ColourClashNet.Components
 {
@@ -54,11 +53,11 @@ namespace ColourClashNet.Components
 
 
         /// <summary>
-        /// Settings applied to every stage.
+        /// Options of the pipeline: background removal and quantization (pre-processing) and the transformation to run.
         /// </summary>
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [DefaultValue(null)]
-        public ColorTransformConfig TransformConfig { get; set; } = new ColorTransformConfig();
+        public PipelineOptions Pipeline { get; set; } = new PipelineOptions();
 
 
         ColorTransformInterface transformSource;
@@ -183,7 +182,7 @@ namespace ColourClashNet.Components
             string sMethod = nameof(Reset);
             try
             {
-                TransformConfig = new ColorTransformConfig();
+                Pipeline = new PipelineOptions();
                 transformSource = new ColorTransformIdentity();
                 transformBkgRemover = new ColorTransformBkgRemover();
                 transformQuantizer = new ColorTransformQuantization();
@@ -296,12 +295,13 @@ namespace ColourClashNet.Components
 
                 CancellationTokenSource cts = new CancellationTokenSource();
 
-                // Pre-processing steps must not dither: dithering is applied only by the final transformation
-                var noDitherConfig = TransformConfig.Clone().WithDithering(ColorDithering.None, 1, ColorDitheringFx.None);
+                // Snapshot of the pipeline: later edits do not affect this run.
+                // Pre-processing steps never dither: dithering is applied only by the final transformation.
+                var pipeline = Pipeline;
 
                 LogMan.Trace(sClass, sMethod, "Process Bkg Remover");
                 transformBkgRemover
-                    .SetProperties(noDitherConfig)
+                    .SetOptions(pipeline.Background with { Dithering = DitherOptions.None })
                     .Create(DataSourceX);
                 var bkgRemovedResult = transformBkgRemover.ProcessColors(cts.Token);
                 if (!bkgRemovedResult.IsSuccess)
@@ -316,7 +316,7 @@ namespace ColourClashNet.Components
 
                 LogMan.Trace(sClass, sMethod, "Process Quantizer");
                 transformQuantizer
-                    .SetProperties(noDitherConfig)
+                    .SetOptions(new QuantizationOptions { Mode = pipeline.Quantization })
                     .Create(DataBkgRemoved);
 
                 var quantizedResult = transformQuantizer.ProcessColors(cts.Token);
@@ -357,10 +357,24 @@ namespace ColourClashNet.Components
 
 
         /// <summary>
-        /// Runs the transformation <paramref name="transformType"/> on the quantized image, showing a progress form.
+        /// Stores <paramref name="options"/> as the pipeline transformation and runs it on the quantized image.
+        /// </summary>
+        /// <param name="options">Transformation options; their type selects the algorithm</param>
+        /// <returns>The processed image, or null on error.</returns>
+        public ImageData ProcessColors(TransformOptions options)
+        {
+            ArgumentNullException.ThrowIfNull(options);
+            Pipeline = Pipeline with { Transform = options };
+            return ProcessColors();
+        }
+
+        /// <summary>
+        /// Runs the transformation of <see cref="Pipeline"/> on the quantized image, showing a progress form.
+        /// <para/>
+        /// A deep copy of the options is used, so edits made meanwhile (e.g. in a PropertyGrid) do not affect the run.
         /// </summary>
         /// <returns>The processed image, or null on error.</returns>
-        public ImageData ProcessColors(ColorTransformType transformType)
+        public ImageData ProcessColors()
         {
             string sMethod = nameof(ProcessColors);
             try
@@ -376,14 +390,15 @@ namespace ColourClashNet.Components
                 {
                     PreProcess();
                 }
-                transformProcessing = ColorTransformBase.CreateColorTransformInterface(transformType, TransformConfig);
+                var transformOptions = Pipeline.Transform.DeepClone();
+                transformProcessing = ColorTransformBase.CreateColorTransformInterface(transformOptions);
                 CancellationTokenSource cts = new CancellationTokenSource();
                 ProcessingForm.CreateProcessingForm(transformProcessing, cts);
                 transformProcessing.Create(DataQuantized);
                 var processedResult = transformProcessing.ProcessColors(cts.Token);
                 if (!processedResult.IsSuccess)
                 {
-                    LogMan.Error(sClass, sMethod, $"{transformType} failed : {processedResult.Message}");
+                    LogMan.Error(sClass, sMethod, $"{transformOptions.TransformType} failed : {processedResult.Message}");
                     DataProcessed = null;
                     ImageProcessed = null;
                     return null;
@@ -407,10 +422,16 @@ namespace ColourClashNet.Components
         }
 
         /// <summary>
-        /// Runs <see cref="ProcessColors"/> on a worker thread.
+        /// Runs <see cref="ProcessColors(TransformOptions)"/> on a worker thread.
         /// </summary>
-        public async Task<ImageData> ProcessColorsAsync(ColorTransformType transformType)
-            => await Task.Run(() => ProcessColors(transformType));
+        public async Task<ImageData> ProcessColorsAsync(TransformOptions options)
+            => await Task.Run(() => ProcessColors(options));
+
+        /// <summary>
+        /// Runs <see cref="ProcessColors()"/> on a worker thread.
+        /// </summary>
+        public async Task<ImageData> ProcessColorsAsync()
+            => await Task.Run(() => ProcessColors());
 
         /// <summary>
         /// Replaces the processed image with an externally computed one (e.g. a partial result).

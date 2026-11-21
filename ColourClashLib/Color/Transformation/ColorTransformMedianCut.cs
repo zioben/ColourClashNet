@@ -13,7 +13,7 @@ namespace ColourClashNet.Color.Transformation
     /// The color set is recursively split in two along the channel with the widest range, at the median value,
     /// until the requested number of boxes is reached; each box is then mapped to its representative color.
     /// </summary>
-    public class ColorTransformMedianCut : ColorTransformBase
+    public class ColorTransformMedianCut : ColorTransformBase<MedianCutOptions>
     {
 
         /// <summary>
@@ -25,39 +25,10 @@ namespace ColourClashNet.Color.Transformation
             Description = "Median partition color reduction";
         }
 
-        /// <summary>
-        /// Maximum number of output colors (rounded to a power of two, max 256).
-        /// </summary>
-        public int MaxColorsWanted 
-        { 
-            get => config.MaxColorsWanted;
-            set => config.MaxColorsWanted = value;
-        }
-
-        /// <summary>
-        /// How the representative color of each box is selected.
-        /// </summary>
-        public ColorSelectionMode ColorSelectionMode
-        {
-            get => config.MedianCutColorSelectionMode;
-            set => config.MedianCutColorSelectionMode = value;
-        }
 
 
-        /// <summary>
-        /// Sets the processing parameters (fluent).
-        /// </summary>
-        public ColorTransformMedianCut WithProcessingParams(int maxColors, ColorSelectionMode colorSelectionMode )
-        {
-            MaxColorsWanted = maxColors;
-            ColorSelectionMode = colorSelectionMode;
-            return this;
-        }
 
-        /// <summary>
-        /// Sets the processing parameters from a configuration (fluent).
-        /// </summary>
-        public ColorTransformMedianCut WithProcessingParams(ColorTransformConfig cfg) => WithProcessingParams(cfg.MaxColorsWanted, cfg.MedianCutColorSelectionMode );
+
 
 
 
@@ -169,7 +140,7 @@ namespace ColourClashNet.Color.Transformation
                 // Leaf box: all its colors map to the representative color
                 if (palette.Count == 0)
                     return;
-                var meanColor = ColorIntExt.GetColorMean(palette, ColorSelectionMode);
+                var meanColor = ColorIntExt.GetColorMean(palette, Options.Selection);
                 foreach (var rgb in rgbList)
                 {
                     if (!TransformationMap.RgbTransformationMap.ContainsKey(rgb))
@@ -189,7 +160,7 @@ namespace ColourClashNet.Color.Transformation
         {
             outputPalette = new Palette();
             var sourceHistogram = new HistogramRGB().Create(ImageSource);
-            if (sourceHistogram.ToPalette().Count <= MaxColorsWanted)
+            if (sourceHistogram.ToPalette().Count <= Options.MaxColors)
             {
                 foreach (var kvp in sourceHistogram.HistogramDictionary)
                 {
@@ -200,7 +171,7 @@ namespace ColourClashNet.Color.Transformation
             else
             {
                 // Partition(maxColor) produces 2 * maxColor leaf boxes
-                int colorsMax = Math.Min(256, Math.Max(2, MaxColorsWanted));
+                int colorsMax = Math.Min(256, Math.Max(2, Options.MaxColors));
                 Partition(sourceHistogram.ToPalette(), colorsMax / 2);
                 outputPalette = TransformationMap.GetOutputPalette();
             }

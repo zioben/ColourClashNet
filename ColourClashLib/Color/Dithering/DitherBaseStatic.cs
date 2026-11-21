@@ -51,32 +51,13 @@ namespace ColourClashNet.Color.Dithering
         }
 
         /// <summary>
-        /// Creates the ditherer described by a <see cref="DitherConfig"/>.
+        /// Creates the ditherer described by <paramref name="ditherOptions"/>.
         /// </summary>
-        public static DitherInterface CreateDitherInterface(DitherConfig ditherConfig)
-            => CreateDitherInterface(ditherConfig.DitheringType, ditherConfig.DitheringStrength, ditherConfig.DitheringFx);
-
-        /// <summary>
-        /// Creates the ditherer described by a generic property bag.
-        /// <para/>
-        /// Missing keys fall back to: no dithering, strength 100, no effect.
-        /// </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="properties"/> is null.</exception>
-        public static DitherInterface CreateDitherInterface( Dictionary<ColorTransformProperties,object> properties )
+        /// <exception cref="ArgumentNullException"><paramref name="ditherOptions"/> is null.</exception>
+        public static DitherInterface CreateDitherInterface(DitherOptions ditherOptions)
         {
-            if( properties == null ) 
-                throw new ArgumentNullException(nameof(properties));
-            if (properties.ContainsKey(ColorTransformProperties.DitheringType))
-            {
-                var ditheringType = (ColorDithering)properties[ColorTransformProperties.DitheringType];
-                var ditheringStrength = properties.ContainsKey(ColorTransformProperties.DitheringStrength) ? (double)properties[ColorTransformProperties.DitheringStrength] : 100;
-                var ditheringFx = properties.ContainsKey(ColorTransformProperties.DitheringFx) ? (ColorDitheringFx)properties[ColorTransformProperties.DitheringFx] : ColorDitheringFx.None;
-                return CreateDitherInterface(ditheringType, ditheringStrength, ditheringFx);
-            }
-            else
-            {   
-                return CreateDitherInterface(ColorDithering.None, 100, ColorDitheringFx.None);
-            }
+            ArgumentNullException.ThrowIfNull(ditherOptions);
+            return CreateDitherInterface(ditherOptions.DitheringType, ditherOptions.DitheringStrength, ditherOptions.DitheringFx);
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using ColourClashNet.Imaging;
-using NLog.Targets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +10,7 @@ namespace ColourClashNet.Color.Transformation
     /// <summary>
     /// Hercules monochrome mode: maps every color to black or white.
     /// </summary>
-    public class ColorTransformHercules : ColorTransformFixedPalette
+    public class ColorTransformHercules : ColorTransformPaletteMapping<HerculesOptions>
     {
 
 
@@ -25,32 +24,14 @@ namespace ColourClashNet.Color.Transformation
             Description = "Reduce color to Hercules palette";
         }
 
-        Palette palette = new();
+        static readonly Palette herculesPalette = new Palette().Create(new[] { ColorIntExt.FromRGB(0, 0, 0), ColorIntExt.FromRGB(255, 255, 255) });
 
         /// <summary>
-        /// Loads the black and white palette.
+        /// Returns the black and white palette.
         /// </summary>
-        protected override void RebuildReferencePalette()
-        {
-            ReferencePalette.Reset();
-            ReferencePalette.Create();
-            ReferencePalette.Add(ColorIntExt.FromRGB(0, 0, 0));
-            ReferencePalette.Add(ColorIntExt.FromRGB(255, 255, 255));
-        }
+        protected override Palette GetTargetPalette() => herculesPalette;
+
+
        
-        /// <summary>
-        /// Maps each source color to the nearest of black and white.
-        /// </summary>
-        protected override ColorTransformResult CreateTransformationMap(CancellationToken token = default)
-        {
-            TransformationMap.Reset();
-            RebuildReferencePalette();
-            var rgbList = ImageSource.ColorPalette.ToList();
-            foreach (var rgb in rgbList)
-            {
-                TransformationMap.Add(rgb, ColorIntExt.GetNearestColor(rgb, ReferencePalette, this.ColorDistanceEvaluationMode));
-            }
-            return ColorTransformResult.CreateValidResult();
-        }
     }
 }

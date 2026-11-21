@@ -20,7 +20,7 @@ namespace XUnitTester
         public void CreateColorTransformInterface_ShouldNotThrow(ColorTransformType type)
         {
             var ex = Record.Exception(() =>
-                ColorTransformBase.CreateColorTransformInterface(type, new ColorTransformConfig()));
+                ColorTransformBase.CreateColorTransformInterface(type));
             Assert.Null(ex);
         }
 

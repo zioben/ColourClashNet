@@ -16,7 +16,7 @@ namespace ColourClashNet.Color.Transformation
     /// The image is mapped to the CPC palette, reduced to the number of colors of the mode and, for the
     /// wide-pixel modes, processed at half horizontal resolution and then doubled back.
     /// </summary>
-    public class ColorTransformAmstradCPC : ColorTransformFixedPalette
+    public class ColorTransformAmstradCPC : ColorTransformPaletteMapping<CpcOptions>
     {
         static readonly string sC = nameof(ColorTransformAmstradCPC);
 
@@ -48,14 +48,6 @@ namespace ColourClashNet.Color.Transformation
         }
 
         /// <summary>
-        /// Target video mode.
-        /// </summary>
-        public CPCVideoMode VideoMode 
-        { 
-            get => config.CPCVideoMode;
-            set => config.CPCVideoMode = value;
-        }
-        /// <summary>
         /// Creates the CPC transformation.
         /// </summary>
         public ColorTransformAmstradCPC()
@@ -65,68 +57,28 @@ namespace ColourClashNet.Color.Transformation
         }
 
         /// <summary>
-        /// Loads the 27 color CPC hardware palette.
+        /// 27 color CPC hardware palette: every combination of the three channel levels 0x00, 0x80, 0xFF.
         /// </summary>
-        protected override void RebuildReferencePalette()
+        static readonly Palette cpcPalette = CreateCpcPalette();
+
+        static Palette CreateCpcPalette()
         {
-            WithReferencePalette(
-                new List<int>
-                {
-                   0x00_00_00_00,
-                   0x00_00_00_80,
-                   0x00_00_00_FF,
-                   //
-                   0x00_80_00_00,
-                   0x00_80_00_80,
-                   0x00_80_00_FF,
-                   //
-                   0x00_FF_00_00,
-                   0x00_FF_00_80,
-                   0x00_FF_00_FF,
-                   //
-                   0x00_00_80_00,
-                   0x00_00_80_80,
-                   0x00_00_80_FF,
-                   //
-                   0x00_80_80_00,
-                   0x00_80_80_80,
-                   0x00_80_80_FF,
-                   //
-                   0x00_FF_80_00,
-                   0x00_FF_80_80,
-                   0x00_FF_80_FF,
-                   //
-                   0x00_00_FF_00,
-                   0x00_00_FF_80,
-                   0x00_00_FF_FF,
-                   //
-                   0x00_80_FF_00,
-                   0x00_80_FF_80,
-                   0x00_80_FF_FF,
-                   //
-                   0x00_FF_FF_00,
-                   0x00_FF_FF_80,
-                   0x00_FF_FF_FF,
-                },
-                // Force the overwrite: the reference palette may already be locked (previous run or SetProperties)
-                true
-            );
-        }
-
-
-        /// <summary>
-        /// Sets the video mode (fluent).
-        /// </summary>
-        public ColorTransformAmstradCPC WithCpcVideoMode(CPCVideoMode videoMode)
-        { 
-            this.VideoMode = videoMode;
-            return this;
+            int[] levels = { 0x00, 0x80, 0xFF };
+            var palette = new Palette();
+            foreach (var g in levels)
+                foreach (var r in levels)
+                    foreach (var b in levels)
+                        palette.Add(ColorIntExt.FromRGB(r, g, b));
+            return palette;
         }
 
         /// <summary>
-        /// Sets the video mode from a configuration (fluent).
+        /// Returns the 27 color CPC hardware palette.
         /// </summary>
-        public ColorTransformAmstradCPC WithCpcVideoMode(ColorTransformConfig cfg) => WithCpcVideoMode(cfg.CPCVideoMode);
+        protected override Palette GetTargetPalette() => cpcPalette;
+
+
+
 
        
 
@@ -150,9 +102,10 @@ namespace ColourClashNet.Color.Transformation
             string sM = nameof(PostProcess);
 
             // Keep only the colors allowed by the video mode among the mapped CPC colors
-            var fastReduction = ForwardEventsFrom(new ColorTransformFast());
-            fastReduction.WithProcessingParams(maxColors)
-                .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode);
+            var fastReduction = ForwardEventsFrom(new ColorTransformFast
+            {
+                Options = new FastOptions { MaxColors = maxColors, DistanceMode = Options.DistanceMode },
+            });
             var result = fastReduction.CreateAndProcessColors(image, token);
             if (result == null || !result.IsSuccess)
             {
@@ -163,10 +116,10 @@ namespace ColourClashNet.Color.Transformation
             BypassDithering = true;
 
             var reducedImage = result.DataOut;
-            if (DitheringConfig.DitheringType != ColorDithering.None)
+            if (DitheringOptions.DitheringType != ColorDithering.None)
             {
                 var imageRef = doubleRes ? ImageTools.HalveXResolution(ImageSource,  HalveResolutionMode.OddPixel) : ImageSource;
-                var dithering = DitherBase.CreateDitherInterface(DitheringConfig);
+                var dithering = DitherBase.CreateDitherInterface(DitheringOptions);
                 var ditheredResult = dithering.Dither(imageRef, reducedImage, ColorDistanceEvaluationMode, token);
                 if (ditheredResult == null || !ditheredResult.IsSuccess)
                 {
@@ -200,7 +153,7 @@ namespace ColourClashNet.Color.Transformation
             BypassDithering = true;
             try
             {
-                switch (VideoMode)
+                switch (Options.VideoMode)
                 {
                     case CPCVideoMode.Mode0:
                         // 160x200, 16 colors, wide pixels
@@ -217,8 +170,8 @@ namespace ColourClashNet.Color.Transformation
                     case CPCVideoMode.DebugPalette:
                         return ColorTransformResult.CreateValidResult(ImageSource, PreProcess(false, token));
                     default:
-                        LogMan.Error(sC, sM, $"{Type} : unsupported video mode {VideoMode}");
-                        return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : unsupported video mode {VideoMode}");
+                        LogMan.Error(sC, sM, $"{Type} : unsupported video mode {Options.VideoMode}");
+                        return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : unsupported video mode {Options.VideoMode}");
                 }
             }
             catch (OperationCanceledException ex)
@@ -228,8 +181,8 @@ namespace ColourClashNet.Color.Transformation
             }
             catch (Exception ex)
             {
-                LogMan.Exception(sC, sM, $"{Type} : video mode {VideoMode} conversion failed", ex);
-                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : video mode {VideoMode} conversion failed", ex);
+                LogMan.Exception(sC, sM, $"{Type} : video mode {Options.VideoMode} conversion failed", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : video mode {Options.VideoMode} conversion failed", ex);
             }
         }
     }

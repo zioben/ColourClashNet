@@ -108,16 +108,16 @@ public partial class TileProcessing
     /// <param name="tileWidth">Tile width</param>
     /// <param name="tileHeight">Tile height</param>
     /// <param name="normalizationError">Divider applied to the tile error</param>
-    /// <param name="colorTransformConfig">Transformation settings</param>
+    /// <param name="tileOptions">Options of the tile transformation; their type selects the algorithm</param>
     /// <returns>This instance.</returns>
-    public TileProcessing Create(ImageData sourceImage, int sourceX, int sourceY, int tileWidth, int tileHeight, double normalizationError, ColorTransformConfig colorTransformConfig)
+    public TileProcessing Create(ImageData sourceImage, int sourceX, int sourceY, int tileWidth, int tileHeight, double normalizationError, TransformOptions tileOptions)
     {
         lock (locker)
         {
             Reset();
             NormalizationError = normalizationError;
             tileItem = new TileItem().Create(sourceImage, sourceX, sourceY, tileWidth, tileHeight);
-            transformation = ColorTransformInternal.Alloc(colorTransformConfig, ColorTransformType.ColorReductionClustering);
+            transformation = ColorTransformBase.CreateColorTransformInterface(tileOptions);
             // Preview images of a single tile are useless and costly: progress messages are still raised
             if (transformation is ColorTransformBase transformationBase)
                 transformationBase.EnablePreviewEvents = false;

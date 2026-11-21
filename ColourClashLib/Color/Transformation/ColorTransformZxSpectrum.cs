@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color.Tile;
+﻿using ColourClashNet.Color.Dithering;
+using ColourClashNet.Color.Tile;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
 using System;
@@ -23,7 +24,7 @@ namespace ColourClashNet.Color.Transformation
     /// then remapped to the real ZX colors and reduced per cell. Normal and bright results are merged choosing,
     /// for each cell, the palette with the lower error. The autotune mode searches the best input seeds.
     /// </summary>
-    public class ColorTransformZxSpectrum : ColorTransformBase
+    public class ColorTransformZxSpectrum : ColorTransformBase<ZxOptions>
     {
         static string sC = nameof(ColorTransformZxSpectrum);
 
@@ -132,129 +133,42 @@ namespace ColourClashNet.Color.Transformation
         }
 
 
+
+
+
         /// <summary>
-        /// Normal palette input seed (clamped to [8, high seed]).
+        /// Creates the options of the attribute cell reduction (2 colors picked from the cell palette by default).
         /// </summary>
-        public int ZxPaletteInColorSeedLow
-        {
-            get => config.ZxPaletteInColorSeedLow;
-            set
+        ClusteringOptions CreateCellOptions(bool useDithering)
+            => Options.InheritCommon(Options.CellReduction) with
             {
-                config.ZxPaletteInColorSeedLow = Math.Min(Math.Max(8, value), ZxPaletteInColorSeedHigh);
-            }
-        }
+                UserPalette = Array.Empty<int>(),
+                Dithering = useDithering ? DitheringOptions : DitherOptions.None,
+            };
 
         /// <summary>
-        /// Bright palette input seed (clamped to [low seed, 255]).
+        /// Normal palette input seed actually used: <see cref="ZxOptions.SeedLow"/> clamped to [8, <see cref="SeedHighUsed"/>].
         /// </summary>
-        public int ZxPaletteInColorSeedHigh
-        {
-            get => config.ZxPaletteInColorSeedHigh;
-            set
-            {
-                config.ZxPaletteInColorSeedHigh = Math.Min(Math.Max(ZxPaletteInColorSeedLow, value), 0x00FF);
-            }
-        }
+        public int SeedLowUsed => Math.Clamp(Options.SeedLow, 8, SeedHighUsed);
 
         /// <summary>
-        /// Palettes used.
+        /// Bright palette input seed actually used: <see cref="ZxOptions.SeedHigh"/> clamped to [8, 255].
         /// </summary>
-        public ZxPaletteMode PaletteMode 
-        { 
-            get => config.ZxPaletteMode;
-            set => config.ZxPaletteMode = value;
-        }
-        /// <summary>
-        /// Includes black in the bright palette.
-        /// </summary>
-        public bool IncludeBlackInHighColor 
-        { 
-            get => config.ZxIncludeBlackInHighColorImage;
-            set => config.ZxIncludeBlackInHighColorImage = value;
-        }
-        /// <summary>
-        /// Input seed search mode.
-        /// </summary>
-        public ZxAutotuneMode AutotuneMode 
-        { 
-            get => config.ZxAutotuneMode;
-            set => config.ZxAutotuneMode = value;
-        }
-        /// <summary>
-        /// Dithers the normal palette image.
-        /// </summary>
-        public bool DitherLowColorImage
-        { 
-            get => config.ZxDitherLowColorImage;
-            set => config.ZxDitherLowColorImage = value;
-        } 
-        /// <summary>
-        /// Dithers the bright palette image.
-        /// </summary>
-        public bool DitherHighColorImage 
-        { 
-            get => config.ZxDitherHighColorImage;
-            set => config.ZxDitherHighColorImage = value;
-        }
-        /// <summary>
-        /// Channel intensity of the real normal ZX colors.
-        /// </summary>
-        public int ZxPaletteOutColorSeedLow { get; init; } = 0x00D8;
-        /// <summary>
-        /// Channel intensity of the real bright ZX colors.
-        /// </summary>
-        public int ZxPaletteOutColorSeedHigh { get; init; } = 0x00FF;
+        public int SeedHighUsed => Math.Clamp(Options.SeedHigh, 8, 255);
 
         /// <summary>
-        /// Reduction used for each attribute cell.
+        /// Normal palette input seed of the last result (the best one found by the autotune, if enabled).
         /// </summary>
-        ColorTransformType TransformType { get; set; } = ColorTransformType.ColorReductionClustering;
-        /// <summary>
-        /// Creates the cell configuration: 2 colors picked from the cell palette.
-        /// </summary>
-        ColorTransformConfig CreateConfig(Palette palette, ColorDithering ditheringType)
-        {
-            return config.Clone()
-                .WithReferencePalette(palette)
-                .WithDithering(DitheringConfig)
-                .WithDitheringType(ditheringType)
-                .WithClustering(2, 6, ColorSelectionMode.UseColorPalette);                
-        }
-
+        public int BestSeedLow { get; private set; }
 
         /// <summary>
-        /// Sets the palette settings (fluent).
+        /// Bright palette input seed of the last result (the best one found by the autotune, if enabled).
         /// </summary>
-        public ColorTransformZxSpectrum WithZxScreenMode(ZxPaletteMode paletteMode, int lowColorInSeed, int highColorInSeed)
-        {
-            ZxPaletteInColorSeedLow = lowColorInSeed;
-            ZxPaletteInColorSeedHigh = highColorInSeed;
-            PaletteMode = paletteMode;
-            return this;
-        }
-        /// <summary>
-        /// Sets the palette settings from a configuration (fluent).
-        /// </summary>
-        public ColorTransformZxSpectrum WithZxScreenMode(ColorTransformConfig cfg)
-            => WithZxScreenMode(cfg.ZxPaletteMode, cfg.ZxPaletteInColorSeedLow, cfg.ZxPaletteInColorSeedHigh);
+        public int BestSeedHigh { get; private set; }
 
-        /// <summary>
-        /// Sets the processing settings (fluent).
-        /// </summary>
-        public ColorTransformZxSpectrum WithProcessingParams(ZxAutotuneMode autotuneMode, bool ditherLowColorImage, bool ditherHighColorImage, bool includeBlackInHighColor)
-        {
-            DitherLowColorImage = ditherLowColorImage;
-            DitherHighColorImage = ditherHighColorImage;
-            IncludeBlackInHighColor = includeBlackInHighColor;
-            AutotuneMode = autotuneMode;
-            return this;
-        }
 
-        /// <summary>
-        /// Sets the processing settings from a configuration (fluent).
-        /// </summary>
-        public ColorTransformZxSpectrum WithProcessingParams(ColorTransformConfig cfg)
-            => WithProcessingParams(cfg.ZxAutotuneMode, cfg.ZxDitherLowColorImage, cfg.ZxDitherHighColorImage, cfg.ZxIncludeBlackInHighColorImage);
+
+
 
 
         /// <summary>
@@ -290,7 +204,7 @@ namespace ColourClashNet.Color.Transformation
             var zxPalette = new Palette();
             zxPalette.Add(ColorIntExt.FromRGB(0, 0, 0));
             // 8 normal colors (intensity 0xD8) + 7 bright colors (0xFF); bright black equals black
-            var l = ZxPaletteOutColorSeedLow;
+            var l = Options.OutputLow;
             zxPalette.Add(ColorIntExt.FromRGB(0, 0, l));
             zxPalette.Add(ColorIntExt.FromRGB(0, l, 0));
             zxPalette.Add(ColorIntExt.FromRGB(0, l, l));
@@ -298,7 +212,7 @@ namespace ColourClashNet.Color.Transformation
             zxPalette.Add(ColorIntExt.FromRGB(l, 0, l));
             zxPalette.Add(ColorIntExt.FromRGB(l, l, 0));
             zxPalette.Add(ColorIntExt.FromRGB(l, l, l));
-            l = ZxPaletteOutColorSeedHigh;
+            l = Options.OutputHigh;
             zxPalette.Add(ColorIntExt.FromRGB(0, 0, l));
             zxPalette.Add(ColorIntExt.FromRGB(0, l, 0));
             zxPalette.Add(ColorIntExt.FromRGB(0, l, l));
@@ -307,10 +221,10 @@ namespace ColourClashNet.Color.Transformation
             zxPalette.Add(ColorIntExt.FromRGB(l, l, 0));
             zxPalette.Add(ColorIntExt.FromRGB(l, l, l));
 
-            var zxBaseTransform = ForwardEventsFrom(new ColorTransformFixedPaletteEnhanced());
-            zxBaseTransform.WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
-                .WithReferencePalette(zxPalette)
-                .WithDithering(DitheringConfig);
+            var zxBaseTransform = ForwardEventsFrom(new ColorTransformFixedPaletteEnhanced
+            {
+                Options = new EnhancedPaletteOptions { UserPalette = zxPalette.ToList(), DistanceMode = Options.DistanceMode, Dithering = DitheringOptions },
+            });
             var zxBaseResult = zxBaseTransform.CreateAndProcessColors(ImageSource, token);
             if (zxBaseResult == null || !zxBaseResult.IsSuccess || zxBaseResult.DataOut == null)
             {
@@ -331,13 +245,11 @@ namespace ColourClashNet.Color.Transformation
         TileManager CreateAndProcessTiles(bool loPalette, ImageData zxBestImage, ColorTransformationMap transformationMap, bool useDithering, CancellationToken token = default)
         {
             string sM = nameof(CreateAndProcessTiles);
-            var dithering = useDithering ? DitheringConfig.DitheringType : ColorDithering.None;
-
             // Create the best input image on the input seed palette
-            var zxBaseTransform = ForwardEventsFrom(new ColorTransformFixedPalette());
-            zxBaseTransform.WithReferencePalette(transformationMap.GetInputPalette())
-               .WithColorDistanceEvaluationMode(ColorDistanceEvaluationMode)
-               .WithDithering(DitheringConfig);
+            var zxBaseTransform = ForwardEventsFrom(new ColorTransformFixedPalette
+            {
+                Options = new FixedPaletteOptions { UserPalette = transformationMap.GetInputPalette().ToList(), DistanceMode = Options.DistanceMode, Dithering = DitheringOptions },
+            });
             var zxBaseResult = zxBaseTransform.CreateAndProcessColors(ImageSource, ImageReference, token);
             if (zxBaseResult == null || !zxBaseResult.IsSuccess || zxBaseResult.DataOut == null)
             {
@@ -351,7 +263,7 @@ namespace ColourClashNet.Color.Transformation
             // Evaluate 8x8 attribute cells - 2 colors per cell.
             // The bright palette error is weighted half, so that it wins ties against the normal palette.
             TileManager tileManager = ForwardEventsFrom(new TileManager());
-            tileManager.Create(8, 8, zxRealImage, loPalette ? 1.0 : 2.0, CreateConfig(new Palette(), dithering), token);
+            tileManager.Create(8, 8, zxRealImage, loPalette ? 1.0 : 2.0, CreateCellOptions(useDithering), token);
             var tileResult = tileManager.ProcessColors(token);
             if (tileResult == null || !tileResult.IsSuccess)
             {
@@ -365,13 +277,13 @@ namespace ColourClashNet.Color.Transformation
 
 
         /// <summary>
-        /// Runs the processing with the given input seeds, for the palettes selected by <see cref="PaletteMode"/>.
+        /// Runs the processing with the given input seeds, for the palettes selected by <see cref="ZxOptions.PaletteMode"/>.
         /// </summary>
         protected ZxProcessingResults ExecuteTransformZx(ImageData zxBestImage, int colorSeedInLo, int colorSeedInHi, CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransformZx);
-            var zxTransformationMapLo = CreateZxMap(colorSeedInLo, ZxPaletteOutColorSeedLow, true);
-            var zxTransformationMapHi = CreateZxMap(colorSeedInHi, ZxPaletteOutColorSeedHigh, IncludeBlackInHighColor);
+            var zxTransformationMapLo = CreateZxMap(colorSeedInLo, Options.OutputLow, true);
+            var zxTransformationMapHi = CreateZxMap(colorSeedInHi, Options.OutputHigh, Options.IncludeBlackInHighColor);
 
             List<Task<TileManager>> taskList = new List<Task<TileManager>>();
             // Process the normal and the bright palette in parallel; a null slot means "palette not used"
@@ -380,28 +292,28 @@ namespace ColourClashNet.Color.Transformation
                 ColorSeedInLow = colorSeedInLo,
                 ColorSeedInHigh = colorSeedInHi,
             };
-            switch (PaletteMode)
+            switch (Options.PaletteMode)
             {
                 case ZxPaletteMode.PaletteLo:
                     {
-                        taskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(true, zxBestImage, zxTransformationMapLo, DitherLowColorImage, token)));
+                        taskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(true, zxBestImage, zxTransformationMapLo, Options.DitherLowColorImage, token)));
                         taskList.Add(null);
                     }
                     break;
                 case ZxPaletteMode.PaletteHi:
                     {
                         taskList.Add(null);
-                        taskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(false, zxBestImage, zxTransformationMapHi, DitherHighColorImage, token)));
+                        taskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(false, zxBestImage, zxTransformationMapHi, Options.DitherHighColorImage, token)));
                     }
                     break;
                 case ZxPaletteMode.BothPalettes:
                     {
-                        taskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(true, zxBestImage, zxTransformationMapLo, DitherLowColorImage, token)));
-                        taskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(false, zxBestImage, zxTransformationMapHi, DitherHighColorImage, token)));
+                        taskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(true, zxBestImage, zxTransformationMapLo, Options.DitherLowColorImage, token)));
+                        taskList.Add(Task<TileManager>.Run(() => CreateAndProcessTiles(false, zxBestImage, zxTransformationMapHi, Options.DitherHighColorImage, token)));
                     }
                     break;
                 default:
-                    throw new ArgumentException($"Unknown ZX Spectrum palette mode: {PaletteMode}");
+                    throw new ArgumentException($"Unknown ZX Spectrum palette mode: {Options.PaletteMode}");
             }
 
             // Wait for completion, then merge picking the best attribute cell from either palette
@@ -430,20 +342,22 @@ namespace ColourClashNet.Color.Transformation
                     return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : reference ZX image failed", bestZxResult);
                 }
                 var bestZxImage = bestZxResult.DataOut;
-                if (PaletteMode == ZxPaletteMode.DebugPalette)
+                if (Options.PaletteMode == ZxPaletteMode.DebugPalette)
                 {
                     return ColorTransformResult.CreateValidResult(ImageSource, bestZxImage);
                 }
 
-                if (AutotuneMode == ZxAutotuneMode.None)
+                if (Options.Autotune == ZxAutotuneMode.None)
                 {
-                    var processingResult = ExecuteTransformZx(bestZxImage, ZxPaletteInColorSeedLow, ZxPaletteInColorSeedHigh, token);
+                    var processingResult = ExecuteTransformZx(bestZxImage, SeedLowUsed, SeedHighUsed, token);
                     if (processingResult?.MergeImage == null)
                     {
                         LogMan.Error(sC, sM, $"{Type} : attribute cell merge failed");
                         return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, bestZxImage, $"{Type} : attribute cell merge failed");
                     }
                     TransformationError = processingResult.MergeError;
+                    BestSeedLow = processingResult.ColorSeedInLow;
+                    BestSeedHigh = processingResult.ColorSeedInHigh;
                     return ColorTransformResult.CreateValidResult(ImageSource, processingResult.MergeImage);
                 }
                 else
@@ -453,10 +367,10 @@ namespace ColourClashNet.Color.Transformation
                     ZxProcessingResults bestResult = null;
                     int step = 32;
                     int cycle = 0;
-                    int start = ZxPaletteInColorSeedLow;
+                    int start = SeedLowUsed;
                     int endL = 256 + (step / 2);
                     int endH = 256 + (step / 2);
-                    int loop = AutotuneMode == ZxAutotuneMode.Fast ? 1 : 2;
+                    int loop = Options.Autotune == ZxAutotuneMode.Fast ? 1 : 2;
                     for (int i = 0; i < loop; i++)
                     {
                         for (int low = start; low < endL; low += step)
@@ -479,7 +393,7 @@ namespace ColourClashNet.Color.Transformation
                                     RaiseProcessPartialEvent(new ColorProcessingEventArgs()
                                     {
                                         ColorTransformInterface = this,
-                                        CompletedPercent = ((cycle * step * step) / ((256.0 - ZxPaletteInColorSeedLow) * (256.0 - ZxPaletteInColorSeedLow))) * 100.0,
+                                        CompletedPercent = ((cycle * step * step) / ((256.0 - SeedLowUsed) * (256.0 - SeedLowUsed))) * 100.0,
                                         ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, processingResult?.MergeImage, $"step {cycle} : Range [{lowClamped} - {highClamped}] : Error = {processingResult?.MergeError}"),
                                     });
                                 }
@@ -504,6 +418,8 @@ namespace ColourClashNet.Color.Transformation
 
                     if (bestResult?.MergeImage != null)
                     {
+                        BestSeedLow = bestResult.ColorSeedInLow;
+                        BestSeedHigh = bestResult.ColorSeedInHigh;
                         return ColorTransformResult.CreateValidResult(ImageSource, bestResult?.MergeImage);
                     }
                     else

@@ -23,78 +23,45 @@ namespace ColourClashNet.Color.Transformation
         }
 
         /// <summary>
-        /// Factory: creates the transformation that implements <paramref name="transformType"/> and applies the configuration.
+        /// Factory: creates the transformation that matches the type of <paramref name="options"/> and assigns them.
         /// </summary>
-        /// <param name="transformType">Algorithm to create</param>
-        /// <param name="paramList">Configuration copied into the new instance</param>
+        /// <param name="options">Options; their record type selects the algorithm</param>
         /// <returns>The configured transformation.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Unsupported transformation type.</exception>
-        public static ColorTransformInterface CreateColorTransformInterface(ColorTransformType transformType, ColorTransformConfig paramList)
+        /// <exception cref="ArgumentNullException"><paramref name="options"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Unsupported options type.</exception>
+        public static ColorTransformInterface CreateColorTransformInterface(TransformOptions options)
         {
             string sMethod = nameof(CreateColorTransformInterface);
-            ColorTransformInterface transform = null;
-            switch (transformType)
+            ArgumentNullException.ThrowIfNull(options);
+            return options switch
             {
-                case ColorTransformType.ColorIdentity:
-                case ColorTransformType.None:
-                    transform = new ColorTransformIdentity();
-                    break;
-                case ColorTransformType.ColorReductionCBM64:
-                    transform = new ColorTransformCbm64();
-                    break;
-                case ColorTransformType.ColorReductionClustering:
-                    transform = new ColorTransformClustering();
-                    break;
-                case ColorTransformType.ColorReductionCPC:
-                    transform = new ColorTransformAmstradCPC();
-                    break;
-                case ColorTransformType.ColorReductionHercules:
-                    transform = new ColorTransformHercules();
-                    break;
-                case ColorTransformType.ColorReductionCGA:
-                    transform = new ColorTransformCGA();
-                    break;
-                case ColorTransformType.ColorReductionEGA:
-                    transform = new ColorTransformEGA();
-                    break;
-                case ColorTransformType.ColorReductionVGA:
-                    transform = new ColorTransformVGA();
-                    break;
-                case ColorTransformType.ColorReductionFast:
-                    transform = new ColorTransformFast();
-                    break;
-                case ColorTransformType.ColorReductionGenericPalette:
-                    transform = new ColorTransformFixedPalette();
-                    break;
-                case ColorTransformType.ColorReductionHam:
-                    transform = new ColorTransformCbmAmiga();
-                    break;
-                case ColorTransformType.ColorReductionMedianCut:
-                    transform = new ColorTransformMedianCut();
-                    break;
-                case ColorTransformType.ColorReductionQuantization:
-                    transform = new ColorTransformQuantization();
-                    break;
-                case ColorTransformType.ColorReductionSaturation:
-                    transform = new ColorTransformLumSat();
-                    break;
-                case ColorTransformType.ColorReductionScanline:
-                    transform = new ColorTransformScanLine();
-                    break;
-                case ColorTransformType.ColorReductionZxSpectrum:
-                    transform = new ColorTransformZxSpectrum();                    
-                    break;
-                case ColorTransformType.ColorRemover:
-                    transform = new ColorTransformBkgRemover();
-                    break;
-                case ColorTransformType.ColorReductionEnhancedPalette:
-                    transform = new ColorTransformFixedPaletteEnhanced();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(sMethod, $"Transform type {transformType} not yet supported");
-            }
-
-            return transform.SetProperties(paramList);
+                IdentityOptions o => new ColorTransformIdentity { Options = o },
+                BackgroundRemovalOptions o => new ColorTransformBkgRemover { Options = o },
+                QuantizationOptions o => new ColorTransformQuantization { Options = o },
+                FastOptions o => new ColorTransformFast { Options = o },
+                MedianCutOptions o => new ColorTransformMedianCut { Options = o },
+                ClusteringOptions o => new ColorTransformClustering { Options = o },
+                FixedPaletteOptions o => new ColorTransformFixedPalette { Options = o },
+                EnhancedPaletteOptions o => new ColorTransformFixedPaletteEnhanced { Options = o },
+                HsvOptions o => new ColorTransformLumSat { Options = o },
+                ScanlineOptions o => new ColorTransformScanLine { Options = o },
+                HerculesOptions o => new ColorTransformHercules { Options = o },
+                CgaOptions o => new ColorTransformCGA { Options = o },
+                EgaOptions o => new ColorTransformEGA { Options = o },
+                VgaOptions o => new ColorTransformVGA { Options = o },
+                C64Options o => new ColorTransformCbm64 { Options = o },
+                AmigaOptions o => new ColorTransformCbmAmiga { Options = o },
+                CpcOptions o => new ColorTransformAmstradCPC { Options = o },
+                ZxOptions o => new ColorTransformZxSpectrum { Options = o },
+                _ => throw new ArgumentOutOfRangeException(sMethod, $"Options {options.GetType().Name} not supported"),
+            };
         }
+
+        /// <summary>
+        /// Factory: creates the transformation <paramref name="transformType"/> with its default options.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">Unsupported transformation type.</exception>
+        public static ColorTransformInterface CreateColorTransformInterface(ColorTransformType transformType)
+            => CreateColorTransformInterface(TransformOptions.CreateDefault(transformType));
     }
 }

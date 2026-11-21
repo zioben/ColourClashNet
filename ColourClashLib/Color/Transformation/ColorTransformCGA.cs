@@ -1,5 +1,4 @@
 ﻿using ColourClashNet.Imaging;
-using NLog.Targets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +10,7 @@ namespace ColourClashNet.Color.Transformation
     /// <summary>
     /// IBM CGA video modes: maps the image to the palette of the selected mode.
     /// </summary>
-    public class ColorTransformCGA : ColorTransformFixedPalette
+    public class ColorTransformCGA : ColorTransformPaletteMapping<CgaOptions>
     {
         static readonly string sC = nameof(ColorTransformCGA);
 
@@ -95,15 +94,15 @@ namespace ColourClashNet.Color.Transformation
         }
 
         /// <summary>
-        /// Converts the output to raw data when <see cref="OutputMode"/> is <see cref="CGACompositeOutputMode.RawImage"/>.
+        /// Converts the output to raw data when <see cref="CgaOptions.OutputMode"/> is <see cref="CGACompositeOutputMode.RawImage"/>.
         /// </summary>
         private void ColorTransformReductionCGA_Processed(object? sender, ColorProcessingEventArgs e)
         {
             if (e.ProcessingResults.IsSuccess)
             {
-                if (OutputMode == CGACompositeOutputMode.RawImage)
+                if (Options.OutputMode == CGACompositeOutputMode.RawImage)
                 {
-                    e.ProcessingResults.DataOut = CreateRawImage(e.ProcessingResults.DataOut, VideoMode);
+                    e.ProcessingResults.DataOut = CreateRawImage(e.ProcessingResults.DataOut, Options.VideoMode);
                 }
             }
         }
@@ -117,33 +116,8 @@ namespace ColourClashNet.Color.Transformation
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Target video mode.
-        /// </summary>
-        public CGAVideoMode VideoMode
-        { 
-            get => config.CGAVideoMode;
-            set => config.CGAVideoMode = value;
-        }
 
-        /// <summary>
-        /// Output image type.
-        /// </summary>
-        public CGACompositeOutputMode OutputMode
-        {
-            get => config.CGAOutputMode;
-            set => config.CGAOutputMode = value;
-        }
 
-        /// <summary>
-        /// Sets the video mode and the output type (fluent).
-        /// </summary>
-        public ColorTransformCGA WithProcessingParams(CGAVideoMode value, CGACompositeOutputMode outputMode)
-        {
-            OutputMode = outputMode;
-            VideoMode = value;
-            return this;
-        }
 
         /// <summary>
         /// Builds the palettes of all video modes.
@@ -286,10 +260,10 @@ namespace ColourClashNet.Color.Transformation
         /// Selects the palette of the current video mode.
         /// </summary>
         /// <exception cref="NotImplementedException">Unsupported video mode.</exception>
-        protected override void RebuildReferencePalette()
+        protected override Palette GetTargetPalette()
         {
-            var refPalette = patternFull.GetPalette();
-            switch (VideoMode)
+            Palette refPalette;
+            switch (Options.VideoMode)
             {
                 case CGAVideoMode.Mode4_0L:
                     refPalette = patternMode4_0L.GetPalette();
@@ -325,34 +299,19 @@ namespace ColourClashNet.Color.Transformation
                     refPalette = patternFull.GetPalette();
                     break;
                 default:
-                    throw new NotImplementedException($"{VideoMode} Unsupported video mode");
+                    throw new NotImplementedException($"{Options.VideoMode} Unsupported video mode");
 
             }
-            // Force the overwrite: the reference palette is locked after the first run, so mode changes would be ignored
-            WithReferencePalette(refPalette, true);
+            return refPalette;
         }
 
-        /// <summary>
-        /// Maps each source color to the nearest color of the mode palette.
-        /// </summary>
-        protected override ColorTransformResult CreateTransformationMap(CancellationToken token = default)
-        {
-            TransformationMap.Reset();
-            RebuildReferencePalette();
-            var rgbList = ImageSource.ColorPalette.ToList();
-            foreach (var rgb in rgbList)
-            {
-                TransformationMap.Add(rgb, ColorIntExt.GetNearestColor(rgb, ReferencePalette, this.ColorDistanceEvaluationMode));
-            }
-            return ColorTransformResult.CreateValidResult();
-        }
 
         /// <summary>
         /// Applies the transformation map.
         /// </summary>
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
-            switch (VideoMode)
+            switch (Options.VideoMode)
             {
                 case CGAVideoMode.Mode4_0L:
                 case CGAVideoMode.Mode4_0H:
@@ -370,7 +329,7 @@ namespace ColourClashNet.Color.Transformation
                 case CGAVideoMode.DebugPalette:
                     return base.ExecuteTransform(token);
                 default:
-                    return ColorTransformResult.CreateErrorResult(sC, nameof(ExecuteTransform), ImageSource, null, $"{Type} : unsupported video mode {VideoMode}");
+                    return ColorTransformResult.CreateErrorResult(sC, nameof(ExecuteTransform), ImageSource, null, $"{Type} : unsupported video mode {Options.VideoMode}");
             }
         }
     }
