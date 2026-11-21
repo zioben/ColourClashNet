@@ -1,4 +1,5 @@
 ﻿using ColourClashNet.Imaging;
+using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,10 @@ namespace ColourClashNet.Color.Transformation
 {
     /// <summary>
     /// IBM CGA video modes: maps the image to the palette of the selected mode.
+    /// <para/>
+    /// Palette modes map every pixel to the nearest mode color. Composite modes emulate the NTSC artifact colors
+    /// of 320x200 mode 4: each pair of adjacent pixels is seen as one of 16 colors, so the image is processed at
+    /// half horizontal resolution and then doubled back (as the C64 multicolor and CPC wide-pixel modes).
     /// </summary>
     public class ColorTransformCGA : ColorTransformPaletteMapping<CgaOptions>
     {
@@ -45,13 +50,11 @@ namespace ColourClashNet.Color.Transformation
             Mode5_1H,
             /// <summary>640x200, black and white.</summary>
             Mode6,
-            /// <summary>16 color RGBI palette as rendered on an RGB monitor.</summary>
-            RGBI,
-            /// <summary>16 color composite artifact palette, palette 0.</summary>
+            /// <summary>Composite artifact colors of mode 4 palette 0: 16 colors at half horizontal resolution.</summary>
             Composite_0,
-            /// <summary>16 color composite artifact palette, palette 1.</summary>
+            /// <summary>Composite artifact colors of mode 4 palette 1: 16 colors at half horizontal resolution.</summary>
             Composite_1,
-            /// <summary>Full 16 color CGA palette.</summary>
+            /// <summary>Full 16 color RGBI palette.</summary>
             DebugPalette,
         }
 
@@ -62,14 +65,16 @@ namespace ColourClashNet.Color.Transformation
         {
             /// <summary>Image as displayed.</summary>
             ProcessedImage,
-            /// <summary>Raw pixel data (not implemented yet).</summary>
+            /// <summary>
+            /// Pixels as written in video memory. Palette modes are unchanged; in composite modes each
+            /// artifact color is replaced by the pair of mode 4 pixels that generates it.
+            /// </summary>
             RawImage,
         }
 
 
-        // Palettes of each video mode (patterns are reserved for raw data encoding)
-        EncodingPatternDictionary<List<int>>  patternFull = new();
-        EncodingPatternDictionary<List<int>> patternRGBI = new();
+        // Palettes of each video mode; composite colors carry the mode 4 pixel pair that generates them
+        EncodingPatternDictionary<List<int>> patternFull = new();
         EncodingPatternDictionary<List<int>> patternComposite0 = new();
         EncodingPatternDictionary<List<int>> patternComposite1 = new();
         EncodingPatternDictionary<List<int>> patternMode4_0L = new();
@@ -89,35 +94,8 @@ namespace ColourClashNet.Color.Transformation
         {
             Type = ColorTransformType.ColorReductionCGA;
             Description = "Reduce color to CGA palette";
-            Processed += ColorTransformReductionCGA_Processed;
             CreatePalette();
         }
-
-        /// <summary>
-        /// Converts the output to raw data when <see cref="CgaOptions.OutputMode"/> is <see cref="CGACompositeOutputMode.RawImage"/>.
-        /// </summary>
-        private void ColorTransformReductionCGA_Processed(object? sender, ColorProcessingEventArgs e)
-        {
-            if (e.ProcessingResults.IsSuccess)
-            {
-                if (Options.OutputMode == CGACompositeOutputMode.RawImage)
-                {
-                    e.ProcessingResults.DataOut = CreateRawImage(e.ProcessingResults.DataOut, Options.VideoMode);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Builds the raw CGA image (not implemented yet).
-        /// </summary>
-        /// <exception cref="NotImplementedException">Always.</exception>
-        private ImageData? CreateRawImage(ImageData? dataOut, CGAVideoMode videoMode)
-        {
-            throw new NotImplementedException();
-        }
-
-
-
 
         /// <summary>
         /// Builds the palettes of all video modes.
@@ -189,72 +167,67 @@ namespace ColourClashNet.Color.Transformation
                 .AddPattern(pal[0])
                 .AddPattern(pal[15]);
 
-            // Colors as perceived on period monitors / composite output (measured values)
-            patternRGBI.Reset()
-                .AddPattern(0x00_00_00_00)
-                .AddPattern(0x00_00_6E_31)
-                .AddPattern(0x00_31_09_FF)
-                .AddPattern(0x00_00_8A_FF)
-                //
-                .AddPattern(0x00_A7_00_31)
-                .AddPattern(0x00_76_76_76)
-                .AddPattern(0x00_EC_11_FF)
-                .AddPattern(0x00_BB_92_FF)
-                //
-                .AddPattern(0x00_31_5A_00)
-                .AddPattern(0x00_00_DB_00)
-                .AddPattern(0x00_76_76_76)
-                .AddPattern(0x00_45_F7_BB)
-                //
-                .AddPattern(0x00_EC_63_00)
-                .AddPattern(0x00_BB_E4_00)
-                .AddPattern(0x00_FF_7F_BB)
-                .AddPattern(0x00_FF_FF_FF);
-
+            // Composite artifact colors (measured values). Color i is generated by the mode 4 pixel pair
+            // (i >> 2, i & 3): left pixel in the high bits, as in the video memory byte.
+            // The pixel indexes refer to the high intensity mode 4 palettes.
+            int[] mode4Palette0H = { pal[0], pal[10], pal[12], pal[14] };
+            int[] mode4Palette1H = { pal[0], pal[11], pal[13], pal[15] };
             patternComposite0.Reset()
-                .AddPattern(0x00_00_00_00)
-                .AddPattern(0x00_00_71_D1)
-                .AddPattern(0x00_00_19_AC)
-                .AddPattern(0x00_00_71_F1)
+                .AddPattern(0x00_00_00_00, Pair(mode4Palette0H, 0))
+                .AddPattern(0x00_00_71_D1, Pair(mode4Palette0H, 1))
+                .AddPattern(0x00_00_19_AC, Pair(mode4Palette0H, 2))
+                .AddPattern(0x00_00_71_F1, Pair(mode4Palette0H, 3))
                 //
-                .AddPattern(0x00_95_4F_00)
-                .AddPattern(0x00_6D_D4_41)
-                .AddPattern(0x00_A2_7B_1C)
-                .AddPattern(0x00_74_D4_61)
-                //     
-                .AddPattern(0x00_B8_21_00)
-                .AddPattern(0x00_90_A6_9C)
-                .AddPattern(0x00_C5_4E_76)
-                .AddPattern(0x00_97_A6_BB)
-                //     
-                .AddPattern(0x00_F3_68_00)
-                .AddPattern(0x00_CB_ED_26)
-                .AddPattern(0x00_FF_95_01)
-                .AddPattern(0x00_D2_ED_46);
+                .AddPattern(0x00_95_4F_00, Pair(mode4Palette0H, 4))
+                .AddPattern(0x00_6D_D4_41, Pair(mode4Palette0H, 5))
+                .AddPattern(0x00_A2_7B_1C, Pair(mode4Palette0H, 6))
+                .AddPattern(0x00_74_D4_61, Pair(mode4Palette0H, 7))
+                //
+                .AddPattern(0x00_B8_21_00, Pair(mode4Palette0H, 8))
+                .AddPattern(0x00_90_A6_9C, Pair(mode4Palette0H, 9))
+                .AddPattern(0x00_C5_4E_76, Pair(mode4Palette0H, 10))
+                .AddPattern(0x00_97_A6_BB, Pair(mode4Palette0H, 11))
+                //
+                .AddPattern(0x00_F3_68_00, Pair(mode4Palette0H, 12))
+                .AddPattern(0x00_CB_ED_26, Pair(mode4Palette0H, 13))
+                .AddPattern(0x00_FF_95_01, Pair(mode4Palette0H, 14))
+                .AddPattern(0x00_D2_ED_46, Pair(mode4Palette0H, 15));
 
             patternComposite1.Reset()
-                .AddPattern(0x00_00_00_00)
-                .AddPattern(0x00_00_9A_FF)
-                .AddPattern(0x00_00_42_FF)
-                .AddPattern(0x00_00_90_FF)
+                .AddPattern(0x00_00_00_00, Pair(mode4Palette1H, 0))
+                .AddPattern(0x00_00_9A_FF, Pair(mode4Palette1H, 1))
+                .AddPattern(0x00_00_42_FF, Pair(mode4Palette1H, 2))
+                .AddPattern(0x00_00_90_FF, Pair(mode4Palette1H, 3))
                 //
-                .AddPattern(0x00_AA_4C_00)
-                .AddPattern(0x00_84_FA_D2)
-                .AddPattern(0x00_B9_A2_AD)
-                .AddPattern(0x00_96_F0_FF)
-                //     
-                .AddPattern(0x00_CD_1F_00)
-                .AddPattern(0x00_A7_CD_FF)
-                .AddPattern(0x00_DC_75_FF)
-                .AddPattern(0x00_B9_C3_FF)
-                //     
-                .AddPattern(0x00_FF_5C_00)
-                .AddPattern(0x00_ED_FF_CC)
-                .AddPattern(0x00_FF_B2_A6)
-                .AddPattern(0x00_FF_FF_FF);
+                .AddPattern(0x00_AA_4C_00, Pair(mode4Palette1H, 4))
+                .AddPattern(0x00_84_FA_D2, Pair(mode4Palette1H, 5))
+                .AddPattern(0x00_B9_A2_AD, Pair(mode4Palette1H, 6))
+                .AddPattern(0x00_96_F0_FF, Pair(mode4Palette1H, 7))
+                //
+                .AddPattern(0x00_CD_1F_00, Pair(mode4Palette1H, 8))
+                .AddPattern(0x00_A7_CD_FF, Pair(mode4Palette1H, 9))
+                .AddPattern(0x00_DC_75_FF, Pair(mode4Palette1H, 10))
+                .AddPattern(0x00_B9_C3_FF, Pair(mode4Palette1H, 11))
+                //
+                .AddPattern(0x00_FF_5C_00, Pair(mode4Palette1H, 12))
+                .AddPattern(0x00_ED_FF_CC, Pair(mode4Palette1H, 13))
+                .AddPattern(0x00_FF_B2_A6, Pair(mode4Palette1H, 14))
+                .AddPattern(0x00_FF_FF_FF, Pair(mode4Palette1H, 15));
         }
-       
 
+        /// <summary>
+        /// Returns the two mode 4 pixels that generate the composite color <paramref name="index"/>.
+        /// </summary>
+        /// <param name="mode4Palette">High intensity mode 4 palette (background + 3 colors) the pixels are taken from</param>
+        /// <param name="index">Composite color index [0, 15]</param>
+        static List<int> Pair(int[] mode4Palette, int index)
+            => new List<int> { mode4Palette[index >> 2], mode4Palette[index & 3] };
+
+        /// <summary>
+        /// True for the composite artifact modes.
+        /// </summary>
+        public static bool IsCompositeMode(CGAVideoMode videoMode)
+            => videoMode is CGAVideoMode.Composite_0 or CGAVideoMode.Composite_1;
 
         /// <summary>
         /// Selects the palette of the current video mode.
@@ -286,9 +259,6 @@ namespace ColourClashNet.Color.Transformation
                 case CGAVideoMode.Mode6:
                     refPalette = patternMode6.GetPalette();
                     break;
-                case CGAVideoMode.RGBI:
-                    refPalette = patternRGBI.GetPalette();
-                    break;
                 case CGAVideoMode.Composite_0:
                     refPalette = patternComposite0.GetPalette();
                     break;
@@ -307,10 +277,12 @@ namespace ColourClashNet.Color.Transformation
 
 
         /// <summary>
-        /// Applies the transformation map.
+        /// Applies the palette of the video mode: palette modes use the transformation map,
+        /// composite modes are processed at half horizontal resolution.
         /// </summary>
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
+            string sM = nameof(ExecuteTransform);
             switch (Options.VideoMode)
             {
                 case CGAVideoMode.Mode4_0L:
@@ -320,17 +292,89 @@ namespace ColourClashNet.Color.Transformation
                 case CGAVideoMode.Mode5_1L:
                 case CGAVideoMode.Mode5_1H:
                 case CGAVideoMode.Mode6:
-                case CGAVideoMode.RGBI:
+                case CGAVideoMode.DebugPalette:
+                    // The raw image of a palette mode is the processed image itself
                     return base.ExecuteTransform(token);
                 case CGAVideoMode.Composite_0:
-                    return base.ExecuteTransform(token);
+                    return ToComposite(patternComposite0, token);
                 case CGAVideoMode.Composite_1:
-                    return base.ExecuteTransform(token);
-                case CGAVideoMode.DebugPalette:
-                    return base.ExecuteTransform(token);
+                    return ToComposite(patternComposite1, token);
                 default:
-                    return ColorTransformResult.CreateErrorResult(sC, nameof(ExecuteTransform), ImageSource, null, $"{Type} : unsupported video mode {Options.VideoMode}");
+                    LogMan.Error(sC, sM, $"{Type} : unsupported video mode {Options.VideoMode}");
+                    return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : unsupported video mode {Options.VideoMode}");
             }
+        }
+
+        /// <summary>
+        /// Composite conversion: halves the horizontal resolution (each pixel pair is one artifact color),
+        /// maps and dithers on the half resolution image, then doubles the resolution back.
+        /// <para/>
+        /// For <see cref="CGACompositeOutputMode.RawImage"/> each artifact color becomes the mode 4 pixel pair that generates it.
+        /// </summary>
+        /// <param name="compositePalette">Artifact colors of the mode, with their pixel pairs</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>A valid result with the final image, or an error result.</returns>
+        ColorTransformResult ToComposite(EncodingPatternDictionary<List<int>> compositePalette, CancellationToken token)
+        {
+            string sM = nameof(ToComposite);
+            // Dithering is applied by the nested mapping on the half resolution image
+            BypassDithering = true;
+            try
+            {
+                var halfImage = ImageTools.HalveXResolution(ImageSource, HalveResolutionMode.MeanColor);
+                var mapping = ForwardEventsFrom(new ColorTransformFixedPalette
+                {
+                    Options = Options.InheritCommon(new FixedPaletteOptions()) with { UserPalette = compositePalette.GetPalette().ToList() },
+                });
+                var mappedResult = mapping.CreateAndProcessColors(halfImage, token);
+                if (mappedResult == null || !mappedResult.IsSuccess || mappedResult.DataOut == null)
+                {
+                    LogMan.Error(sC, sM, $"{Type} : composite palette mapping failed");
+                    return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : composite palette mapping failed", mappedResult);
+                }
+
+                var outputImage = Options.OutputMode == CGACompositeOutputMode.RawImage
+                    ? ToRawPixelPairs(mappedResult.DataOut, compositePalette, ImageSource.Columns)
+                    : ImageTools.DoubleXResolution(mappedResult.DataOut, ImageSource.Columns);
+                return ColorTransformResult.CreateValidResult(ImageSource, outputImage);
+            }
+            catch (OperationCanceledException ex)
+            {
+                LogMan.Exception(sC, sM, $"{Type} : operation cancelled", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : operation cancelled", ex);
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, $"{Type} : composite conversion failed", ex);
+                return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : composite conversion failed", ex);
+            }
+        }
+
+        /// <summary>
+        /// Replaces each artifact color of the half resolution image with its two mode 4 pixels.
+        /// <para/>
+        /// Colors without a pair (e.g. non-color tags) are simply duplicated. On odd widths the last pair is cut to
+        /// <paramref name="width"/> columns.
+        /// </summary>
+        static ImageData ToRawPixelPairs(ImageData compositeImage, EncodingPatternDictionary<List<int>> compositePalette, int width)
+        {
+            var source = compositeImage.matrix;
+            int rows = compositeImage.Rows;
+            int columns = compositeImage.Columns;
+            int rawColumns = Math.Min(width, columns * 2);
+            var raw = new int[rows, rawColumns];
+            for (int r = 0; r < rows; r++)
+            {
+                for (int c = 0; c < columns; c++)
+                {
+                    int rgb = source[r, c];
+                    var pair = compositePalette.GetPattern(rgb);
+                    raw[r, 2 * c] = pair?[0] ?? rgb;
+                    if (2 * c + 1 < rawColumns)
+                        raw[r, 2 * c + 1] = pair?[1] ?? rgb;
+                }
+            }
+            return new ImageData().Create(raw);
         }
     }
 }

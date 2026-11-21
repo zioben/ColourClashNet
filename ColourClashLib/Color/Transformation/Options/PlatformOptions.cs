@@ -96,8 +96,8 @@ namespace ColourClashNet.Color.Transformation
                 yield return error;
             if (!Enum.IsDefined(VideoMode))
                 yield return $"{nameof(VideoMode)} {VideoMode} is not valid";
-            if (OutputMode == ColorTransformCGA.CGACompositeOutputMode.RawImage)
-                yield return $"{nameof(OutputMode)} {OutputMode} is not implemented yet";
+            if (!Enum.IsDefined(OutputMode))
+                yield return $"{nameof(OutputMode)} {OutputMode} is not valid";
         }
     }
 
@@ -194,6 +194,18 @@ namespace ColourClashNet.Color.Transformation
         [Category("Amiga"), Description("Reduction that computes the base palette")]
         public ColorReductionOptions BasePaletteReduction { get; init; } = new ClusteringOptions { Selection = ColorSelectionMode.UseColorPalette };
 
+        /// <summary>
+        /// HAM only: following pixels included in the error of each pixel choice, to reduce the color fringes
+        /// (0 = current pixel only; each step multiplies the work by up to 4).
+        /// </summary>
+        [Category("Amiga"), Description("HAM: following pixels evaluated for each choice (0-4), reduces the fringes")]
+        public int HamLookahead { get; init; } = 2;
+
+        /// <summary>
+        /// Maximum value of <see cref="HamLookahead"/>.
+        /// </summary>
+        public const int MaxHamLookahead = 4;
+
         /// <inheritdoc/>
         public override IEnumerable<string> Validate()
         {
@@ -201,6 +213,8 @@ namespace ColourClashNet.Color.Transformation
                 yield return error;
             if (!Enum.IsDefined(VideoMode))
                 yield return $"{nameof(VideoMode)} {VideoMode} is not valid";
+            if (HamLookahead < 0 || HamLookahead > MaxHamLookahead)
+                yield return $"{nameof(HamLookahead)} must be in [0, {MaxHamLookahead}] (is {HamLookahead})";
             foreach (var error in OptionsValidation.ValidateNested(nameof(BasePaletteReduction), BasePaletteReduction))
                 yield return error;
         }

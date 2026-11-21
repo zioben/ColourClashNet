@@ -62,65 +62,119 @@ namespace ColourClashNet.Color.Transformation
 
 
         /// <summary>
-        /// Encodes the image in HAM mode, line by line.
+        /// Encodes the image in HAM mode, line by line (lines are independent and run in parallel).
+        /// <para/>
+        /// Each pixel is either the nearest base palette color or the previous pixel with one channel (R, G or B) set
+        /// to the source value. Choosing only by the error of the current pixel causes fringes: a channel that is
+        /// left behind takes several pixels to catch up. Every choice is therefore scored on the current pixel
+        /// plus the next <paramref name="lookahead"/> pixels (see <see cref="SearchHam"/>).
         /// </summary>
         /// <param name="dataSource">Original image</param>
         /// <param name="dataPreProcessed">Image reduced to the base palette</param>
         /// <param name="quantization">Channel bit depth of the HAM mode</param>
+        /// <param name="lookahead">Following pixels included in the error of each choice (0 = current pixel only)</param>
         /// <param name="token">Cancellation token</param>
         /// <returns>The HAM image as displayed.</returns>
-        ImageData ToHam(ImageData dataSource, ImageData dataPreProcessed, ColorQuantizationMode quantization, CancellationToken token = default)
+        ImageData ToHam(ImageData dataSource, ImageData dataPreProcessed, ColorQuantizationMode quantization, int lookahead, CancellationToken token = default)
         {
-
-
-            var hamData = new int[dataSource.Rows, dataSource.Columns];
-            for (int r = 0; r < dataSource.Rows; r++)
+            int rows = dataSource.Rows;
+            int columns = dataSource.Columns;
+            var hamData = new int[rows, columns];
+            var distanceMode = ColorDistanceEvaluationMode;
+            Parallel.For(0, rows, new ParallelOptions { CancellationToken = token }, r =>
             {
-                int rgbPrev = ColorDefaults.DefaultInvalidColorInt;
-                var palette = new Palette();
-                token.ThrowIfCancellationRequested();
-                for (int c = 0; c < dataSource.Columns; c++)
+                // Quantized target colors and nearest base colors of the line
+                var targets = new int[columns];
+                var baseColors = new int[columns];
+                for (int c = 0; c < columns; c++)
                 {
-                    // First pixel of a line (or after a tagged pixel): there is no previous color to modify,
-                    // so a base palette color must be used
-                    if (rgbPrev < 0)
+                    targets[c] = ColorTransformQuantization.QuantizeColor(quantization, dataSource.matrix[r, c]);
+                    baseColors[c] = ColorTransformQuantization.QuantizeColor(quantization, dataPreProcessed.matrix[r, c]);
+                }
+
+                int rgbPrev = ColorDefaults.DefaultInvalidColorInt;
+                for (int c = 0; c < columns; c++)
+                {
+                    if (targets[c] < 0)
                     {
-                        rgbPrev = dataPreProcessed.matrix[r, c];
-                        hamData[r, c] = rgbPrev;
+                        // Non-color pixel: copied as is, the next pixel has nothing to modify
+                        hamData[r, c] = targets[c];
+                        rgbPrev = ColorDefaults.DefaultInvalidColorInt;
                         continue;
                     }
-                    else
-                    {
-                        int rgbSrc = ColorTransformQuantization.QuantizeColor(quantization, dataSource.matrix[r, c] );
-                        if (rgbSrc < 0)
-                        {
-                            rgbPrev = ColorDefaults.DefaultInvalidColorInt;
-                            hamData[r, c] = rgbSrc;
-                            continue;
-                        }
-                        int prevR = rgbPrev.ToR();
-                        int prevG = rgbPrev.ToG();
-                        int prevB = rgbPrev.ToB();
-                        int srcR = rgbSrc.ToR();
-                        int srcG = rgbSrc.ToG();
-                        int srcB = rgbSrc.ToB();
-                        // HAM candidates: the base palette color, or the previous pixel with one channel modified
-                        int hamOriginal = ColorTransformQuantization.QuantizeColor(quantization, dataPreProcessed.matrix[r,c] );
-                        int hamR = ColorIntExt.FromRGB(srcR, prevG, prevB);
-                        int hamG = ColorIntExt.FromRGB(prevR, srcG, prevB);
-                        int hamB = ColorIntExt.FromRGB(prevR, prevG, srcB);
-                        palette.Reset();
-                        palette.Add(hamOriginal);
-                        palette.Add(hamR);
-                        palette.Add(hamG);
-                        palette.Add(hamB);
-                        var hamColor = ColorTransformQuantization.QuantizeColor(quantization, ColorIntExt.GetNearestColor(rgbSrc, palette, ColorDistanceEvaluationMode) );
-                        rgbPrev = hamColor;
-                        hamData[r,c] = hamColor;
-                    }
+                    // First pixel of a line (or after a non-color pixel): only a base palette color can be used
+                    int hamColor = rgbPrev < 0
+                        ? baseColors[c]
+                        : SearchHam(rgbPrev, targets, baseColors, c, lookahead, distanceMode, out _);
+                    hamData[r, c] = hamColor;
+                    rgbPrev = hamColor;
+                }
+            });
+            return new ImageData().Create(hamData);
+        }
+
+        /// <summary>
+        /// Depth limited search of the best HAM choice for pixel <paramref name="column"/>.
+        /// <para/>
+        /// Tries the 4 candidates (base color, modify R, modify G, modify B); each one is scored with its own error
+        /// plus the best score of the following pixels, up to <paramref name="depth"/> more pixels or a non-color pixel.
+        /// Branches whose partial error already exceeds the best score are skipped (errors are never negative).
+        /// </summary>
+        /// <param name="rgbPrev">Color displayed by the previous pixel</param>
+        /// <param name="targets">Quantized source colors of the line</param>
+        /// <param name="baseColors">Nearest base palette color of each pixel of the line</param>
+        /// <param name="column">Pixel to encode</param>
+        /// <param name="depth">Following pixels still to evaluate</param>
+        /// <param name="distanceMode">Color distance metric</param>
+        /// <param name="bestError">Total error of the returned choice</param>
+        /// <returns>The color displayed by the best choice.</returns>
+        internal static int SearchHam(int rgbPrev, int[] targets, int[] baseColors, int column, int depth, ColorDistanceEvaluationMode distanceMode, out double bestError)
+        {
+            int target = targets[column];
+            int targetR = target.ToR();
+            int targetG = target.ToG();
+            int targetB = target.ToB();
+            int prevR = rgbPrev.ToR();
+            int prevG = rgbPrev.ToG();
+            int prevB = rgbPrev.ToB();
+            Span<int> candidates = stackalloc int[]
+            {
+                baseColors[column],
+                ColorIntExt.FromRGB(targetR, prevG, prevB),
+                ColorIntExt.FromRGB(prevR, targetG, prevB),
+                ColorIntExt.FromRGB(prevR, prevG, targetB),
+            };
+
+            bool lookNext = depth > 0 && column + 1 < targets.Length && targets[column + 1] >= 0;
+            int bestColor = candidates[0] >= 0 ? candidates[0] : candidates[1];
+            bestError = double.MaxValue;
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                int candidate = candidates[i];
+                if (candidate < 0)
+                    continue;
+                // Skip duplicates: the same color gives the same score
+                bool duplicate = false;
+                for (int k = 0; k < i && !duplicate; k++)
+                    duplicate = candidates[k] == candidate;
+                if (duplicate)
+                    continue;
+
+                double error = candidate.Distance(target, distanceMode);
+                if (error >= bestError)
+                    continue;
+                if (lookNext)
+                {
+                    SearchHam(candidate, targets, baseColors, column + 1, depth - 1, distanceMode, out double nextError);
+                    error += nextError;
+                }
+                if (error < bestError)
+                {
+                    bestError = error;
+                    bestColor = candidate;
                 }
             }
-            return new ImageData().Create( hamData );
+            return bestColor;
         }
 
 
@@ -210,7 +264,7 @@ namespace ColourClashNet.Color.Transformation
                 }
                 BypassDithering = true;
 
-                var amigaData = ToHam(ImageSource, dataPreprocessedResult.DataOut, hamQuantization, token);
+                var amigaData = ToHam(ImageSource, dataPreprocessedResult.DataOut, hamQuantization, Options.HamLookahead, token);
                 return ColorTransformResult.CreateValidResult(ImageSource, amigaData);
             }
             catch (OperationCanceledException ex)
