@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color;
+﻿using ColourClashProcessing.Threshold;
+using ColourClashNet.Color;
 using ColourClashNet.Imaging;
 using ColourClashProcessing.Blob;
 using System;
@@ -33,10 +34,17 @@ namespace XUnitTester
             Directory.CreateDirectory("C:\\Temp");
             ImageTools.SaveImage(image, "C:\\Temp\\TestBlobIn");
 
-            ColourClashProcessing.Blob.Blob blob = new ColourClashProcessing.Blob.Blob()
-                .WithThreshold(ColorIntExt.FromRGB(255, 0, 255), 0, false)
-                .WithFiltering(10, 1000000, 10, 1000000, 10, 1000000)
-                .WithProcessing(ColourClashProcessing.Blob.BlobConnectionModes.FourConnected);
+            ColourClashProcessing.Blob.Blob blob = new ColourClashProcessing.Blob.Blob
+            {
+                Options = new BlobOptions
+                {
+                    Threshold = new ThresholdOptions { BackgroundColors = new[] { ColorIntExt.FromRGB(255, 0, 255) } },
+                    MinArea = 10, MaxArea = 1000000,
+                    MinWidth = 10, MaxWidth = 1000000,
+                    MinHeight = 10, MaxHeight = 1000000,
+                    ConnectionMode = BlobConnectionModes.FourConnected,
+                },
+            };
 
             var result = blob.Process(image);
 
@@ -82,12 +90,14 @@ namespace XUnitTester
             Directory.CreateDirectory("C:\\Temp");
             ImageTools.SaveImage(image, $"C:\\Temp\\{connectionMode}_TestBlobIn.png", ImageSaveFormat.Png);
 
-            ColourClashProcessing.Blob.Blob blob = new ColourClashProcessing.Blob.Blob()
-                .WithThreshold(ColorIntExt.FromRGB(255, 0, 255), 0, false)
-                .WithFiltering(0,0,0,0,0,0)
-                .WithProcessing(ColourClashProcessing.Blob.BlobConnectionModes.FourConnected);
-
-            blob.WithProcessing(connectionMode);
+            ColourClashProcessing.Blob.Blob blob = new ColourClashProcessing.Blob.Blob
+            {
+                Options = new BlobOptions
+                {
+                    Threshold = new ThresholdOptions { BackgroundColors = new[] { ColorIntExt.FromRGB(255, 0, 255) } },
+                    ConnectionMode = connectionMode,
+                },
+            };
             var result = blob.Process(image);
 
             var imageShapeOut = blob.GetShapeImage();
@@ -113,10 +123,17 @@ namespace XUnitTester
             ImageData image = ImageTools.LoadImage($"C:\\Temp\\{fileName}.png");
             ImageTools.SaveImage(image, $"C:\\Temp\\{fileName}\\Test{fileName}_BlobIn");
 
-            ColourClashProcessing.Blob.Blob blob = new ColourClashProcessing.Blob.Blob()
-                .WithThreshold(ColorIntExt.FromRGB(255, 0, 255), 0, false)
-                .WithFiltering(10, 1000000, 10, 1000000, 10, 1000000)
-                .WithProcessing(ColourClashProcessing.Blob.BlobConnectionModes.FourConnected);
+            ColourClashProcessing.Blob.Blob blob = new ColourClashProcessing.Blob.Blob
+            {
+                Options = new BlobOptions
+                {
+                    Threshold = new ThresholdOptions { BackgroundColors = new[] { ColorIntExt.FromRGB(255, 0, 255) } },
+                    MinArea = 10, MaxArea = 1000000,
+                    MinWidth = 10, MaxWidth = 1000000,
+                    MinHeight = 10, MaxHeight = 1000000,
+                    ConnectionMode = BlobConnectionModes.FourConnected,
+                },
+            };
 
             var result = blob.Process(image);
 

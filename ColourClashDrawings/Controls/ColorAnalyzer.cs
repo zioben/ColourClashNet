@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color.Dithering;
+﻿using ColourClashProcessing.Threshold;
+using ColourClashNet.Color.Dithering;
 using ColourClashLib;
 using ColourClashLib.Color.Transformation;
 using ColourClashNet.Color;
@@ -143,7 +144,6 @@ namespace ColourClashNet.Controls
             bitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };
             colorManager.OnQuantize += (s, e) => { Invoke(() => RefreshData()); };
             colorManager.OnProcess += (s, e) => { Invoke(() => { RefreshData(); RebuildParams(e.Transformation); }); };
-            blobManager.OnPreProcess += (s, e) => { blobManager.WithProcessingParams(new Palette().Create(colorManager.Pipeline.Background.BackgroundColors), colorManager.Pipeline.Background.ReplacementColor); };
         }                
 
         /// <summary>
@@ -599,9 +599,26 @@ namespace ColourClashNet.Controls
 
         private async void btnProcessBlob_Click(object sender, EventArgs e)
         {
-            blobManager.BlobConfig.WithProcessing((BlobConnectionModes)Enum.Parse(typeof(BlobConnectionModes), cbBlobConnectionMode.SelectedItem?.ToString() ?? string.Empty));
-            blobManager.BlobConfig.WithFiltering((int)numBlobMinW.Value, (int)numBlobMinH.Value, (int)numBlobMinA.Value, (int)numBlobMaxW.Value, (int)numBlobMaxH.Value, (int)numBlobMaxA.Value);
-            blobManager.BlobConfig.WithThreshold(new Palette().Create(ColorManager.Pipeline.Background.BackgroundColors), (double)numBlobThreshold.Value, chkBlobInvertSelection.Checked);
+            // Background colors picked on the source image are the threshold reference;
+            // the rebuilt images use the same replacement color as the background removal
+            var background = ColorManager.Pipeline.Background;
+            blobManager.BlobOptions = new BlobOptions
+            {
+                Threshold = new ThresholdOptions
+                {
+                    BackgroundColors = background.BackgroundColors,
+                    Tolerance = (double)numBlobThreshold.Value,
+                    InvertResults = chkBlobInvertSelection.Checked,
+                },
+                ConnectionMode = ParseCombo<BlobConnectionModes>(cbBlobConnectionMode),
+                MinWidth = (int)numBlobMinW.Value,
+                MinHeight = (int)numBlobMinH.Value,
+                MinArea = (int)numBlobMinA.Value,
+                MaxWidth = (int)numBlobMaxW.Value,
+                MaxHeight = (int)numBlobMaxH.Value,
+                MaxArea = (int)numBlobMaxA.Value,
+                BackgroundColor = background.ReplacementColor,
+            };
             var dataOut = await blobManager.ProcessBlobAsync(colorManager.DataSourceX);
             colorManager.InjectOutput(dataOut);
             RefreshData();

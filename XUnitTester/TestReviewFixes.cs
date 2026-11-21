@@ -1,3 +1,4 @@
+using ColourClashProcessing.Threshold;
 using ColourClashNet;
 using ColourClashNet.Color;
 using ColourClashNet.Color.Dithering;
@@ -279,20 +280,57 @@ namespace XUnitTester
         // ---------------------------------------------------------------- Blob
 
         [Fact]
-        public void Blob_WithFiltering_UsesArgumentsInTheRightOrder()
+        public void Blob_SizeFilters_KeepBlobsWithinTheLimits()
         {
             int colBkg = ColorIntExt.FromRGB(255, 0, 255);
             int colFgd = ColorIntExt.FromRGB(128, 128, 128);
             var m = MatrixTools.CreateMatrix(20, 20, colBkg);
             MatrixTools.Blit(MatrixTools.CreateMatrix(3, 3, colFgd), m, 0, 0, 5, 5, 3, 3);
 
-            var blob = new Blob()
-                .WithThreshold(colBkg, 0, false)
-                .WithFiltering(0, 1000000, 0, 100, 0, 100)
-                .WithProcessing(BlobConnectionModes.FourConnected);
+            var blob = new Blob
+            {
+                Options = new BlobOptions
+                {
+                    Threshold = new ThresholdOptions { BackgroundColors = new[] { colBkg } },
+                    MaxArea = 1000000,
+                    MaxWidth = 100,
+                    MaxHeight = 100,
+                    ConnectionMode = BlobConnectionModes.FourConnected,
+                },
+            };
             blob.Process(new ImageData().Create(m));
 
             Assert.Single(blob.BlobList);
+
+            // A minimum width above the blob width filters it out
+            blob.Options = blob.Options with { MinWidth = 4 };
+            blob.Process(new ImageData().Create(m));
+            Assert.Empty(blob.BlobList);
+        }
+
+        [Fact]
+        public void Blob_InvalidOptions_ReturnAnErrorResult()
+        {
+            var image = new ImageData().Create(MatrixTools.CreateMatrix(8, 8, 0));
+            var blob = new Blob { Options = new BlobOptions { MinArea = 50, MaxArea = 10, Threshold = new ThresholdOptions { BackgroundColors = Array.Empty<int>() } } };
+
+            var result = blob.Process(image);
+
+            Assert.False(result.IsSuccess);
+            Assert.Contains("MinArea (50) is greater than MaxArea (10)", result.Message);
+            Assert.Contains("Threshold : BackgroundColors", result.Message);
+        }
+
+        [Fact]
+        public void BlobOptions_With_LeavesTheOriginalUnchanged()
+        {
+            var original = new BlobOptions { MinArea = 5 };
+            var changed = original with { MinArea = 9, Threshold = original.Threshold with { Tolerance = 3 } };
+
+            Assert.Equal(5, original.MinArea);
+            Assert.Equal(0, original.Threshold.Tolerance);
+            Assert.Equal(9, changed.MinArea);
+            Assert.Equal(3, changed.Threshold.Tolerance);
         }
 
         // ---------------------------------------------------------------- MatrixTools

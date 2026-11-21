@@ -216,6 +216,21 @@ Tile based modes (C64, ZX Spectrum, scanline) use `TileManager`, which splits th
 Each blob can be cut from the source image with a cookie-cut mask, exported as a separate image (`BlobTools.ExportImages`)
 or stacked into a single image (`BlobTools.ReshapeVertical`).
 
+The detector is configured, like the transformations, with immutable records:
+```csharp
+var blob = new Blob
+{
+    Options = new BlobOptions
+    {
+        Threshold = new ThresholdOptions { BackgroundColors = new[] { 0xFF00FF }, Tolerance = 0 },
+        ConnectionMode = BlobConnectionModes.EightConnected,
+        MinArea = 10,          // size limits set to 0 are disabled
+    },
+};
+var result = blob.Process(spriteSheet);
+blob.Options = blob.Options with { MinArea = 20 };
+```
+
 ### Export
 - PNG, BMP and JPG through SkiaSharp (`ImageTools.SaveImage`);
 - 8 bit indexed BMP with optional width alignment (`ImageTools.SaveImageAsIndexedBitmap`);

@@ -22,11 +22,11 @@ namespace ColourClashNet.Components
         static string sC = nameof(BlobManager);
 
         /// <summary>
-        /// Blob detection settings.
+        /// Blob detection settings, applied to <see cref="BlobAnalysis"/> at every run.
         /// </summary>
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [DefaultValue(null)]
-        public BlobConfig BlobConfig { get; set; } = new BlobConfig();
+        public BlobOptions BlobOptions { get; set; } = new BlobOptions();
 
         /// <summary>
         /// Blob detector (results of the last run).
@@ -83,26 +83,6 @@ namespace ColourClashNet.Components
 
 
 
-        /// <summary>
-        /// Sets the background colors used as threshold and the rebuild background color (fluent).
-        /// </summary>
-        public BlobManager WithProcessingParams( Palette bkgPalette, int bkgReplacementColorRGB )
-        {
-            BlobConfig.WithThreshold(bkgPalette, (int)BlobConfig.ThresholdRGB.ToleranceFactor, BlobConfig.ThresholdRGB.InvertResults)
-            .WithColors(bkgReplacementColorRGB);
-            return this;
-        }
-        /// <summary>
-        /// Copies threshold, filtering and connectivity settings and sets the rebuild background color (fluent).
-        /// </summary>
-        public BlobManager WithProcessingParams(BlobConfig config, int bkgReplacementColorRGB)
-        {
-            BlobConfig.WithThreshold(config)
-            .WithFiltering(config)
-            .WithProcessing(config)
-            .WithColors(bkgReplacementColorRGB);
-            return this;
-        }
        
 
         /// <summary>
@@ -118,7 +98,8 @@ namespace ColourClashNet.Components
                 LogMan.Error(sC, sM, "Source image is null");
                 return null;
             }
-            if (BlobConfig.ThresholdRGB.ThresholdPalette.Count == 0)
+            var options = BlobOptions;
+            if (options?.Threshold?.BackgroundColors == null || options.Threshold.BackgroundColors.Count == 0)
             {
                 LogMan.Error(sC, sM, "No background colors selected");
                 return null;
@@ -132,11 +113,7 @@ namespace ColourClashNet.Components
                 });
 
                 BlobAnalysis.Reset();
-                BlobAnalysis
-                    .WithThreshold(BlobConfig)
-                    .WithFiltering(BlobConfig)
-                    .WithProcessing(BlobConfig)
-                    .WithColors(BlobConfig);
+                BlobAnalysis.Options = options;
                 var result = BlobAnalysis.Process(sourceImage, cts.Token);
                 if (!result.IsSuccess)
                 {

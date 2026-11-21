@@ -92,7 +92,7 @@ namespace ColourClashProcessing.Blob
                 var maxWidthFound = list.Max(x => x.Width);
                 var imageW = maxWidthFound + xPaddingL + xPaddingR;
                 var imageH = list.Sum(x => x.Height) + (yPaddingT + yPaddingB) * (count);
-                var matrix= MatrixTools.CreateMatrix(imageW, imageH, blob.BlobBkgColor);
+                var matrix= MatrixTools.CreateMatrix(imageW, imageH, blob.Options.BackgroundColor);
                 // starting point for the first image
                 int xStart = xPaddingL;
                 int yStart = yPaddingT;
