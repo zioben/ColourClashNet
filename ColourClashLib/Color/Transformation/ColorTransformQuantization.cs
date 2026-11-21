@@ -130,7 +130,7 @@ namespace ColourClashNet.Color.Transformation
         protected override ColorTransformResult CreateTransformationMap(CancellationToken token=default)
         {
             string sM = nameof(CreateTransformationMap);
-            LogMan.Trace(sC, sM, $"{Type} : Creating transformation map");
+            LogDebug(sC, sM, $"{Type} : quantizing {ImageSource.Colors} colors to {Options.Mode}");
 
             TransformationMap.Reset();
             var rgbList = ImageSource.ColorPalette.ToList();

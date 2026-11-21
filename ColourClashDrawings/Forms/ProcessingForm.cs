@@ -1,5 +1,6 @@
 ﻿using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
+using ColourClashNet.Log;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,6 +19,8 @@ namespace ModuleTester
     /// </summary>
     public partial class ProcessingForm : Form
     {
+        static readonly string sC = nameof(ProcessingForm);
+
 
         /// <summary>
         /// Transformation being monitored.
@@ -77,7 +80,12 @@ namespace ModuleTester
                     picImageTemp.Image = null;
                     lblPerc.Text = "";
                 });
-            } catch { }
+            }
+            catch (Exception ex)
+            {
+                // The form may already be closed or disposed: nothing to reset
+                LogMan.Warning(sC, nameof(Reset), $"cannot reset the progress form : {ex.Message}");
+            }
         }
 
         private void btnAbort_Click(object sender, EventArgs e)

@@ -119,8 +119,12 @@ public partial class TileProcessing
             tileItem = new TileItem().Create(sourceImage, sourceX, sourceY, tileWidth, tileHeight);
             transformation = ColorTransformBase.CreateColorTransformInterface(tileOptions);
             // Preview images of a single tile are useless and costly: progress messages are still raised
+            // The tile step logs are disabled too: hundreds of tiles would flood the log (errors are still logged)
             if (transformation is ColorTransformBase transformationBase)
+            {
                 transformationBase.EnablePreviewEvents = false;
+                transformationBase.LogProcessingSteps = false;
+            }
             transformation.ProcessPartial += RaiseProcessPartialEvent;
             transformation.ProcessAdvance += RaiseProcessPartialEvent;
             return this;
@@ -139,7 +143,7 @@ public partial class TileProcessing
             var result = transformation.Create(tileItem.TileImage)?.ProcessColors(token);
             if (result == null || !result.IsSuccess)
             {
-                LogMan.Error(sC, sM, $"Tile transformation failed: {result?.Message ?? "transformation not created"}");
+                LogMan.Error(sC, sM, $"Tile {this} transformation failed : {result?.Message ?? "transformation not created"}");
                 return ColorTransformResult.CreateErrorResultFrom(sC, sM, tileItem.TileImage, $"tile {this} transformation failed", result);
             }
             return result;

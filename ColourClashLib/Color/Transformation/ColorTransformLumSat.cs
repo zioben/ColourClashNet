@@ -44,6 +44,7 @@ namespace ColourClashNet.Color.Transformation
             var processed = new int[ImageSource.Rows, ImageSource.Columns];
             var options = Options;
             BypassDithering = true;
+            LogDebug(sC, sM, $"{Type} : hue {options.HueShift}, saturation x{options.SaturationFactor}, brightness x{options.BrightnessFactor}");
 
             try
             {
@@ -68,7 +69,7 @@ namespace ColourClashNet.Color.Transformation
             }
             catch (OperationCanceledException ex)
             {
-                LogMan.Exception(sC, sM, $"{Type} : operation cancelled", ex);
+                LogMan.Warning(sC, sM, $"{Type} : operation cancelled");
                 return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : operation cancelled", ex);
             }
             catch (Exception ex)

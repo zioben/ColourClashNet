@@ -201,7 +201,7 @@ namespace ColourClashNet.Components
             }
             catch (Exception ex)
             {
-                LogMan.Exception(sClass, sMethod, ex);
+                LogMan.Exception(sClass, sMethod, "pipeline reset failed", ex);
             }
         }
 
@@ -242,6 +242,7 @@ namespace ColourClashNet.Components
             try
             {
                 DataSourceX = new ImageData().Create(data);
+                LogMan.Debug(sClass, sMethod, $"source image loaded : {DataSourceX.Width}x{DataSourceX.Height}, {DataSourceX.Colors} colors");
                 ImageSource = ImageToolsGDI.ImageDataToGdiImage(DataSourceX);
                 OnCreate?.Invoke(this, EventArgs.Empty);
                 PreProcess();
@@ -249,6 +250,7 @@ namespace ColourClashNet.Components
             }
             catch (Exception ex)
             {
+                LogMan.Exception(sClass, sMethod, "cannot load the source image", ex);
                 Reset();
                 return false;
             }
@@ -293,8 +295,7 @@ namespace ColourClashNet.Components
             try
             {
                 ResetProcessingData();
-                LogMan.Message(sClass, sMethod, "Starting Processing");
-                LogMan.Trace(sClass, sMethod, "Process Identity Transformation");
+                LogMan.Debug(sClass, sMethod, "pre-processing started");
                 transformSource.CreateAndProcessColors(DataSourceX);
 
                 CancellationTokenSource cts = new CancellationTokenSource();
@@ -303,7 +304,7 @@ namespace ColourClashNet.Components
                 // Pre-processing steps never dither: dithering is applied only by the final transformation.
                 var pipeline = Pipeline;
 
-                LogMan.Trace(sClass, sMethod, "Process Bkg Remover");
+                LogMan.Trace(sClass, sMethod, $"background removal : {pipeline.Background.BackgroundColors.Count} colors replaced with {pipeline.Background.ReplacementColor:X6}");
                 transformBkgRemover
                     .SetOptions(pipeline.Background with { Dithering = DitherOptions.None })
                     .Create(DataSourceX);
@@ -318,7 +319,7 @@ namespace ColourClashNet.Components
                 DataBkgRemoved = bkgRemovedResult.DataOut;
                 ImageBkgRemoved = ImageToolsGDI.ImageDataToGdiImage(DataBkgRemoved);
 
-                LogMan.Trace(sClass, sMethod, "Process Quantizer");
+                LogMan.Trace(sClass, sMethod, $"quantization : {pipeline.Quantization}");
                 transformQuantizer
                     .SetOptions(new QuantizationOptions { Mode = pipeline.Quantization })
                     .Create(DataBkgRemoved);
@@ -333,12 +334,10 @@ namespace ColourClashNet.Components
                 DataQuantized = quantizedResult.DataOut;
                 ImageQuantized = ImageToolsGDI.ImageDataToGdiImage(DataQuantized);
 
-                LogMan.Trace(sClass, sMethod, "Cloning Quantizer Output");
                 DataProcessed = new ImageData().Create(DataQuantized);
                 ImageProcessed = ImageToolsGDI.ImageDataToGdiImage(DataProcessed);
                 transformProcessing = transformQuantizer;
 
-                LogMan.Trace(sClass, sMethod, "Calling Event");
                 if (raiseEvent)
                 {
                     OnQuantize?.Invoke(this, new ColorManagerProcessEventArgs
@@ -348,12 +347,12 @@ namespace ColourClashNet.Components
                         Transformation = transformQuantizer
                     });
                 }
-                LogMan.Message(sClass, sMethod, "Process End");
+                LogMan.Debug(sClass, sMethod, $"pre-processing completed : {DataQuantized.Colors} colors");
                 return DataProcessed;
             }
             catch (Exception ex)
             {
-                LogMan.Exception(sClass, sMethod, ex);
+                LogMan.Exception(sClass, sMethod, "pre-processing failed", ex);
                 InvalidatePreProcess = true;
                 return null;
             }
@@ -395,6 +394,7 @@ namespace ColourClashNet.Components
                     PreProcess();
                 }
                 var transformOptions = Pipeline.Transform.DeepClone();
+                LogMan.Message(sClass, sMethod, $"{transformOptions.TransformType} started on {DataQuantized?.Width}x{DataQuantized?.Height}, {DataQuantized?.Colors} colors");
                 transformProcessing = ColorTransformBase.CreateColorTransformInterface(transformOptions);
                 CancellationTokenSource cts = new CancellationTokenSource();
                 ProcessingForm.CreateProcessingForm(transformProcessing, cts);
@@ -408,6 +408,7 @@ namespace ColourClashNet.Components
                     return null;
                 }
                 DataProcessed = processedResult.DataOut;
+                LogMan.Message(sClass, sMethod, $"{transformOptions.TransformType} completed in {(transformProcessing as ColorTransformBase)?.ProcessingTimeMilliseconds ?? 0:f0} ms : {DataProcessed.Colors} colors, error {transformProcessing.TransformationError:g4}");
                 ImageProcessed = ImageToolsGDI.ImageDataToGdiImage(DataProcessed);
                 OnProcess?.Invoke(this, new ColorManagerProcessEventArgs
                 {
@@ -418,7 +419,7 @@ namespace ColourClashNet.Components
             }
             catch (Exception ex)
             {
-                LogMan.Exception(sClass, sMethod, ex);
+                LogMan.Exception(sClass, sMethod, $"{Pipeline.Transform?.TransformType} processing failed", ex);
                 DataProcessed = null;
                 ImageProcessed = null;
             }

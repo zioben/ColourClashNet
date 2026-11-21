@@ -39,7 +39,7 @@ namespace ColourClashNet.Color.Transformation
         {
            
                 string sM = nameof(ExecuteTransform);
-                LogMan.Trace(sC, sM, $"{Type} : Creating transformation map");
+                LogDebug(sC, sM, $"{Type} : replacing {Options.BackgroundColors?.Count ?? 0} background colors with {Options.ReplacementColor:X6}");
 
                 TransformationMap.Reset();
                 var bkgList = Options.BackgroundColors ?? Array.Empty<int>();

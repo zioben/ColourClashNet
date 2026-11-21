@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ColourClashNet.Log;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,7 @@ namespace ColourClashNet.Color.Transformation
     /// </summary>
     public class ColorTransformFast : ColorTransformBase<FastOptions>
     {
+        static readonly string sC = nameof(ColorTransformFast);
 
         /// <summary>
         /// Creates the fast reduction.
@@ -31,6 +33,7 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         protected override ColorTransformResult CreateTransformationMap(CancellationToken token = default)
         {
+            string sM = nameof(CreateTransformationMap);
             TransformationMap.Reset();
             var sourceHistogram = new HistogramRGB().Create(ImageSource);
             // Candidate colors in priority order: user palette first, then the image colors from the most to the least frequent
@@ -43,6 +46,7 @@ namespace ColourClashNet.Color.Transformation
             }
             if (candidates.Count <= Options.MaxColors)
             {
+                LogDebug(sC, sM, $"{Type} : {candidates.Count} colors fit in {Options.MaxColors} : identity map");
                 foreach (var kvp in sourceHistogram.HistogramDictionary)
                 {
                     TransformationMap.Add(kvp.Key, kvp.Key);
@@ -50,6 +54,7 @@ namespace ColourClashNet.Color.Transformation
             }
             else
             {
+                LogDebug(sC, sM, $"{Type} : keeping the {Options.MaxColors} most frequent of {candidates.Count} colors ({UserPalette.Count} user colors first)");
                 var listAll = candidates;
                 var listMax = listAll.Take(Options.MaxColors).ToList();
                 var palette = new Palette().Create(listMax);

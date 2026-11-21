@@ -140,7 +140,7 @@ namespace ColourClashNet.Color.Dithering
             }
             catch (OperationCanceledException ex)
             {
-                LogMan.Exception(sC, sM, $"{Type} : dithering effect cancelled", ex);
+                LogMan.Warning(sC, sM, $"{Type} : dithering effect cancelled");
                 return ColorTransformResult.CreateErrorResult(sC, sM, imageProcessed, ditheredResult.DataOut, $"{Type} : dithering effect cancelled", ex);
             }
             catch (Exception ex)

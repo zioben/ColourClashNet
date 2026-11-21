@@ -128,12 +128,15 @@ namespace ColourClashProcessing.Blob
                     return ColorTransformResult.CreateErrorResult(sC, sM, image, null, $"invalid options : {string.Join("; ", errors)}");
                 }
 
+                LogMan.Debug(sC, sM, $"blob analysis of {ImageSource.Width}x{ImageSource.Height} : {opts.Threshold.BackgroundColors.Count} background colors, tolerance {opts.Threshold.Tolerance}, {opts.ConnectionMode}");
+
                 // 1. foreground / background split
                 var threshold = new GlobalThreshold { Options = opts.Threshold };
                 var thresholdResult = threshold.Process(ImageSource, cancellationToken);
                 if (!thresholdResult.IsSuccess)
                 {
-                    LogMan.Error(sC, sM, $"Threshold processing failed: {thresholdResult.Message}", thresholdResult.Exception);
+                    LogMan.Error(sC, sM, $"Threshold processing failed : {thresholdResult.Message}", thresholdResult.Exception);
+                    timer.Update();
                     return ColorTransformResult.CreateErrorResultFrom(sC, sM, image, "threshold stage failed", thresholdResult);
                 }
 
@@ -141,12 +144,15 @@ namespace ColourClashProcessing.Blob
                 var shapeResult = shape.Process(thresholdResult.DataOut, cancellationToken);
                 if (!shapeResult.IsSuccess)
                 {
-                    LogMan.Error(sC, sM, $"Shape processing failed: {shapeResult.Message}", shapeResult.Exception);
+                    LogMan.Error(sC, sM, $"Shape processing failed : {shapeResult.Message}", shapeResult.Exception);
+                    timer.Update();
                     return ColorTransformResult.CreateErrorResultFrom(sC, sM, image, "run length stage failed", shapeResult);
                 }
 
                 // 3. run lengths -> blobs
                 var blobs = BlobBuilder.Build(shape.RunLengths, opts.ConnectionMode, cancellationToken);
+                int blobsFound = blobs.Count;
+                LogMan.Trace(sC, sM, $"{shape.RunLengths.Count} run lengths merged into {blobsFound} blobs");
 
                 // 4. filter blobs by size
                 if (opts.MinArea > 0)
@@ -168,6 +174,7 @@ namespace ColourClashProcessing.Blob
                 connectedComponents = blobs.ToDictionary(b => b.BlobId, b => b.RunLengths);
 
                 timer.Update();
+                LogMan.Debug(sC, sM, $"blob analysis completed : {blobs.Count} blobs kept of {blobsFound} found by the size filters");
 
                 return ColorTransformResult.CreateValidResult(
                     image,
@@ -176,7 +183,7 @@ namespace ColourClashProcessing.Blob
             }
             catch (OperationCanceledException cex)
             {
-                LogMan.Exception(sC, sM, "Operation canceled", cex);
+                LogMan.Warning(sC, sM, "Operation cancelled");
                 timer.Update();
                 return ColorTransformResult.CreateErrorResult(sC, sM, image, null, "blob processing cancelled", cex);
             }

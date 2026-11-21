@@ -26,16 +26,19 @@ namespace ColourClashProcessing.Blob
             {
                 Directory.CreateDirectory(path);
                 var imageList = blob.ToImageList();
+                LogMan.Debug(sC, sM, $"exporting {imageList.Count} blob images to {path} as {format}");
                 var result = true;
                 foreach (var image in imageList)
                 {
-                    result &= ImageTools.SaveImage(image, $"{path}\\{prefix}Blob_{Convert.ToInt32(image.Name):D3}", format, imageQuality);
+                    result &= ImageTools.SaveImage(image, Path.Combine(path, $"{prefix}Blob_{Convert.ToInt32(image.Name):D3}"), format, imageQuality);
                 }
+                if (!result)
+                    LogMan.Error(sC, sM, $"some blob images could not be saved to {path}");
                 return result;
             }
             catch (Exception ex)
             {
-                LogMan.Exception(sC, sM, ex);
+                LogMan.Exception(sC, sM, $"blob image export to {path} failed", ex);
                 return false;
             }
         }
@@ -54,15 +57,8 @@ namespace ColourClashProcessing.Blob
         public static bool RepackImages(Blob blob, string path, string prefix, ImageSaveFormat format, int imageQuality)
         {
             string sM = nameof(RepackImages);
-            try
-            {
-                throw new NotImplementedException(sM);
-            }
-            catch (Exception ex)
-            {
-                LogMan.Exception(sC, sM, ex);
-                return false;
-            }
+            LogMan.Error(sC, sM, "not implemented yet");
+            return false;
         }
 
         /// <summary>
@@ -110,7 +106,7 @@ namespace ColourClashProcessing.Blob
             }
             catch (Exception ex)
             {
-                LogMan.Exception(sC, sM, ex);
+                LogMan.Exception(sC, sM, "vertical reshape failed", ex);
                 return null;
             }
         }

@@ -166,7 +166,6 @@ namespace ColourClashNet.Color.Dithering
 
                 Create();
 
-                LogMan.Trace(sC, sM, $"{Type} : Dithering");
                 int thresholdSize = thresholdMatrix.GetLength(0);
 
                 // Maximum offset applied to each channel at full strength
@@ -196,13 +195,12 @@ namespace ColourClashNet.Color.Dithering
                         dataOut[r, c] = ColorIntExt.GetNearestColor(ditheredColor, dataProcessedPalette, colorEvaluationMode);
                     }
                 }//);
-                LogMan.Trace(sC, sM, $"{Type} : Dithering completed");
                 var ditheredImage = new ImageData().Create(dataOut);
                 return ColorTransformResult.CreateValidResult(imageReference, ditheredImage);
             }
             catch (OperationCanceledException ex)
             {
-                LogMan.Exception(sC, sM, $"{Type} : dithering cancelled", ex);
+                LogMan.Warning(sC, sM, $"{Type} : dithering cancelled");
                 return ColorTransformResult.CreateErrorResult(sC, sM, imageReference, null, $"{Type} : dithering cancelled", ex);
             }
             catch (Exception ex)

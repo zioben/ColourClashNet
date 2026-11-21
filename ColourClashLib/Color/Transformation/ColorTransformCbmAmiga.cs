@@ -77,8 +77,10 @@ namespace ColourClashNet.Color.Transformation
         /// <returns>The HAM image as displayed.</returns>
         ImageData ToHam(ImageData dataSource, ImageData dataPreProcessed, ColorQuantizationMode quantization, int lookahead, CancellationToken token = default)
         {
+            string sM = nameof(ToHam);
             int rows = dataSource.Rows;
             int columns = dataSource.Columns;
+            LogDebug(sC, sM, $"{Type} : HAM encoding {columns}x{rows}, {quantization}, lookahead {lookahead} pixels");
             var hamData = new int[rows, columns];
             var distanceMode = ColorDistanceEvaluationMode;
             Parallel.For(0, rows, new ParallelOptions { CancellationToken = token }, r =>
@@ -192,10 +194,11 @@ namespace ColourClashNet.Color.Transformation
             {
                 Options = Options.InheritCommon(clustering) with { MaxColors = 32 },
             });
+            LogDebug(sC, sM, $"{Type} : EHB clustering, 32 base colors + half-bright copies");
             var result = transform.CreateAndProcessColors(dataPreProcessed, token);
             if (result == null || !result.IsSuccess || result.DataOut == null)
             {
-                LogMan.Error(sC, sM, $"{Type} : EHB clustering failed");
+                LogMan.Error(sC, sM, $"{Type} : EHB clustering failed : {result?.Message}");
                 return ColorTransformResult.CreateErrorResultFrom(sC, sM, dataSource, $"{Type} : EHB clustering failed", result);
             }
             return ColorTransformResult.CreateValidResult(dataSource, result.DataOut);
@@ -254,12 +257,13 @@ namespace ColourClashNet.Color.Transformation
                 }
 
                 // Compute the HAM base palette (16 or 64 colors) on the quantized image
+                LogDebug(sC, sM, $"{Type} : {Options.VideoMode} : base palette of {maxColors} colors with {Options.BasePaletteReduction.TransformType} on {quantizedResult.DataOut.Colors} {hamQuantization} colors");
                 var cfg = Options.InheritCommon(Options.BasePaletteReduction) with { MaxColors = maxColors };
                 var colorReduction = ForwardEventsFrom(ColorTransformInternal.Alloc(cfg));
                 var dataPreprocessedResult = colorReduction.CreateAndProcessColors(quantizedResult.DataOut, token);
                 if (dataPreprocessedResult == null || !dataPreprocessedResult.IsSuccess)
                 {
-                    LogMan.Error(sC, sM, $"{Type} : HAM base palette reduction failed");
+                    LogMan.Error(sC, sM, $"{Type} : HAM base palette reduction failed : {dataPreprocessedResult?.Message}");
                     return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : HAM base palette reduction failed", dataPreprocessedResult);
                 }
                 BypassDithering = true;
@@ -269,7 +273,7 @@ namespace ColourClashNet.Color.Transformation
             }
             catch (OperationCanceledException ex)
             {
-                LogMan.Exception(sC, sM, $"{Type} : operation cancelled", ex);
+                LogMan.Warning(sC, sM, $"{Type} : operation cancelled");
                 return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : operation cancelled", ex);
             }
             catch (Exception ex)

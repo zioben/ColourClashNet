@@ -6,6 +6,7 @@ using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Drawing;
 using ColourClashNet.Imaging;
+using ColourClashNet.Log;
 using ColourClashProcessing.Blob;
 using System;
 using System.Collections.Concurrent;
@@ -30,6 +31,8 @@ namespace ColourClashNet.Controls
     /// </summary>
     public partial class ColorAnalyzer : UserControl
     {
+        static readonly string sC = nameof(ColorAnalyzer);
+
 
 
 
@@ -461,8 +464,17 @@ namespace ColourClashNet.Controls
         /// </summary>
         private async void ReduceColorsAsync(ColorTransformType type)
         {
-            ApplyPreprocessingSettings();
-            await colorManager.ProcessColorsAsync(BuildTransformOptions(type));
+            string sM = nameof(ReduceColorsAsync);
+            // async void: an unhandled exception here would terminate the application
+            try
+            {
+                ApplyPreprocessingSettings();
+                await colorManager.ProcessColorsAsync(BuildTransformOptions(type));
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, $"{type} processing failed", ex);
+            }
         }
 
         private async void btnReduceColors_Click(object sender, EventArgs e)

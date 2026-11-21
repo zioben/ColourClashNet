@@ -109,7 +109,7 @@ namespace ColourClashNet.Color.Transformation
             var result = fastReduction.CreateAndProcessColors(image, token);
             if (result == null || !result.IsSuccess)
             {
-                LogMan.Error(sC, sM, $"{Type} : {maxColors} color reduction failed");
+                LogMan.Error(sC, sM, $"{Type} : {maxColors} color reduction failed : {result?.Message}");
                 return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : {maxColors} color reduction failed", result);
             }
 
@@ -118,6 +118,7 @@ namespace ColourClashNet.Color.Transformation
             var reducedImage = result.DataOut;
             if (DitheringOptions.DitheringType != ColorDithering.None)
             {
+                LogTrace(sC, sM, $"{Type} : dithering {DitheringOptions.DitheringType} on the {(doubleRes ? "half" : "full")} resolution image");
                 var imageRef = doubleRes ? ImageTools.HalveXResolution(ImageSource,  HalveResolutionMode.OddPixel) : ImageSource;
                 var dithering = DitherBase.CreateDitherInterface(DitheringOptions);
                 var ditheredResult = dithering.Dither(imageRef, reducedImage, ColorDistanceEvaluationMode, token);
@@ -140,6 +141,8 @@ namespace ColourClashNet.Color.Transformation
         /// <param name="token">Cancellation token</param>
         ColorTransformResult ToMode(int maxColors, bool widePixels, CancellationToken token)
         {
+            string sM = nameof(ToMode);
+            LogDebug(sC, sM, $"{Type} : {Options.VideoMode} : {maxColors} colors{(widePixels ? ", wide pixels (half horizontal resolution)" : "")}");
             var imagePre = PreProcess(widePixels, token);
             return PostProcess(imagePre, maxColors, widePixels, token);
         }
@@ -176,7 +179,7 @@ namespace ColourClashNet.Color.Transformation
             }
             catch (OperationCanceledException ex)
             {
-                LogMan.Exception(sC, sM, $"{Type} : operation cancelled", ex);
+                LogMan.Warning(sC, sM, $"{Type} : operation cancelled");
                 return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : operation cancelled", ex);
             }
             catch (Exception ex)
