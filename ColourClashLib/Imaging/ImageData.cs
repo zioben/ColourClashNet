@@ -134,21 +134,30 @@ public partial class ImageData
 
 
     /// <summary>
+    /// Initializes a filled color image of the given size.
+    /// </summary>
+    /// <param name="width">Number of columns</param>
+    /// <param name="height">Number of rows</param>
+    /// <param name="colorRGB">The RGB color value for all pixels</param>
+    /// <returns>This instance.</returns>
+    public ImageData Create(int width, int height, int colorRGB )
+    {
+        lock (locker)
+        {
+            Reset();
+            matrix = MatrixTools.CreateMatrix(height, width, colorRGB);
+            ColorPalette = new Palette().Create(this);
+        }
+        return this;
+    }
+    /// <summary>
     /// Initializes a black (all zero) image of the given size.
     /// </summary>
     /// <param name="width">Number of columns</param>
     /// <param name="height">Number of rows</param>
     /// <returns>This instance.</returns>
-    public ImageData Create(int width, int height )
-    {
-        lock (locker)
-        {
-            Reset();
-            matrix = new int[height, width]; 
-            ColorPalette = new Palette().Create(this);
-        }
-        return this;
-    }
+    public ImageData Create(int width, int height)
+        => Create(width, height, 0);
 
     /// <summary>
     /// Copies a rectangular area into a new image. Parts outside this image are left black.

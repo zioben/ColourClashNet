@@ -272,7 +272,13 @@ namespace ColourClashNet.Color.Transformation
         /// Includes black in the bright palette.
         /// </summary>
         [Category("ZX Spectrum"), Description("Includes black in the bright palette")]
-        public bool IncludeBlackInHighColor { get; init; } = false;
+        public bool IncludeBlackInHighColor { get; init; } = true;
+
+        /// <summary>
+        /// Includes white in the bright palette.
+        /// </summary>
+        [Category("ZX Spectrum"), Description("Includes white in the bright palette")]
+        public bool IncludeWhiteInHighColor { get; init; } = true;
 
         /// <summary>
         /// Dithers the normal palette image.

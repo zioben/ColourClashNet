@@ -345,8 +345,22 @@ namespace ColourClashNet.Drawing
             var previousTransform = RebuildTransform(graphics);
             // This translation is affected by the zoom parameters:
             // the zoom is reversed so that the origin keeps following the mouse pointer in world units
+            var previousInterpolation = graphics.InterpolationMode;
+            var previousPixelOffset = graphics.PixelOffsetMode;
+            var previousSmoothing = graphics.SmoothingMode;
+
+            graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+            graphics.PixelOffsetMode = PixelOffsetMode.None;
+            graphics.SmoothingMode = SmoothingMode.None;
+
+
             var origin = TransfOrigin.DivP2P(TransfZoom);
             graphics.DrawImage(image, origin);
+
+            graphics.InterpolationMode = previousInterpolation;
+            graphics.PixelOffsetMode = previousPixelOffset;
+            graphics.SmoothingMode = previousSmoothing;
+
             graphics.Transform = previousTransform;
         }
     }

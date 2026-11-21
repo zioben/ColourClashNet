@@ -109,7 +109,7 @@ namespace ColourClashNet
             CreateTab();
         }
 
-      
+
 
         /// <summary>
         /// Adds a new tab with an empty analyzer and selects it.
@@ -124,7 +124,7 @@ namespace ColourClashNet
             analyzer.ImageCopied += ((s, e) => CreateTab(e.DestBitmap, e.Name));
             analyzer.ImageCreated += ((s, e) => tabManager.SetPageText(analyzer, e.Name.Substring(Math.Max(0, e.Name.Length - 12))));
             var page = tabManager.CreatePage(analyzer);
-            tabManager.SelectedTab= page;    
+            tabManager.SelectedTab = page;
 
             return analyzer;
         }
@@ -144,8 +144,8 @@ namespace ColourClashNet
         /// </summary>
         void CreateMenuItem(ToolStripMenuItem parentItem, string text, object? tag)
         {
-            if( tag == null)
-                return; 
+            if (tag == null)
+                return;
             if (tag.ToString().ToLower().EndsWith(".unknown"))
                 return;
             var menuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -189,11 +189,11 @@ namespace ColourClashNet
         /// </summary>
         void MenuRebuildSetCheck<T>(string? value)
         {
-            if (string.IsNullOrEmpty( value))
+            if (string.IsNullOrEmpty(value))
                 return;
             var tagList = tsItemsSetup.Where(x => x.Tag != null).ToList();
             var typeList = tagList.Where(x => typeof(T) == x.Tag.GetType()).ToList();
-            var tsSelected = typeList.Where(x => x.Tag.ToString()==value).ToList();
+            var tsSelected = typeList.Where(x => x.Tag.ToString() == value).ToList();
             foreach (var item in tsSelected)
             {
                 item.Checked = true;
@@ -230,7 +230,7 @@ namespace ColourClashNet
             tsItemsResolution.ForEach(x => x.Checked = false);
             MenuRebuildSetCheck(SelectedColorAnalyzer?.WantedRes);
         }
-        
+
 
         /// <summary>
         /// Applies the clicked setting to the selected analyzer.
@@ -296,7 +296,7 @@ namespace ColourClashNet
             }
         }
 
-       
+
 
 
 
@@ -305,7 +305,7 @@ namespace ColourClashNet
         #endregion
 
 
-      
+
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -388,6 +388,9 @@ namespace ColourClashNet
             }
         }
 
-     
+        private void originalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SelectedColorAnalyzer?.WantedRes = new GraphicsResolution();
+        }
     }
 }
