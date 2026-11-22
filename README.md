@@ -132,6 +132,7 @@ and odd widths are padded to an even number of columns.
 
 ## To do
 A lot of stuff, like sprite masking, raw data export for every system and assembly code generation.
+- Simplify `ColorTransformBase` (planned, on hold): see [docs/ColorTransformBase-simplification.md](./docs/ColorTransformBase-simplification.md).
 
 ## Support
 ### Quantization
