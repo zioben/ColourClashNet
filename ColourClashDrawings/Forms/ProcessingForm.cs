@@ -47,19 +47,6 @@ namespace ModuleTester
             }
             Invoke(() =>
             {
-                if (args?.ProcessingResults?.Message != null)
-                {
-                    lbHistory.Items.Insert(0, args.ProcessingResults.Message);
-                }
-                if (args?.ProcessingResults?.DataOut != null)
-                {
-                    picImageTemp.Image = ImageToolsGDI.ImageDataToGdiImage(args.ProcessingResults.DataOut);
-                }
-                if (!double.IsNaN(args.CompletedPercent))
-                {
-                    lblPerc.Text = $"{args.CompletedPercent:f1} %";
-                    pbarComplete.Value = (int)Math.Min(pbarComplete.Maximum, Math.Max(pbarComplete.Minimum, args.CompletedPercent));
-                }
             });
         }
 
@@ -68,16 +55,6 @@ namespace ModuleTester
         /// </summary>
         void Reset()
         {
-            try
-            {
-                Invoke(() =>
-                {
-                    lbHistory.Items.Clear();
-                    pbarComplete.Value = 0;
-                    picImageTemp.Image = null;
-                    lblPerc.Text = "";
-                });
-            } catch { }
         }
 
         private void btnAbort_Click(object sender, EventArgs e)

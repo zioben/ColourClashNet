@@ -59,18 +59,24 @@ namespace ColourClashNet.Controls
             });
         }
 
+        void ResetInternal()
+        {
+            lbHistory.Items.Clear();
+            pbarComplete.Value = 0;
+            picImageTemp.Image = null;
+            lblPerc.Text = "";
+
+        }
+
         /// <summary>
         /// Clears history, preview and progress.
         /// </summary>
         void Reset()
         {
-            Invoke(() =>
-            {
-                lbHistory.Items.Clear();
-                pbarComplete.Value = 0;
-                picImageTemp.Image = null;
-                lblPerc.Text = "";
-            });
+            if (InvokeRequired)
+                Invoke(() => ResetInternal());
+            else
+                ResetInternal();
         }
 
         private void btnAbort_Click(object sender, EventArgs e)
