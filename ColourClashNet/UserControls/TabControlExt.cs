@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ColourClashNet.Controls
 {
     /// <summary>
-    /// Tab control with a close icon on each tab, used to host one <c>ColorAnalyzer</c> per tab.
+    /// Tab control with a close button [X] on each tab, used to host one <c>ColorAnalyzer</c> per tab.
+    /// <para/>
+    /// The tabs are owner drawn: the title on the left, the close button on the right.
+    /// Clicking the button raises <see cref="TabClosing"/> (cancelable); when not cancelled the tab is removed,
+    /// its content disposed and <see cref="TabClosed"/> raised.
     /// </summary>
     public partial class TabControlExt : TabControl
     {
@@ -26,31 +27,58 @@ namespace ColourClashNet.Controls
             public TabPage TabClosed { get; set; }
 
             /// <summary>
-            /// Visible tab title (without the reserved trailing characters).
+            /// Full tab title.
             /// </summary>
-            public string TabText => TabClosed?.Text?.Substring(0,TabClosed.Text.Length-3) ?? string.Empty; 
+            public string TabText => TabClosed?.ToolTipText is { Length: > 0 } title ? title : TabClosed?.Text ?? string.Empty;
+
             /// <summary>
-            /// Area of the close icon.
+            /// Content of the tab (e.g. the <c>ColorAnalyzer</c>).
             /// </summary>
-            public Rectangle ButtonRoi { get; set; }
-            /// <summary>
-            /// Mouse event that triggered the close.
-            /// </summary>
-            public MouseEventArgs MouseEventArgs { get; set; }
+            public Control? Content => TabClosed?.Tag as Control;
+
             /// <summary>
             /// Set to true in <see cref="TabClosing"/> to keep the tab open.
             /// </summary>
             public bool Canceled { get; set; }
         }
 
-        Dictionary<string, TabPage> tabPages = new Dictionary<string, TabPage>();
-        private System.ComponentModel.IContainer components;
         /// <summary>
-        /// Raised when the close icon is clicked; can be cancelled.
+        /// Maximum number of characters of a tab title; longer titles are shortened with an ellipsis
+        /// and shown in full in the tooltip.
+        /// </summary>
+        public const int MaxTitleLength = 24;
+
+        /// <summary>
+        /// Side of the close button, in pixels.
+        /// </summary>
+        const int CloseButtonSize = 14;
+
+        /// <summary>
+        /// Horizontal room added to each tab for the close button, in pixels.
+        /// </summary>
+        const int CloseButtonRoom = 22;
+
+        private System.ComponentModel.IContainer components;
+
+        // Tabs indexed by the name of their content control
+        readonly Dictionary<string, TabPage> tabPages = new();
+
+        // Title requested for each tab, before the _1, _2 suffix that keeps the titles unique
+        readonly Dictionary<TabPage, string> baseTitles = new();
+
+        // Progressive number of the tabs, used for the default titles ("Image 1", "Image 2", ...)
+        int pageCounter;
+
+        // Tab whose close button is under the mouse (drawn highlighted), -1 when none
+        int hotCloseIndex = -1;
+
+        /// <summary>
+        /// Raised when the close button is clicked; set <see cref="TabEventArgs.Canceled"/> to keep the tab.
         /// </summary>
         public event EventHandler<TabEventArgs> TabClosing;
+
         /// <summary>
-        /// Raised after <see cref="TabClosing"/> when the close has not been cancelled.
+        /// Raised after the tab has been removed.
         /// </summary>
         public event EventHandler<TabEventArgs> TabClosed;
 
@@ -60,16 +88,15 @@ namespace ColourClashNet.Controls
         public TabControlExt() : base()
         {
             InitializeComponent();
+            // Owner drawn tabs: without it Windows draws the plain text and no close button
+            DrawMode = TabDrawMode.OwnerDrawFixed;
+            // Extra horizontal room for the close button
+            Padding = new Point(CloseButtonRoom / 2 + 4, 4);
             ShowToolTips = true;
-            RegisterEvents();
-        }
-        /// <summary>
-        /// Wires owner draw and mouse events.
-        /// </summary>
-        void RegisterEvents()
-        {
-            DrawItem += TabManager_DrawItem_1;
-            MouseDown += TabManager_MouseDown_1;
+            DrawItem += TabControlExt_DrawItem;
+            MouseDown += TabControlExt_MouseDown;
+            MouseMove += TabControlExt_MouseMove;
+            MouseLeave += (s, e) => SetHotCloseIndex(-1);
         }
 
         /// <summary>
@@ -78,129 +105,183 @@ namespace ColourClashNet.Controls
         /// <returns>The new tab page.</returns>
         public TabPage CreatePage(Control content)
         {
-            var newPage = new TabPage();
-            newPage.Name = $"{content.Name}";
+            var newPage = new TabPage
+            {
+                Name = content.Name,
+                Tag = content,
+            };
             newPage.Controls.Add(content);
-            newPage.Tag = content;
-            SetTitle(newPage, $"Image {++pageCounter}");
             TabPages.Add(newPage);
-            tabPages[content.Name] = newPage;   
-            return newPage;   
+            tabPages[content.Name] = newPage;
+            SetTitle(newPage, $"Image {++pageCounter}");
+            return newPage;
         }
+
         /// <summary>
         /// Removes the tab hosting <paramref name="control"/>.
         /// </summary>
         public void RemovePage(Control control)
         {
-            var tableId = control.Name;
-            if (tabPages.ContainsKey(tableId))
+            if (tabPages.TryGetValue(control.Name, out var tabPage))
             {
-                var tabPage = tabPages[tableId];
-                if (TabPages.ContainsKey(tableId))
-                {
-                    TabPages.Remove(tabPage);
-                }
-                tabPages.Remove(tableId);
+                TabPages.Remove(tabPage);
+                tabPages.Remove(control.Name);
+                baseTitles.Remove(tabPage);
             }
         }
 
         /// <summary>
-        /// Sets the title of the tab hosting <paramref name="control"/> (the last 3 characters are reserved and not drawn).
+        /// Sets the title of the tab hosting <paramref name="control"/>.
+        /// <para/>
+        /// When another tab already uses the same title, a suffix keeps it unique: <c>photo</c>, <c>photo_1</c>, <c>photo_2</c>.
         /// </summary>
         public void SetPageText(Control control, string text)
         {
-            var tableId = control.Name;
-            if (tabPages.ContainsKey(tableId))
+            if (tabPages.TryGetValue(control.Name, out var tabPage))
             {
-                SetTitle(tabPages[tableId], string.IsNullOrWhiteSpace(text) ? $"Image {tabPages.Keys.ToList().IndexOf(tableId) + 1}" : text);
+                SetTitle(tabPage, string.IsNullOrWhiteSpace(text) ? $"Image {TabPages.IndexOf(tabPage) + 1}" : text);
             }
         }
 
         /// <summary>
-        /// Maximum number of characters of a tab title; longer titles are shortened with an ellipsis
-        /// and shown in full in the tooltip.
+        /// Sets a unique title: shortened to <see cref="MaxTitleLength"/> characters, full text in the tooltip.
         /// </summary>
-        public const int MaxTitleLength = 24;
-
-        // Progressive number of the tabs, used for the default titles ("Image 1", "Image 2", ...)
-        int pageCounter;
-
-        /// <summary>
-        /// Sets the title of <paramref name="page"/>: shortened to <see cref="MaxTitleLength"/> characters, full text in the tooltip.
-        /// <para/>
-        /// Three trailing characters are appended: they reserve room for the close icon and are never drawn
-        /// (the tab width is measured on the whole text).
-        /// </summary>
-        static void SetTitle(TabPage page, string title)
+        void SetTitle(TabPage page, string title)
         {
             title = title.Trim();
-            var shown = title.Length > MaxTitleLength ? title[..(MaxTitleLength - 1)] + "…" : title;
-            page.Text = shown + "OOO";
-            page.ToolTipText = title;
+            baseTitles[page] = title;
+
+            // Titles already used by the other tabs
+            var usedTitles = TabPages.Cast<TabPage>()
+                .Where(p => p != page)
+                .Select(p => p.ToolTipText)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var uniqueTitle = title;
+            for (int n = 1; usedTitles.Contains(uniqueTitle); n++)
+                uniqueTitle = $"{title}_{n}";
+
+            page.ToolTipText = uniqueTitle;
+            page.Text = uniqueTitle.Length > MaxTitleLength ? uniqueTitle[..(MaxTitleLength - 1)] + "…" : uniqueTitle;
         }
 
         /// <summary>
-        /// Draws the tab title and the close icon.
+        /// Returns the area of the close button of the tab <paramref name="index"/>.
         /// </summary>
-        void TabManager_DrawItem_1(object sender, DrawItemEventArgs e)
+        Rectangle GetCloseButtonRect(int index)
         {
-            TabPage tabPage = TabPages[e.Index];
-            Rectangle tabRect = GetTabRect(e.Index);
-
-            // Move the text right, leaving room for the close icon
-            tabRect.X += 8;
-
-            TextRenderer.DrawText(e.Graphics, tabPage.Text.Substring(0, tabPage.Text.Length - 3), e.Font, tabRect, tabPage.ForeColor);
-
-            Image icon = imageList2.Images[0];
-            e.Graphics.DrawImage(icon, e.Bounds.Left + 6, e.Bounds.Top + 3);
-            e.DrawFocusRectangle();
+            var tabRect = GetTabRect(index);
+            return new Rectangle(
+                tabRect.Right - CloseButtonSize - 5,
+                tabRect.Top + (tabRect.Height - CloseButtonSize) / 2,
+                CloseButtonSize,
+                CloseButtonSize);
         }
 
         /// <summary>
-        /// Returns the area of the close icon of the selected tab.
+        /// Returns the index of the tab whose close button contains <paramref name="location"/>, or -1.
         /// </summary>
-        Rectangle GetRoi()
+        int GetCloseButtonIndex(Point location)
         {
-            Image icon = imageList2.Images[0];
-            Rectangle tabRect = GetTabRect(SelectedIndex);
-            var roi = new Rectangle(tabRect.X + 6, tabRect.Y + 3, icon.Width, icon.Height);
-            return roi;
-        }
-
-        /// <summary>
-        /// Returns true when <paramref name="location"/> is on the close icon of the selected tab.
-        /// </summary>
-        public bool InsideCloseButtonTab(Point location)
-            =>GetRoi().Contains(location);
-
-
-        /// <summary>
-        /// Raises the closing events when the close icon is clicked.
-        /// </summary>
-        void TabManager_MouseDown_1(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
+            for (int i = 0; i < TabCount; i++)
             {
-                if (InsideCloseButtonTab(e.Location))
-                {
-                    var tab = this.SelectedTab;
-                    if ( tab == null)
-                    {
-                        return;
-                    }
-                    var args = new TabEventArgs()
-                    {
-                        ButtonRoi = GetRoi(),
-                        TabClosed = tab,
-                        Canceled = false,
-                        MouseEventArgs = e
-                    };
-                    TabClosing?.Invoke(this, args);
-                    if (args.Canceled) { return; }
-                    TabClosed?.Invoke(this, args);
-                }
+                if (GetCloseButtonRect(i).Contains(location))
+                    return i;
             }
+            return -1;
+        }
+
+        /// <summary>
+        /// Draws the tab title and the close button [X].
+        /// </summary>
+        void TabControlExt_DrawItem(object? sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0 || e.Index >= TabCount)
+                return;
+            var tabPage = TabPages[e.Index];
+            var tabRect = GetTabRect(e.Index);
+            bool selected = e.Index == SelectedIndex;
+
+            // Title, left aligned, leaving room for the close button
+            var textRect = new Rectangle(tabRect.X + 6, tabRect.Y, tabRect.Width - CloseButtonRoom - 6, tabRect.Height);
+            var textFont = selected ? new Font(e.Font ?? Font, FontStyle.Bold) : (e.Font ?? Font);
+            TextRenderer.DrawText(e.Graphics, tabPage.Text, textFont, textRect, SystemColors.ControlText,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+            if (selected)
+                textFont.Dispose();
+
+            // Close button: a small box with an X, red when the mouse is over it
+            var buttonRect = GetCloseButtonRect(e.Index);
+            bool hot = e.Index == hotCloseIndex;
+            if (hot)
+            {
+                using var hotBrush = new SolidBrush(System.Drawing.Color.FromArgb(232, 17, 35));
+                e.Graphics.FillRectangle(hotBrush, buttonRect);
+            }
+            using var pen = new Pen(hot ? System.Drawing.Color.White : SystemColors.ControlDarkDark, 1.6f);
+            var cross = Rectangle.Inflate(buttonRect, -4, -4);
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            e.Graphics.DrawLine(pen, cross.Left, cross.Top, cross.Right, cross.Bottom);
+            e.Graphics.DrawLine(pen, cross.Right, cross.Top, cross.Left, cross.Bottom);
+        }
+
+        /// <summary>
+        /// Highlights the close button under the mouse.
+        /// </summary>
+        void TabControlExt_MouseMove(object? sender, MouseEventArgs e)
+            => SetHotCloseIndex(GetCloseButtonIndex(e.Location));
+
+        /// <summary>
+        /// Changes the highlighted close button and repaints the affected tabs.
+        /// </summary>
+        void SetHotCloseIndex(int index)
+        {
+            if (index == hotCloseIndex)
+                return;
+            if (hotCloseIndex >= 0 && hotCloseIndex < TabCount)
+                Invalidate(GetTabRect(hotCloseIndex));
+            hotCloseIndex = index;
+            if (hotCloseIndex >= 0)
+                Invalidate(GetTabRect(hotCloseIndex));
+        }
+
+        /// <summary>
+        /// Closes the tab whose close button has been clicked (after <see cref="TabClosing"/>).
+        /// </summary>
+        void TabControlExt_MouseDown(object? sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left)
+                return;
+            int index = GetCloseButtonIndex(e.Location);
+            if (index < 0)
+                return;
+            CloseTab(TabPages[index]);
+        }
+
+        /// <summary>
+        /// Closes <paramref name="tabPage"/>: raises <see cref="TabClosing"/>, then removes the tab, disposes its content
+        /// and raises <see cref="TabClosed"/>.
+        /// </summary>
+        /// <returns>True when the tab has been closed, false when the closing was cancelled.</returns>
+        public bool CloseTab(TabPage tabPage)
+        {
+            var args = new TabEventArgs { TabClosed = tabPage };
+            TabClosing?.Invoke(this, args);
+            if (args.Canceled)
+                return false;
+
+            int index = TabPages.IndexOf(tabPage);
+            var content = args.Content;
+            if (content != null)
+                RemovePage(content);
+            else
+                TabPages.Remove(tabPage);
+            hotCloseIndex = -1;
+            // Select the tab on the left of the closed one, as most editors do
+            if (TabCount > 0)
+                SelectedIndex = Math.Clamp(index - 1, 0, TabCount - 1);
+            TabClosed?.Invoke(this, args);
+            tabPage.Dispose();
+            return true;
         }
     }
 }

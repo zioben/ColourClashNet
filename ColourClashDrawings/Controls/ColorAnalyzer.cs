@@ -262,6 +262,11 @@ namespace ColourClashNet.Controls
         Bitmap loadedBmp;
 
         /// <summary>
+        /// True when an image has been loaded into the control.
+        /// </summary>
+        public bool HasImage => loadedBmp != null;
+
+        /// <summary>
         /// Resizes a bitmap to <see cref="WantedRes"/>.
         /// </summary>
         /// <returns>The resized bitmap, or <paramref name="srcBmp"/> when no resolution is set.</returns>

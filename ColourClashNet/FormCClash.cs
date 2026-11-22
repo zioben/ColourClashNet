@@ -104,6 +104,8 @@ namespace ColourClashNet
                 => MenuRebuildSetChecks());
             tabManager.SelectedIndexChanged += ((s, e)
                 => MenuRebuildSetChecks());
+            tabManager.TabClosing += TabManager_TabClosing;
+            tabManager.TabClosed += TabManager_TabClosed;
             tabManager.ResumeLayout();
 
             CreateTab();
@@ -312,12 +314,36 @@ namespace ColourClashNet
             CreateTab();
         }
 
+        /// <summary>
+        /// Asks for confirmation before closing a tab that contains an image.
+        /// </summary>
         private void TabManager_TabClosing(object sender, ColourClashNet.Controls.TabControlExt.TabEventArgs e)
         {
-            if (MessageBox.Show($"Close {e.TabText}?", "Closing Operation", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+            if (e.Content is ColorAnalyzer analyzer && analyzer.HasImage)
             {
-                e.Canceled = true;
+                var answer = MessageBox.Show(
+                    $"The tab \"{e.TabText}\" contains an image.\nClose it? Unsaved results will be lost.",
+                    "Close tab",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button2);
+                if (answer != DialogResult.Yes)
+                {
+                    e.Canceled = true;
+                }
             }
+        }
+
+        /// <summary>
+        /// Keeps at least one tab open: an empty one is created when the last tab is closed.
+        /// </summary>
+        private void TabManager_TabClosed(object sender, ColourClashNet.Controls.TabControlExt.TabEventArgs e)
+        {
+            if (tabManager.TabCount == 0)
+            {
+                CreateTab();
+            }
+            MenuRebuildSetChecks();
         }
 
         private void toolStripMenuItemNew_Click(object sender, EventArgs e)
