@@ -17,13 +17,14 @@ namespace ColourClashNet.Color.Transformation
     /// <see cref="ProcessColors"/> implements the processing pipeline:
     /// <see cref="CreateTransformationMap"/> (build the color map), <see cref="ExecuteTransform"/> (apply it),
     /// optional dithering against <see cref="ImageReference"/>, then the error evaluation.
-    /// Derived classes override the first two steps; both run under a semaphore, so one instance processes one image at a time.
+    /// Derived classes override the first two steps.
+    /// <para/>
+    /// An instance is not thread safe: it processes one image at a time. Run concurrent work on separate instances
+    /// (the pipeline and the nested transformations always create their own).
     /// </summary>
     public abstract partial class ColorTransformBase : ColorTransformInterface
     {
         static string sC = nameof(ColorTransformBase);
-
-        object locker = new object();
 
         #region events
 
@@ -44,7 +45,36 @@ namespace ColourClashNet.Color.Transformation
 
         #region Property/Fields
 
-        private readonly SemaphoreSlim semaphore = new(1, 1);
+        /// <summary>
+        /// Enables the debug and trace logs of the processing steps (errors and exceptions are always logged).
+        /// <para/>
+        /// Disabled for the transformations of the tiles: hundreds of tiles would flood the log.
+        /// Nested transformations attached with <see cref="ForwardEventsFrom{T}(T)"/> inherit the value.
+        /// </summary>
+        public bool LogProcessingSteps { get; set; } = true;
+
+        /// <summary>
+        /// Logs a debug message of a processing step, when <see cref="LogProcessingSteps"/> is enabled.
+        /// </summary>
+        protected void LogDebug(string sClass, string sMethod, string message)
+        {
+            if (LogProcessingSteps)
+                LogMan.Debug(sClass, sMethod, message);
+        }
+
+        /// <summary>
+        /// Logs a trace (verbose) message of a processing step, when <see cref="LogProcessingSteps"/> is enabled.
+        /// </summary>
+        protected void LogTrace(string sClass, string sMethod, string message)
+        {
+            if (LogProcessingSteps)
+                LogMan.Trace(sClass, sMethod, message);
+        }
+
+        /// <summary>
+        /// True when trace messages of the processing steps are logged: use it to skip building expensive messages.
+        /// </summary>
+        protected bool IsTraceLogged => LogProcessingSteps && LogMan.IsTraceEnabled;
 
         /// <summary>
         /// Returns the current options (typed in <see cref="ColorTransformBase{TOptions}"/>).
@@ -127,8 +157,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         protected virtual ColorTransformResult CreateTransformationMap(CancellationToken token = default)
         {
-            string sM = nameof(CreateTransformationMap);
-            LogMan.Debug(sC, sM, $"{Type} : Default {nameof(CreateTransformationMap)} called - no processing");
             return ColorTransformResult.CreateValidResult();
         }
 
@@ -198,6 +226,8 @@ namespace ColourClashNet.Color.Transformation
             {
                 child.ProcessPartial += ForwardNestedEvent;
                 child.ProcessAdvance += ForwardNestedEvent;
+                if (child is ColorTransformBase childBase)
+                    childBase.LogProcessingSteps = LogProcessingSteps;
             }
             return child;
         }
@@ -226,12 +256,9 @@ namespace ColourClashNet.Color.Transformation
                 ImageData.AssertValid(referenceImage);
             ImageData.AssertValid(sourceImage);
 
-            bool entered = false;
             try
             {
-                entered = semaphore.Wait(1000);
-                if (!entered)
-                    throw new TimeoutException($"{sC}.{sM} : Cannot create");
+                LogTrace(sC, sM, $"{Type} : source {sourceImage}, reference {(referenceImage == null ? "same as source" : referenceImage.ToString())}");
 
                 // A previous Create without reference image aliased ImageReference to ImageSource:
                 // detach them, otherwise creating the reference would overwrite the source too.
@@ -267,13 +294,8 @@ namespace ColourClashNet.Color.Transformation
             }
             catch (Exception ex)
             {
-                LogMan.Exception(sC, sM, ex);
+                LogMan.Exception(sC, sM, $"{Type} : cannot load the source image", ex);
                 return null;
-            }
-            finally
-            {
-                if (entered)
-                    semaphore.Release();
             }
         }
         /// <inheritdoc/>
@@ -314,14 +336,14 @@ namespace ColourClashNet.Color.Transformation
             string sM = nameof(ExecuteTransform);
             try
             {
-                LogMan.Debug(sC, sM, "Executing Default Transformation ");
+                LogTrace(sC, sM, $"{Type} : applying the transformation map ({TransformationMap.Colors} colors)");
                 var processedImage = TransformationMap.Transform(ImageSource, token);
                 ImageData.AssertValid(processedImage);
                 return ColorTransformResult.CreateValidResult(ImageSource, processedImage);
             }
             catch (Exception ex)
             {
-                LogMan.Exception(sC, sM, Name, ex);
+                LogMan.Exception(sC, sM, $"{Type} : transformation map not applicable", ex);
                 return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : transformation map not applicable", ex);
             }
         }
@@ -342,23 +364,20 @@ namespace ColourClashNet.Color.Transformation
         public ColorTransformResult ProcessColors( CancellationToken token = default)
         {
             string sM = nameof(ProcessColors);
-            bool entered = false;
 
             try
             {
-                entered = semaphore.Wait(1000, token);
-                if (!entered)
-                {
-                    throw new TimeoutException($"{sC}.{sM} : Cannot process");
-                }
-
                 chrono.Start();
-
-                LogMan.Debug(sC, sM, $"{Type} : Processing started");
                 TransformationError = double.NaN;
 
                 ImageData.AssertValid(ImageSource);
                 ImageData.AssertValid(ImageReference);
+
+                LogDebug(sC, sM, $"{Type} : processing started : {ImageSource.Columns}x{ImageSource.Rows}, {ImageSource.Colors} colors, metric {ColorDistanceEvaluationMode}, dithering {DitheringOptions.DitheringType}");
+                if (IsTraceLogged)
+                {
+                    LogMan.Trace(sC, sM, $"{Type} : options {GetOptions()}");
+                }
                 
                 // Reset transformation map
                 TransformationMap.Reset();
@@ -392,17 +411,18 @@ namespace ColourClashNet.Color.Transformation
                 // Creating Transformation Map
                 else if ((mapResult = CreateTransformationMap(token)) == null || !mapResult.IsSuccess)
                 {
-                    LogMan.Error(sC, sM, $"{Type} : {nameof(CreateTransformationMap)} Error");
+                    LogMan.Error(sC, sM, $"{Type} : {nameof(CreateTransformationMap)} failed : {mapResult?.Message}");
                     result = ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : {nameof(CreateTransformationMap)} failed", mapResult);
                 }
                 else if ((transformResult = ExecuteTransform(token)) == null || !transformResult.IsSuccess || transformResult.DataOut == null)
                 {
                     // Execute color reduction failed: propagate the nested error (message, output and exception)
-                    LogMan.Error(sC, sM, $"{Type} : {nameof(ExecuteTransform)} error");
+                    LogMan.Error(sC, sM, $"{Type} : {nameof(ExecuteTransform)} failed : {transformResult?.Message}");
                     result = ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : {nameof(ExecuteTransform)} failed", transformResult);
                 }
                 else
                 {
+                    LogTrace(sC, sM, $"{Type} : reduced image {transformResult.DataOut.Colors} colors{(TransformationMap.Colors > 0 ? $", map {TransformationMap.Colors} colors" : "")} ({chrono.ElapsedMilliseconds:f0} ms)");
 
                     if (BypassDithering || DitheringOptions.DitheringType == ColorDithering.None)
                     {
@@ -432,17 +452,17 @@ namespace ColourClashNet.Color.Transformation
                         }
                         else
                         {
+                            LogDebug(sC, sM, $"{Type} : dithering {DitheringOptions.DitheringType} (strength {DitheringOptions.DitheringStrength}) on {colorSet.Count} colors");
                             var dithering = DitherBase.CreateDitherInterface(DitheringOptions);
                             var imageDataDither = dithering.Dither(ImageReference, processedImage, ColorDistanceEvaluationMode, token);
                             if (imageDataDither.IsSuccess)
                             {
                                 ImageOutput.Create(imageDataDither.DataOut);
-                                LogMan.Debug(sC, sM, $"{Type} : Processing Completed with dithering");
                                 result = ColorTransformResult.CreateValidResult(ImageSource, ImageOutput);
                             }
                             else
                             {
-                                LogMan.Error(sC, sM, $"{Type} :  Dithering error");
+                                LogMan.Error(sC, sM, $"{Type} : dithering {DitheringOptions.DitheringType} failed : {imageDataDither.Message}");
                                 result = ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, processedImage, $"{Type} : dithering error : {imageDataDither.Message}", imageDataDither.Exception);
                             }
                         }
@@ -452,6 +472,10 @@ namespace ColourClashNet.Color.Transformation
                     TransformationError = RecalcTransformationError(ImageSource, token);
                 }
                 chrono.Update();
+                if (result.IsSuccess)
+                    LogDebug(sC, sM, $"{Type} : processing completed in {chrono.ElapsedMilliseconds:f0} ms : {ImageOutput.Colors} colors, error {TransformationError:g4}");
+                else
+                    LogDebug(sC, sM, $"{Type} : processing ended with errors in {chrono.ElapsedMilliseconds:f0} ms");
                 try
                 {
                     Processed?.Invoke(this, CreateTransformEventArgs(cts, result));
@@ -464,24 +488,18 @@ namespace ColourClashNet.Color.Transformation
             }
             catch (ThreadInterruptedException exInterrupted)
             {
-                LogMan.Error(sC, sM, $"{Type} : Processing Interrupted");
+                LogMan.Exception(sC, sM, $"{Type} : processing interrupted", exInterrupted);
                 return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : processing interrupted", exInterrupted);
             }
             catch (OperationCanceledException exCanceled)
             {
-                LogMan.Warning(sC, sM, $"{Type} : Processing cancelled");
+                LogMan.Warning(sC, sM, $"{Type} : processing cancelled after {chrono.ElapsedMilliseconds:f0} ms");
                 return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : processing cancelled", exCanceled);
             }
             catch (Exception ex)
             {
-                LogMan.Exception(sC, sM, ex);
+                LogMan.Exception(sC, sM, $"{Type} : processing failed", ex);
                 return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : processing failed", ex);
-            }
-            finally
-            {
-
-                if (entered)
-                    semaphore.Release();
             }
         }
 
@@ -510,7 +528,7 @@ namespace ColourClashNet.Color.Transformation
             }
             catch (Exception ex)
             {
-                LogMan.Exception(sC, sM, ex);
+                LogMan.Exception(sC, sM, $"{Type} : processing failed", ex);
                 return ColorTransformResult.CreateErrorResult(sC, sM, sourceImage, null, $"{Type} : processing failed", ex);
             }
         }

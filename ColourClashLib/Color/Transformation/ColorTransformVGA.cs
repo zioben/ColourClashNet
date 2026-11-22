@@ -43,6 +43,7 @@ namespace ColourClashNet.Color.Transformation
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransform);
+            LogDebug(sC, sM, $"{Type} : RGB666 quantization, then {Options.Reduction.TransformType} to {Options.Reduction.MaxColors} colors");
 
             var quantization = ForwardEventsFrom(new ColorTransformQuantization
             {
@@ -59,6 +60,7 @@ namespace ColourClashNet.Color.Transformation
             var reductionOptions = Options.InheritCommon(Options.Reduction) with { Dithering = DitherOptions.None };
             var reduction = ForwardEventsFrom(ColorTransformInternal.Alloc(reductionOptions));
 
+            LogTrace(sC, sM, $"{Type} : quantized image has {resultQuantized.DataOut.Colors} colors");
             var reductionResult = reduction.CreateAndProcessColors(resultQuantized.DataOut, token);
             if (reductionResult == null || !reductionResult.IsSuccess)
             {

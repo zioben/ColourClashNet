@@ -101,7 +101,7 @@ namespace ColourClashProcessing.Blob
             }
             catch (OperationCanceledException cex)
             {
-                LogMan.Exception(sC, sM, $"Operation canceled", cex);
+                LogMan.Warning(sC, sM, $"Operation cancelled");
                 return ColorTransformResult.CreateErrorResult(sC, sM, image, null, "run length extraction cancelled", cex);
             }
             catch (Exception ex)

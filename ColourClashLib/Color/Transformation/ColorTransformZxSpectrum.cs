@@ -232,7 +232,7 @@ namespace ColourClashNet.Color.Transformation
             var zxBaseResult = zxBaseTransform.CreateAndProcessColors(ImageSource, token);
             if (zxBaseResult == null || !zxBaseResult.IsSuccess || zxBaseResult.DataOut == null)
             {
-                LogMan.Error(sC, sM, $"{Type} : ZX palette mapping failed");
+                LogMan.Error(sC, sM, $"{Type} : ZX palette mapping failed : {zxBaseResult?.Message}");
                 return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : ZX palette mapping failed", zxBaseResult);
             }
             return ColorTransformResult.CreateValidResult(ImageSource, zxBaseResult.DataOut);
@@ -273,8 +273,8 @@ namespace ColourClashNet.Color.Transformation
             {
                 throw new InvalidOperationException($"{sC}.{sM} : {(loPalette ? "normal" : "bright")} palette attribute cells failed : {tileResult?.Message}", tileResult?.Exception);
             }
-            var normalization = ColorIntExt.GetMaxColorDistance(transformationMap.GetOutputPalette(), ColorDistanceEvaluationMode, token);
             var error = tileManager.RecalcGlobalTransformationError(zxBestImage, token);
+            LogTrace(sC, sM, $"{Type} : {(loPalette ? "normal" : "bright")} palette attribute cells done, error {error:g4}");
 
             return tileManager;
         }
@@ -286,6 +286,7 @@ namespace ColourClashNet.Color.Transformation
         protected ZxProcessingResults ExecuteTransformZx(ImageData zxBestImage, int colorSeedInLo, int colorSeedInHi, CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransformZx);
+            LogTrace(sC, sM, $"{Type} : {Options.PaletteMode} with input seeds low {colorSeedInLo}, high {colorSeedInHi}");
             var zxTransformationMapLo = CreateZxMap(colorSeedInLo, Options.OutputLow, true, true);
             var zxTransformationMapHi = CreateZxMap(colorSeedInHi, Options.OutputHigh, Options.IncludeBlackInHighColor, Options.IncludeWhiteInHighColor);
 
@@ -346,6 +347,7 @@ namespace ColourClashNet.Color.Transformation
                     return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : reference ZX image failed", bestZxResult);
                 }
                 var bestZxImage = bestZxResult.DataOut;
+                LogDebug(sC, sM, $"{Type} : {Options.PaletteMode}, autotune {Options.Autotune}, seeds low {SeedLowUsed} high {SeedHighUsed}, output {Options.OutputLow:X2}/{Options.OutputHigh:X2}");
                 if (Options.PaletteMode == ZxPaletteMode.DebugPalette)
                 {
                     return ColorTransformResult.CreateValidResult(ImageSource, bestZxImage);
@@ -360,6 +362,7 @@ namespace ColourClashNet.Color.Transformation
                         return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, bestZxImage, $"{Type} : attribute cell merge failed");
                     }
                     TransformationError = processingResult.MergeError;
+                    LogDebug(sC, sM, $"{Type} : attribute cells merged, error {processingResult.MergeError:g4}");
                     BestSeedLow = processingResult.ColorSeedInLow;
                     BestSeedHigh = processingResult.ColorSeedInHigh;
                     return ColorTransformResult.CreateValidResult(ImageSource, processingResult.MergeImage);
@@ -391,9 +394,11 @@ namespace ColourClashNet.Color.Transformation
                                 token.ThrowIfCancellationRequested();
                                 var processingResult = ExecuteTransformZx(bestZxImage, lowClamped, highClamped, token);
 
+                                LogTrace(sC, sM, $"{Type} : autotune step {cycle} : seeds [{lowClamped} - {highClamped}] : error {processingResult.MergeError:g4}");
                                 if ((bestResult?.MergeError ?? double.PositiveInfinity) > processingResult.MergeError)
                                 {
                                     bestResult = processingResult;
+                                    LogDebug(sC, sM, $"{Type} : autotune new best at step {cycle} : seeds [{lowClamped} - {highClamped}] : error {processingResult.MergeError:g4}");
                                     RaiseProcessPartialEvent(new ColorProcessingEventArgs()
                                     {
                                         ColorTransformInterface = this,
@@ -403,6 +408,8 @@ namespace ColourClashNet.Color.Transformation
                                 }
                             }
                         }
+                        if (bestResult == null)
+                            break;
                         step = 8;
                         start = Math.Max(0, (int)(bestResult.ColorSeedInLow - 16));
                         endL = (int)(bestResult.ColorSeedInLow + 16);
@@ -422,6 +429,7 @@ namespace ColourClashNet.Color.Transformation
 
                     if (bestResult?.MergeImage != null)
                     {
+                        LogDebug(sC, sM, $"{Type} : autotune completed after {cycle} steps : best seeds low {bestResult.ColorSeedInLow}, high {bestResult.ColorSeedInHigh}, error {bestResult.MergeError:g4}");
                         BestSeedLow = bestResult.ColorSeedInLow;
                         BestSeedHigh = bestResult.ColorSeedInHigh;
                         return ColorTransformResult.CreateValidResult(ImageSource, bestResult?.MergeImage);
@@ -439,7 +447,7 @@ namespace ColourClashNet.Color.Transformation
                 var cause = (ex as AggregateException)?.Flatten().InnerException ?? ex;
                 if (cause is OperationCanceledException)
                 {
-                    LogMan.Exception(sC, sM, $"{Type} : operation cancelled", cause);
+                    LogMan.Warning(sC, sM, $"{Type} : operation cancelled");
                     return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : operation cancelled", cause);
                 }
                 LogMan.Exception(sC, sM, $"{Type} : ZX Spectrum conversion failed", cause);

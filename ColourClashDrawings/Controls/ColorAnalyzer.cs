@@ -6,6 +6,7 @@ using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Drawing;
 using ColourClashNet.Imaging;
+using ColourClashNet.Log;
 using ColourClashProcessing.Blob;
 using System;
 using System.Collections.Concurrent;
@@ -30,6 +31,8 @@ namespace ColourClashNet.Controls
     /// </summary>
     public partial class ColorAnalyzer : UserControl
     {
+        static readonly string sC = nameof(ColorAnalyzer);
+
 
 
 
@@ -83,6 +86,24 @@ namespace ColourClashNet.Controls
 
         FileInfo currentFileInfo = null;
         String currentName = "";
+        // Short name of the last transformation applied, used to name the copies (e.g. "photo [CBM64]")
+        String lastTransformName = "";
+
+        /// <summary>
+        /// Name shown for the loaded image: the file name without extension, or the name given to a copy.
+        /// </summary>
+        public string DisplayName => string.IsNullOrWhiteSpace(currentName) ? "" : Path.GetFileNameWithoutExtension(currentName.Trim());
+
+        /// <summary>
+        /// Short name of a transformation type for titles: the "ColorReduction" prefix is removed
+        /// (e.g. <c>ColorReductionCBM64</c> becomes <c>CBM64</c>).
+        /// </summary>
+        public static string ShortTransformName(ColorTransformType type)
+        {
+            var name = type.ToString();
+            const string prefix = "ColorReduction";
+            return name.StartsWith(prefix) && name.Length > prefix.Length ? name[prefix.Length..] : name;
+        }
 
         /// <summary>
         /// Target resolution: the source image is resized to it when loaded (null = keep the original size).
@@ -149,7 +170,7 @@ namespace ColourClashNet.Controls
             bitmapRenderSource.ColorAdded += (s, e) => { BuildBkgPalette(); };
             bitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };
             colorManager.OnQuantize += (s, e) => { Invoke(() => RefreshData()); };
-            colorManager.OnProcess += (s, e) => { Invoke(() => { RefreshData(); RebuildParams(e.Transformation); }); };
+            colorManager.OnProcess += (s, e) => { Invoke(() => { lastTransformName = e.Transformation == null ? "" : ShortTransformName(e.Transformation.Type); RefreshData(); RebuildParams(e.Transformation); }); };
         }
 
         /// <summary>
@@ -278,9 +299,10 @@ namespace ColourClashNet.Controls
             //
             ApplyPreprocessingSettings();
             colorManager.Create(ResizeBitmap(loadedBmp));
+            lastTransformName = "";
             ImageCreated?.Invoke(this, new DataSourceEventArgs()
             {
-                Name = currentName,
+                Name = DisplayName,
                 SourceBitmap = loadedBmp,
             });
         }
@@ -461,8 +483,17 @@ namespace ColourClashNet.Controls
         /// </summary>
         private async void ReduceColorsAsync(ColorTransformType type)
         {
-            ApplyPreprocessingSettings();
-            await colorManager.ProcessColorsAsync(BuildTransformOptions(type));
+            string sM = nameof(ReduceColorsAsync);
+            // async void: an unhandled exception here would terminate the application
+            try
+            {
+                ApplyPreprocessingSettings();
+                await colorManager.ProcessColorsAsync(BuildTransformOptions(type));
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, $"{type} processing failed", ex);
+            }
         }
 
         private async void btnReduceColors_Click(object sender, EventArgs e)
@@ -584,9 +615,11 @@ namespace ColourClashNet.Controls
             {
                 return;
             }
+            // The copy is named after the source image and the transformation that produced it
+            var copyName = string.IsNullOrEmpty(lastTransformName) ? DisplayName : $"{DisplayName} [{lastTransformName}]";
             ImageCopied?.Invoke(this, new CopyDataEventArgs()
             {
-                Name = currentName,
+                Name = copyName,
                 SourceBitmap = source,
                 DestBitmap = processed,
                 DestBitmapRoi = new Rectangle(0, 0, processed.Width, processed.Height)

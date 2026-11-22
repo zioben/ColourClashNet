@@ -75,11 +75,12 @@ namespace ColourClashNet.Color.Transformation
         /// <summary>
         /// Dispatches to the independent or shared palette processing.
         /// </summary>
-                protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
+        protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
-            String sM = nameof(ExecuteTransform);
+            string sM = nameof(ExecuteTransform);
             BypassDithering = true;
             ColorListRow.Clear();
+            LogDebug(sC, sM, $"{Type} : {Options.PaletteMode}, chunks of {Options.ChunkHeight} lines, chunk reduction {Options.ChunkReduction.TransformType} to {Options.ChunkReduction.MaxColors} colors");
             try
             {
                 switch (Options.PaletteMode)
@@ -95,7 +96,7 @@ namespace ColourClashNet.Color.Transformation
             }
             catch (OperationCanceledException ex)
             {
-                LogMan.Exception(sC, sM, $"{Type} : operation cancelled", ex);
+                LogMan.Warning(sC, sM, $"{Type} : operation cancelled");
                 return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : operation cancelled", ex);
             }
             catch (Exception ex)
@@ -128,6 +129,7 @@ namespace ColourClashNet.Color.Transformation
             if (mainPalette.Count > sharedOptions.MaxColors)
             {
                 // Reduce the whole image first: its palette becomes the shared palette of all chunks
+                LogDebug(sC, sM, $"{Type} : shared palette reduction of {mainPalette.Count} colors to {sharedOptions.MaxColors} with {sharedOptions.TransformType}");
                 var transform = ForwardEventsFrom(ColorTransformInternal.Alloc(sharedOptions));
                 var result = transform.CreateAndProcessColors(ImageSource, token);
                 if (result == null || !result.IsSuccess || result.DataOut == null)
@@ -156,10 +158,11 @@ namespace ColourClashNet.Color.Transformation
             // Subscribe before Create: the chunks forward their transformation events through the manager
             ForwardEventsFrom(TileManager);
             TileManager.Create(image.Width, Options.ChunkHeight, image, 1.0, cfg, token);
+            LogTrace(sC, sM, $"{Type} : processing {(image.Height + Options.ChunkHeight - 1) / Options.ChunkHeight} chunks");
             var tileResult = TileManager.ProcessColors(token);
             if (tileResult == null || !tileResult.IsSuccess)
             {
-                LogMan.Error(sC, sM, $"{Type} : chunk processing failed");
+                LogMan.Error(sC, sM, $"{Type} : chunk processing failed : {tileResult?.Message}");
                 return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, image, $"{Type} : chunk processing failed : {tileResult?.Message}", tileResult?.Exception);
             }
             var outputImage = TileManager.MergeToImage(new List<TileManager?>() { TileManager });

@@ -37,7 +37,7 @@
             lbHistory = new ListBox();
             groupBox1 = new GroupBox();
             groupBox2 = new GroupBox();
-            pictureBox1 = new PictureBox();
+            picImageSource = new PictureBox();
             btnAbort = new Button();
             lblPerc = new Label();
             tableLayoutPanel1.SuspendLayout();
@@ -46,7 +46,7 @@
             ((System.ComponentModel.ISupportInitialize)picImageTemp).BeginInit();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)picImageSource).BeginInit();
             SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -157,7 +157,7 @@
             // 
             // groupBox2
             // 
-            groupBox2.Controls.Add(pictureBox1);
+            groupBox2.Controls.Add(picImageSource);
             groupBox2.Dock = DockStyle.Fill;
             groupBox2.Location = new Point(1, 1);
             groupBox2.Margin = new Padding(1);
@@ -166,17 +166,17 @@
             groupBox2.Size = new Size(283, 149);
             groupBox2.TabIndex = 2;
             groupBox2.TabStop = false;
-            groupBox2.Text = "Origina Image";
+            groupBox2.Text = "Original Image";
             // 
-            // pictureBox1
+            // picImageSource
             // 
-            pictureBox1.BackColor = System.Drawing.Color.Black;
-            pictureBox1.Dock = DockStyle.Fill;
-            pictureBox1.Location = new Point(0, 16);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(283, 133);
-            pictureBox1.TabIndex = 0;
-            pictureBox1.TabStop = false;
+            picImageSource.BackColor = System.Drawing.Color.Black;
+            picImageSource.Dock = DockStyle.Fill;
+            picImageSource.Location = new Point(0, 16);
+            picImageSource.Name = "picImageSource";
+            picImageSource.Size = new Size(283, 133);
+            picImageSource.TabIndex = 0;
+            picImageSource.TabStop = false;
             // 
             // btnAbort
             // 
@@ -216,7 +216,7 @@
             ((System.ComponentModel.ISupportInitialize)picImageTemp).EndInit();
             groupBox1.ResumeLayout(false);
             groupBox2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)picImageSource).EndInit();
             ResumeLayout(false);
         }
 
@@ -230,7 +230,7 @@
         private PictureBox picImageTemp;
         private ListBox lbHistory;
         private GroupBox groupBox2;
-        private PictureBox pictureBox1;
+        private PictureBox picImageSource;
         private GroupBox groupBox1;
         private Label lblPerc;
         private Button btnAbort;

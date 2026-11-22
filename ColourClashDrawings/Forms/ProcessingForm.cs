@@ -1,128 +1,79 @@
 ﻿using ColourClashNet.Color.Transformation;
-using ColourClashNet.Imaging;
+using ColourClashNet.Log;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics.PerformanceData;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace ModuleTester
 {
     /// <summary>
-    /// Progress window of a running transformation: message history, preview image, percentage and abort button.
+    /// Progress window of a running transformation: hosts a <see cref="ColourClashNet.Controls.ProcessingViewer"/>
+    /// and closes when the processing ends or is aborted.
     /// </summary>
     public partial class ProcessingForm : Form
     {
+        static readonly string sC = nameof(ProcessingForm);
 
         /// <summary>
-        /// Transformation being monitored.
+        /// Maximum wait for the progress window to attach to the transformation, in milliseconds.
         /// </summary>
-        public ColorTransformInterface? Transformation { get; private set; }
-        CancellationTokenSource cts = null;
+        const int AttachTimeoutMilliseconds = 5000;
 
         /// <summary>
-        /// Creates the form; <paramref name="cancellationTokenSource"/> is cancelled by the abort button.
+        /// Creates the form.
         /// </summary>
-        public ProcessingForm(CancellationTokenSource cancellationTokenSource)
+        public ProcessingForm()
         {
             InitializeComponent();
-            Load += ((s,e)=>Reset());
-            FormClosed += ((s,e) => UnregisterEvents());
-            cts = cancellationTokenSource;
+            pvProcessing.ProcessingCompleted += (s, e) => Close();
+            pvProcessing.AbortRequested += (s, e) => Close();
+            FormClosed += (s, e) => pvProcessing.UnregisterEvents();
         }
 
         /// <summary>
-        /// Shows the message, preview and progress of a processing event (UI thread safe).
+        /// Attaches the form to the processing events of <paramref name="transform"/>.
         /// </summary>
-        void AppendData(ColorProcessingEventArgs args)
+        /// <param name="transform">Transformation to monitor</param>
+        /// <param name="cancellationTokenSource">Token source cancelled by the abort button</param>
+        public void RegisterEvents(ColorTransformInterface transform, CancellationTokenSource? cancellationTokenSource)
         {
-            if (args == null)
-            {
-                return;
-            }
-            Invoke(() =>
-            {
-            });
-        }
-
-        /// <summary>
-        /// Clears history, preview and progress.
-        /// </summary>
-        void Reset()
-        {
-        }
-
-        private void btnAbort_Click(object sender, EventArgs e)
-        {
-            cts?.Cancel();
-            Close();
-        }
-
-        /// <summary>
-        /// Detaches the form from the monitored transformation.
-        /// </summary>
-        void UnregisterEvents()
-        {
-            if (Transformation != null)
-            {
-                Transformation.Processing -= transform_Processing;
-                Transformation.ProcessPartial -= transform_ProcessPartial;
-                Transformation.Processed -= transform_Processed;
-            }
-            Transformation = null;
-        }
-
-        /// <summary>
-        /// Attaches the form to the processing events of a transformation.
-        /// </summary>
-        public void RegisterEvents(ColorTransformInterface transform)
-        {
-            UnregisterEvents();
-            Transformation = transform;
-            Transformation.Processing += transform_Processing;
-            Transformation.ProcessPartial += transform_ProcessPartial;
-            Transformation.Processed += transform_Processed;
-        }
-
-        private void transform_Processed(object? sender, ColorProcessingEventArgs e)
-        {
-            Invoke(()=> Close());
-        }
-
-        private void transform_ProcessPartial(object? sender, ColorProcessingEventArgs e)
-        {
-            AppendData(e);
-        }
-
-        private void transform_Processing(object? sender, ColorProcessingEventArgs e)
-        {
-            Invoke(()=>Show());
-            cts = e.CancellationTokenSource;
-            AppendData(e);
+            Text = $"Processing - {transform.Type}";
+            pvProcessing.RegisterEvents(transform, cancellationTokenSource);
         }
 
         /// <summary>
         /// Opens a progress form for <paramref name="transform"/> on a dedicated UI thread.
         /// <para/>
-        /// The form closes automatically when the transformation ends.
+        /// Returns once the form is attached to the transformation, so no processing event is lost when
+        /// the caller starts the processing right after. The form closes automatically when the transformation ends.
         /// </summary>
         static public void CreateProcessingForm(ColorTransformInterface transform, CancellationTokenSource cancellationTokenSource)
         {
+            string sM = nameof(CreateProcessingForm);
+            // Not disposed: the thread may still signal it after a timeout
+            var attached = new ManualResetEventSlim(false);
             // The form runs on its own STA thread with a dedicated message loop,
             // so it stays responsive while the transformation keeps the caller busy
             var thread = new Thread(() =>
             {
-                var form = new ProcessingForm(cancellationTokenSource);
-                form.RegisterEvents(transform);
-                Application.Run(form);
+                try
+                {
+                    var form = new ProcessingForm();
+                    form.RegisterEvents(transform, cancellationTokenSource);
+                    attached.Set();
+                    Application.Run(form);
+                }
+                catch (Exception ex)
+                {
+                    LogMan.Exception(sC, sM, $"{transform.Type} : progress window failed", ex);
+                    attached.Set();
+                }
             });
             thread.SetApartmentState(ApartmentState.STA);
+            thread.IsBackground = true;
             thread.Start();
+            if (!attached.Wait(AttachTimeoutMilliseconds))
+                LogMan.Warning(sC, sM, $"{transform.Type} : progress window not ready, the first events may be missing");
         }
     }
 }

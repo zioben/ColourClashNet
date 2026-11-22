@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ColourClashNet.Log;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -15,6 +16,8 @@ namespace ColourClashNet.Color.Transformation
     /// </summary>
     public class ColorTransformMedianCut : ColorTransformBase<MedianCutOptions>
     {
+        static readonly string sC = nameof(ColorTransformMedianCut);
+
 
         /// <summary>
         /// Creates the median cut reduction.
@@ -158,10 +161,12 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         protected override ColorTransformResult CreateTransformationMap(CancellationToken token=default)
         {
+            string sM = nameof(CreateTransformationMap);
             outputPalette = new Palette();
             var sourceHistogram = new HistogramRGB().Create(ImageSource);
             if (sourceHistogram.ToPalette().Count <= Options.MaxColors)
             {
+                LogDebug(sC, sM, $"{Type} : {sourceHistogram.ToPalette().Count} colors fit in {Options.MaxColors} : identity map");
                 foreach (var kvp in sourceHistogram.HistogramDictionary)
                 {
                     TransformationMap.RgbTransformationMap[kvp.Key] = kvp.Key;
@@ -172,8 +177,10 @@ namespace ColourClashNet.Color.Transformation
             {
                 // Partition(maxColor) produces 2 * maxColor leaf boxes
                 int colorsMax = Math.Min(256, Math.Max(2, Options.MaxColors));
+                LogDebug(sC, sM, $"{Type} : median cut of {sourceHistogram.ToPalette().Count} colors into {colorsMax} boxes");
                 Partition(sourceHistogram.ToPalette(), colorsMax / 2);
                 outputPalette = TransformationMap.GetOutputPalette();
+                LogDebug(sC, sM, $"{Type} : median cut completed : {outputPalette.Count} output colors");
             }
             return ColorTransformResult.CreateValidResult();
         }

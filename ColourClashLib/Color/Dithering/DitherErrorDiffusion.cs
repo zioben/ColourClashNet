@@ -97,7 +97,6 @@ public abstract class DitherErrorDiffusion : DitherBase
             var dataProcessed = imageProcessed.matrix;
             var dataProcessedPalette = imageProcessed.ColorPalette;
 
-            LogMan.Trace(sC, sM, $"{Type} : Dithering");
 
             int rows = dataOriginal.GetLength(0);
             int columns = dataOriginal.GetLength(1);
@@ -193,13 +192,12 @@ public abstract class DitherErrorDiffusion : DitherBase
                 }
             }
 
-            LogMan.Trace(sC, sM, $"{Type} : Dithering completed");
             var imageDithered = new ImageData().Create(dataOut);
             return ColorTransformResult.CreateValidResult( imageReference, imageDithered );
         }
         catch (OperationCanceledException ex)
         {
-            LogMan.Exception(sC, sM, $"{Type} : dithering cancelled", ex);
+            LogMan.Warning(sC, sM, $"{Type} : dithering cancelled");
             return ColorTransformResult.CreateErrorResult(sC, sM, imageReference, null, $"{Type} : dithering cancelled", ex);
         }
         catch (Exception ex)

@@ -72,18 +72,19 @@ namespace ColourClashProcessing.Threshold
                     colorTransformationMap.Add(color, foregroundColor);
                 }
 
-                var imageOut =colorTransformationMap.Transform(image, cancellationToken);
+                LogMan.Trace(sC, sM, $"{backgroundColors.Count} background and {foregroundColors.Count} foreground colors (tolerance {opts.Tolerance}, inverted {opts.InvertResults})");
+                var imageOut = colorTransformationMap.Transform(image, cancellationToken);
                 return ColorTransformResult.CreateValidResult(image, imageOut, $"Global threshold applied with tolerance {opts.Tolerance} and invert results set to {opts.InvertResults}.", 1.0);
             }
 
             catch (OperationCanceledException cex)
             {
-                LogMan.Exception(sC, sM, $"Operation canceled",cex);
+                LogMan.Warning(sC, sM, $"Operation cancelled");
                 return ColorTransformResult.CreateErrorResult(sC, sM, image, null, "threshold cancelled", cex);
             }
             catch (Exception ex)
             {
-                LogMan.Exception(sC, sM, $"Operation failed", ex);
+                LogMan.Exception(sC, sM, "Threshold failed", ex);
                 return ColorTransformResult.CreateErrorResult(sC, sM, image, null, "threshold failed", ex);
             }
         }

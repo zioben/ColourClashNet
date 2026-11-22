@@ -64,6 +64,7 @@ namespace ColourClashNet.Color.Transformation
             // If got less colors than wanted, just map them directly
             if (seedPalette.Count <= options.MaxColors)
             {
+                LogDebug(sC, sMethod, $"{Type} : {seedPalette.Count} colors fit in {options.MaxColors} : identity map, no clustering");
                 foreach (var rgb in seedPalette)
                 {
                     TransformationMap.Add(rgb, rgb);
@@ -91,10 +92,12 @@ namespace ColourClashNet.Color.Transformation
             // Prepare the evolutions
             List<ColorEvolutionList<T>> evolutions = new();
             var rgbFixedSet = new HashSet<int>(userPalette);
+            LogDebug(sC, sMethod, $"{Type} : clustering {imagePalette.Count} colors into {options.MaxColors} ({userPalette.Count} fixed user colors), {options.TrainingLoops} loops, selection {options.Selection}");
 
             for (int train = 0; train < options.TrainingLoops; train++)
             {
-                LogMan.Trace(sC, sMethod, $"{Type} : Training loop {train}");
+                token.ThrowIfCancellationRequested();
+                LogTrace(sC, sMethod, $"{Type} : training loop {train + 1}/{options.TrainingLoops}");
 
                 var nextEvolution = new ColorEvolutionList<T>();
                 if (evolutions.Count == 0)
@@ -130,6 +133,7 @@ namespace ColourClashNet.Color.Transformation
                 RaiseProcessPartialEvent(args);
             }
             TransformationMap = evolutions.Last().CreateTransformationMap(ImageSource, ColorDistanceEvaluationMode);
+            LogDebug(sC, sMethod, $"{Type} : clustering completed : {TransformationMap.GetOutputPalette().Count} output colors");
             return ColorTransformResult.CreateValidResult();
         }
 

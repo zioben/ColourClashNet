@@ -122,7 +122,7 @@ namespace ColourClashNet
             analyzer.Name = $"ca.{DateTime.Now.Ticks}";
             analyzer.Size = caTemplate.Size;
             analyzer.ImageCopied += ((s, e) => CreateTab(e.DestBitmap, e.Name));
-            analyzer.ImageCreated += ((s, e) => tabManager.SetPageText(analyzer, e.Name.Substring(Math.Max(0, e.Name.Length - 12))));
+            analyzer.ImageCreated += ((s, e) => tabManager.SetPageText(analyzer, e.Name));
             var page = tabManager.CreatePage(analyzer);
             tabManager.SelectedTab = page;
 

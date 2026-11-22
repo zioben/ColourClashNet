@@ -120,6 +120,7 @@ namespace ColourClashNet.Components
                     LogMan.Error(sC, sM, $"Blob analysis failed : {result.Message}");
                     return null;
                 }
+                LogMan.Message(sC, sM, $"{BlobAnalysis.BlobList.Count} blobs found");
                 // Output: all blobs stacked vertically, with 1 pixel of padding
                 var imageDataOutput = BlobTools.ReshapeVertical(BlobAnalysis, 0, 1, 1, 0, 1);
                 OnProcess?.Invoke(this, new ColorManagerProcessEventArgs
@@ -132,7 +133,7 @@ namespace ColourClashNet.Components
             }
             catch (Exception ex)
             {
-                LogMan.Exception(sC, sM, ex);
+                LogMan.Exception(sC, sM, "blob processing failed", ex);
                 return null;
             }
         }

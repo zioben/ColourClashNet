@@ -39,9 +39,33 @@ namespace ColourClashNet.Log
             set
             {
                 minLogLevel = value;
-                LogManager.Configuration.AddRule(ToNLogLevel(minLogLevel), NLog.LogLevel.Fatal, logTarget);
+                // Update the single file rule in place: adding a rule per change would keep the older, more verbose ones active
+                if (fileRule != null)
+                {
+                    fileRule.SetLoggingLevels(ToNLogLevel(minLogLevel), NLog.LogLevel.Fatal);
+                    LogManager.ReconfigExistingLoggers();
+                }
             }
         }
+
+        /// <summary>
+        /// True when messages of <paramref name="level"/> are logged.
+        /// <para/>
+        /// Use it to skip building expensive messages (e.g. inside loops) that would be discarded.
+        /// </summary>
+        public static bool IsEnabled(LogLevel level) => level <= minLogLevel;
+
+        /// <summary>
+        /// True when <see cref="LogLevel.Debug"/> messages are logged.
+        /// </summary>
+        public static bool IsDebugEnabled => IsEnabled(LogLevel.Debug);
+
+        /// <summary>
+        /// True when <see cref="LogLevel.Trace"/> (verbose) messages are logged.
+        /// </summary>
+        public static bool IsTraceEnabled => IsEnabled(LogLevel.Trace);
+
+        static LoggingRule fileRule;
 
 
         #region constant paths and rules
@@ -50,7 +74,6 @@ namespace ColourClashNet.Log
         static readonly string logFolder = "Logs";
         static readonly string logArchive = "LogsArchive";
         static readonly string logTarget = "DeltaLog";
-        static readonly string logRule = "DeltaRule";
         static readonly string logId = "DefaultLog";
 
         #endregion
@@ -117,7 +140,8 @@ namespace ColourClashNet.Log
             //fileTarget.ConcurrentWrites = true;
 
             logConf.AddTarget(logId, fileTarget);
-            logConf.AddRule(ToNLogLevel(MinLogLevel), NLog.LogLevel.Fatal, fileTarget);
+            fileRule = new LoggingRule("*", ToNLogLevel(MinLogLevel), NLog.LogLevel.Fatal, fileTarget);
+            logConf.LoggingRules.Add(fileRule);
             // Windows Trace on NLOG
             //System.Diagnostics.Trace.Listeners.Clear();
             //System.Diagnostics.Trace.Listeners.Add(new NLog.NLogTraceListener { Name = "NLog" });
@@ -188,7 +212,7 @@ namespace ColourClashNet.Log
         /// <param name="ex">Exception info</param>
         static void Log(LogLevel level, string sClass, string sMethod, string message, Exception ex)
         {
-            if (level > MinLogLevel)
+            if (!IsEnabled(level))
                 return;
 
             var now = DateTime.Now;
@@ -211,8 +235,9 @@ namespace ColourClashNet.Log
                     NLogger?.Warn(ex, logLine);
                     break;
                 default:
+                    // Pass/Message are written as Info, Debug/Trace keep their own NLog level
                     System.Diagnostics.Trace.TraceInformation(logLine);
-                    NLogger?.Info(ex, logLine);
+                    NLogger?.Log(ToNLogLevel(level), ex, logLine);
                     break;
             }
 
@@ -271,7 +296,7 @@ namespace ColourClashNet.Log
         /// <summary>
         /// Logs an error message.
         /// <para/>
-        /// When <paramref name="ex"/> is not null the message is promoted to <see cref="LogLevel.Fatal"/>.
+        /// When <paramref name="ex"/> is not null the message is logged as <see cref="LogLevel.Exception"/>, with the exception dump.
         /// </summary>
         /// <param name="sClass">Source Class</param>
         /// <param name="sMethod">Source Method</param>
@@ -279,7 +304,7 @@ namespace ColourClashNet.Log
         /// <param name="ex">Exception info</param>
         public static void Error(string sClass, string sMethod, string message, Exception ex)
         {
-            var level = ex == null ? LogLevel.Error : LogLevel.Fatal;
+            var level = ex == null ? LogLevel.Error : LogLevel.Exception;
             Log(level, sClass, sMethod, message, ex);
         }
 

@@ -283,6 +283,7 @@ namespace ColourClashNet.Color.Transformation
         protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
         {
             string sM = nameof(ExecuteTransform);
+            LogDebug(sC, sM, $"{Type} : {Options.VideoMode}, output {Options.OutputMode}, {GetTargetPalette().Count} palette colors");
             switch (Options.VideoMode)
             {
                 case CGAVideoMode.Mode4_0L:
@@ -329,10 +330,11 @@ namespace ColourClashNet.Color.Transformation
                 var mappedResult = mapping.CreateAndProcessColors(halfImage, token);
                 if (mappedResult == null || !mappedResult.IsSuccess || mappedResult.DataOut == null)
                 {
-                    LogMan.Error(sC, sM, $"{Type} : composite palette mapping failed");
+                    LogMan.Error(sC, sM, $"{Type} : composite palette mapping failed : {mappedResult?.Message}");
                     return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : composite palette mapping failed", mappedResult);
                 }
 
+                LogTrace(sC, sM, $"{Type} : composite image {mappedResult.DataOut.Columns}x{mappedResult.DataOut.Rows} mapped, building the {Options.OutputMode}");
                 var outputImage = Options.OutputMode == CGACompositeOutputMode.RawImage
                     ? ToRawPixelPairs(mappedResult.DataOut, compositePalette, ImageSource.Columns)
                     : ImageTools.DoubleXResolution(mappedResult.DataOut, ImageSource.Columns);
@@ -340,7 +342,7 @@ namespace ColourClashNet.Color.Transformation
             }
             catch (OperationCanceledException ex)
             {
-                LogMan.Exception(sC, sM, $"{Type} : operation cancelled", ex);
+                LogMan.Warning(sC, sM, $"{Type} : operation cancelled");
                 return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : operation cancelled", ex);
             }
             catch (Exception ex)

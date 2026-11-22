@@ -196,11 +196,12 @@ public partial class TileManager
                         tileProcessingMatrix[r, c].ProcessPartial += ForwardTileEvent;
                     }
                 }//);
+                LogMan.Trace(sC, sM, $"{TileRows}x{TileColumns} tiles of {TileW}x{TileH} on a {ImageSource.Width}x{ImageSource.Height} image, tile transformation {tileOptions.TransformType}");
                 return this;
             }
             catch (OperationCanceledException ex)
             {
-                LogMan.Exception(sC, sM, "Operation cancelled", ex);
+                LogMan.Warning(sC, sM, "Operation cancelled");
                 Reset();
                 return this;
             }
@@ -252,11 +253,12 @@ public partial class TileManager
                 });
             }//);
             var error = RecalcGlobalTransformationError();
+            LogMan.Trace(sC, sM, $"{TileRows * TileColumns} tiles processed, global error {error:g4}");
             return ColorTransformResult.CreateValidResult();
         }
         catch (OperationCanceledException ex)
         {
-            LogMan.Exception(sC, sM, "Operation cancelled",ex);
+            LogMan.Warning(sC, sM, "Operation cancelled");
             return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, "operation cancelled", ex);
         }
         catch (Exception ex)

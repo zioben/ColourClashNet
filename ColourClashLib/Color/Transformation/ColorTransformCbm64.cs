@@ -134,7 +134,6 @@ namespace ColourClashNet.Color.Transformation
                     int rgbB = baseList[j];
                     var hsvA = HSV.CreateFromIntRGB(rgbA);
                     var hsvB = HSV.CreateFromIntRGB(rgbB);
-                    // LogMan.Message(sC, sM, $"{i} : {j} -> {hsvA.V:f1} - {hsvB.V:f1}");
                     // Only colors with similar brightness blend well when mixed on screen
                     if (Math.Abs(hsvA.V - hsvB.V) < 15.0)
                     {
@@ -188,7 +187,7 @@ namespace ColourClashNet.Color.Transformation
             var result = paletteTransform.CreateAndProcessColors(image, token);
             if (result == null || !result.IsSuccess || result.DataOut == null)
             {
-                LogMan.Error(sC, sM, $"{Type} : C64 palette mapping failed");
+                LogMan.Error(sC, sM, $"{Type} : C64 palette mapping failed : {result?.Message}");
                 return ColorTransformResult.CreateErrorResultFrom(sC, sM, image, $"{Type} : C64 palette mapping failed", result);
             }
             return ColorTransformResult.CreateValidResult(image, result.DataOut);
@@ -211,6 +210,7 @@ namespace ColourClashNet.Color.Transformation
         ColorTransformResult ToBitmap(Palette palette, int tileWidth, int tileHeight, int tileColors, bool multicolor, CancellationToken token = default)
         {
             string sM = nameof(ToBitmap);
+            LogDebug(sC, sM, $"{Type} : {Options.VideoMode} : {tileWidth}x{tileHeight} tiles, {tileColors} colors per tile, {palette.Count} palette colors{(multicolor ? ", half horizontal resolution" : "")}");
             var workImage = multicolor ? ImageTools.HalveXResolution(ImageSource, HalveResolutionMode.MeanColor) : ImageSource;
             var mappedResult = ToDebugImage(workImage, palette, token);
             if (!mappedResult.IsSuccess)
@@ -223,11 +223,13 @@ namespace ColourClashNet.Color.Transformation
             var sharedColors = multicolor
                 ? new HistogramRGB().Create(mappedImage).SortColorsDescending().ToPalette(1)
                 : new Palette();
+            if (multicolor)
+                LogDebug(sC, sM, $"{Type} : shared background color {(sharedColors.Count > 0 ? sharedColors.ToList()[0].ToString("X6") : "none")}");
             TileManager manager = CreateTileManager(tileWidth, tileHeight, tileColors, mappedImage, sharedColors, token);
             var tileResult = manager.ProcessColors(token);
             if (tileResult == null || !tileResult.IsSuccess)
             {
-                LogMan.Error(sC, sM, $"{Type} : {Options.VideoMode} tile processing failed");
+                LogMan.Error(sC, sM, $"{Type} : {Options.VideoMode} tile processing failed : {tileResult?.Message}");
                 return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, mappedImage, $"{Type} : {Options.VideoMode} tile processing failed : {tileResult?.Message}", tileResult?.Exception);
             }
             var tileImage = manager.CreateImageFromTiles();
@@ -284,7 +286,7 @@ namespace ColourClashNet.Color.Transformation
             }
             catch (OperationCanceledException ex)
             {
-                LogMan.Exception(sC, sM, $"{Type} : operation cancelled", ex);
+                LogMan.Warning(sC, sM, $"{Type} : operation cancelled");
                 return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, null, $"{Type} : operation cancelled", ex);
             }
             catch (Exception ex)

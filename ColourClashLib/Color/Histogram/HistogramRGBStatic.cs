@@ -104,7 +104,6 @@ namespace ColourClashNet.Color
         /// <returns><paramref name="histogram"/>.</returns>
         static HistogramRGB CreateHistogramStatic(int[,] matrix, HistogramRGB histogram)
         {
-            string sMethod = nameof(CreateHistogramStatic);
             if (matrix == null)
                 throw new ArgumentNullException(nameof(matrix));
             if (histogram == null)
@@ -114,12 +113,10 @@ namespace ColourClashNet.Color
             int columns = matrix.GetLength(1);
             if (rows * columns > sizeLimit)
             {
-                LogMan.Trace(sClass, sMethod, "Using array method for large image");
                 CreateHistogramArray(matrix, histogram);
             }
             else
             {
-                LogMan.Trace(sClass, sMethod, "Using direct method for small image");
                 CreateHistogramDirect(matrix, histogram);
             }
             return histogram;

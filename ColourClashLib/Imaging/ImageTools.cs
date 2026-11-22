@@ -182,11 +182,12 @@ public static partial class ImageTools
             using SKData encoded = skBitmap.Encode(format, quality);
             using FileStream stream = File.Create(newFileName);
             encoded.SaveTo(stream);
+            LogMan.Debug(sC, sM, $"saved {cols}x{rows} image as {saveFormat} : {newFileName}");
             return true;
         }
         catch (Exception e)
         {
-            LogMan.Exception(sC, sM, e);
+            LogMan.Exception(sC, sM, $"cannot save {fileName} as {saveFormat}", e);
             return false;
         }
     }
@@ -210,12 +211,14 @@ public static partial class ImageTools
         string sM = nameof(LoadImage);
         try
         {
+            LogMan.Debug(sC, sM, $"loading {fileName}");
             using SKBitmap original = SKBitmap.Decode(fileName);
             if (original == null)
             {
-                LogMan.Exception(sC, sM, new FileLoadException($"Unable to decode file: {fileName}"));
+                LogMan.Error(sC, sM, $"unable to decode {fileName} (missing file or unsupported format)");
                 return null;
             }
+            LogMan.Trace(sC, sM, $"decoded {original.Width}x{original.Height}, {original.ColorType}, {original.AlphaType}");
 
             // Force the BGRA8888 Unpremul format, whatever the source format
             // (e.g. JPEG decoded as RGB, PNG with alpha, etc.)
@@ -245,8 +248,7 @@ public static partial class ImageTools
             long expectedBytes = (long)rows * cols * sizeof(int);
             if (srcBytes.Length != expectedBytes)
             {
-                LogMan.Exception(sC, sM, new InvalidOperationException(
-                    $"Pixel buffer mismatch: bitmap has {srcBytes.Length} bytes, expected {expectedBytes}."));
+                LogMan.Error(sC, sM, $"pixel buffer mismatch loading {fileName} : bitmap has {srcBytes.Length} bytes, expected {expectedBytes}");
                 return null;
             }
 
@@ -278,6 +280,7 @@ public static partial class ImageTools
             else
             {
                 // Pad odd widths to an even number of columns
+                LogMan.Debug(sC, sM, $"odd width {cols} padded to {cols + 1} columns");
                 var matrixPadded = new int[rows, cols + 1];
                 for (int r = 0; r < rows; r++)
                 {
@@ -291,7 +294,7 @@ public static partial class ImageTools
         }
         catch (Exception e)
         {
-            LogMan.Exception(sC, sM, e);
+            LogMan.Exception(sC, sM, $"cannot load {fileName}", e);
             return null;
         }
     }

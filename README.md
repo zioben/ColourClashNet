@@ -68,6 +68,9 @@ creates the matching transformation (`CreateColorTransformInterface(ColorTransfo
 Long transformations raise `Processing`, `ProcessPartial` (intermediate results, also from nested
 transformations and tiles) and `Processed` events, and can be cancelled with a `CancellationToken`.
 
+A transformation instance is not thread safe: it processes one image at a time.
+Run concurrent work on separate instances (the UI pipeline, the tiles and the nested steps always create their own).
+
 ### Options
 Every transformation is configured by an immutable `record` derived from `TransformOptions`:
 
@@ -114,6 +117,10 @@ Each `ColorTransformBase` runs the same pipeline in `ProcessColors`:
 3. dithering against the reference image, when enabled and the result has at most 256 colors;
 4. evaluation of the mean color error (`TransformationError`).
 
+Transformations that need a different order dither by themselves and skip step 3:
+for example the wide pixel modes (CPC modes 0/3, C64 multicolor, CGA composite) dither at half horizontal resolution,
+before doubling the pixels back.
+
 ### Color representation
 Colors are stored as packed `int` values: the lower 24 bits hold the RGB888 color (`0xRRGGBB`),
 the upper 8 bits hold a `ColorInfo` flag (mask, tile, transparent, invalid).
@@ -125,6 +132,7 @@ and odd widths are padded to an even number of columns.
 
 ## To do
 A lot of stuff, like sprite masking, raw data export for every system and assembly code generation.
+- Simplify `ColorTransformBase` (planned, on hold): see [docs/ColorTransformBase-simplification.md](./docs/ColorTransformBase-simplification.md).
 
 ## Support
 ### Quantization
@@ -179,15 +187,26 @@ There are lots of classic color reduction algorithms. The majority simply reduce
 | Fixed palette | `ColorTransformFixedPalette` | Nearest color of a user palette |
 | Enhanced palette | `ColorTransformFixedPaletteEnhanced` | Fixed palette plus the mean of every color pair (simulated 50% dither) |
 | Scanline | `ColorTransformScanLine` | Palette per group of lines (Amiga copper style), independent or shared palette |
-| HSV adjust | `ColorTransformLumSat` | Hue shift, saturation and brightness multipliers |
+| HSV adjust | `ColorTransformLumSat` | Hue rotation (any value, wrapped on the color wheel), saturation and brightness multipliers; non-color pixels are kept |
 | Background removal | `ColorTransformBkgRemover` | Replaces selected background colors |
-| IBM PC | `ColorTransformHercules`, `ColorTransformCGA`, `ColorTransformEGA`, `ColorTransformVGA` | Hercules, CGA modes 4/5/6 and composite artifact colors (half horizontal resolution, raw output as mode 4 pixel pairs), EGA 16 colors, VGA 256 colors (RGB666) |
+| IBM PC | `ColorTransformHercules`, `ColorTransformCGA`, `ColorTransformEGA`, `ColorTransformVGA` | Hercules, CGA modes 4/5/6 and composite artifact colors, EGA 16 colors, VGA 256 colors (RGB666) |
 | Commodore 64 | `ColorTransformCbm64` | Hires, Multicolor, FLI, Hires FLI, base and enhanced palette |
 | Commodore Amiga | `ColorTransformCbmAmiga` | HAM6, HAM8 (each pixel choice scored on the next `HamLookahead` pixels to reduce fringes), Extra Half-Brite |
 | Amstrad CPC | `ColorTransformAmstradCPC` | Modes 0, 1, 2 and 3 on the 27 color palette |
 | ZX Spectrum | `ColorTransformZxSpectrum` | 8x8 attribute cells, normal/bright palettes, automatic seed tuning |
 
 Tile based modes (C64, ZX Spectrum, scanline) use `TileManager`, which splits the image into cells and color-reduces each one independently.
+
+Notes on some modes:
+- **CGA composite** (`Composite_0`, `Composite_1`): every pair of adjacent pixels of mode 4 is seen on an NTSC monitor
+  as one of 16 artifact colors. The image is halved horizontally, mapped and dithered, then doubled back.
+  With `CgaOptions.OutputMode = RawImage` each artifact color is replaced by the two mode 4 pixels that generate it
+  (left pixel in the high bits, high intensity palettes); the palette modes output the processed image unchanged.
+  The true 16 color RGBI palette is available as `DebugPalette`.
+- **Amiga HAM**: each pixel is a base palette color or the previous pixel with one channel modified.
+  Choosing by the error of the current pixel only produces color fringes, so every choice is scored on the
+  current pixel plus the next `AmigaOptions.HamLookahead` pixels (default 2, range 0-4; 0 = previous greedy behavior).
+- **Wide pixel modes** keep odd image widths: the doubled image is cropped back to the source width.
 
 | | | |
 |-:|-|-|
@@ -236,6 +255,27 @@ blob.Options = blob.Options with { MinArea = 20 };
 - 8 bit indexed BMP with optional width alignment (`ImageTools.SaveImageAsIndexedBitmap`);
 - Amiga raw bitplanes, interleaved or sequential (`.bpl`), with palettes in 24 bit (`.rgb24`) and OCS 12 bit (`.rgb12`) format (`ImageTools.BitplaneWriteFile`).
 
+### Logging
+`LogMan` (project `ColourClashSupport`) writes every message to `System.Diagnostics.Trace`, to a rolling NLog file
+(`./Logs/Log.txt`, archived above 4 MB in `./Logs/LogsArchive`) and to the `LogMan.OnLogMessage` event, used by the UI.
+Each line reports time, level and `Class.Method`:
+```
+2026-11-21 22:30:24.218 | Debug | ColorTransformBase.ProcessColors : ColorReductionClustering : processing completed in 243 ms : 16 colors, error 7504
+```
+
+| Level | Content |
+|-|-|
+| `Fatal`, `Exception`, `Error` | Failures, with the nested cause and the exception dump |
+| `Warning` | Handled conditions, e.g. cancelled operations |
+| `Message` | Main UI operations: transformation started/completed, blobs found |
+| `Debug` | Start of every heavy step with its parameters, completion with time, colors and error, file load/save |
+| `Trace` | Sub-steps: full options, clustering loops, ZX autotune steps, tile summaries |
+
+`LogMan.MinLogLevel` selects the minimum level and can be changed at any time (the applications start at `Message`).
+Use `LogMan.IsDebugEnabled`/`IsTraceEnabled` to skip building expensive messages.
+Transformations log nothing inside pixel loops, and the transformations of the tiles do not log their steps
+(`ColorTransformBase.LogProcessingSteps`): errors and exceptions are always logged.
+
 ## Build and test
 ```bash
 dotnet build ColourClashNetSolution.sln
@@ -244,10 +284,15 @@ dotnet build ColourClashNetSolution.sln
 The WinForms projects target Windows; on other systems the solution builds with `-p:EnableWindowsTargeting=true`,
 but the UI and the `XUnitTester` project run on Windows only.
 
+The tests do not need external files. Reference pictures made on the real systems, useful to compare the results,
+are in `Images/References/TestImages` (Amstrad CPC modes 0/1/2, CGA, C64 hires/multicolor/FLI/PETSCII,
+Amiga EHB/HAM6/HAM8, ZX Spectrum).
+
 ## Coding conventions
 - Local variables, parameters and fields are camelCase and carry only the name, without type prefixes (`val`, not `sVal`).
 - Properties are PascalCase.
 - Every class keeps `sC`/`sClass` (from `nameof(Class)`) and every method `sM`/`sMethod` (from `nameof(Method)`) for logging with `LogMan`.
+- Log messages are in English and start with the transformation type when available (`{Type} : ...`); no logs inside pixel loops.
 - Code, comments and documentation are in English; public types and members are documented with XML comments.
 
 ## License

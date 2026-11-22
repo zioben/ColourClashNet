@@ -49,7 +49,7 @@ public class DitherIdentity : DitherBase
         }
         catch (OperationCanceledException ex)
         {
-            LogMan.Exception(sC, sM, $"{Type} : dithering cancelled", ex);
+            LogMan.Warning(sC, sM, $"{Type} : dithering cancelled");
             return ColorTransformResult.CreateErrorResult(sC, sM, imageReference, null, $"{Type} : dithering cancelled", ex);
         }
         catch (Exception ex)

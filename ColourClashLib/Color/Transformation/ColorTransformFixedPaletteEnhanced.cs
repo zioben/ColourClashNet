@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ColourClashNet.Log;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,7 @@ namespace ColourClashNet.Color.Transformation
     /// </summary>
     public class ColorTransformFixedPaletteEnhanced : ColorTransformBase<EnhancedPaletteOptions>
     {
+        static readonly string sC = nameof(ColorTransformFixedPaletteEnhanced);
         /// <summary>
         /// Creates the enhanced palette transformation.
         /// </summary>
@@ -28,6 +30,7 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         protected override ColorTransformResult CreateTransformationMap(CancellationToken token = default)
         {
+            string sM = nameof(CreateTransformationMap);
             TransformationMap.Reset();
 
             var rgbList = ImageSource.ColorPalette.ToList();
@@ -42,6 +45,7 @@ namespace ColourClashNet.Color.Transformation
                     paletteEnhance.Add(ColorIntExt.GetColorMean(refList[i], refList[j]));
                 }
             }
+            LogDebug(sC, sM, $"{Type} : mapping {rgbList.Count} colors to {paletteEnhance.Count} colors ({refList.Count} user colors and their pairwise means)");
             //Parallel.ForEach(rgbList, rgb =>
             foreach (var rgb in rgbList)    
             {
