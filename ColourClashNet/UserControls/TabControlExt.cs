@@ -60,6 +60,7 @@ namespace ColourClashNet.Controls
         public TabControlExt() : base()
         {
             InitializeComponent();
+            ShowToolTips = true;
             RegisterEvents();
         }
         /// <summary>
@@ -80,9 +81,8 @@ namespace ColourClashNet.Controls
             var newPage = new TabPage();
             newPage.Name = $"{content.Name}";
             newPage.Controls.Add(content);
-            // The 3 trailing characters reserve room for the close icon and are never drawn
-            newPage.Text = $"Page{TabPages.Count + 1}OOO";
             newPage.Tag = content;
+            SetTitle(newPage, $"Image {++pageCounter}");
             TabPages.Add(newPage);
             tabPages[content.Name] = newPage;   
             return newPage;   
@@ -112,8 +112,31 @@ namespace ColourClashNet.Controls
             var tableId = control.Name;
             if (tabPages.ContainsKey(tableId))
             {
-                tabPages[tableId].Text = text;
+                SetTitle(tabPages[tableId], string.IsNullOrWhiteSpace(text) ? $"Image {tabPages.Keys.ToList().IndexOf(tableId) + 1}" : text);
             }
+        }
+
+        /// <summary>
+        /// Maximum number of characters of a tab title; longer titles are shortened with an ellipsis
+        /// and shown in full in the tooltip.
+        /// </summary>
+        public const int MaxTitleLength = 24;
+
+        // Progressive number of the tabs, used for the default titles ("Image 1", "Image 2", ...)
+        int pageCounter;
+
+        /// <summary>
+        /// Sets the title of <paramref name="page"/>: shortened to <see cref="MaxTitleLength"/> characters, full text in the tooltip.
+        /// <para/>
+        /// Three trailing characters are appended: they reserve room for the close icon and are never drawn
+        /// (the tab width is measured on the whole text).
+        /// </summary>
+        static void SetTitle(TabPage page, string title)
+        {
+            title = title.Trim();
+            var shown = title.Length > MaxTitleLength ? title[..(MaxTitleLength - 1)] + "…" : title;
+            page.Text = shown + "OOO";
+            page.ToolTipText = title;
         }
 
         /// <summary>
