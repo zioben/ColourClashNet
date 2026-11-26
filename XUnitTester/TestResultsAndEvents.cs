@@ -68,10 +68,10 @@ namespace XUnitTester
             var source = CreateGradient(16, 8);
             var transform = new ColorTransformCbm64 { Options = new C64Options { VideoMode = ColorTransformCbm64.C64VideoMode.CharsetMulticolor } };
 
-            var result = transform.CreateAndProcessColors(source);
+            var result = transform.Process(source);
 
             Assert.False(result.IsSuccess);
-            Assert.Contains("ColorTransformBase.ProcessColors", result.Message);
+            Assert.Contains("ColorTransformBase.ValidateOptions", result.Message);
             // Caught by the options validation, before any processing
             Assert.Contains("invalid options", result.Message);
             Assert.Contains("CharsetMulticolor is not implemented", result.Message);
@@ -85,13 +85,13 @@ namespace XUnitTester
             var source = CreateGradient(64, 8);
             var transform = new ColorTransformVGA { Options = new VgaOptions { Reduction = new ClusteringOptions { MaxColors = 4 } } };
             var events = new ConcurrentBag<ColorProcessingEventArgs>();
-            transform.ProcessPartial += (s, e) => events.Add(e);
+            transform.Progress += (s, e) => events.Add(e);
 
-            var result = transform.CreateAndProcessColors(source);
+            var result = transform.Process(source);
 
             Assert.True(result.IsSuccess, result.Message);
             Assert.Contains(events, e => e.ProcessingResults?.Message?.StartsWith("Loop") == true);
-            Assert.All(events, e => Assert.Same(transform, e.ColorTransformInterface));
+            Assert.All(events, e => Assert.Same(transform, e.Transformation));
         }
 
         [Fact]
@@ -100,9 +100,9 @@ namespace XUnitTester
             var source = CreateGradient(16, 16);
             var transform = new ColorTransformCbm64 { Options = new C64Options { VideoMode = ColorTransformCbm64.C64VideoMode.HiRes } };
             var events = new ConcurrentBag<ColorProcessingEventArgs>();
-            transform.ProcessPartial += (s, e) => events.Add(e);
+            transform.Progress += (s, e) => events.Add(e);
 
-            var result = transform.CreateAndProcessColors(source);
+            var result = transform.Process(source);
 
             Assert.True(result.IsSuccess, result.Message);
             // 16 rows / 8 = 2 tile rows, each one reported with its progress

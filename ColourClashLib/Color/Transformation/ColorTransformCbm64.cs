@@ -113,7 +113,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformCbm64()
         {
-            Type = ColorTransformType.ColorReductionCBM64;
             Description = "Reduce color to C64 palette";
             CreateEnhancedPalette();
         }
@@ -184,7 +183,7 @@ namespace ColourClashNet.Color.Transformation
             {
                 Options = new FixedPaletteOptions { UserPalette = palette.ToList(), Dithering = DitheringOptions, DistanceMode = Options.DistanceMode },
             });
-            var result = paletteTransform.CreateAndProcessColors(image, token);
+            var result = paletteTransform.Process(image, null, token);
             if (result == null || !result.IsSuccess || result.DataOut == null)
             {
                 LogMan.Error(sC, sM, $"{Type} : C64 palette mapping failed : {result?.Message}");

@@ -1,47 +1,32 @@
-# ColorTransformBase simplification (planned, not started)
+# ColorTransformBase simplification
 
-Status: **on hold**, to be done later on request.
-Goal: reduce `ColourClashLib/Color/Transformation/ColorTransformBase.cs` (about 560 lines) to about 300,
-without changing the algorithms.
+Status: **done**. This page records what was changed and why.
 
-## Findings (usage counted in the code)
-- 4 ways to process an image: `Create` + `ProcessColors`, `CreateAndProcessColors`, 2 `Async` variants
-  (the async ones only wrap `Task.Run`).
-- 2 hooks for derived classes: `CreateTransformationMap` (overridden by 6 classes) and `ExecuteTransform` (10 classes);
-  the default `CreateTransformationMap` does nothing but is always called.
-- `BypassDithering` is mutable state set to `true` inside `ExecuteTransform` by 8 transformations.
-- 6 events: `Creating`/`Created` have no subscribers, `ProcessAdvance` is only forwarded and never raised;
-  `ProcessPartialEventRegistered` has 1 use; `AbortProcessing`/`AbortProcessingAsync` only call `Cancel()`.
-- `TransformationError` has a public setter and is assigned in 12 places; the processing time lives in a stopwatch field.
-- `Type` is set by hand in every constructor although the options already know `TransformType`
-  (the Amiga `Type` bug came from this duplication).
-- `ProcessColors` is a single method of about 140 lines with nested `else if`.
+## Before
+- 4 ways to process an image: `Create` + `ProcessColors`, `CreateAndProcessColors`, 2 `Async` variants.
+- 2 hooks: `CreateTransformationMap` and `ExecuteTransform`, the first called (empty) even when unused.
+- 6 events, 2 never used (`Creating`, `Created`) and 1 never raised (`ProcessAdvance`);
+  `Processed` was not raised when the processing threw.
+- `Type` set by hand in every constructor (the Amiga `Type` bug came from this duplication).
+- `TransformationError` with a public setter, assigned in many places.
+- `ProcessColors` was a single method of about 140 lines; the cancellation token published in the
+  events was not the one used by the processing steps, so cancelling it did not stop the run.
 
-## Proposal (by value)
-1. **Single entry point**: `ColorTransformResult Process(ImageData source, ImageData? reference = null, CancellationToken token = default)`.
-   Remove the two step `Create`/`ProcessColors` form and the `Async` wrappers; `ImageSource`, `ImageReference`
-   and `ImageOutput` stay available to derived classes during the run only.
-2. **Single hook**: `protected abstract ColorTransformResult Transform(CancellationToken)` in the base class, plus a
-   `ColorTransformMapBase` subclass with `BuildMap()` (build map + apply it) for Fast, MedianCut, Clustering,
-   Quantization and the palette mappings. Platform transformations implement `Transform` directly.
-3. **Dithering as a class property**: `protected virtual bool HandlesDitheringItself => false;`
-   (CGA: `IsCompositeMode(Options.VideoMode)`) instead of `BypassDithering`.
-4. **Fewer events**: keep `Processing`, `Progress` (replaces `ProcessPartial`) and `Processed`;
-   drop `Creating`, `Created`, `ProcessAdvance`, `ProcessPartialEventRegistered`, `AbortProcessing(Async)`.
-5. **Metrics in the result**: transformation error and processing time in `ColorTransformResult`, computed once by
-   the base class; ZX returns its merge error in the result.
-6. **`Type => Options.TransformType`** instead of setting it in the constructors.
-7. **Split `ProcessColors`** into short private steps: Validate, Transform, Dither (when needed), Evaluate, Processed.
+## After
+1. **Single entry point**: `Process(source, reference = null, token)` and `ProcessAsync(...)`.
+   Errors and cancellation are returned in the result, never thrown.
+2. **Single hook**: `protected abstract ExecuteTransform(token)`. Map based transformations derive from
+   `ColorTransformMapBase<TOptions>` and only implement `CreateTransformationMap`
+   (Fast, MedianCut, Clustering, Quantization, palette mappings, background removal).
+3. **`BypassDithering` kept**, with a protected setter: a transformation sets it inside `ExecuteTransform`
+   when it dithers by itself or when dithering does not apply in its current mode. It is reset at every run.
+4. **Events**: `StartProcessing` (can change the options or cancel), `Creating`/`Created` (image loading),
+   `Processing`, `Progress` (replaces `ProcessPartial`/`ProcessAdvance`), `Dithering`, `Completed`
+   (always raised, also on error or cancellation), `Destroying`/`Destroyed` (raised by `Dispose`).
+   A failing event handler is logged and never breaks the run; the published token source stops the run.
+5. **Metrics in the result**: `ColorTransformResult.TransformationError` and `ProcessingTimeMilliseconds`,
+   computed once by the base class (also kept on the transformation for the last run).
+6. **`Type => Options.TransformType`**: the constructors no longer set it.
+7. **Short steps**: `LoadImages`, `ValidateOptions`, `Transform`, `ApplyDithering`.
 
-## Keep as is
-- Options model with `ColorTransformBase<TOptions>`.
-- `ForwardEventsFrom` and `LogProcessingSteps`.
-- Error handling with `ColorTransformResult`.
-
-## Impact and plan
-Callers to adapt: `ColorTransformManager`, `TileProcessing`, `ProcessingForm`, `ProcessingViewer`, `FormTester`,
-about 40 test calls (mostly `CreateAndProcessColors(image)`).
-
-Two steps, each with green build and tests:
-1. low risk: points 3, 4, 6, 7;
-2. API shape change: points 1, 2, 5.
+The interface is now `IColorTransform` (it extends `IDisposable`); the factory is `ColorTransformBase.CreateTransform`.

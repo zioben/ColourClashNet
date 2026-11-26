@@ -52,7 +52,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformAmstradCPC()
         {
-            Type = ColorTransformType.ColorReductionCPC;
             Description = "Reduce color to Amstrad CPC palette";
         }
 
@@ -106,7 +105,7 @@ namespace ColourClashNet.Color.Transformation
             {
                 Options = new FastOptions { MaxColors = maxColors, DistanceMode = Options.DistanceMode },
             });
-            var result = fastReduction.CreateAndProcessColors(image, token);
+            var result = fastReduction.Process(image, null, token);
             if (result == null || !result.IsSuccess)
             {
                 LogMan.Error(sC, sM, $"{Type} : {maxColors} color reduction failed : {result?.Message}");
@@ -156,6 +155,13 @@ namespace ColourClashNet.Color.Transformation
             BypassDithering = true;
             try
             {
+                // Map every source color to the nearest CPC color: used by every mode
+                var mapResult = CreateTransformationMap(token);
+                if (mapResult == null || !mapResult.IsSuccess)
+                {
+                    LogMan.Error(sC, sM, $"{Type} : CPC palette map failed : {mapResult?.Message}");
+                    return ColorTransformResult.CreateErrorResultFrom(sC, sM, ImageSource, $"{Type} : CPC palette map failed", mapResult);
+                }
                 switch (Options.VideoMode)
                 {
                     case CPCVideoMode.Mode0:

@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 
 namespace ColourClashNet.Color.Transformation
 {
-    public abstract partial class ColorTransformBase : ColorTransformInterface
+    public abstract partial class ColorTransformBase : IColorTransform
     {
         /// <summary>
         /// Throws if <paramref name="transform"/> is null.
         /// </summary>
-        public static void AssertValid(ColorTransformInterface transform)
+        public static void AssertValid(IColorTransform transform)
         {
             if (transform == null)
                 throw new ArgumentNullException($"{nameof(transform)}");
@@ -29,9 +29,9 @@ namespace ColourClashNet.Color.Transformation
         /// <returns>The configured transformation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="options"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Unsupported options type.</exception>
-        public static ColorTransformInterface CreateColorTransformInterface(TransformOptions options)
+        public static IColorTransform CreateTransform(TransformOptions options)
         {
-            string sMethod = nameof(CreateColorTransformInterface);
+            string sMethod = nameof(CreateTransform);
             ArgumentNullException.ThrowIfNull(options);
             return options switch
             {
@@ -61,7 +61,7 @@ namespace ColourClashNet.Color.Transformation
         /// Factory: creates the transformation <paramref name="transformType"/> with its default options.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">Unsupported transformation type.</exception>
-        public static ColorTransformInterface CreateColorTransformInterface(ColorTransformType transformType)
-            => CreateColorTransformInterface(TransformOptions.CreateDefault(transformType));
+        public static IColorTransform CreateTransform(ColorTransformType transformType)
+            => CreateTransform(TransformOptions.CreateDefault(transformType));
     }
 }

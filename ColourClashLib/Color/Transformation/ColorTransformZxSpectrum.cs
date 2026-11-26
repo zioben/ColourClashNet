@@ -75,7 +75,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformZxSpectrum()
         {
-            Type = ColorTransformType.ColorReductionZxSpectrum;
             Description = "Reduce color to ZX Spectrum color map and apply ColourClash reduction";
         }
 
@@ -229,7 +228,7 @@ namespace ColourClashNet.Color.Transformation
             {
                 Options = new EnhancedPaletteOptions { UserPalette = zxPalette.ToList(), DistanceMode = Options.DistanceMode, Dithering = DitheringOptions },
             });
-            var zxBaseResult = zxBaseTransform.CreateAndProcessColors(ImageSource, token);
+            var zxBaseResult = zxBaseTransform.Process(ImageSource, null, token);
             if (zxBaseResult == null || !zxBaseResult.IsSuccess || zxBaseResult.DataOut == null)
             {
                 LogMan.Error(sC, sM, $"{Type} : ZX palette mapping failed : {zxBaseResult?.Message}");
@@ -254,7 +253,7 @@ namespace ColourClashNet.Color.Transformation
             {
                 Options = new FixedPaletteOptions { UserPalette = transformationMap.GetInputPalette().ToList(), DistanceMode = Options.DistanceMode, Dithering = DitheringOptions },
             });
-            var zxBaseResult = zxBaseTransform.CreateAndProcessColors(ImageSource, ImageReference, token);
+            var zxBaseResult = zxBaseTransform.Process(ImageSource, ImageReference, token);
             if (zxBaseResult == null || !zxBaseResult.IsSuccess || zxBaseResult.DataOut == null)
             {
                 // Runs inside a task: the error is reported to ExecuteTransform as an exception
@@ -361,7 +360,6 @@ namespace ColourClashNet.Color.Transformation
                         LogMan.Error(sC, sM, $"{Type} : attribute cell merge failed");
                         return ColorTransformResult.CreateErrorResult(sC, sM, ImageSource, bestZxImage, $"{Type} : attribute cell merge failed");
                     }
-                    TransformationError = processingResult.MergeError;
                     LogDebug(sC, sM, $"{Type} : attribute cells merged, error {processingResult.MergeError:g4}");
                     BestSeedLow = processingResult.ColorSeedInLow;
                     BestSeedHigh = processingResult.ColorSeedInHigh;
@@ -386,9 +384,9 @@ namespace ColourClashNet.Color.Transformation
                             for (int high = low + step - 1; high < endH; high += step, cycle++)
                             {
                                 int highClamped = Math.Min(255, high);
-                                RaiseProcessPartialEvent(new ColorProcessingEventArgs()
+                                RaiseProgressEvent(new ColorProcessingEventArgs()
                                 {
-                                    ColorTransformInterface = this,
+                                    Transformation = this,
                                     ProcessingResults = ColorTransformResult.CreateValidResult(null, null, $"step {cycle} : Range [{lowClamped} - {highClamped}]")
                                 });
                                 token.ThrowIfCancellationRequested();
@@ -399,9 +397,9 @@ namespace ColourClashNet.Color.Transformation
                                 {
                                     bestResult = processingResult;
                                     LogDebug(sC, sM, $"{Type} : autotune new best at step {cycle} : seeds [{lowClamped} - {highClamped}] : error {processingResult.MergeError:g4}");
-                                    RaiseProcessPartialEvent(new ColorProcessingEventArgs()
+                                    RaiseProgressEvent(new ColorProcessingEventArgs()
                                     {
-                                        ColorTransformInterface = this,
+                                        Transformation = this,
                                         CompletedPercent = ((cycle * step * step) / ((256.0 - SeedLowUsed) * (256.0 - SeedLowUsed))) * 100.0,
                                         ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, processingResult?.MergeImage, $"step {cycle} : Range [{lowClamped} - {highClamped}] : Error = {processingResult?.MergeError}"),
                                     });
@@ -414,14 +412,14 @@ namespace ColourClashNet.Color.Transformation
                         start = Math.Max(0, (int)(bestResult.ColorSeedInLow - 16));
                         endL = (int)(bestResult.ColorSeedInLow + 16);
                         endH = bestResult.ColorSeedInHigh + 9;
-                        RaiseProcessPartialEvent(new ColorProcessingEventArgs()
+                        RaiseProgressEvent(new ColorProcessingEventArgs()
                         {
-                            ColorTransformInterface = this,
+                            Transformation = this,
                             ProcessingResults = ColorTransformResult.CreateValidResult(null, null, $"Refine Low palette : Range [{start} - {endL}]")
                         });
-                        RaiseProcessPartialEvent(new ColorProcessingEventArgs()
+                        RaiseProgressEvent(new ColorProcessingEventArgs()
                         {
-                            ColorTransformInterface = this,
+                            Transformation = this,
                             ProcessingResults = ColorTransformResult.CreateValidResult(null, null, $"Refine High palette : until {endH}")
                         });
                     }

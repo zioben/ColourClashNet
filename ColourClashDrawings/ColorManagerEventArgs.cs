@@ -18,7 +18,7 @@ namespace ColourClashNet.Drawing
         /// <summary>
         /// Transformation being executed.
         /// </summary>
-        public ColorTransformInterface? Transformation { get; internal set; }
+        public IColorTransform? Transformation { get; internal set; }
         /// <summary>
         /// Source image.
         /// </summary>

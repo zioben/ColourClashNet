@@ -18,12 +18,12 @@ namespace ColourClashNet.Color.Transformation
         /// Creates the color reduction that matches <paramref name="options"/>.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="options"/> is null.</exception>
-        public static ColorTransformInterface Alloc(ColorReductionOptions options)
+        public static IColorTransform Alloc(ColorReductionOptions options)
         {
             string sM = nameof(Alloc);
             if (options == null)
                 throw new ArgumentNullException($"{sC}.{sM} : {nameof(options)}");
-            return ColorTransformBase.CreateColorTransformInterface(options);
+            return ColorTransformBase.CreateTransform(options);
         }
     }
 }

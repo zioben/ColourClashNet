@@ -14,7 +14,7 @@ namespace ColourClashNet.Color.Transformation
     /// The color set is recursively split in two along the channel with the widest range, at the median value,
     /// until the requested number of boxes is reached; each box is then mapped to its representative color.
     /// </summary>
-    public class ColorTransformMedianCut : ColorTransformBase<MedianCutOptions>
+    public class ColorTransformMedianCut : ColorTransformMapBase<MedianCutOptions>
     {
         static readonly string sC = nameof(ColorTransformMedianCut);
 
@@ -24,7 +24,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformMedianCut()
         {
-            Type = ColorTransformType.ColorReductionMedianCut;
             Description = "Median partition color reduction";
         }
 

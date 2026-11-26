@@ -21,20 +21,20 @@ public partial class TileProcessing
 
     /// <summary>
     /// Raised with the progress of the tile transformation (forwarded from its
-    /// <see cref="ColorTransformInterface.ProcessPartial"/> and <see cref="ColorTransformInterface.ProcessAdvance"/> events).
+    /// <see cref="IColorTransform.Progress"/> event).
     /// </summary>
-    public event EventHandler<ColorProcessingEventArgs>? ProcessPartial;
+    public event EventHandler<ColorProcessingEventArgs>? Progress;
 
     /// <summary>
-    /// Raises <see cref="ProcessPartial"/> with a copy of the event data of the tile transformation.
+    /// Raises <see cref="Progress"/> with a copy of the event data of the tile transformation.
     /// </summary>
-    void RaiseProcessPartialEvent(object? sender, ColorProcessingEventArgs args)
+    void RaiseProgressEvent(object? sender, ColorProcessingEventArgs args)
     {
-        if (ProcessPartial == null || args == null)
+        if (Progress == null || args == null)
             return;
-        ProcessPartial.Invoke(this, new ColorProcessingEventArgs()
+        Progress.Invoke(this, new ColorProcessingEventArgs()
         {
-            ColorTransformInterface = args.ColorTransformInterface,
+            Transformation = args.Transformation,
             ProcessingResults = args.ProcessingResults,
             CancellationTokenSource = args.CancellationTokenSource,
             TransformationMap = args.TransformationMap,
@@ -46,7 +46,7 @@ public partial class TileProcessing
     protected TileItem? tileItem =  null;
 
     /// <summary>Color reduction applied to the tile (clustering by default).</summary>
-    protected ColorTransformInterface? transformation = null;
+    protected IColorTransform? transformation = null;
 
     /// <summary>Row (Y) of the tile origin in the source image.</summary>
     public int OriginRow => tileItem?.OriginY ?? 0; 
@@ -117,7 +117,7 @@ public partial class TileProcessing
             Reset();
             NormalizationError = normalizationError;
             tileItem = new TileItem().Create(sourceImage, sourceX, sourceY, tileWidth, tileHeight);
-            transformation = ColorTransformBase.CreateColorTransformInterface(tileOptions);
+            transformation = ColorTransformBase.CreateTransform(tileOptions);
             // Preview images of a single tile are useless and costly: progress messages are still raised
             // The tile step logs are disabled too: hundreds of tiles would flood the log (errors are still logged)
             if (transformation is ColorTransformBase transformationBase)
@@ -125,8 +125,7 @@ public partial class TileProcessing
                 transformationBase.EnablePreviewEvents = false;
                 transformationBase.LogProcessingSteps = false;
             }
-            transformation.ProcessPartial += RaiseProcessPartialEvent;
-            transformation.ProcessAdvance += RaiseProcessPartialEvent;
+            transformation.Progress += RaiseProgressEvent;
             return this;
         }
     }
@@ -140,7 +139,7 @@ public partial class TileProcessing
         lock (locker)
         {
             AssertValid(this);
-            var result = transformation.Create(tileItem.TileImage)?.ProcessColors(token);
+            var result = transformation.Process(tileItem.TileImage, null, token);
             if (result == null || !result.IsSuccess)
             {
                 LogMan.Error(sC, sM, $"Tile {this} transformation failed : {result?.Message ?? "transformation not created"}");

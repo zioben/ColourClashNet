@@ -21,7 +21,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformLumSat() 
         {
-            Type = ColorTransformType.ColorReductionSaturation;
             Description = "Expand color chrominance";
         }
 

@@ -27,7 +27,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformVGA()
         {
-            Type = ColorTransformType.ColorReductionVGA;
             Description = "Reduce colors to a VGA 256 color palette (RGB666)";
         }
 
@@ -49,7 +48,7 @@ namespace ColourClashNet.Color.Transformation
             {
                 Options = new QuantizationOptions { Mode = ColorQuantizationMode.RGB666, DistanceMode = Options.DistanceMode },
             });
-            var resultQuantized = quantization.CreateAndProcessColors(ImageSource, token);
+            var resultQuantized = quantization.Process(ImageSource, null, token);
             if (resultQuantized == null || !resultQuantized.IsSuccess)
             {
                 LogMan.Error(sC, sM, $"{Type} : RGB666 quantization failed");
@@ -61,7 +60,7 @@ namespace ColourClashNet.Color.Transformation
             var reduction = ForwardEventsFrom(ColorTransformInternal.Alloc(reductionOptions));
 
             LogTrace(sC, sM, $"{Type} : quantized image has {resultQuantized.DataOut.Colors} colors");
-            var reductionResult = reduction.CreateAndProcessColors(resultQuantized.DataOut, token);
+            var reductionResult = reduction.Process(resultQuantized.DataOut, null, token);
             if (reductionResult == null || !reductionResult.IsSuccess)
             {
                 LogMan.Error(sC, sM, $"{Type} : palette reduction failed");

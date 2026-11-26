@@ -16,7 +16,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformEGA()
         {
-            Type = ColorTransformType.ColorReductionEGA;
             Description = "Reduce color to EGA palette";
         }
 

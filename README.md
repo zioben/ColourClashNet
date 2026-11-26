@@ -52,10 +52,11 @@ var transform = new ColorTransformClustering
     },
 };
 
-var result = transform.CreateAndProcessColors(source);
+var result = transform.Process(source);            // or await transform.ProcessAsync(source)
 if (result.IsSuccess)
 {
-    ImageTools.SaveImage(transform.ImageOutput, "output.png", ImageSaveFormat.Png);
+    ImageTools.SaveImage(result.DataOut, "output.png", ImageSaveFormat.Png);
+    Console.WriteLine($"{result.TransformationError:g4} in {result.ProcessingTimeMilliseconds:f0} ms");
 }
 else
 {
@@ -63,10 +64,25 @@ else
 }
 ```
 
-The options record also selects the algorithm: `ColorTransformBase.CreateColorTransformInterface(options)`
-creates the matching transformation (`CreateColorTransformInterface(ColorTransformType)` uses the default options).
-Long transformations raise `Processing`, `ProcessPartial` (intermediate results, also from nested
-transformations and tiles) and `Processed` events, and can be cancelled with a `CancellationToken`.
+`Process(source, reference, token)` is the single entry point (`ProcessAsync` runs it on a worker thread):
+it loads the images, validates the options, transforms, dithers and evaluates the error.
+Errors and cancellation are returned in the result, never thrown.
+The options record also selects the algorithm: `ColorTransformBase.CreateTransform(options)`
+creates the matching `IColorTransform` (`CreateTransform(ColorTransformType)` uses the default options).
+
+Events of a run, in order:
+
+| Event | When | Typical use |
+|-|-|-|
+| `StartProcessing` | first, before anything is done | change the options with `SetOptions`, or cancel the run |
+| `Creating`, `Created` | around the loading of the images | reserved for future use |
+| `Processing` | options valid, transformation starting | show a progress window |
+| `Progress` | any number of times, also from nested transformations and tiles | progress percentage and intermediate images |
+| `Dithering` | before the final dithering (only when it is applied) | inspect the undithered image |
+| `Completed` | always last, also on error or cancellation | final result |
+
+`Destroying` and `Destroyed` are raised by `Dispose()` (reserved for future use).
+Every event carries a `CancellationTokenSource` linked to the run: cancelling it stops the processing.
 
 A transformation instance is not thread safe: it processes one image at a time.
 Run concurrent work on separate instances (the UI pipeline, the tiles and the nested steps always create their own).
@@ -111,13 +127,19 @@ graph TD;
     Dither_FX-->Output_Image;
 ```
 
-Each `ColorTransformBase` runs the same pipeline in `ProcessColors`:
-1. `CreateTransformationMap`: builds the source color to output color map;
-2. `ExecuteTransform`: produces the reduced image (default: applies the map);
-3. dithering against the reference image, when enabled and the result has at most 256 colors;
-4. evaluation of the mean color error (`TransformationError`).
+Each `ColorTransformBase` runs the same pipeline in `Process`:
+1. load the source and reference images;
+2. validate the options (invalid options give an error result listing every problem);
+3. `ExecuteTransform`: the single hook of the derived classes, produces the reduced image;
+4. dithering against the reference image, when enabled and the result has at most 256 colors;
+5. evaluation of the mean color error (`TransformationError`, also in the result with the processing time).
 
-Transformations that need a different order dither by themselves and skip step 3:
+Transformations based on a color map (fast, median cut, clustering, quantization, palette mappings, background removal)
+derive from `ColorTransformMapBase<TOptions>` and only implement `CreateTransformationMap`.
+`Type` always comes from the options (`TransformOptions.TransformType`).
+
+A transformation can skip step 4 by setting `BypassDithering` inside `ExecuteTransform`
+(the flag is reset at every run), when it dithers by itself or when dithering does not apply in its current mode:
 for example the wide pixel modes (CPC modes 0/3, C64 multicolor, CGA composite) dither at half horizontal resolution,
 before doubling the pixels back.
 
@@ -132,7 +154,7 @@ and odd widths are padded to an even number of columns.
 
 ## To do
 A lot of stuff, like sprite masking, raw data export for every system and assembly code generation.
-- Simplify `ColorTransformBase` (planned, on hold): see [docs/ColorTransformBase-simplification.md](./docs/ColorTransformBase-simplification.md).
+
 
 ## Support
 ### Quantization
@@ -260,7 +282,7 @@ blob.Options = blob.Options with { MinArea = 20 };
 (`./Logs/Log.txt`, archived above 4 MB in `./Logs/LogsArchive`) and to the `LogMan.OnLogMessage` event, used by the UI.
 Each line reports time, level and `Class.Method`:
 ```
-2026-11-21 22:30:24.218 | Debug | ColorTransformBase.ProcessColors : ColorReductionClustering : processing completed in 243 ms : 16 colors, error 7504
+2026-11-21 22:30:24.218 | Debug | ColorTransformBase.Process : ColorReductionClustering : processing completed in 243 ms : 16 colors, error 7504
 ```
 
 | Level | Content |

@@ -50,7 +50,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformCbmAmiga()
         {
-            Type = ColorTransformType.ColorReductionHam;
             Description = "Commodore Amiga specific color reduction";
         }
 
@@ -195,7 +194,7 @@ namespace ColourClashNet.Color.Transformation
                 Options = Options.InheritCommon(clustering) with { MaxColors = 32 },
             });
             LogDebug(sC, sM, $"{Type} : EHB clustering, 32 base colors + half-bright copies");
-            var result = transform.CreateAndProcessColors(dataPreProcessed, token);
+            var result = transform.Process(dataPreProcessed, null, token);
             if (result == null || !result.IsSuccess || result.DataOut == null)
             {
                 LogMan.Error(sC, sM, $"{Type} : EHB clustering failed : {result?.Message}");
@@ -224,7 +223,7 @@ namespace ColourClashNet.Color.Transformation
                 {
                     case EnumAmigaVideoMode.ExtraHalfBright:
                         {
-                            var resultQuantized = quantization.CreateAndProcessColors(ImageSource, token);
+                            var resultQuantized = quantization.Process(ImageSource, null, token);
                             if (resultQuantized == null || !resultQuantized.IsSuccess)
                             {
                                 LogMan.Error(sC, sM, $"{Type} : RGB444 quantization failed");
@@ -249,7 +248,7 @@ namespace ColourClashNet.Color.Transformation
                 }
 
                 quantization.Options = quantization.Options with { Mode = hamQuantization };
-                var quantizedResult = quantization.CreateAndProcessColors(ImageSource, token);
+                var quantizedResult = quantization.Process(ImageSource, null, token);
                 if (quantizedResult == null || !quantizedResult.IsSuccess)
                 {
                     LogMan.Error(sC, sM, $"{Type} : {hamQuantization} quantization failed");
@@ -260,7 +259,7 @@ namespace ColourClashNet.Color.Transformation
                 LogDebug(sC, sM, $"{Type} : {Options.VideoMode} : base palette of {maxColors} colors with {Options.BasePaletteReduction.TransformType} on {quantizedResult.DataOut.Colors} {hamQuantization} colors");
                 var cfg = Options.InheritCommon(Options.BasePaletteReduction) with { MaxColors = maxColors };
                 var colorReduction = ForwardEventsFrom(ColorTransformInternal.Alloc(cfg));
-                var dataPreprocessedResult = colorReduction.CreateAndProcessColors(quantizedResult.DataOut, token);
+                var dataPreprocessedResult = colorReduction.Process(quantizedResult.DataOut, null, token);
                 if (dataPreprocessedResult == null || !dataPreprocessedResult.IsSuccess)
                 {
                     LogMan.Error(sC, sM, $"{Type} : HAM base palette reduction failed : {dataPreprocessedResult?.Message}");

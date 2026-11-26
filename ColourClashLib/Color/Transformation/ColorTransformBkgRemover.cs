@@ -15,7 +15,7 @@ namespace ColourClashNet.Color.Transformation
     /// Replaces every color of <see cref="BackgroundRemovalOptions.BackgroundColors"/> with
     /// <see cref="BackgroundRemovalOptions.ReplacementColor"/>; other colors are kept.
     /// </summary>
-    public class ColorTransformBkgRemover : ColorTransformBase<BackgroundRemovalOptions>
+    public class ColorTransformBkgRemover : ColorTransformMapBase<BackgroundRemovalOptions>
     {
         static string sC = nameof(ColorTransformBkgRemover);
         /// <summary>
@@ -23,7 +23,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformBkgRemover()
         {
-            Type = ColorTransformType.ColorRemover;
             Description = "Basic Background Color Replacement";
         }
 
@@ -33,12 +32,11 @@ namespace ColourClashNet.Color.Transformation
 
 
         /// <summary>
-        /// Builds an identity map with the background colors redirected, then applies it.
+        /// Builds an identity map with the background colors redirected.
         /// </summary>
-        protected override ColorTransformResult ExecuteTransform(CancellationToken token = default)
+        protected override ColorTransformResult CreateTransformationMap(CancellationToken token)
         {
-           
-                string sM = nameof(ExecuteTransform);
+                string sM = nameof(CreateTransformationMap);
                 LogDebug(sC, sM, $"{Type} : replacing {Options.BackgroundColors?.Count ?? 0} background colors with {Options.ReplacementColor:X6}");
 
                 TransformationMap.Reset();
@@ -53,7 +51,7 @@ namespace ColourClashNet.Color.Transformation
                     TransformationMap.Remove(rgb);
                     TransformationMap.Add(rgb, Options.ReplacementColor);
                 }
-            return base.ExecuteTransform(token);
+            return ColorTransformResult.CreateValidResult();
         }
     }
 }

@@ -46,7 +46,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformScanLine()
         {
-            Type = ColorTransformType.ColorReductionScanline;
             Description = "Raster line color reduction";
         }
 
@@ -131,7 +130,7 @@ namespace ColourClashNet.Color.Transformation
                 // Reduce the whole image first: its palette becomes the shared palette of all chunks
                 LogDebug(sC, sM, $"{Type} : shared palette reduction of {mainPalette.Count} colors to {sharedOptions.MaxColors} with {sharedOptions.TransformType}");
                 var transform = ForwardEventsFrom(ColorTransformInternal.Alloc(sharedOptions));
-                var result = transform.CreateAndProcessColors(ImageSource, token);
+                var result = transform.Process(ImageSource, null, token);
                 if (result == null || !result.IsSuccess || result.DataOut == null)
                 {
                     LogMan.Error(sC, sM, $"{Type} : shared palette reduction failed");

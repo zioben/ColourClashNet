@@ -14,7 +14,7 @@ namespace ColourClashNet.Color.Transformation
     /// <see cref="ColorTransformFixedPalette"/> returns <see cref="TransformOptions.UserPalette"/>.
     /// </summary>
     /// <typeparam name="TOptions">Option record of the transformation</typeparam>
-    public abstract class ColorTransformPaletteMapping<TOptions> : ColorTransformBase<TOptions> where TOptions : TransformOptions, new()
+    public abstract class ColorTransformPaletteMapping<TOptions> : ColorTransformMapBase<TOptions> where TOptions : TransformOptions, new()
     {
         /// <summary>
         /// Returns the palette the image is mapped to, for the current options.
@@ -52,7 +52,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformFixedPalette()
         {
-            Type = ColorTransformType.ColorReductionGenericPalette;
             Description = "Color palette transformation";
         }
 

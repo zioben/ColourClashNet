@@ -34,7 +34,7 @@ public partial class TileManager
     /// Raised with the progress of the tile processing: one event per processed tile row,
     /// plus the events forwarded from the tile transformations (throttled, see <see cref="TileEventInterval"/>).
     /// </summary>
-    public event EventHandler<ColorProcessingEventArgs>? ProcessPartial;
+    public event EventHandler<ColorProcessingEventArgs>? Progress;
 
     /// <summary>
     /// Minimum interval between two forwarded tile transformation events.
@@ -51,7 +51,7 @@ public partial class TileManager
     /// </summary>
     void ForwardTileEvent(object? sender, ColorProcessingEventArgs args)
     {
-        if (ProcessPartial == null)
+        if (Progress == null)
             return;
         long now = Environment.TickCount64;
         long last = Interlocked.Read(ref lastTileEventTicks);
@@ -60,19 +60,19 @@ public partial class TileManager
         // Only one of concurrent callers wins the slot
         if (Interlocked.CompareExchange(ref lastTileEventTicks, now, last) != last)
             return;
-        RaiseProcessPartialEvent(sender, args);
+        RaiseProgressEvent(sender, args);
     }
 
     /// <summary>
-    /// Raises <see cref="ProcessPartial"/> with a copy of <paramref name="args"/>.
+    /// Raises <see cref="Progress"/> with a copy of <paramref name="args"/>.
     /// </summary>
-    void RaiseProcessPartialEvent(object? sender, ColorProcessingEventArgs args)
+    void RaiseProgressEvent(object? sender, ColorProcessingEventArgs args)
     {
-        if (ProcessPartial == null || args == null)
+        if (Progress == null || args == null)
             return;
-        ProcessPartial.Invoke(this, new ColorProcessingEventArgs()
+        Progress.Invoke(this, new ColorProcessingEventArgs()
         {
-            ColorTransformInterface = args.ColorTransformInterface,
+            Transformation = args.Transformation,
             ProcessingResults = args.ProcessingResults,
             CancellationTokenSource = args.CancellationTokenSource,
             TransformationMap = args.TransformationMap,
@@ -193,7 +193,7 @@ public partial class TileManager
                             Math.Min(TileH, ImageSource.Height - ys),
                             NormalizationError,
                             tileOptions);
-                        tileProcessingMatrix[r, c].ProcessPartial += ForwardTileEvent;
+                        tileProcessingMatrix[r, c].Progress += ForwardTileEvent;
                     }
                 }//);
                 LogMan.Trace(sC, sM, $"{TileRows}x{TileColumns} tiles of {TileW}x{TileH} on a {ImageSource.Width}x{ImageSource.Height} image, tile transformation {tileOptions.TransformType}");
@@ -246,7 +246,7 @@ public partial class TileManager
                     }
                 }
                 // Tile row completed: report the overall progress
-                RaiseProcessPartialEvent(this, new ColorProcessingEventArgs()
+                RaiseProgressEvent(this, new ColorProcessingEventArgs()
                 {
                     ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, null, $"Tile row {r + 1}/{TileRows} processed"),
                     CompletedPercent = 100.0 * (r + 1) / TileRows,

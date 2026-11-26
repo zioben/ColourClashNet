@@ -35,7 +35,7 @@ namespace ModuleTester
         /// </summary>
         /// <param name="transform">Transformation to monitor</param>
         /// <param name="cancellationTokenSource">Token source cancelled by the abort button</param>
-        public void RegisterEvents(ColorTransformInterface transform, CancellationTokenSource? cancellationTokenSource)
+        public void RegisterEvents(IColorTransform transform, CancellationTokenSource? cancellationTokenSource)
         {
             Text = $"Processing - {transform.Type}";
             pvProcessing.RegisterEvents(transform, cancellationTokenSource);
@@ -47,7 +47,7 @@ namespace ModuleTester
         /// Returns once the form is attached to the transformation, so no processing event is lost when
         /// the caller starts the processing right after. The form closes automatically when the transformation ends.
         /// </summary>
-        static public void CreateProcessingForm(ColorTransformInterface transform, CancellationTokenSource cancellationTokenSource)
+        static public void CreateProcessingForm(IColorTransform transform, CancellationTokenSource cancellationTokenSource)
         {
             string sM = nameof(CreateProcessingForm);
             // Not disposed: the thread may still signal it after a timeout

@@ -20,7 +20,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformHercules()
         {
-            Type = ColorTransformType.ColorReductionHercules;
             Description = "Reduce color to Hercules palette";
         }
 
