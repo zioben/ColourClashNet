@@ -51,7 +51,7 @@ namespace XUnitTester
         {
             var t = new ColorTransformCbm64 { Options = new C64Options { VideoMode = ColorTransformCbm64.C64VideoMode.HiRes } };
 
-            var res = t.CreateAndProcessColors(Random(16, 16));
+            var res = t.Process(Random(16, 16));
 
             Assert.True(res.IsSuccess, res.Message);
             var m = t.ImageOutput.GetMatrix();
@@ -72,7 +72,7 @@ namespace XUnitTester
         {
             var t = new ColorTransformCbm64 { Options = new C64Options { VideoMode = ColorTransformCbm64.C64VideoMode.HiRes } };
 
-            var res = t.CreateAndProcessColors(Solid(8, 8, 0x7C70DA));
+            var res = t.Process(Solid(8, 8, 0x7C70DA));
 
             Assert.True(res.IsSuccess, res.Message);
             Assert.Equal(0x7C70DA, t.ImageOutput.GetMatrix()[0, 0]);
@@ -85,7 +85,7 @@ namespace XUnitTester
         {
             var t = new ColorTransformCbm64 { Options = new C64Options { VideoMode = ColorTransformCbm64.C64VideoMode.HiRes } };
 
-            var res = t.CreateAndProcessColors(Solid(12, 12, 0xFFFFFF));
+            var res = t.Process(Solid(12, 12, 0xFFFFFF));
 
             Assert.True(res.IsSuccess, res.Message);
             var m = t.ImageOutput.GetMatrix();
@@ -108,10 +108,10 @@ namespace XUnitTester
             // Fewer image colors than reference colors used to throw ArgumentOutOfRangeException
             var twoColors = new ImageData().Create(new int[,] { { 0x000000, 0xFFFFFF } });
             var t1 = new ColorTransformFixedPaletteEnhanced { Options = new EnhancedPaletteOptions { UserPalette = reference } };
-            Assert.True(t1.CreateAndProcessColors(twoColors).IsSuccess);
+            Assert.True(t1.Process(twoColors).IsSuccess);
 
             var t2 = new ColorTransformFixedPaletteEnhanced { Options = new EnhancedPaletteOptions { UserPalette = reference } };
-            var res = t2.CreateAndProcessColors(Random(16, 16));
+            var res = t2.Process(Random(16, 16));
             Assert.True(res.IsSuccess, res.Message);
             Assert.All(Colors(t2.ImageOutput), rgb => Assert.Contains(rgb, allowed));
         }
@@ -124,7 +124,7 @@ namespace XUnitTester
             var image = new ImageData().Create(new int[,] { { 0x000000, 0x0000FF, 0xFF0000, 0xFFFFFF, 0x00FF00 } });
             var t = new ColorTransformMedianCut { Options = new MedianCutOptions { MaxColors = 4 } };
 
-            var res = t.CreateAndProcessColors(image);
+            var res = t.Process(image);
 
             Assert.True(res.IsSuccess, res.Message);
             Assert.True(Colors(t.ImageOutput).Count >= 3);
@@ -136,7 +136,7 @@ namespace XUnitTester
             var image = new ImageData().Create(new int[,] { { 0x000000, 0x0000FF, 0xFF0000, 0xFFFFFF } });
             var t = new ColorTransformMedianCut { Options = new MedianCutOptions { MaxColors = 4 } };
 
-            t.CreateAndProcessColors(image);
+            t.Process(image);
 
             Assert.Equal(4, Colors(t.ImageOutput).Count);
         }
@@ -157,7 +157,7 @@ namespace XUnitTester
         {
             var t = new ColorTransformCbmAmiga { Options = new AmigaOptions { VideoMode = ColorTransformCbmAmiga.EnumAmigaVideoMode.Ham6 } };
 
-            var res = t.CreateAndProcessColors(Solid(8, 4, 0xFFFFFF));
+            var res = t.Process(Solid(8, 4, 0xFFFFFF));
 
             Assert.True(res.IsSuccess, res.Message);
             var m = t.ImageOutput.GetMatrix();
@@ -174,11 +174,11 @@ namespace XUnitTester
             var t = new ColorTransformCGA();
 
             t.Options = new CgaOptions { VideoMode = ColorTransformCGA.CGAVideoMode.Mode6 };
-            Assert.True(t.CreateAndProcessColors(image).IsSuccess);
+            Assert.True(t.Process(image).IsSuccess);
             var palMode6 = t.TargetPalette.ToList().OrderBy(x => x).ToList();
 
             t.Options = t.Options with { VideoMode = ColorTransformCGA.CGAVideoMode.Mode4_0L };
-            Assert.True(t.CreateAndProcessColors(image).IsSuccess);
+            Assert.True(t.Process(image).IsSuccess);
             var palMode4 = t.TargetPalette.ToList().OrderBy(x => x).ToList();
 
             Assert.NotEqual(palMode6, palMode4);
@@ -189,7 +189,7 @@ namespace XUnitTester
         {
             var t = new ColorTransformCGA { Options = new CgaOptions { VideoMode = ColorTransformCGA.CGAVideoMode.DebugPalette } };
 
-            Assert.True(t.CreateAndProcessColors(Random(8, 8)).IsSuccess);
+            Assert.True(t.Process(Random(8, 8)).IsSuccess);
         }
 
         [Fact]
@@ -197,7 +197,7 @@ namespace XUnitTester
         {
             var t = new ColorTransformEGA();
 
-            t.CreateAndProcessColors(Solid(4, 4, 0x55FFFF));
+            t.Process(Solid(4, 4, 0x55FFFF));
 
             Assert.Equal(16, t.TargetPalette.Count);
             Assert.Equal(0x55FFFF, t.ImageOutput.GetMatrix()[0, 0]);
@@ -215,7 +215,7 @@ namespace XUnitTester
         {
             var t = new ColorTransformLumSat { Options = new HsvOptions { HueShift = -60 } };
 
-            var res = t.CreateAndProcessColors(Solid(2, 2, 0xFF0000));
+            var res = t.Process(Solid(2, 2, 0xFF0000));
 
             Assert.True(res.IsSuccess, res.Message);
             Assert.Equal(0xFF00FF, t.ImageOutput.GetMatrix()[0, 0]);
@@ -228,7 +228,7 @@ namespace XUnitTester
         {
             var t = new ColorTransformQuantization { Options = new QuantizationOptions { Mode = ColorQuantizationMode.RGB333 } };
 
-            t.CreateAndProcessColors(Solid(2, 2, 0xFFFFFF));
+            t.Process(Solid(2, 2, 0xFFFFFF));
 
             Assert.Equal(0xFFFFFF, t.ImageOutput.GetMatrix()[0, 0]);
         }
@@ -240,7 +240,7 @@ namespace XUnitTester
             var image = new ImageData().Create(new int[,] { { tagged, 0x102030 } });
             var t = new ColorTransformFixedPalette { Options = new FixedPaletteOptions { UserPalette = new List<int> { 0x000000, 0xFFFFFF } } };
 
-            t.CreateAndProcessColors(image);
+            t.Process(image);
 
             Assert.Equal(tagged, t.ImageOutput.GetMatrix()[0, 0]);
         }

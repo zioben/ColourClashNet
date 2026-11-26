@@ -92,7 +92,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformCGA()
         {
-            Type = ColorTransformType.ColorReductionCGA;
             Description = "Reduce color to CGA palette";
             CreatePalette();
         }
@@ -327,7 +326,7 @@ namespace ColourClashNet.Color.Transformation
                 {
                     Options = Options.InheritCommon(new FixedPaletteOptions()) with { UserPalette = compositePalette.GetPalette().ToList() },
                 });
-                var mappedResult = mapping.CreateAndProcessColors(halfImage, token);
+                var mappedResult = mapping.Process(halfImage, null, token);
                 if (mappedResult == null || !mappedResult.IsSuccess || mappedResult.DataOut == null)
                 {
                     LogMan.Error(sC, sM, $"{Type} : composite palette mapping failed : {mappedResult?.Message}");

@@ -12,7 +12,7 @@ namespace ColourClashNet.Color.Transformation
     /// Records are immutable: change a value with <c>options with { ... }</c>, which keeps the runtime type,
     /// so the same instance can be shared by transformations, tiles and threads without copies.
     /// <para/>
-    /// The record type identifies the algorithm: <see cref="ColorTransformBase.CreateColorTransformInterface(TransformOptions)"/>
+    /// The record type identifies the algorithm: <see cref="ColorTransformBase.CreateTransform(TransformOptions)"/>
     /// creates the matching transformation, and <see cref="TransformOptionsSerializer"/> saves and loads presets as JSON.
     /// </summary>
     [TypeConverter(typeof(ExpandableObjectConverter))]

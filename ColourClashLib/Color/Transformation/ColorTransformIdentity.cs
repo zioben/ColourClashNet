@@ -21,7 +21,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformIdentity()
         {
-            Type = ColorTransformType.ColorIdentity;
             Description = "1:1 Color transformation";
         }
 

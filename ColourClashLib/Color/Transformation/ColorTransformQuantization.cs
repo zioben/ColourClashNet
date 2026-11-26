@@ -13,7 +13,7 @@ namespace ColourClashNet.Color.Transformation
     /// <summary>
     /// Reduces the bit depth of each RGB channel (see <see cref="ColorQuantizationMode"/>).
     /// </summary>
-    public class ColorTransformQuantization : ColorTransformBase<QuantizationOptions>
+    public class ColorTransformQuantization : ColorTransformMapBase<QuantizationOptions>
     {
 
         static string sC = nameof(ColorTransformQuantization);
@@ -22,7 +22,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformQuantization()
         {
-            Type = ColorTransformType.ColorReductionQuantization;
             Description = "Reduces color bit spectrum";
         }
 

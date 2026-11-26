@@ -26,7 +26,7 @@ namespace ColourClashNet.Color.Transformation
     /// iterations; <typeparamref name="T"/> defines how a cluster computes its color (e.g. Amiga EHB half-bright pairs).
     /// </summary>
     /// <typeparam name="T">Cluster evolution strategy</typeparam>
-    public class ColorTransformClusteringTemplate<T> : ColorTransformBase<ClusteringOptions> where T : IColorEvolution, new()
+    public class ColorTransformClusteringTemplate<T> : ColorTransformMapBase<ClusteringOptions> where T : IColorEvolution, new()
     {
         static string sC = nameof(ColorTransformClusteringTemplate<T>);
 
@@ -37,7 +37,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformClusteringTemplate()
         {
-            Type = ColorTransformType.ColorReductionClustering;
             Description = "K-Means color reduction";
         }
 
@@ -48,7 +47,7 @@ namespace ColourClashNet.Color.Transformation
 
 
         /// <summary>
-        /// Runs the clustering and builds the map from the last evolution; raises <see cref="ColorTransformBase.ProcessPartial"/> after each loop.
+        /// Runs the clustering and builds the map from the last evolution; raises <see cref="ColorTransformBase.Progress"/> after each loop.
         /// </summary>
         protected override ColorTransformResult CreateTransformationMap(CancellationToken token = default)
         {
@@ -120,7 +119,7 @@ namespace ColourClashNet.Color.Transformation
 
                 var args = new ColorProcessingEventArgs()
                 {
-                    ColorTransformInterface = this,
+                    Transformation = this,
                     ProcessingResults = ColorTransformResult.CreateValidResult(ImageSource, null, $"Loop {train}/{options.TrainingLoops}"),
                     CompletedPercent = 100 * (train + 1) / options.TrainingLoops
                 };
@@ -130,7 +129,7 @@ namespace ColourClashNet.Color.Transformation
                     args.ProcessingResults.DataOut = map.Transform(ImageSource, token);
                 }
 
-                RaiseProcessPartialEvent(args);
+                RaiseProgressEvent(args);
             }
             TransformationMap = evolutions.Last().CreateTransformationMap(ImageSource, ColorDistanceEvaluationMode);
             LogDebug(sC, sMethod, $"{Type} : clustering completed : {TransformationMap.GetOutputPalette().Count} output colors");

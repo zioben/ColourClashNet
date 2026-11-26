@@ -110,14 +110,13 @@ namespace ModuleTester
             lastOptions = options;
             bitmapRenderOUT.Image = null;
             // Deep copy: edits made in the property grid during the run do not affect it
-            var transform = ColorTransformBase.CreateColorTransformInterface(options.DeepClone());
+            var transform = ColorTransformBase.CreateTransform(options.DeepClone());
             var imageData = ImageToolsGDI.GdiImageToImageData(bitmapRenderIN.Image as Bitmap);
             _ = Task.Run(() =>
             {
                 var cts = new CancellationTokenSource();
                 ProcessingForm.CreateProcessingForm(transform, cts);
-                transform.Create(imageData);
-                var result = transform.ProcessColors(cts.Token);
+                var result = transform.Process(imageData, null, cts.Token);
                 Invoke(() =>
                 {
                     bitmapRenderOUT.Image = result.IsSuccess ? ImageToolsGDI.ImageDataToGdiImage(result.DataOut) : null;

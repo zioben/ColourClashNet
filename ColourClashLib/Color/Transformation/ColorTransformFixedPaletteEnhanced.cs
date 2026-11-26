@@ -12,7 +12,7 @@ namespace ColourClashNet.Color.Transformation
     /// <para/>
     /// The mean colors represent the visual result of a 50% checkerboard dither between the two colors.
     /// </summary>
-    public class ColorTransformFixedPaletteEnhanced : ColorTransformBase<EnhancedPaletteOptions>
+    public class ColorTransformFixedPaletteEnhanced : ColorTransformMapBase<EnhancedPaletteOptions>
     {
         static readonly string sC = nameof(ColorTransformFixedPaletteEnhanced);
         /// <summary>
@@ -20,7 +20,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformFixedPaletteEnhanced()
         {
-            Type = ColorTransformType.ColorReductionEnhancedPalette;
             Description = "Enhanced color palette transformation";
         }
 

@@ -61,7 +61,7 @@ namespace ColourClashNet.Controls
 
         readonly ConcurrentQueue<ProgressItem> queue = new();
         readonly System.Windows.Forms.Timer refreshTimer = new() { Interval = RefreshIntervalMilliseconds };
-        ColorTransformInterface? transformation;
+        IColorTransform? transformation;
         CancellationTokenSource? cts;
         volatile bool completedNotified;
 
@@ -89,7 +89,7 @@ namespace ColourClashNet.Controls
         /// </summary>
         /// <param name="transform">Transformation to monitor</param>
         /// <param name="cancellationTokenSource">Token source cancelled by the abort button (optional: the processing events also provide it)</param>
-        public void RegisterEvents(ColorTransformInterface transform, CancellationTokenSource? cancellationTokenSource = null)
+        public void RegisterEvents(IColorTransform transform, CancellationTokenSource? cancellationTokenSource = null)
         {
             ArgumentNullException.ThrowIfNull(transform);
             UnregisterEvents();
@@ -98,8 +98,8 @@ namespace ColourClashNet.Controls
             transformation = transform;
             cts = cancellationTokenSource;
             transform.Processing += transform_Processing;
-            transform.ProcessPartial += transform_ProcessPartial;
-            transform.Processed += transform_Processed;
+            transform.Progress += transform_ProcessPartial;
+            transform.Completed += transform_Completed;
             RunOnUiThread(() =>
             {
                 ResetControls();
@@ -117,8 +117,8 @@ namespace ColourClashNet.Controls
             if (transform != null)
             {
                 transform.Processing -= transform_Processing;
-                transform.ProcessPartial -= transform_ProcessPartial;
-                transform.Processed -= transform_Processed;
+                transform.Progress -= transform_ProcessPartial;
+                transform.Completed -= transform_Completed;
             }
             transformation = null;
         }
@@ -132,8 +132,8 @@ namespace ColourClashNet.Controls
             queue.Enqueue(new ProgressItem
             {
                 Time = DateTime.Now,
-                Message = $"{e.ColorTransformInterface?.Type} : processing started",
-                Source = e.ColorTransformInterface?.ImageSource,
+                Message = $"{e.Transformation?.Type} : processing started",
+                Source = e.Transformation?.ImageSource,
                 Percent = 0,
             });
         }
@@ -144,23 +144,23 @@ namespace ColourClashNet.Controls
             queue.Enqueue(new ProgressItem
             {
                 Time = DateTime.Now,
-                Message = string.IsNullOrEmpty(message) ? null : $"{e.ColorTransformInterface?.Type} : {message}",
+                Message = string.IsNullOrEmpty(message) ? null : $"{e.Transformation?.Type} : {message}",
                 Preview = e.ProcessingResults?.DataOut,
                 Percent = e.CompletedPercent,
             });
         }
 
-        private void transform_Processed(object? sender, ColorProcessingEventArgs e)
+        private void transform_Completed(object? sender, ColorProcessingEventArgs e)
         {
             var result = e.ProcessingResults;
             queue.Enqueue(new ProgressItem
             {
                 Time = DateTime.Now,
                 Message = result == null
-                    ? $"{e.ColorTransformInterface?.Type} : processing ended"
+                    ? $"{e.Transformation?.Type} : processing ended"
                     : result.IsSuccess
-                        ? $"{e.ColorTransformInterface?.Type} : processing completed"
-                        : $"{e.ColorTransformInterface?.Type} : processing failed : {result.Message}",
+                        ? $"{e.Transformation?.Type} : processing completed"
+                        : $"{e.Transformation?.Type} : processing failed : {result.Message}",
                 Preview = result?.DataOut,
                 Percent = result?.IsSuccess == true ? 100 : double.NaN,
                 Completed = true,

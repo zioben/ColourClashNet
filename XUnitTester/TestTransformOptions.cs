@@ -19,7 +19,7 @@ namespace XUnitTester
         public void DefaultOptions_AreValid_AndCreateTheMatchingTransformation(ColorTransformType type)
         {
             var options = TransformOptions.CreateDefault(type);
-            var transform = ColorTransformBase.CreateColorTransformInterface(options);
+            var transform = ColorTransformBase.CreateTransform(options);
 
             Assert.Same(options, transform.Options);
             var expected = type == ColorTransformType.None ? ColorTransformType.ColorIdentity : type;
@@ -140,7 +140,7 @@ namespace XUnitTester
             var image = new ImageData().Create(MatrixTools.CreateMatrix(4, 4, 0x808080));
             var transform = new ColorTransformClustering { Options = new ClusteringOptions { MaxColors = 0 } };
 
-            var result = transform.CreateAndProcessColors(image);
+            var result = transform.Process(image);
 
             Assert.False(result.IsSuccess);
             Assert.Contains("invalid options", result.Message);
@@ -150,7 +150,7 @@ namespace XUnitTester
         [Fact]
         public void SetOptions_WithWrongType_Throws()
         {
-            ColorTransformInterface transform = new ColorTransformFast();
+            IColorTransform transform = new ColorTransformFast();
             Assert.Throws<ArgumentException>(() => transform.SetOptions(new ClusteringOptions()));
             Assert.Same(transform, transform.SetOptions(new FastOptions { MaxColors = 3 }));
             Assert.Equal(3, ((FastOptions)transform.Options).MaxColors);
@@ -167,7 +167,7 @@ namespace XUnitTester
             int userColor = ColorIntExt.FromRGB(255, 0, 0);
             var transform = new ColorTransformFast { Options = new FastOptions { MaxColors = 4, UserPalette = new List<int> { userColor } } };
 
-            var result = transform.CreateAndProcessColors(image);
+            var result = transform.Process(image);
 
             Assert.True(result.IsSuccess, result.Message);
             Assert.Contains(userColor, transform.TransformationMap.GetOutputPalette().ToList());

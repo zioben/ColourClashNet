@@ -11,7 +11,7 @@ namespace ColourClashNet.Color.Transformation
     /// Fast color reduction: keeps the <see cref="ColorReductionOptions.MaxColors"/> most frequent colors (after the user palette)
     /// and maps every other color to the nearest kept one.
     /// </summary>
-    public class ColorTransformFast : ColorTransformBase<FastOptions>
+    public class ColorTransformFast : ColorTransformMapBase<FastOptions>
     {
         static readonly string sC = nameof(ColorTransformFast);
 
@@ -20,7 +20,6 @@ namespace ColourClashNet.Color.Transformation
         /// </summary>
         public ColorTransformFast()
         {
-            Type = ColorTransformType.ColorReductionFast;
             Description = "Quantitative color reduction";
         }
 

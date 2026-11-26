@@ -64,10 +64,10 @@ namespace ColourClashNet.Components
         public PipelineOptions Pipeline { get; set; } = new PipelineOptions();
 
 
-        ColorTransformInterface transformSource;
-        ColorTransformInterface transformBkgRemover;
-        ColorTransformInterface transformQuantizer;
-        ColorTransformInterface transformProcessing;
+        IColorTransform transformSource;
+        IColorTransform transformBkgRemover;
+        IColorTransform transformQuantizer;
+        IColorTransform transformProcessing;
 
         /// <summary>
         /// Source image.
@@ -296,7 +296,7 @@ namespace ColourClashNet.Components
             {
                 ResetProcessingData();
                 LogMan.Debug(sClass, sMethod, "pre-processing started");
-                transformSource.CreateAndProcessColors(DataSourceX);
+                transformSource.Process(DataSourceX);
 
                 CancellationTokenSource cts = new CancellationTokenSource();
 
@@ -305,10 +305,9 @@ namespace ColourClashNet.Components
                 var pipeline = Pipeline;
 
                 LogMan.Trace(sClass, sMethod, $"background removal : {pipeline.Background.BackgroundColors.Count} colors replaced with {pipeline.Background.ReplacementColor:X6}");
-                transformBkgRemover
+                var bkgRemovedResult = transformBkgRemover
                     .SetOptions(pipeline.Background with { Dithering = DitherOptions.None })
-                    .Create(DataSourceX);
-                var bkgRemovedResult = transformBkgRemover.ProcessColors(cts.Token);
+                    .Process(DataSourceX, null, cts.Token);
                 if (!bkgRemovedResult.IsSuccess)
                 {
                     // Error results may carry a partial image: never use it as a pipeline stage
@@ -320,11 +319,9 @@ namespace ColourClashNet.Components
                 ImageBkgRemoved = ImageToolsGDI.ImageDataToGdiImage(DataBkgRemoved);
 
                 LogMan.Trace(sClass, sMethod, $"quantization : {pipeline.Quantization}");
-                transformQuantizer
+                var quantizedResult = transformQuantizer
                     .SetOptions(new QuantizationOptions { Mode = pipeline.Quantization })
-                    .Create(DataBkgRemoved);
-
-                var quantizedResult = transformQuantizer.ProcessColors(cts.Token);
+                    .Process(DataBkgRemoved, null, cts.Token);
                 if (!quantizedResult.IsSuccess)
                 {
                     LogMan.Error(sClass, sMethod, $"Quantization failed : {quantizedResult.Message}");
@@ -395,11 +392,10 @@ namespace ColourClashNet.Components
                 }
                 var transformOptions = Pipeline.Transform.DeepClone();
                 LogMan.Message(sClass, sMethod, $"{transformOptions.TransformType} started on {DataQuantized?.Width}x{DataQuantized?.Height}, {DataQuantized?.Colors} colors");
-                transformProcessing = ColorTransformBase.CreateColorTransformInterface(transformOptions);
+                transformProcessing = ColorTransformBase.CreateTransform(transformOptions);
                 CancellationTokenSource cts = new CancellationTokenSource();
                 ProcessingForm.CreateProcessingForm(transformProcessing, cts);
-                transformProcessing.Create(DataQuantized);
-                var processedResult = transformProcessing.ProcessColors(cts.Token);
+                var processedResult = transformProcessing.Process(DataQuantized, null, cts.Token);
                 if (!processedResult.IsSuccess)
                 {
                     LogMan.Error(sClass, sMethod, $"{transformOptions.TransformType} failed : {processedResult.Message}");
@@ -408,7 +404,7 @@ namespace ColourClashNet.Components
                     return null;
                 }
                 DataProcessed = processedResult.DataOut;
-                LogMan.Message(sClass, sMethod, $"{transformOptions.TransformType} completed in {(transformProcessing as ColorTransformBase)?.ProcessingTimeMilliseconds ?? 0:f0} ms : {DataProcessed.Colors} colors, error {transformProcessing.TransformationError:g4}");
+                LogMan.Message(sClass, sMethod, $"{transformOptions.TransformType} completed in {processedResult.ProcessingTimeMilliseconds:f0} ms : {DataProcessed.Colors} colors, error {processedResult.TransformationError:g4}");
                 ImageProcessed = ImageToolsGDI.ImageDataToGdiImage(DataProcessed);
                 OnProcess?.Invoke(this, new ColorManagerProcessEventArgs
                 {

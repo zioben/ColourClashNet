@@ -43,6 +43,14 @@ namespace ColourClashNet.Color.Transformation
         /// Exception that caused the failure, if any.
         /// </summary>
         public Exception? Exception { get; internal set; }
+        /// <summary>
+        /// Mean color error between the reference and the output image; NaN when not computed (set on the final result of a run).
+        /// </summary>
+        public double TransformationError { get; internal set; } = double.NaN;
+        /// <summary>
+        /// Duration of the run, in milliseconds; NaN when not measured (set on the final result of a run).
+        /// </summary>
+        public double ProcessingTimeMilliseconds { get; internal set; } = double.NaN;
 
 
         /// <summary>
@@ -166,18 +174,18 @@ namespace ColourClashNet.Color.Transformation
     }
 
     /// <summary>
-    /// Event data raised by <see cref="ColorTransformInterface"/> during processing.
+    /// Event data raised by <see cref="IColorTransform"/> during processing.
     /// </summary>
     public class ColorProcessingEventArgs : EventArgs
     {
         /// <summary>
-        /// Current or final result; null when processing starts.
+        /// Current or final result; null in the events raised before the transformation (start, loading, processing).
         /// </summary>
         public ColorTransformResult ProcessingResults { get; init; }
         /// <summary>
         /// Transformation that raised the event.
         /// </summary>
-        public ColorTransformInterface ColorTransformInterface { get; init; }
+        public IColorTransform Transformation { get; init; }
         /// <summary>
         /// Token source linked to the processing: cancel it to abort the transformation.
         /// </summary>
