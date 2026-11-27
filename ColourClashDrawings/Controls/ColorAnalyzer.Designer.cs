@@ -1481,7 +1481,7 @@
             // 
             tsShapes.Dock = DockStyle.Fill;
             tsShapes.GripStyle = ToolStripGripStyle.Hidden;
-            tsShapes.Items.AddRange(new ToolStripItem[] { tsbShapeRectangle, tsbShapeEllipse, tsbShapePolygon, tsbShapeFreehand, tssShapes, tsbShapeReset, tsbShapeExtract });
+            tsShapes.Items.AddRange(new ToolStripItem[] { tsbShapeFreehand, tsbShapeRectangle, tsbShapeEllipse, tsbShapePolygon, tssShapes, tsbShapeReset, tsbShapeExtract });
             tsShapes.Location = new Point(0, 0);
             tsShapes.Name = "tsShapes";
             tsShapes.Size = new Size(515, 27);
@@ -1491,7 +1491,7 @@
             // tsbShapeRectangle
             // 
             tsbShapeRectangle.CheckOnClick = true;
-            tsbShapeRectangle.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsbShapeRectangle.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbShapeRectangle.Name = "tsbShapeRectangle";
             tsbShapeRectangle.Text = "Rectangle";
             tsbShapeRectangle.ToolTipText = "Right button: drag to draw a rectangular ROI";
@@ -1499,7 +1499,7 @@
             // tsbShapeEllipse
             // 
             tsbShapeEllipse.CheckOnClick = true;
-            tsbShapeEllipse.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsbShapeEllipse.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbShapeEllipse.Name = "tsbShapeEllipse";
             tsbShapeEllipse.Text = "Ellipse";
             tsbShapeEllipse.ToolTipText = "Right button: drag to draw an elliptic ROI";
@@ -1507,7 +1507,7 @@
             // tsbShapePolygon
             // 
             tsbShapePolygon.CheckOnClick = true;
-            tsbShapePolygon.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsbShapePolygon.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbShapePolygon.Name = "tsbShapePolygon";
             tsbShapePolygon.Text = "Polygon";
             tsbShapePolygon.ToolTipText = "Right button: click to add vertices, double click or click the first vertex to close";
@@ -1515,7 +1515,7 @@
             // tsbShapeFreehand
             // 
             tsbShapeFreehand.CheckOnClick = true;
-            tsbShapeFreehand.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsbShapeFreehand.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbShapeFreehand.Name = "tsbShapeFreehand";
             tsbShapeFreehand.Text = "Freehand";
             tsbShapeFreehand.ToolTipText = "Right button: drag to draw a free hand ROI";
@@ -1526,14 +1526,14 @@
             // 
             // tsbShapeReset
             // 
-            tsbShapeReset.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsbShapeReset.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbShapeReset.Name = "tsbShapeReset";
             tsbShapeReset.Text = "Reset Shape";
             tsbShapeReset.ToolTipText = "Remove the ROI";
             // 
             // tsbShapeExtract
             // 
-            tsbShapeExtract.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsbShapeExtract.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbShapeExtract.Name = "tsbShapeExtract";
             tsbShapeExtract.Text = "Extract Shape";
             tsbShapeExtract.ToolTipText = "Open the ROI of the source image in a new tab";

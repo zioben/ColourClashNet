@@ -205,12 +205,20 @@ namespace ColourClashNet.Controls
         /// </summary>
         void CreateShapeTools()
         {
+            // Icons drawn at run time; the button texts remain as tooltips
+            tsbShapeFreehand.Image = ShapeIcons.Freehand();
+            tsbShapeRectangle.Image = ShapeIcons.Rectangle();
+            tsbShapeEllipse.Image = ShapeIcons.Ellipse();
+            tsbShapePolygon.Image = ShapeIcons.Polygon();
+            tsbShapeReset.Image = ShapeIcons.Reset();
+            tsbShapeExtract.Image = ShapeIcons.Extract();
+
             var toolButtons = new Dictionary<ToolStripButton, Components.BitmapRender.EnumShapeTool>
             {
+                [tsbShapeFreehand] = Components.BitmapRender.EnumShapeTool.Freehand,
                 [tsbShapeRectangle] = Components.BitmapRender.EnumShapeTool.Rectangle,
                 [tsbShapeEllipse] = Components.BitmapRender.EnumShapeTool.Ellipse,
                 [tsbShapePolygon] = Components.BitmapRender.EnumShapeTool.Polygon,
-                [tsbShapeFreehand] = Components.BitmapRender.EnumShapeTool.Freehand,
             };
             // The tool buttons work as radio buttons: clicking the checked one turns the tool off
             foreach (var (button, tool) in toolButtons)

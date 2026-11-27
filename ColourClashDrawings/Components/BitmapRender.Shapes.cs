@@ -32,14 +32,14 @@ namespace ColourClashNet.Components
         {
             /// <summary>No drawing: the right button opens the context menu and edits an existing shape.</summary>
             None,
+            /// <summary>Free hand ROI.</summary>
+            Freehand,
             /// <summary>Rectangular ROI.</summary>
             Rectangle,
             /// <summary>Elliptic ROI.</summary>
             Ellipse,
             /// <summary>Polygonal ROI, one vertex per click.</summary>
             Polygon,
-            /// <summary>Free hand ROI.</summary>
-            Freehand,
         }
 
         /// <summary>

@@ -283,8 +283,8 @@ The source and processed images are shown by `BitmapRender` views:
 | Right click | context menu: zoom, reset position, shape tools, color picking |
 
 A region of interest (ROI) is drawn with the right button, after choosing a tool in the toolbar
-(Rectangle, Ellipse, Polygon, Freehand) or in the context menu:
-- Rectangle, Ellipse, Freehand: drag to draw;
+(Freehand, Rectangle, Ellipse, Polygon; the button names are in the tooltips) or in the context menu:
+- Freehand, Rectangle, Ellipse: drag to draw;
 - Polygon: click to add vertices, double click or click the first vertex to close it;
 - drag a handle (box corners and edge midpoints, polygon vertices) to resize or reshape, drag inside the ROI to move it;
 - a click inside the ROI, a click with no tool, or Ctrl + click opens the context menu.
