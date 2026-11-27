@@ -226,6 +226,12 @@ namespace ColourClashNet.Controls
                 button.Click += (s, e) => SetShapeTool(button.Checked ? tool : Components.BitmapRender.EnumShapeTool.None);
             }
             tsbShapeReset.Click += (s, e) => bitmapRenderSource.ResetShape();
+            // The status bar shows the ROI size in image pixels (the size of the extracted image)
+            bitmapRenderSource.ShapeChanged += (s, e) =>
+            {
+                var size = bitmapRenderSource.ShapePixelSize;
+                tsShapeSize.Text = size.IsEmpty ? "-" : $"{size.Width} x {size.Height}";
+            };
             tsbShapeExtract.Click += (s, e) => ExtractShape(bitmapRenderSource);
 
             foreach (var render in new[] { bitmapRenderSource, bitmapRenderDest })

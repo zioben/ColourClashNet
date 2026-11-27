@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using PointF = System.Drawing.PointF;
 using RectangleF = System.Drawing.RectangleF;
+using PixelRectangle = System.Drawing.Rectangle;
 
 namespace ColourClashNet.Imaging.Shapes
 {
@@ -68,13 +69,43 @@ namespace ColourClashNet.Imaging.Shapes
         /// <summary>
         /// True when the shape covers at least one pixel in width and height.
         /// </summary>
-        public virtual bool IsValid => Bounds.Width >= 1 && Bounds.Height >= 1;
+        public virtual bool IsValid => PixelBounds.Width >= 1 && PixelBounds.Height >= 1;
 
         /// <summary>
-        /// Cuts the shape out of <paramref name="image"/>: the result is the part of the image inside <see cref="Bounds"/>,
-        /// and the pixels outside the shape are set to <paramref name="outsideColor"/>.
+        /// Pixels covered by the shape: <see cref="Bounds"/> extended to whole pixels.
         /// <para/>
-        /// A pixel belongs to the shape when its center is inside it.
+        /// It is the area extracted by <see cref="ExtractFrom"/> (before clipping to the image), so its size is the size
+        /// of the extracted image.
+        /// </summary>
+        public PixelRectangle PixelBounds
+        {
+            get
+            {
+                var bounds = Bounds;
+                int left = (int)Math.Floor(bounds.Left + PixelEpsilon);
+                int top = (int)Math.Floor(bounds.Top + PixelEpsilon);
+                int right = (int)Math.Ceiling(bounds.Right - PixelEpsilon);
+                int bottom = (int)Math.Ceiling(bounds.Bottom - PixelEpsilon);
+                return new PixelRectangle(left, top, Math.Max(0, right - left), Math.Max(0, bottom - top));
+            }
+        }
+
+        /// <summary>
+        /// Tolerance used to round the bounds to whole pixels (absorbs the float error of the view transformation).
+        /// </summary>
+        const float PixelEpsilon = 1e-3f;
+
+        /// <summary>
+        /// True when the pixels of <see cref="PixelBounds"/> outside the shape must be replaced in <see cref="ExtractFrom"/>.
+        /// A rectangle covers its whole box, so it never needs it.
+        /// </summary>
+        protected virtual bool MasksOutsidePixels => true;
+
+        /// <summary>
+        /// Cuts the shape out of <paramref name="image"/>: the result is the part of the image inside <see cref="PixelBounds"/>.
+        /// <para/>
+        /// For the shapes other than the rectangle, the pixels whose center is outside the shape are set to
+        /// <paramref name="outsideColor"/>; a rectangle keeps every pixel of its box.
         /// </summary>
         /// <param name="image">Source image</param>
         /// <param name="outsideColor">Value of the pixels outside the shape (e.g. the background color, or a mask tag)</param>
@@ -82,21 +113,22 @@ namespace ColourClashNet.Imaging.Shapes
         public ImageData? ExtractFrom(ImageData image, int outsideColor)
         {
             ImageData.AssertValid(image);
-            var bounds = Bounds;
-            int left = Math.Max(0, (int)Math.Floor(bounds.Left));
-            int top = Math.Max(0, (int)Math.Floor(bounds.Top));
-            int right = Math.Min(image.Width, (int)Math.Ceiling(bounds.Right));
-            int bottom = Math.Min(image.Height, (int)Math.Ceiling(bounds.Bottom));
+            var pixels = PixelBounds;
+            int left = Math.Max(0, pixels.Left);
+            int top = Math.Max(0, pixels.Top);
+            int right = Math.Min(image.Width, pixels.Right);
+            int bottom = Math.Min(image.Height, pixels.Bottom);
             if (right <= left || bottom <= top)
                 return null;
 
             var source = image.matrix;
+            bool mask = MasksOutsidePixels;
             var result = new int[bottom - top, right - left];
             for (int r = top; r < bottom; r++)
             {
                 for (int c = left; c < right; c++)
                 {
-                    result[r - top, c - left] = Contains(c + 0.5, r + 0.5) ? source[r, c] : outsideColor;
+                    result[r - top, c - left] = !mask || Contains(c + 0.5, r + 0.5) ? source[r, c] : outsideColor;
                 }
             }
             return new ImageData().Create(result);
@@ -189,6 +221,15 @@ namespace ColourClashNet.Imaging.Shapes
             => WithBox(new RectangleF(Box.X + dx, Box.Y + dy, Box.Width, Box.Height));
 
         /// <summary>
+        /// Returns the shape with the box edges rounded to whole pixels: what is drawn is exactly what is extracted.
+        /// </summary>
+        public BoxRoiShape SnapToPixels()
+        {
+            float left = MathF.Round(Box.Left), top = MathF.Round(Box.Top);
+            return (BoxRoiShape)WithBox(new RectangleF(left, top, MathF.Round(Box.Right) - left, MathF.Round(Box.Bottom) - top));
+        }
+
+        /// <summary>
         /// Returns the same kind of shape on another box.
         /// </summary>
         protected abstract RoiShape WithBox(RectangleF box);
@@ -212,6 +253,9 @@ namespace ColourClashNet.Imaging.Shapes
         /// <inheritdoc/>
         public override bool Contains(double x, double y)
             => x >= Box.Left && x < Box.Right && y >= Box.Top && y < Box.Bottom;
+
+        /// <inheritdoc/>
+        protected override bool MasksOutsidePixels => false;
 
         /// <inheritdoc/>
         protected override RoiShape WithBox(RectangleF box) => new RectangleRoiShape(box);

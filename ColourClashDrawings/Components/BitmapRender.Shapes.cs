@@ -249,6 +249,17 @@ namespace ColourClashNet.Components
         PointF ToControl(PointF imagePoint) => coordinateManager.Transform(imagePoint);
 
         /// <summary>
+        /// Rounds the box of rectangles and ellipses to whole pixels, so the drawn box is exactly the extracted one.
+        /// </summary>
+        static RoiShape? SnapToPixels(RoiShape? roi) => roi is BoxRoiShape box ? box.SnapToPixels() : roi;
+
+        /// <summary>
+        /// Size of the region of interest in image pixels (the size of the extracted image), or empty when there is none.
+        /// </summary>
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public Size ShapePixelSize => shape == null ? Size.Empty : shape.PixelBounds.Size;
+
+        /// <summary>
         /// Keeps a point inside the image.
         /// </summary>
         PointF ClampToImage(PointF point)
@@ -346,7 +357,8 @@ namespace ColourClashNet.Components
                     case EnumShapeDrag.NewBox:
                         {
                             var box = RoiShape.RectangleFromCorners(ClampToImage(dragStartImagePoint), ClampToImage(imagePoint));
-                            Shape = shapeTool == EnumShapeTool.Ellipse ? new EllipseRoiShape(box) : new RectangleRoiShape(box);
+                            BoxRoiShape newShape = shapeTool == EnumShapeTool.Ellipse ? new EllipseRoiShape(box) : new RectangleRoiShape(box);
+                            Shape = newShape.SnapToPixels();
                         }
                         break;
                     case EnumShapeDrag.NewFreehand:
@@ -362,10 +374,10 @@ namespace ColourClashNet.Components
                         }
                         break;
                     case EnumShapeDrag.MoveShape:
-                        Shape = dragStartShape?.Translate(imagePoint.X - dragStartImagePoint.X, imagePoint.Y - dragStartImagePoint.Y);
+                        Shape = SnapToPixels(dragStartShape?.Translate(imagePoint.X - dragStartImagePoint.X, imagePoint.Y - dragStartImagePoint.Y));
                         break;
                     case EnumShapeDrag.MoveHandle:
-                        Shape = dragStartShape?.MoveHandle(dragHandle, ClampToImage(imagePoint));
+                        Shape = SnapToPixels(dragStartShape?.MoveHandle(dragHandle, ClampToImage(imagePoint)));
                         break;
                 }
             }
@@ -516,7 +528,38 @@ namespace ColourClashNet.Components
                     DrawHandle(graphics, ToControl(vertex));
             }
 
+            DrawSizeLabel(graphics);
             graphics.SmoothingMode = previousSmoothing;
+        }
+
+        /// <summary>
+        /// While a shape is drawn or edited, shows its size in image pixels next to its bottom right corner.
+        /// </summary>
+        void DrawSizeLabel(Graphics graphics)
+        {
+            RoiShape? measured = null;
+            if (polygonDraft.Count > 0)
+                measured = new PolygonRoiShape(polygonDraft.Append(polygonPreview).ToArray());
+            else if (rightPressed && rightDragged && dragMode != EnumShapeDrag.None)
+                measured = shape;
+            if (measured == null)
+                return;
+
+            var pixels = measured.PixelBounds;
+            var text = $"{pixels.Width} x {pixels.Height}";
+            var font = control?.Font ?? SystemFonts.DefaultFont;
+            var textSize = graphics.MeasureString(text, font);
+            var corner = ToControl(new PointF(measured.Bounds.Right, measured.Bounds.Bottom));
+            var rect = new RectangleF(corner.X + 6, corner.Y + 6, textSize.Width + 6, textSize.Height + 2);
+            // Keep the label inside the control
+            if (control != null)
+            {
+                rect.X = Math.Clamp(rect.X, 0, Math.Max(0, control.Width - rect.Width));
+                rect.Y = Math.Clamp(rect.Y, 0, Math.Max(0, control.Height - rect.Height));
+            }
+            using var background = new SolidBrush(System.Drawing.Color.FromArgb(200, System.Drawing.Color.Black));
+            graphics.FillRectangle(background, rect);
+            graphics.DrawString(text, font, Brushes.White, rect.X + 3, rect.Y + 1);
         }
 
         /// <summary>
