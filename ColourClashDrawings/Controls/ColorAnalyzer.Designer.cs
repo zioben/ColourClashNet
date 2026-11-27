@@ -159,6 +159,8 @@
             tsMouseCoord = new ToolStripStatusLabel();
             tsColorLabel = new ToolStripStatusLabel();
             tsColorData = new ToolStripStatusLabel();
+            tsShapeLabel = new ToolStripStatusLabel();
+            tsShapeSize = new ToolStripStatusLabel();
             tsProgressLabel = new ToolStripStatusLabel();
             tsProcessingProgress = new ToolStripProgressBar();
             splitRenderLayout = new SplitContainer();
@@ -1542,7 +1544,7 @@
             // 
             ssImageData.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             ssImageData.Dock = DockStyle.None;
-            ssImageData.Items.AddRange(new ToolStripItem[] { tsLayout, tsImageLabel, tsImageCoord, tsMouseLabel, tsMouseCoord, tsColorLabel, tsColorData, tsProgressLabel, tsProcessingProgress });
+            ssImageData.Items.AddRange(new ToolStripItem[] { tsLayout, tsImageLabel, tsImageCoord, tsMouseLabel, tsMouseCoord, tsColorLabel, tsColorData, tsShapeLabel, tsShapeSize, tsProgressLabel, tsProcessingProgress });
             ssImageData.Location = new Point(0, 728);
             ssImageData.Name = "ssImageData";
             ssImageData.Size = new Size(515, 22);
@@ -1613,6 +1615,20 @@
             tsColorData.BackColor = System.Drawing.Color.Black;
             tsColorData.Name = "tsColorData";
             tsColorData.Size = new Size(22, 17);
+            // 
+            // tsShapeLabel
+            // 
+            tsShapeLabel.Name = "tsShapeLabel";
+            tsShapeLabel.Size = new Size(27, 17);
+            tsShapeLabel.Text = "ROI";
+            // 
+            // tsShapeSize
+            // 
+            tsShapeSize.AutoSize = false;
+            tsShapeSize.Name = "tsShapeSize";
+            tsShapeSize.Size = new Size(70, 17);
+            tsShapeSize.Text = "-";
+            tsShapeSize.ToolTipText = "Size of the region of interest, in image pixels";
             // 
             // tsProgressLabel
             // 
@@ -1899,6 +1915,8 @@
         private ToolStripStatusLabel tsMouseCoord;
         private ToolStripStatusLabel tsColorLabel;
         private ToolStripStatusLabel tsColorData;
+        private ToolStripStatusLabel tsShapeLabel;
+        private ToolStripStatusLabel tsShapeSize;
         private CheckBox chkShowTileBorders;
         private SplitContainer splitMainB_C;
         private GroupBox gbSetup;

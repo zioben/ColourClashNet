@@ -104,6 +104,31 @@ namespace XUnitTester
         }
 
         [Fact]
+        public void Rectangle_WithFractionalEdges_ExtractsEveryPixel_WithoutMask()
+        {
+            // Edges inside the border pixels: every covered pixel is kept, none is replaced
+            var shape = new RectangleRoiShape(new RectangleF(1.7f, 0.6f, 2.6f, 2.8f));
+
+            var extracted = shape.ExtractFrom(Numbered(8, 4), -1)!;
+
+            Assert.Equal(shape.PixelBounds.Size, new Size(extracted.Width, extracted.Height));
+            Assert.Equal(new Rectangle(1, 0, 4, 4), shape.PixelBounds);
+            Assert.DoesNotContain(-1, extracted.GetMatrix().Cast<int>());
+        }
+
+        [Fact]
+        public void SnapToPixels_RoundsTheBox_AndPixelBoundsMatchesTheExtractedSize()
+        {
+            var shape = new EllipseRoiShape(new RectangleF(1.4f, 2.6f, 5.3f, 3.1f)).SnapToPixels();
+
+            var ellipse = Assert.IsType<EllipseRoiShape>(shape);
+            Assert.Equal(new RectangleF(1, 3, 6, 3), ellipse.Box);
+            var extracted = shape.ExtractFrom(Numbered(10, 10), 0)!;
+            Assert.Equal(new Size(6, 3), shape.PixelBounds.Size);
+            Assert.Equal(new Size(6, 3), new Size(extracted.Width, extracted.Height));
+        }
+
+        [Fact]
         public void Extract_ClipsToTheImage_AndReturnsNullOutsideIt()
         {
             var image = Numbered(4, 4);

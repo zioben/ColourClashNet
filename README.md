@@ -286,12 +286,18 @@ A region of interest (ROI) is drawn with the right button, after choosing a tool
 (Freehand, Rectangle, Ellipse, Polygon; the button names are in the tooltips) or in the context menu:
 - Freehand, Rectangle, Ellipse: drag to draw;
 - Polygon: click to add vertices, double click or click the first vertex to close it;
-- drag a handle (box corners and edge midpoints, polygon vertices) to resize or reshape, drag inside the ROI to move it;
+- drag a handle (box corners and edge midpoints, polygon vertices) to resize or reshape, with the left or the right button;
+- drag the round center handle with either button, or inside the ROI with the right button, to move the whole ROI
+  (elsewhere the left button keeps scrolling the image);
 - a click inside the ROI, a click with no tool, or Ctrl + click opens the context menu.
 
 The ROI is kept in image coordinates (`ColourClashNet.Imaging.Shapes.RoiShape`), so it follows zoom and scroll,
-and it is shared by the source and processed views. **Extract Shape** opens the ROI in a new tab:
-the pixels outside the shape take the background replacement color, so the background removal can drop them.
+and it is shared by the source and processed views. Rectangles and ellipses snap to whole pixels.
+While a ROI is drawn or edited its size in image pixels is shown next to it, and the status bar always shows it.
+
+**Extract Shape** opens the ROI in a new tab, with the size shown. A rectangle keeps every pixel of its box;
+for the other shapes the pixels outside the shape take the background replacement color,
+so the background removal can drop them.
 
 ### Export
 - PNG, BMP and JPG through SkiaSharp (`ImageTools.SaveImage`);

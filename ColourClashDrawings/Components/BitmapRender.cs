@@ -534,7 +534,12 @@ namespace ColourClashNet.Components
         /// </summary>
         protected void OnMouseDown(object sender, MouseEventArgs args)
         {
-            OnShapeMouseDown(args);
+            // A press on a ROI handle edits the shape: the image must not scroll
+            if (OnShapeMouseDown(args) && args.Button == MouseMovingButton)
+            {
+                MouseDown?.Invoke(sender, args);
+                return;
+            }
             if (mouseManager.OnMouseDown(args))
             {
                 // Keep the image where it is: the new drag starts from the current translation
@@ -577,7 +582,11 @@ namespace ColourClashNet.Components
         /// </summary>
         protected void OnMouseUp(object sender, MouseEventArgs args)
         {
-            OnShapeMouseUp(args);
+            if (OnShapeMouseUp(args) && args.Button == MouseMovingButton)
+            {
+                MouseUp?.Invoke(sender, args);
+                return;
+            }
             if (mouseManager.OnMouseUp(args))
             {
                 UpdateMouseImageColor();
@@ -884,7 +893,8 @@ namespace ColourClashNet.Components
         /// </summary>
         protected void OnMouseDoubleClick(object? sender, MouseEventArgs args)
         {
-            if (args.Button == MouseMovingButton)
+            // Not on a ROI handle: a double click there belongs to the shape editing
+            if (args.Button == MouseMovingButton && HitHandle(args.Location) < 0 && !HitCenter(args.Location))
                 ResetPosition();
         }
 
