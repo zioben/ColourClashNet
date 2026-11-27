@@ -287,7 +287,8 @@ A region of interest (ROI) is drawn with the right button, after choosing a tool
 - Freehand, Rectangle, Ellipse: drag to draw;
 - Polygon: click to add vertices, double click or click the first vertex to close it;
 - drag a handle (box corners and edge midpoints, polygon vertices) to resize or reshape, with the left or the right button;
-- drag inside the ROI with the right button to move it (the left button keeps scrolling the image);
+- drag the round center handle with either button, or inside the ROI with the right button, to move the whole ROI
+  (elsewhere the left button keeps scrolling the image);
 - a click inside the ROI, a click with no tool, or Ctrl + click opens the context menu.
 
 The ROI is kept in image coordinates (`ColourClashNet.Imaging.Shapes.RoiShape`), so it follows zoom and scroll,

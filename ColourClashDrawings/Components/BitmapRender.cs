@@ -894,7 +894,7 @@ namespace ColourClashNet.Components
         protected void OnMouseDoubleClick(object? sender, MouseEventArgs args)
         {
             // Not on a ROI handle: a double click there belongs to the shape editing
-            if (args.Button == MouseMovingButton && HitHandle(args.Location) < 0)
+            if (args.Button == MouseMovingButton && HitHandle(args.Location) < 0 && !HitCenter(args.Location))
                 ResetPosition();
         }
 

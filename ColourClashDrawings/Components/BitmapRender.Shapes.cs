@@ -20,7 +20,8 @@ namespace ColourClashNet.Components
     /// <item>Freehand: drag to draw, the path is closed on release.</item>
     /// <item>Polygon: every click adds a vertex; double click or click on the first vertex to close it.</item>
     /// <item>Drag a handle (box corners and edge midpoints, polygon vertices) to resize or reshape, with either button;
-    /// drag inside the shape with the right button to move it (the left button inside the shape still scrolls the image).</item>
+    /// drag the center handle with either button, or inside the shape with the right button, to move it
+    /// (the left button elsewhere inside the shape still scrolls the image).</item>
     /// <item>Click without dragging inside the shape, with no drawing tool, or with Ctrl: context menu.</item>
     /// </list>
     /// </summary>
@@ -286,6 +287,27 @@ namespace ColourClashNet.Components
         }
 
         /// <summary>
+        /// Center of the shape, where the move handle is drawn (image coordinates).
+        /// </summary>
+        static PointF ShapeCenter(RoiShape roi)
+        {
+            var bounds = roi.Bounds;
+            return new PointF(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
+        }
+
+        /// <summary>
+        /// True when <paramref name="controlPoint"/> is on the center (move) handle of the shape.
+        /// </summary>
+        bool HitCenter(Point controlPoint)
+        {
+            if (shape == null)
+                return false;
+            UpdateControlAndImageRoi();
+            var center = ToControl(ShapeCenter(shape));
+            return Math.Abs(center.X - controlPoint.X) <= HandleHalfSize + 2 && Math.Abs(center.Y - controlPoint.Y) <= HandleHalfSize + 2;
+        }
+
+        /// <summary>
         /// True when <paramref name="controlPoint"/> is inside the shape.
         /// </summary>
         bool HitShape(Point controlPoint)
@@ -308,7 +330,8 @@ namespace ColourClashNet.Components
             if (args.Button == MouseMovingButton && args.Button != MouseSelectButton)
             {
                 int handle = polygonDraft.Count == 0 ? HitHandle(args.Location) : -1;
-                if (handle < 0)
+                bool center = polygonDraft.Count == 0 && handle < 0 && HitCenter(args.Location);
+                if (handle < 0 && !center)
                     return false;
                 shapeButton = args.Button;
                 shapePressed = true;
@@ -318,7 +341,7 @@ namespace ColourClashNet.Components
                 dragStartImagePoint = ToImage(args.Location);
                 dragStartShape = shape;
                 dragHandle = handle;
-                dragMode = EnumShapeDrag.MoveHandle;
+                dragMode = center ? EnumShapeDrag.MoveShape : EnumShapeDrag.MoveHandle;
                 return true;
             }
             if (args.Button != MouseSelectButton)
@@ -347,7 +370,7 @@ namespace ColourClashNet.Components
             dragStartShape = shape;
             if ((dragHandle = HitHandle(args.Location)) >= 0)
                 dragMode = EnumShapeDrag.MoveHandle;
-            else if (HitShape(args.Location))
+            else if (HitCenter(args.Location) || HitShape(args.Location))
                 dragMode = EnumShapeDrag.MoveShape;
             else if (shapeTool is EnumShapeTool.Rectangle or EnumShapeTool.Ellipse)
                 dragMode = EnumShapeDrag.NewBox;
@@ -505,7 +528,7 @@ namespace ColourClashNet.Components
                     }
                     : Cursors.Hand;
             }
-            else if (HitShape(controlPoint))
+            else if (HitCenter(controlPoint) || HitShape(controlPoint))
             {
                 cursor = Cursors.SizeAll;
             }
@@ -543,6 +566,7 @@ namespace ColourClashNet.Components
                 }
                 foreach (var handle in shape.Handles)
                     DrawHandle(graphics, ToControl(handle));
+                DrawCenterHandle(graphics, ToControl(ShapeCenter(shape)));
             }
 
             if (polygonDraft.Count > 0)
@@ -590,6 +614,21 @@ namespace ColourClashNet.Components
             using var background = new SolidBrush(System.Drawing.Color.FromArgb(200, System.Drawing.Color.Black));
             graphics.FillRectangle(background, rect);
             graphics.DrawString(text, font, Brushes.White, rect.X + 3, rect.Y + 1);
+        }
+
+        /// <summary>
+        /// Draws the move handle: a round handle with a cross, centered on <paramref name="center"/> (control coordinates).
+        /// </summary>
+        void DrawCenterHandle(Graphics graphics, PointF center)
+        {
+            float radius = HandleHalfSize + 1;
+            var rect = new RectangleF(center.X - radius, center.Y - radius, 2 * radius, 2 * radius);
+            using var fill = new SolidBrush(ShapeColor);
+            graphics.FillEllipse(fill, rect);
+            using var pen = new Pen(System.Drawing.Color.Black, 1);
+            graphics.DrawEllipse(pen, rect);
+            graphics.DrawLine(pen, center.X - radius + 2, center.Y, center.X + radius - 2, center.Y);
+            graphics.DrawLine(pen, center.X, center.Y - radius + 2, center.X, center.Y + radius - 2);
         }
 
         /// <summary>
