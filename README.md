@@ -272,6 +272,27 @@ var result = blob.Process(spriteSheet);
 blob.Options = blob.Options with { MinArea = 20 };
 ```
 
+### Image views and regions of interest
+The source and processed images are shown by `BitmapRender` views:
+
+| Mouse | Action |
+|-|-|
+| Left drag | scroll the image |
+| Wheel | zoom (25% per notch in manual zoom) |
+| Left double click | reset the image position (also "Reset position" in the context menu) |
+| Right click | context menu: zoom, reset position, shape tools, color picking |
+
+A region of interest (ROI) is drawn with the right button, after choosing a tool in the toolbar
+(Rectangle, Ellipse, Polygon, Freehand) or in the context menu:
+- Rectangle, Ellipse, Freehand: drag to draw;
+- Polygon: click to add vertices, double click or click the first vertex to close it;
+- drag a handle (box corners and edge midpoints, polygon vertices) to resize or reshape, drag inside the ROI to move it;
+- a click inside the ROI, a click with no tool, or Ctrl + click opens the context menu.
+
+The ROI is kept in image coordinates (`ColourClashNet.Imaging.Shapes.RoiShape`), so it follows zoom and scroll,
+and it is shared by the source and processed views. **Extract Shape** opens the ROI in a new tab:
+the pixels outside the shape take the background replacement color, so the background removal can drop them.
+
 ### Export
 - PNG, BMP and JPG through SkiaSharp (`ImageTools.SaveImage`);
 - 8 bit indexed BMP with optional width alignment (`ImageTools.SaveImageAsIndexedBitmap`);

@@ -141,6 +141,14 @@
             label13 = new Label();
             splitMainB_C = new SplitContainer();
             layoutRender = new TableLayoutPanel();
+            tsShapes = new ToolStrip();
+            tsbShapeRectangle = new ToolStripButton();
+            tsbShapeEllipse = new ToolStripButton();
+            tsbShapePolygon = new ToolStripButton();
+            tsbShapeFreehand = new ToolStripButton();
+            tssShapes = new ToolStripSeparator();
+            tsbShapeReset = new ToolStripButton();
+            tsbShapeExtract = new ToolStripButton();
             ssImageData = new StatusStrip();
             tsLayout = new ToolStripDropDownButton();
             horizontalToolStripMenuItem = new ToolStripMenuItem();
@@ -225,6 +233,7 @@
             splitMainB_C.Panel2.SuspendLayout();
             splitMainB_C.SuspendLayout();
             layoutRender.SuspendLayout();
+            tsShapes.SuspendLayout();
             ssImageData.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitRenderLayout).BeginInit();
             splitRenderLayout.Panel1.SuspendLayout();
@@ -1455,17 +1464,79 @@
             // 
             layoutRender.ColumnCount = 1;
             layoutRender.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            layoutRender.Controls.Add(ssImageData, 0, 1);
-            layoutRender.Controls.Add(splitRenderLayout, 0, 0);
+            layoutRender.Controls.Add(tsShapes, 0, 0);
+            layoutRender.Controls.Add(splitRenderLayout, 0, 1);
+            layoutRender.Controls.Add(ssImageData, 0, 2);
             layoutRender.Dock = DockStyle.Fill;
             layoutRender.Location = new Point(0, 0);
             layoutRender.Name = "layoutRender";
-            layoutRender.RowCount = 2;
+            layoutRender.RowCount = 3;
+            layoutRender.RowStyles.Add(new RowStyle(SizeType.Absolute, 27F));
             layoutRender.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             layoutRender.RowStyles.Add(new RowStyle(SizeType.Absolute, 25F));
-            layoutRender.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
             layoutRender.Size = new Size(515, 753);
             layoutRender.TabIndex = 5;
+            // 
+            // tsShapes
+            // 
+            tsShapes.Dock = DockStyle.Fill;
+            tsShapes.GripStyle = ToolStripGripStyle.Hidden;
+            tsShapes.Items.AddRange(new ToolStripItem[] { tsbShapeRectangle, tsbShapeEllipse, tsbShapePolygon, tsbShapeFreehand, tssShapes, tsbShapeReset, tsbShapeExtract });
+            tsShapes.Location = new Point(0, 0);
+            tsShapes.Name = "tsShapes";
+            tsShapes.Size = new Size(515, 27);
+            tsShapes.TabIndex = 2;
+            tsShapes.Text = "Shapes";
+            // 
+            // tsbShapeRectangle
+            // 
+            tsbShapeRectangle.CheckOnClick = true;
+            tsbShapeRectangle.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsbShapeRectangle.Name = "tsbShapeRectangle";
+            tsbShapeRectangle.Text = "Rectangle";
+            tsbShapeRectangle.ToolTipText = "Right button: drag to draw a rectangular ROI";
+            // 
+            // tsbShapeEllipse
+            // 
+            tsbShapeEllipse.CheckOnClick = true;
+            tsbShapeEllipse.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsbShapeEllipse.Name = "tsbShapeEllipse";
+            tsbShapeEllipse.Text = "Ellipse";
+            tsbShapeEllipse.ToolTipText = "Right button: drag to draw an elliptic ROI";
+            // 
+            // tsbShapePolygon
+            // 
+            tsbShapePolygon.CheckOnClick = true;
+            tsbShapePolygon.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsbShapePolygon.Name = "tsbShapePolygon";
+            tsbShapePolygon.Text = "Polygon";
+            tsbShapePolygon.ToolTipText = "Right button: click to add vertices, double click or click the first vertex to close";
+            // 
+            // tsbShapeFreehand
+            // 
+            tsbShapeFreehand.CheckOnClick = true;
+            tsbShapeFreehand.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsbShapeFreehand.Name = "tsbShapeFreehand";
+            tsbShapeFreehand.Text = "Freehand";
+            tsbShapeFreehand.ToolTipText = "Right button: drag to draw a free hand ROI";
+            // 
+            // tssShapes
+            // 
+            tssShapes.Name = "tssShapes";
+            // 
+            // tsbShapeReset
+            // 
+            tsbShapeReset.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsbShapeReset.Name = "tsbShapeReset";
+            tsbShapeReset.Text = "Reset Shape";
+            tsbShapeReset.ToolTipText = "Remove the ROI";
+            // 
+            // tsbShapeExtract
+            // 
+            tsbShapeExtract.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            tsbShapeExtract.Name = "tsbShapeExtract";
+            tsbShapeExtract.Text = "Extract Shape";
+            tsbShapeExtract.ToolTipText = "Open the ROI of the source image in a new tab";
             // 
             // ssImageData
             // 
@@ -1780,6 +1851,8 @@
             splitMainB_C.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitMainB_C).EndInit();
             splitMainB_C.ResumeLayout(false);
+            tsShapes.ResumeLayout(false);
+            tsShapes.PerformLayout();
             layoutRender.ResumeLayout(false);
             layoutRender.PerformLayout();
             ssImageData.ResumeLayout(false);
@@ -1836,6 +1909,14 @@
         private GroupBox gbConfig;
         private PropertyGrid pgColorProcessorConfig;
         private TableLayoutPanel layoutRender;
+        private ToolStrip tsShapes;
+        private ToolStripButton tsbShapeRectangle;
+        private ToolStripButton tsbShapeEllipse;
+        private ToolStripButton tsbShapePolygon;
+        private ToolStripButton tsbShapeFreehand;
+        private ToolStripSeparator tssShapes;
+        private ToolStripButton tsbShapeReset;
+        private ToolStripButton tsbShapeExtract;
         private TabControl tabControlMain;
         private TabPage tpMainGeneric;
         private NumericUpDown nudBright;

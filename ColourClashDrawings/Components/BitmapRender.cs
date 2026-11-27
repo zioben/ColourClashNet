@@ -18,8 +18,11 @@ namespace ColourClashNet.Components
 
 
     /// <summary>
-    /// Designer component that draws an image on any <see cref="System.Windows.Forms.Control"/> with zoom and mouse panning,
-    /// and lets the user pick colors from the image through a context menu.
+    /// Designer component that draws an image on any <see cref="System.Windows.Forms.Control"/> with zoom and mouse panning.
+    /// <para/>
+    /// Left button: drag to scroll the image, wheel to zoom, double click to reset the position.
+    /// Right button: draws and edits a region of interest (see <see cref="ShapeTool"/>), or opens the context menu
+    /// (zoom, reset position, shape tools, color picking) on a click.
     /// </summary>
     public partial class BitmapRender : Component
     {
@@ -345,6 +348,7 @@ namespace ColourClashNet.Components
             InitializeComponent();
             InitializeGUI();
             RegisterToolStripItems();
+            CreateShapeMenuItems();
             SetOperationMode(EnumOperation.TrackMouse);
         }
       
@@ -437,7 +441,9 @@ namespace ColourClashNet.Components
                 control.MouseDown += OnMouseDown;
                 control.MouseMove += OnMouseMove;
                 control.MouseWheel += OnMouseWheel;
-                control.ContextMenuStrip = contextMenuStrip;
+                control.MouseDoubleClick += OnMouseDoubleClick;
+                // The context menu is opened by the right button handler, on a click without dragging:
+                // assigning it to the control would open it on every right click and prevent drawing
             }
         }
 
@@ -448,12 +454,12 @@ namespace ColourClashNet.Components
         {
             if (control != null)
             {
-                control.ContextMenuStrip = null;
                 control.Paint -= OnPaint;
                 control.MouseUp -= OnMouseUp;
                 control.MouseDown -= OnMouseDown;
                 control.MouseMove -= OnMouseMove;
                 control.MouseWheel -= OnMouseWheel;
+                control.MouseDoubleClick -= OnMouseDoubleClick;
             }
         }
 
@@ -471,7 +477,8 @@ namespace ColourClashNet.Components
             {
                 if (ImageZoomMode == EnumZoom.Manual)
                 {
-                    ImageZoomManual += 0.5f * args.Delta;
+                    // One wheel notch (Delta = 120) changes the zoom by 25%
+                    ImageZoomManual *= args.Delta > 0 ? 1.25f : 0.8f;
                 }
                 else
                 {
@@ -527,6 +534,7 @@ namespace ColourClashNet.Components
         /// </summary>
         protected void OnMouseDown(object sender, MouseEventArgs args)
         {
+            OnShapeMouseDown(args);
             if (mouseManager.OnMouseDown(args))
             {
                 // Keep the image where it is: the new drag starts from the current translation
@@ -551,6 +559,7 @@ namespace ColourClashNet.Components
         /// </summary>
         protected void OnMouseMove(object sender, MouseEventArgs args)
         {
+            OnShapeMouseMove(args);
             if (mouseManager.OnMouseMove(args))
             {
                 if (mouseManager.MouseState == MouseHandler.EnumMouseState.tracking)
@@ -568,6 +577,7 @@ namespace ColourClashNet.Components
         /// </summary>
         protected void OnMouseUp(object sender, MouseEventArgs args)
         {
+            OnShapeMouseUp(args);
             if (mouseManager.OnMouseUp(args))
             {
                 UpdateMouseImageColor();
@@ -588,6 +598,8 @@ namespace ColourClashNet.Components
             {
                 UpdateControlAndImageRoi();               
                 coordinateManager.DrawImage(e.Graphics, Image);
+                // The region of interest is drawn over the image, in the same coordinates
+                DrawShapes(e.Graphics);
             }
             Paint?.Invoke(sender, e);
         }
@@ -846,28 +858,39 @@ namespace ColourClashNet.Components
         }
 
         /// <summary>
-        /// Refreshes the control (origin reset not implemented).
+        /// Moves the image back to the top left corner of the control, cancelling every scroll.
+        /// <para/>
+        /// The zoom mode is not changed; the region of interest follows the image.
         /// </summary>
-        public void OriginZero()
+        public void ResetPosition()
         {
+            lock (locker)
+            {
+                imageOrigin = new PointF(0, 0);
+                firstClick = true;
+                mouseManager.Reset();
+                coordinateManager.TransfOrigin = new PointF(0, 0);
+            }
             ForceRefresh();
+        }
+
+        /// <summary>
+        /// Same as <see cref="ResetPosition"/>.
+        /// </summary>
+        public void OriginZero() => ResetPosition();
+
+        /// <summary>
+        /// A double click with the drag button resets the position of the image.
+        /// </summary>
+        protected void OnMouseDoubleClick(object? sender, MouseEventArgs args)
+        {
+            if (args.Button == MouseMovingButton)
+                ResetPosition();
         }
 
       
         #endregion
 
-        #region MouseTracker
-
-      
-
-        protected Boolean mouseMovePushed = false;
-        protected Boolean mouseRoiPushed = false;
-        protected Point mousePushedPoint = new Point();
-        protected Point mousePushedPointLast = new Point();
-
-       
-
-        #endregion
 
         /// <summary>
         /// Creates a small square image filled with <paramref name="color"/>, used as menu icon.

@@ -167,6 +167,7 @@ namespace ColourClashNet.Controls
             CreateComboBox(cbCgaVideoOutput, Enum.GetNames(typeof(ColorTransformCGA.CGACompositeOutputMode)).ToList());
             CreateComboBox(cbBlobConnectionMode, Enum.GetNames(typeof(BlobConnectionModes)).ToList());
             pbBkgColor.BackColor = System.Drawing.Color.FromArgb(255, ColorDefaults.DefaultBkgColorInt.ToR(), ColorDefaults.DefaultBkgColorInt.ToG(), ColorDefaults.DefaultBkgColorInt.ToB());
+            CreateShapeTools();
             bitmapRenderSource.ColorAdded += (s, e) => { BuildBkgPalette(); };
             bitmapRenderSource.ColorRemoved += (s, e) => { BuildBkgPalette(); };
             colorManager.OnQuantize += (s, e) => { Invoke(() => RefreshData()); };
@@ -192,6 +193,101 @@ namespace ColourClashNet.Controls
             else if (nudHue.Value < 0)
                 nudHue.Value += 360;
         }
+
+        #region Shapes (regions of interest)
+
+        // True while a shape or a tool is copied from one image view to the other (prevents the echo)
+        bool syncingShapes;
+
+        /// <summary>
+        /// Wires the shape toolbar and keeps the two image views in sync: the same drawing tool,
+        /// and the same region of interest (drawn or edited on either view, shown on both).
+        /// </summary>
+        void CreateShapeTools()
+        {
+            var toolButtons = new Dictionary<ToolStripButton, Components.BitmapRender.EnumShapeTool>
+            {
+                [tsbShapeRectangle] = Components.BitmapRender.EnumShapeTool.Rectangle,
+                [tsbShapeEllipse] = Components.BitmapRender.EnumShapeTool.Ellipse,
+                [tsbShapePolygon] = Components.BitmapRender.EnumShapeTool.Polygon,
+                [tsbShapeFreehand] = Components.BitmapRender.EnumShapeTool.Freehand,
+            };
+            // The tool buttons work as radio buttons: clicking the checked one turns the tool off
+            foreach (var (button, tool) in toolButtons)
+            {
+                button.Click += (s, e) => SetShapeTool(button.Checked ? tool : Components.BitmapRender.EnumShapeTool.None);
+            }
+            tsbShapeReset.Click += (s, e) => bitmapRenderSource.ResetShape();
+            tsbShapeExtract.Click += (s, e) => ExtractShape(bitmapRenderSource);
+
+            foreach (var render in new[] { bitmapRenderSource, bitmapRenderDest })
+            {
+                var other = render == bitmapRenderSource ? bitmapRenderDest : bitmapRenderSource;
+                render.ShapeChanged += (s, e) => SyncShape(render, other);
+                // A tool chosen from the context menu of either view updates the toolbar and the other view
+                render.ShapeToolChanged += (s, e) => SetShapeTool(render.ShapeTool);
+                render.ShapeExtractRequested += (s, e) => ExtractShape(render);
+            }
+
+            void SetShapeTool(Components.BitmapRender.EnumShapeTool tool)
+            {
+                if (syncingShapes)
+                    return;
+                syncingShapes = true;
+                bitmapRenderSource.ShapeTool = tool;
+                bitmapRenderDest.ShapeTool = tool;
+                foreach (var (button, buttonTool) in toolButtons)
+                    button.Checked = buttonTool == tool;
+                syncingShapes = false;
+            }
+        }
+
+        /// <summary>
+        /// Copies the shape of <paramref name="from"/> to <paramref name="to"/>.
+        /// </summary>
+        void SyncShape(Components.BitmapRender from, Components.BitmapRender to)
+        {
+            if (syncingShapes)
+                return;
+            syncingShapes = true;
+            to.Shape = from.Shape;
+            syncingShapes = false;
+        }
+
+        /// <summary>
+        /// Opens the region of interest of <paramref name="render"/> in a new tab.
+        /// <para/>
+        /// The pixels outside the shape take the background replacement color, so the background removal
+        /// can drop them when the new image is processed.
+        /// </summary>
+        void ExtractShape(Components.BitmapRender render)
+        {
+            string sM = nameof(ExtractShape);
+            try
+            {
+                var extracted = render.ExtractShape(GetBkgColorReplacement());
+                if (extracted == null)
+                {
+                    LogMan.Warning(sC, sM, "no region of interest to extract (draw one with the right mouse button)");
+                    return;
+                }
+                var bitmap = ImageToolsGDI.ImageDataToGdiImage(extracted);
+                LogMan.Debug(sC, sM, $"extracted {render.Shape?.ShapeType} ROI of {extracted.Width}x{extracted.Height}");
+                ImageCopied?.Invoke(this, new CopyDataEventArgs()
+                {
+                    Name = $"{DisplayName} [ROI]",
+                    SourceBitmap = render.Image,
+                    DestBitmap = bitmap,
+                    DestBitmapRoi = new Rectangle(0, 0, extracted.Width, extracted.Height),
+                });
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(sC, sM, "shape extraction failed", ex);
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Fills a combo box and selects the first item.
@@ -301,6 +397,8 @@ namespace ColourClashNet.Controls
             bitmapRenderDest.OriginZero();
             bitmapRenderSource.ResetMouseSelectedColors();
             bitmapRenderSource.OriginZero();
+            // A new image: the region of interest of the previous one is meaningless (the other view follows)
+            bitmapRenderSource.ResetShape();
             //
             ApplyPreprocessingSettings();
             colorManager.Create(ResizeBitmap(loadedBmp));
