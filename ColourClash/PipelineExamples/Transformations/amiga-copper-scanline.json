@@ -1,0 +1,19 @@
+// Amiga OCS with copper palette changes: RGB444, 16 colors per group of 4 lines.
+{
+  "Version": 1,
+  "Name": "Amiga copper scanline",
+  "Steps": [
+    { "$type": "Load", "File": "../Images/photo.png" },
+    { "$type": "Transform", "Label": "OCS color space", "Options": { "$type": "Quantization", "Mode": "RGB444" } },
+    {
+      "$type": "Transform",
+      "Options": {
+        "$type": "Scanline",
+        "ChunkHeight": 4,
+        "PaletteMode": "IndependentChunkPalette",
+        "ChunkReduction": { "$type": "Clustering", "MaxColors": 16, "TrainingLoops": 4 }
+      }
+    },
+    { "$type": "Save", "File": "output/amiga-copper.png" }
+  ]
+}

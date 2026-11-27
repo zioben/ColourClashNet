@@ -1,0 +1,23 @@
+// Sprite extraction from a sprite sheet with a magenta background:
+// every sprite is saved as a separate PNG, and the result image has all the sprites stacked.
+// The 1-2 pixel specks of the sheet are dropped by MinArea.
+{
+  "Version": 1,
+  "Name": "Extract sprites",
+  "Steps": [
+    { "$type": "Load", "File": "../Images/sprite-sheet.png" },
+    {
+      "$type": "Blob",
+      "Options": {
+        "Threshold": { "BackgroundColors": [ "#FF00FF" ], "Tolerance": 0 },
+        "ConnectionMode": "EightConnected",
+        "MinArea": 16,
+        "BackgroundColor": "#FF00FF"
+      },
+      "Padding": 2,
+      "ExportFolder": "output/sprites",
+      "ExportPrefix": "sprite"
+    },
+    { "$type": "Save", "File": "output/sprites-stacked.png" }
+  ]
+}

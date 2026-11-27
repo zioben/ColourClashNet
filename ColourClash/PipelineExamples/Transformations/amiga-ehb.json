@@ -1,0 +1,10 @@
+// Amiga Extra Half-Brite: 32 colors plus their half bright copies.
+{
+  "Version": 1,
+  "Name": "Amiga EHB",
+  "Steps": [
+    { "$type": "Load", "File": "../Images/photo.png" },
+    { "$type": "Transform", "Options": { "$type": "Amiga", "VideoMode": "ExtraHalfBright" } },
+    { "$type": "Save", "File": "output/amiga-ehb.png" }
+  ]
+}

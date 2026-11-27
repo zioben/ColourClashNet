@@ -3,6 +3,9 @@ using ColourClashNet.Components;
 using ColourClashNet.Controls;
 using ColourClashNet.Drawing;
 using ColourClashNet.Imaging;
+using ColourClashNet.Log;
+using ColourClashNet.Pipeline;
+using System.Text.Json;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -77,6 +80,7 @@ namespace ColourClashNet
         {
             InitMenu();
             CreateScaleMenuItems();
+            CreatePipelineMenu();
             CreateTabManager();
         }
 
@@ -308,6 +312,104 @@ namespace ColourClashNet
 
 
 
+
+        #region Pipelines
+
+        /// <summary>
+        /// File filter of the pipeline dialogs.
+        /// </summary>
+        const string PipelineFileFilter = "Pipeline (*.json)|*.json|All files (*.*)|*.*";
+
+        /// <summary>
+        /// Adds the Pipeline menu: save the current settings, run a pipeline on the current image or in a new tab.
+        /// </summary>
+        void CreatePipelineMenu()
+        {
+            var pipelineMenu = new ToolStripMenuItem("&Pipeline");
+            var save = new ToolStripMenuItem("&Save current settings as pipeline...");
+            save.Click += (s, e) => SavePipeline();
+            var run = new ToolStripMenuItem("&Run pipeline on current image...");
+            run.Click += async (s, e) => await RunPipeline(newTab: false);
+            var runNewTab = new ToolStripMenuItem("Run pipeline in a &new tab...");
+            runNewTab.ToolTipText = "The pipeline must load its image (Load step)";
+            runNewTab.Click += async (s, e) => await RunPipeline(newTab: true);
+            pipelineMenu.DropDownItems.AddRange(new ToolStripItem[] { save, new ToolStripSeparator(), run, runNewTab });
+            menuStripMain.Items.Add(pipelineMenu);
+        }
+
+        /// <summary>
+        /// Saves the settings of the selected tab as a pipeline file.
+        /// </summary>
+        void SavePipeline()
+        {
+            string sM = nameof(SavePipeline);
+            var analyzer = SelectedColorAnalyzer;
+            if (analyzer == null)
+                return;
+            using var dialog = new SaveFileDialog { Filter = PipelineFileFilter, DefaultExt = "json", FileName = "pipeline.json" };
+            if (dialog.ShowDialog(this) != DialogResult.OK)
+                return;
+            try
+            {
+                var pipeline = analyzer.CreatePipeline(Path.GetFileNameWithoutExtension(dialog.FileName));
+                PipelineSerializer.Save(pipeline, dialog.FileName);
+                LogMan.Message(nameof(FormCClash), sM, $"pipeline saved : {dialog.FileName} ({pipeline.Steps.Count} steps)");
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(nameof(FormCClash), sM, "cannot save the pipeline", ex);
+                MessageBox.Show(this, $"Cannot save the pipeline:\n{ex.Message}", "Save pipeline", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// Loads a pipeline file and runs it on the selected tab, or in a new tab.
+        /// </summary>
+        async Task RunPipeline(bool newTab)
+        {
+            string sM = nameof(RunPipeline);
+            using var dialog = new OpenFileDialog { Filter = PipelineFileFilter };
+            if (dialog.ShowDialog(this) != DialogResult.OK)
+                return;
+            PipelineDefinition pipeline;
+            try
+            {
+                pipeline = PipelineSerializer.Load(dialog.FileName);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+            {
+                MessageBox.Show(this, $"Cannot read the pipeline:\n{ex.Message}", "Run pipeline", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            var errors = pipeline.Validate().ToList();
+            if (errors.Count > 0)
+            {
+                MessageBox.Show(this, $"The pipeline is not valid:\n- {string.Join("\n- ", errors)}", "Run pipeline", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var analyzer = newTab ? CreateTab() : SelectedColorAnalyzer;
+            if (analyzer == null)
+                return;
+            try
+            {
+                Cursor = Cursors.WaitCursor;
+                var result = await analyzer.RunPipelineAsync(pipeline, Path.GetDirectoryName(dialog.FileName) ?? string.Empty);
+                if (!result.IsSuccess)
+                    MessageBox.Show(this, $"The pipeline failed:\n{result.Message}", "Run pipeline", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                LogMan.Exception(nameof(FormCClash), sM, "pipeline run failed", ex);
+                MessageBox.Show(this, $"The pipeline failed:\n{ex.Message}", "Run pipeline", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                Cursor = Cursors.Default;
+            }
+        }
+
+        #endregion
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {

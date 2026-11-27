@@ -22,6 +22,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using ColourClashNet.Pipeline;
 
 namespace ColourClashNet.Controls
 {
@@ -193,6 +194,78 @@ namespace ColourClashNet.Controls
             else if (nudHue.Value < 0)
                 nudHue.Value += 360;
         }
+
+        #region Pipelines
+
+        /// <summary>
+        /// Builds a pipeline from the current settings: resize (when a resolution is set), background removal
+        /// (when background colors are picked), quantization (when not RGB888) and the last transformation run.
+        /// <para/>
+        /// It has no load and save steps: the image comes from the tab, or from <c>--input</c> on the command line.
+        /// </summary>
+        /// <param name="name">Pipeline name</param>
+        public PipelineDefinition CreatePipeline(string name)
+        {
+            ApplyPreprocessingSettings();
+            var pipeline = colorManager.Pipeline;
+            var steps = new List<PipelineStep>();
+            if (WantedRes != null && (WantedRes.Width > 0 || WantedRes.Height > 0))
+                steps.Add(new ResizeStep { Width = Math.Max(0, WantedRes.Width), Height = Math.Max(0, WantedRes.Height), Mode = ResizeMode.Average });
+            if (pipeline.Background.BackgroundColors.Count > 0)
+                steps.Add(new TransformStep { Options = pipeline.Background with { Dithering = DitherOptions.None }, Label = "background removal" });
+            if (pipeline.Quantization != ColorQuantizationMode.RGB888)
+                steps.Add(new TransformStep { Options = new QuantizationOptions { Mode = pipeline.Quantization }, Label = "quantization" });
+            steps.Add(new TransformStep { Options = colorManager.LastProcessedOptions ?? pipeline.Transform });
+            return new PipelineDefinition
+            {
+                Name = name,
+                Description = $"Saved from ColourClashNet on {DateTime.Now:yyyy-MM-dd HH:mm}" + (string.IsNullOrEmpty(DisplayName) ? "" : $", image '{DisplayName}'"),
+                Steps = steps,
+            };
+        }
+
+        /// <summary>
+        /// Runs <paramref name="pipeline"/> on the source image of the tab and shows the result as the processed image.
+        /// <para/>
+        /// A load step replaces the source image; when the tab is empty, the result becomes its source image.
+        /// The progress is shown in the status bar.
+        /// </summary>
+        /// <param name="pipeline">Pipeline to run</param>
+        /// <param name="baseDirectory">Folder of the pipeline file, for its relative paths</param>
+        /// <returns>The result of the run.</returns>
+        public async Task<PipelineResult> RunPipelineAsync(PipelineDefinition pipeline, string baseDirectory)
+        {
+            string sM = nameof(RunPipelineAsync);
+            var runner = new PipelineRunner { BaseDirectory = baseDirectory };
+            tsProcessingProgress.Maximum = Math.Max(1, pipeline.Steps.Count);
+            tsProcessingProgress.Value = 0;
+            runner.StepCompleted += (s, e) => BeginInvoke(() =>
+            {
+                tsProcessingProgress.Value = Math.Min(tsProcessingProgress.Maximum, e.Number);
+                tsProcessingProgress.ToolTipText = $"{e.Number}/{e.Count} {e.Step} : {e.Result?.Message}";
+            });
+
+            var result = await runner.RunAsync(pipeline, colorManager.DataSourceX);
+            if (result.IsSuccess && result.Image != null)
+            {
+                if (colorManager.DataSourceX == null)
+                {
+                    // Empty tab: the result becomes the source image
+                    Create(result.Image, string.IsNullOrEmpty(pipeline.Name) ? "pipeline" : pipeline.Name);
+                }
+                else
+                {
+                    colorManager.InjectOutput(result.Image);
+                    lastTransformName = string.IsNullOrEmpty(pipeline.Name) ? "pipeline" : pipeline.Name;
+                    RefreshData();
+                }
+                LogMan.Message(sC, sM, $"pipeline '{pipeline.Name}' : {result.Message} in {result.ProcessingTimeMilliseconds:f0} ms");
+            }
+            tsProcessingProgress.Value = 0;
+            return result;
+        }
+
+        #endregion
 
         #region Shapes (regions of interest)
 

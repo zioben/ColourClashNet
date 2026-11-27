@@ -1,4 +1,6 @@
-﻿using ColourClashNet;
+﻿using ColourClashNet.Color;
+using System.Text.Json.Serialization;
+using ColourClashNet;
 using ColourClashProcessing.Threshold;
 using System.ComponentModel;
 
@@ -53,6 +55,7 @@ namespace ColourClashProcessing.Blob
         /// Background color used when blobs are rebuilt as images.
         /// </summary>
         [Category("Rebuild"), Description("Background color of the rebuilt blob images")]
+        [JsonConverter(typeof(ColorJsonConverter))]
         public int BackgroundColor { get; init; } = ColorDefaults.DefaultBkgColorInt;
 
         /// <summary>

@@ -1,4 +1,6 @@
 # ColourClashNet - Work in progress
+[![CI](https://github.com/zioben/ColourClashNet/actions/workflows/ci.yml/badge.svg)](https://github.com/zioben/ColourClashNet/actions/workflows/ci.yml)
+
 A .NET 10 toolkit to convert modern images into pictures displayable by retro computers and consoles,
 using color quantization, palette reduction, hardware specific video mode emulation and dithering.
 
@@ -25,7 +27,7 @@ Old systems usually have 3 channels with 3 or 4-bit for color, for a total of 51
 | `ColourClashDrawings` | net10.0-windows | WinForms components: zoomable bitmap renderer, coordinate and mouse managers, processing pipeline manager, `ColorAnalyzer` control, GDI+ conversions |
 | `ColourClashNet` | net10.0-windows | Main WinForms application (one `ColorAnalyzer` per tab) |
 | `ModuleTester` | net10.0-windows | Manual test bench for every transformation |
-| `ColourClash` | net10.0 | Command line front-end (work in progress) |
+| `ColourClash` | net10.0 | Command line tool `ColourClashNetCli`: runs, validates and creates JSON pipelines |
 | `XUnitTester` | net10.0-windows | xUnit v3 tests |
 
 ## How to
@@ -272,6 +274,70 @@ var result = blob.Process(spriteSheet);
 blob.Options = blob.Options with { MinArea = 20 };
 ```
 
+### Pipelines
+A pipeline is a JSON file with an ordered list of steps; each step works on the image produced by the previous one.
+
+| Step (`$type`) | Settings | Action |
+|-|-|-|
+| `Load` | `File` | loads an image (PNG, BMP, JPG ...) |
+| `Crop` | `X`, `Y`, `Width`, `Height` | keeps an area of the image |
+| `Resize` | `Width`, `Height` (0 keeps the aspect ratio), `Mode` (`Nearest`, `Average`) | resizes the image |
+| `Roi` | `Shape` (`Rectangle`, `Ellipse`, `Polygon`), `X`, `Y`, `Width`, `Height` or `Points`, `OutsideColor` | keeps a region of interest; outside pixels take `OutsideColor` (a rectangle keeps every pixel) |
+| `Transform` | `Options`: any transformation options record (`$type` = `Clustering`, `C64`, `ZxSpectrum`, `Amiga` ...) | runs a transformation |
+| `Blob` | `Options` (background colors, tolerance, connectivity, size filters), `Padding`, `ExportFolder`, `ExportPrefix` | extracts the sprites: the image becomes the sprites stacked, optionally each one saved as PNG |
+| `Save` | `File`, `Format` (`Auto`, `Png`, `Bmp`, `Jpg`, `IndexedBmp`), `Quality` | saves the current image |
+
+Every step accepts an optional `Label`. Relative paths are relative to the folder of the pipeline file.
+
+```json
+{
+  "Version": 1,
+  "Name": "ZX Spectrum, autotune",
+  "Steps": [
+    { "$type": "Load", "File": "photo.png" },
+    { "$type": "Resize", "Width": 256, "Height": 192, "Mode": "Average" },
+    { "$type": "Transform", "Options": { "$type": "ZxSpectrum", "Autotune": "Fast" } },
+    { "$type": "Save", "File": "output/photo-zx.png" }
+  ]
+}
+```
+
+- **Version**: files record the format version (`PipelineDefinition.CurrentVersion`); a file written by a newer
+  program is refused with a clear message, a file without `Version` is read as version 1.
+- **Hand written files** may contain comments and trailing commas, use any letter case and put `$type` anywhere.
+- **Colors** are written as `"#RRGGBB"` (numbers are still read, for older files).
+- Only settings are written: computed values such as `TransformType` are left out.
+- In code: `PipelineSerializer.Load/Save`, `PipelineDefinition.Validate()`, `new PipelineRunner().Run(pipeline, image)`
+  (step events, progress of the transformations, cancellation; errors are returned in the result).
+
+Ready to run examples are in [`ColourClash/PipelineExamples`](./ColourClash/PipelineExamples/README.md), copied next to
+the executables at every build: common transformations, blob processing, regions of interest and combos
+(e.g. one photo for four platforms, sprites to the Game Boy palette).
+
+**Command line** (`ColourClash` project, executable `ColourClashNetCli`):
+```bash
+ColourClashNetCli run PipelineExamples/Transformations/zx-autotune.json --input photo.png --output photo-zx.png
+```
+```bash
+ColourClashNetCli validate PipelineExamples
+```
+```bash
+ColourClashNetCli template ZxSpectrum --input photo.png --output out.png > my-pipeline.json
+```
+```bash
+ColourClashNetCli list
+```
+`run` and `validate` accept several files and folders (every `*.json` inside).
+With a single pipeline, `--input` replaces the first load step and `--output` the last save step (they are added when missing),
+`--verbose` prints the log. Exit codes: 0 success, 1 pipeline failed or invalid, 2 wrong command line or unreadable file.
+
+**User interface** (menu **Pipeline**):
+- *Save current settings as pipeline*: resize (when a resolution is set), background removal (when background colors
+  are picked), quantization (when not RGB888) and the last transformation run; no load and save steps,
+  so the file works on any image (`--input`, `--output` on the command line);
+- *Run pipeline on current image*: runs a pipeline file on the image of the tab, the result is the processed image;
+- *Run pipeline in a new tab*: for pipelines that load their own image.
+
 ### Image views and regions of interest
 The source and processed images are shown by `BitmapRender` views:
 
@@ -331,7 +397,14 @@ dotnet build ColourClashNetSolution.sln
 ```
 
 The WinForms projects target Windows; on other systems the solution builds with `-p:EnableWindowsTargeting=true`,
-but the UI and the `XUnitTester` project run on Windows only.
+but the UI and the `XUnitTester` project run on Windows only. The tests are a self-hosted xUnit v3 executable:
+```bash
+dotnet run --project XUnitTester/XUnitTester.csproj
+```
+
+**Continuous integration**: `.github/workflows/ci.yml` builds the solution, runs the tests, then validates and runs
+every example pipeline with the command line tool, on every push and pull request (Windows runner, .NET 10).
+The images produced by the examples can be downloaded from the run page (artifact `sample-pipeline-results`).
 
 The tests do not need external files. Reference pictures made on the real systems, useful to compare the results,
 are in `Images/References/TestImages` (Amstrad CPC modes 0/1/2, CGA, C64 hires/multicolor/FLI/PETSCII,

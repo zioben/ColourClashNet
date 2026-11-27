@@ -1,0 +1,22 @@
+// Sprite sheet to Game Boy: extract the sprites, then map them to the 4 Game Boy greens.
+{
+  "Version": 1,
+  "Name": "Sprites for the Game Boy",
+  "Steps": [
+    { "$type": "Load", "File": "../Images/sprite-sheet.png" },
+    {
+      "$type": "Blob",
+      "Options": {
+        "Threshold": { "BackgroundColors": [ "#FF00FF" ] },
+        "MinArea": 16,
+        "BackgroundColor": "#9BBC0F"
+      },
+      "Padding": 2
+    },
+    {
+      "$type": "Transform",
+      "Options": { "$type": "FixedPalette", "UserPalette": [ "#0F380F", "#306230", "#8BAC0F", "#9BBC0F" ] }
+    },
+    { "$type": "Save", "File": "output/sprites-gameboy.png" }
+  ]
+}

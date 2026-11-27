@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Text.Json.Serialization;
+using System.ComponentModel;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -23,12 +24,14 @@ namespace ColourClashNet.Color.Transformation
         /// Colors treated as background.
         /// </summary>
         [Category("Background"), Description("Colors treated as background")]
+        [JsonConverter(typeof(ColorListJsonConverter))]
         public IReadOnlyList<int> BackgroundColors { get; init; } = Array.Empty<int>();
 
         /// <summary>
         /// Color that replaces the background colors.
         /// </summary>
         [Category("Background"), Description("Color that replaces the background colors")]
+        [JsonConverter(typeof(ColorJsonConverter))]
         public int ReplacementColor { get; init; } = ColorIntExt.FromRGB(0, 0, 0);
 
         /// <inheritdoc/>

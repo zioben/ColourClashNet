@@ -1,0 +1,17 @@
+// Poster effect: more saturation, 8 colors on the RGB222 (EGA) color space, ordered dithering, 2x pixels.
+{
+  "Version": 1,
+  "Name": "Retro poster",
+  "Steps": [
+    { "$type": "Load", "File": "../Images/photo.png" },
+    { "$type": "Resize", "Width": 128, "Height": 0, "Mode": "Average", "Label": "big pixels" },
+    { "$type": "Transform", "Options": { "$type": "Hsv", "SaturationFactor": 1.6, "BrightnessFactor": 1.1 } },
+    { "$type": "Transform", "Options": { "$type": "Quantization", "Mode": "RGB222" } },
+    {
+      "$type": "Transform",
+      "Options": { "$type": "MedianCut", "MaxColors": 8, "Dithering": { "DitheringType": "Ordered_2x2", "DitheringStrength": 0.7 } }
+    },
+    { "$type": "Resize", "Width": 512, "Height": 0, "Mode": "Nearest" },
+    { "$type": "Save", "File": "output/retro-poster.png" }
+  ]
+}
