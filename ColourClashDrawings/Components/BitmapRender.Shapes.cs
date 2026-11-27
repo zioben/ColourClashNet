@@ -19,7 +19,8 @@ namespace ColourClashNet.Components
     /// <item>Rectangle, Ellipse: drag to draw.</item>
     /// <item>Freehand: drag to draw, the path is closed on release.</item>
     /// <item>Polygon: every click adds a vertex; double click or click on the first vertex to close it.</item>
-    /// <item>Drag a handle (box corners and edge midpoints, polygon vertices) to resize or reshape; drag inside the shape to move it.</item>
+    /// <item>Drag a handle (box corners and edge midpoints, polygon vertices) to resize or reshape, with either button;
+    /// drag inside the shape with the right button to move it (the left button inside the shape still scrolls the image).</item>
     /// <item>Click without dragging inside the shape, with no drawing tool, or with Ctrl: context menu.</item>
     /// </list>
     /// </summary>
@@ -133,11 +134,12 @@ namespace ColourClashNet.Components
         [DefaultValue(typeof(System.Drawing.Color), "Yellow")]
         public System.Drawing.Color ShapeColor { get; set; } = System.Drawing.Color.Yellow;
 
-        // Right button drag state
-        bool rightPressed;
-        bool rightDragged;
-        bool rightMenuRequested;
-        Point rightPressPoint;
+        // State of a shape action (right button, or left button on a handle)
+        MouseButtons shapeButton = MouseButtons.None;
+        bool shapePressed;
+        bool shapeDragged;
+        bool shapeMenuRequested;
+        Point shapePressPoint;
         PointF dragStartImagePoint;
         RoiShape? dragStartShape;
         int dragHandle = -1;
@@ -297,17 +299,38 @@ namespace ColourClashNet.Components
         /// <summary>
         /// Starts a right button action: handle drag, shape move, or a new shape of the current tool.
         /// </summary>
-        void OnShapeMouseDown(MouseEventArgs args)
+        /// <returns>True when the press starts a shape action and must not scroll the image.</returns>
+        bool OnShapeMouseDown(MouseEventArgs args)
         {
-            if (args.Button != MouseSelectButton || Image == null)
-                return;
-            rightPressed = true;
-            rightDragged = false;
-            rightPressPoint = args.Location;
-            rightMenuRequested = (System.Windows.Forms.Control.ModifierKeys & Keys.Control) == Keys.Control;
+            if (Image == null)
+                return false;
+            // Left button: only a press on a handle edits the shape; anywhere else it scrolls the image
+            if (args.Button == MouseMovingButton && args.Button != MouseSelectButton)
+            {
+                int handle = polygonDraft.Count == 0 ? HitHandle(args.Location) : -1;
+                if (handle < 0)
+                    return false;
+                shapeButton = args.Button;
+                shapePressed = true;
+                shapeDragged = false;
+                shapeMenuRequested = false;
+                shapePressPoint = args.Location;
+                dragStartImagePoint = ToImage(args.Location);
+                dragStartShape = shape;
+                dragHandle = handle;
+                dragMode = EnumShapeDrag.MoveHandle;
+                return true;
+            }
+            if (args.Button != MouseSelectButton)
+                return false;
+            shapeButton = args.Button;
+            shapePressed = true;
+            shapeDragged = false;
+            shapePressPoint = args.Location;
+            shapeMenuRequested = (System.Windows.Forms.Control.ModifierKeys & Keys.Control) == Keys.Control;
             dragMode = EnumShapeDrag.None;
-            if (rightMenuRequested)
-                return;
+            if (shapeMenuRequested)
+                return true;
 
             // Polygon: a double click closes the polygon being drawn
             if (shapeTool == EnumShapeTool.Polygon && polygonDraft.Count > 0)
@@ -315,9 +338,9 @@ namespace ColourClashNet.Components
                 if (args.Clicks >= 2)
                 {
                     ClosePolygon();
-                    rightPressed = false;
+                    shapePressed = false;
                 }
-                return;
+                return true;
             }
 
             dragStartImagePoint = ToImage(args.Location);
@@ -334,6 +357,7 @@ namespace ColourClashNet.Components
                 freehandPoints.Clear();
                 freehandPoints.Add(ClampToImage(dragStartImagePoint));
             }
+            return true;
         }
 
         /// <summary>
@@ -343,14 +367,14 @@ namespace ColourClashNet.Components
         {
             if (Image == null)
                 return;
-            if (rightPressed && !rightDragged)
+            if (shapePressed && !shapeDragged)
             {
-                var delta = args.Location.Sub(rightPressPoint);
-                rightDragged = Math.Abs(delta.X) > DragThreshold || Math.Abs(delta.Y) > DragThreshold;
+                var delta = args.Location.Sub(shapePressPoint);
+                shapeDragged = Math.Abs(delta.X) > DragThreshold || Math.Abs(delta.Y) > DragThreshold;
             }
 
             var imagePoint = ToImage(args.Location);
-            if (rightPressed && rightDragged)
+            if (shapePressed && shapeDragged)
             {
                 switch (dragMode)
                 {
@@ -387,36 +411,42 @@ namespace ColourClashNet.Components
                 ForceRefresh();
             }
 
-            if (!rightPressed && mouseManager.MouseState != MouseHandler.EnumMouseState.tracking)
+            if (!shapePressed && mouseManager.MouseState != MouseHandler.EnumMouseState.tracking)
                 UpdateShapeCursor(args.Location);
         }
 
         /// <summary>
         /// Ends a right button action: completes a drag, adds a polygon vertex, or opens the context menu on a click.
         /// </summary>
-        void OnShapeMouseUp(MouseEventArgs args)
+        /// <returns>True when the release ends a shape action (the image scroll must ignore it).</returns>
+        bool OnShapeMouseUp(MouseEventArgs args)
         {
-            if (args.Button != MouseSelectButton || !rightPressed)
-                return;
-            rightPressed = false;
+            if (!shapePressed || args.Button != shapeButton)
+                return false;
+            var button = shapeButton;
+            shapePressed = false;
+            shapeButton = MouseButtons.None;
             var mode = dragMode;
             dragMode = EnumShapeDrag.None;
 
-            if (rightDragged && !rightMenuRequested)
+            if (shapeDragged && !shapeMenuRequested)
             {
                 // A shape too small to be useful is discarded and the previous one restored
                 if ((mode == EnumShapeDrag.NewBox || mode == EnumShapeDrag.NewFreehand) && shape?.IsValid != true)
                     Shape = dragStartShape;
-                return;
+                return true;
             }
 
-            // Click without dragging
-            if (!rightMenuRequested && shapeTool == EnumShapeTool.Polygon && Image != null && (polygonDraft.Count > 0 || !HitShape(args.Location)))
+            // Click without dragging: the left button on a handle does nothing else
+            if (button != MouseSelectButton)
+                return true;
+            if (!shapeMenuRequested && shapeTool == EnumShapeTool.Polygon && Image != null && (polygonDraft.Count > 0 || !HitShape(args.Location)))
             {
                 AddPolygonVertex(args.Location);
-                return;
+                return true;
             }
             ShowContextMenu(args.Location);
+            return true;
         }
 
         /// <summary>
@@ -540,7 +570,7 @@ namespace ColourClashNet.Components
             RoiShape? measured = null;
             if (polygonDraft.Count > 0)
                 measured = new PolygonRoiShape(polygonDraft.Append(polygonPreview).ToArray());
-            else if (rightPressed && rightDragged && dragMode != EnumShapeDrag.None)
+            else if (shapePressed && shapeDragged && dragMode != EnumShapeDrag.None)
                 measured = shape;
             if (measured == null)
                 return;
