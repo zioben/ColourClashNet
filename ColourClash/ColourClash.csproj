@@ -5,11 +5,13 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>ColourClash</AssemblyName>
+    <AssemblyName>ColourClashNetCli</AssemblyName>
+    <RootNamespace>ColourClash</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ColourClashLib\ColourClashLib.csproj" />
+    <ProjectReference Include="..\ColourClashProcessing\ColourClashProcessing.csproj" />
     <ProjectReference Include="..\ColourClashSupport\ColourClashSupport.csproj" />
   </ItemGroup>
 

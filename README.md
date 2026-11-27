@@ -27,7 +27,7 @@ Old systems usually have 3 channels with 3 or 4-bit for color, for a total of 51
 | `ColourClashDrawings` | net10.0-windows | WinForms components: zoomable bitmap renderer, coordinate and mouse managers, processing pipeline manager, `ColorAnalyzer` control, GDI+ conversions |
 | `ColourClashNet` | net10.0-windows | Main WinForms application (one `ColorAnalyzer` per tab) |
 | `ModuleTester` | net10.0-windows | Manual test bench for every transformation |
-| `ColourClash` | net10.0 | Command line tool: runs, validates and creates JSON pipelines |
+| `ColourClash` | net10.0 | Command line tool `ColourClashNetCli`: runs, validates and creates JSON pipelines |
 | `XUnitTester` | net10.0-windows | xUnit v3 tests |
 
 ## How to
@@ -282,7 +282,9 @@ A pipeline is a JSON file with an ordered list of steps; each step works on the 
 | `Load` | `File` | loads an image (PNG, BMP, JPG ...) |
 | `Crop` | `X`, `Y`, `Width`, `Height` | keeps an area of the image |
 | `Resize` | `Width`, `Height` (0 keeps the aspect ratio), `Mode` (`Nearest`, `Average`) | resizes the image |
+| `Roi` | `Shape` (`Rectangle`, `Ellipse`, `Polygon`), `X`, `Y`, `Width`, `Height` or `Points`, `OutsideColor` | keeps a region of interest; outside pixels take `OutsideColor` (a rectangle keeps every pixel) |
 | `Transform` | `Options`: any transformation options record (`$type` = `Clustering`, `C64`, `ZxSpectrum`, `Amiga` ...) | runs a transformation |
+| `Blob` | `Options` (background colors, tolerance, connectivity, size filters), `Padding`, `ExportFolder`, `ExportPrefix` | extracts the sprites: the image becomes the sprites stacked, optionally each one saved as PNG |
 | `Save` | `File`, `Format` (`Auto`, `Png`, `Bmp`, `Jpg`, `IndexedBmp`), `Quality` | saves the current image |
 
 Every step accepts an optional `Label`. Relative paths are relative to the folder of the pipeline file.
@@ -303,26 +305,29 @@ Every step accepts an optional `Label`. Relative paths are relative to the folde
 - **Version**: files record the format version (`PipelineDefinition.CurrentVersion`); a file written by a newer
   program is refused with a clear message, a file without `Version` is read as version 1.
 - **Hand written files** may contain comments and trailing commas, use any letter case and put `$type` anywhere.
+- **Colors** are written as `"#RRGGBB"` (numbers are still read, for older files).
 - Only settings are written: computed values such as `TransformType` are left out.
 - In code: `PipelineSerializer.Load/Save`, `PipelineDefinition.Validate()`, `new PipelineRunner().Run(pipeline, image)`
   (step events, progress of the transformations, cancellation; errors are returned in the result).
 
-Examples are in `Samples/Pipelines` (ZX autotune, C64 multicolor, Amiga HAM6).
+Ready to run examples are in [`Samples`](./Samples/README.md): common transformations, blob processing,
+regions of interest and combos (e.g. one photo for four platforms, sprites to the Game Boy palette).
 
-**Command line** (`ColourClash` project):
+**Command line** (`ColourClash` project, executable `ColourClashNetCli`):
 ```bash
-ColourClash run Samples/Pipelines/zx-autotune.json --input photo.png --output photo-zx.png
+ColourClashNetCli run Samples/Pipelines/Transformations/zx-autotune.json --input photo.png --output photo-zx.png
 ```
 ```bash
-ColourClash validate my-pipeline.json
+ColourClashNetCli validate Samples
 ```
 ```bash
-ColourClash template ZxSpectrum --input photo.png --output out.png > my-pipeline.json
+ColourClashNetCli template ZxSpectrum --input photo.png --output out.png > my-pipeline.json
 ```
 ```bash
-ColourClash list
+ColourClashNetCli list
 ```
-`--input` replaces the first load step and `--output` the last save step (they are added when missing),
+`run` and `validate` accept several files and folders (every `*.json` inside).
+With a single pipeline, `--input` replaces the first load step and `--output` the last save step (they are added when missing),
 `--verbose` prints the log. Exit codes: 0 success, 1 pipeline failed or invalid, 2 wrong command line or unreadable file.
 
 **User interface** (menu **Pipeline**):
@@ -396,8 +401,9 @@ but the UI and the `XUnitTester` project run on Windows only. The tests are a se
 dotnet run --project XUnitTester/XUnitTester.csproj
 ```
 
-**Continuous integration**: `.github/workflows/ci.yml` builds the solution, runs the tests and validates a sample
-pipeline with the command line tool on every push and pull request (Windows runner, .NET 10).
+**Continuous integration**: `.github/workflows/ci.yml` builds the solution, runs the tests, then validates and runs
+every sample pipeline with the command line tool, on every push and pull request (Windows runner, .NET 10).
+The images produced by the samples can be downloaded from the run page (artifact `sample-pipeline-results`).
 
 The tests do not need external files. Reference pictures made on the real systems, useful to compare the results,
 are in `Images/References/TestImages` (Amstrad CPC modes 0/1/2, CGA, C64 hires/multicolor/FLI/PETSCII,

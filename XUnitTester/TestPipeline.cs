@@ -181,6 +181,89 @@ namespace XUnitTester
         }
 
         [Fact]
+        public void RoiStep_ExtractsTheShape_WithTheOutsideColor()
+        {
+            var pipeline = new PipelineDefinition
+            {
+                Steps = new PipelineStep[]
+                {
+                    new RoiStep { Shape = RoiStepShape.Ellipse, X = 0, Y = 0, Width = 8, Height = 8, OutsideColor = 0x123456 },
+                },
+            };
+
+            var result = new PipelineRunner().Run(pipeline, Gradient(16, 16));
+
+            Assert.True(result.IsSuccess, result.Message);
+            Assert.Equal(8, result.Image!.Width);
+            Assert.Equal(0x123456, result.Image.GetMatrix()[0, 0]);   // corner outside the ellipse
+            Assert.NotEqual(0x123456, result.Image.GetMatrix()[4, 4]);
+            Assert.Contains("at least 3", new RoiStep { Shape = RoiStepShape.Polygon }.Validate().First());
+        }
+
+        [Fact]
+        public void BlobStep_StacksTheSprites_AndDropsTheSmallOnes()
+        {
+            // Two 3x3 sprites and a 1 pixel speck on a magenta background
+            int magenta = 0xFF00FF;
+            var matrix = new int[8, 16];
+            for (int r = 0; r < 8; r++)
+                for (int c = 0; c < 16; c++)
+                    matrix[r, c] = magenta;
+            for (int r = 1; r < 4; r++)
+                for (int c = 1; c < 4; c++)
+                {
+                    matrix[r, c] = 0x00FF00;
+                    matrix[r + 3, c + 8] = 0x0000FF;
+                }
+            matrix[7, 14] = 0xFFFFFF;
+            var pipeline = new PipelineDefinition
+            {
+                Steps = new PipelineStep[]
+                {
+                    new BlobStep { Options = new ColourClashProcessing.Blob.BlobOptions { MinArea = 4 }, Padding = 1 },
+                },
+            };
+
+            var result = new PipelineRunner().Run(pipeline, new ImageData().Create(matrix));
+
+            Assert.True(result.IsSuccess, result.Message);
+            Assert.StartsWith("2 blobs", result.Steps[0].Message);
+        }
+
+        [Fact]
+        public void Colors_AreWrittenAsHex_AndReadFromHexOrNumbers()
+        {
+            var options = new BackgroundRemovalOptions { BackgroundColors = new[] { 0xFF00FF }, ReplacementColor = 0x102030 };
+
+            var json = TransformOptionsSerializer.Serialize(options);
+            Assert.Contains("\"#FF00FF\"", json);
+            Assert.Contains("\"#102030\"", json);
+
+            var fromNumbers = Assert.IsType<BackgroundRemovalOptions>(TransformOptionsSerializer.Deserialize(
+                """{ "$type": "BackgroundRemoval", "BackgroundColors": [ 16711935, "0x00FF00", "0000FF" ], "ReplacementColor": "#102030" }"""));
+            Assert.Equal(new[] { 0xFF00FF, 0x00FF00, 0x0000FF }, fromNumbers.BackgroundColors);
+            Assert.Equal(0x102030, fromNumbers.ReplacementColor);
+            Assert.Throws<JsonException>(() => TransformOptionsSerializer.Deserialize("""{ "$type": "BackgroundRemoval", "ReplacementColor": "#XYZ" }"""));
+        }
+
+        [Fact]
+        public void SamplePipelines_AreValid()
+        {
+            // The samples live in the repository: walk up from the test binaries to find them
+            var folder = AppContext.BaseDirectory;
+            while (folder != null && !Directory.Exists(Path.Combine(folder, "Samples", "Pipelines")))
+                folder = Path.GetDirectoryName(folder);
+            Assert.SkipWhen(folder == null, "Samples folder not found: the tests are not running from the repository");
+            var files = Directory.GetFiles(Path.Combine(folder!, "Samples", "Pipelines"), "*.json", SearchOption.AllDirectories);
+            Assert.NotEmpty(files);
+            foreach (var file in files)
+            {
+                var errors = PipelineSerializer.Load(file).Validate().ToList();
+                Assert.True(errors.Count == 0, $"{file} : {string.Join("; ", errors)}");
+            }
+        }
+
+        [Fact]
         public void Resize_Nearest_KeepsColors_AndAverage_MixesThem()
         {
             var matrix = new int[1, 2] { { 0x000000, 0xFFFFFF } };

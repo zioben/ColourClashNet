@@ -1,4 +1,5 @@
-﻿using ColourClashNet.Color;
+﻿using System.Text.Json.Serialization;
+using ColourClashNet.Color;
 using System.ComponentModel;
 
 namespace ColourClashProcessing.Threshold
@@ -15,6 +16,7 @@ namespace ColourClashProcessing.Threshold
         /// Background reference colors (magenta by default).
         /// </summary>
         [Category("Threshold"), Description("Background reference colors")]
+        [JsonConverter(typeof(ColorListJsonConverter))]
         public IReadOnlyList<int> BackgroundColors { get; init; } = new[] { ColorIntExt.FromRGB(255, 0, 255) };
 
         /// <summary>

@@ -43,5 +43,17 @@ jobs:
       - name: Test
         run: dotnet run --project XUnitTester/XUnitTester.csproj --configuration Release --no-build
 
-      - name: Command line smoke test
-        run: dotnet run --project ColourClash/ColourClash.csproj --configuration Release --no-build -- validate Samples/Pipelines/zx-autotune.json
+      # Every sample pipeline is validated, then run end to end (load, process, save) with the command line tool
+      - name: Validate sample pipelines
+        run: dotnet run --project ColourClash/ColourClash.csproj --configuration Release --no-build -- validate Samples
+
+      - name: Run sample pipelines
+        run: dotnet run --project ColourClash/ColourClash.csproj --configuration Release --no-build -- run Samples
+
+      - name: Upload sample results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sample-pipeline-results
+          path: Samples/Pipelines/**/output/
+          if-no-files-found: warn

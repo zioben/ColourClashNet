@@ -64,6 +64,7 @@ namespace ColourClashNet.Color.Transformation
         /// Hardware transformations (CGA, EGA, C64, ZX ...) use their own palette and ignore it.
         /// </summary>
         [Category("Common"), Description("Colors chosen by the user (fixed colors or target palette)")]
+        [JsonConverter(typeof(ColorListJsonConverter))]
         public IReadOnlyList<int> UserPalette { get; init; } = Array.Empty<int>();
 
         /// <summary>

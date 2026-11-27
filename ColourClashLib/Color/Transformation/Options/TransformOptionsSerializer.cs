@@ -21,7 +21,7 @@ namespace ColourClashNet.Color.Transformation
         /// read-only computed properties (<c>TransformType</c>, <c>Kind</c> ...) are left out.
         /// Reading accepts comments, trailing commas, any letter case and <c>$type</c> in any position (hand written files).
         /// </summary>
-        internal static JsonSerializerOptions CreateJsonOptions() => new()
+        public static JsonSerializerOptions CreateJsonOptions() => new()
         {
             WriteIndented = true,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,

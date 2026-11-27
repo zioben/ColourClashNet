@@ -362,4 +362,4 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 # Output of the sample pipelines
-Samples/Pipelines/output/
+Samples/Pipelines/**/output/

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Text.Json.Serialization;
+using System.ComponentModel;
 
 namespace ColourClashNet.Color.Transformation
 {
@@ -151,6 +152,7 @@ namespace ColourClashNet.Color.Transformation
         /// Color used to mark the tile grid.
         /// </summary>
         [Category("C64"), Description("Color used to mark the tile grid")]
+        [JsonConverter(typeof(ColorJsonConverter))]
         public int TileBorderColor { get; init; } = ColorIntExt.FromRGB(255, 0, 255);
 
         /// <summary>

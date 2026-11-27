@@ -1,4 +1,7 @@
+using ColourClashNet.Color;
 using ColourClashNet.Color.Transformation;
+using ColourClashNet.Imaging.Shapes;
+using ColourClashProcessing.Blob;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +10,8 @@ using System.Text.Json.Serialization;
 namespace ColourClashNet.Pipeline
 {
     /// <summary>
-    /// Processing pipeline stored as JSON: an ordered list of steps (load, crop, resize, transformations, save).
+    /// Processing pipeline stored as JSON: an ordered list of steps (load, crop, resize, region of interest,
+    /// transformations, blob extraction, save).
     /// <para/>
     /// Pipelines are immutable records, like the transformation options: change them with <c>with</c> expressions.
     /// Run them with <see cref="PipelineRunner"/>, save and load them with <see cref="PipelineSerializer"/>.
@@ -103,7 +107,9 @@ namespace ColourClashNet.Pipeline
     [JsonDerivedType(typeof(LoadStep), "Load")]
     [JsonDerivedType(typeof(CropStep), "Crop")]
     [JsonDerivedType(typeof(ResizeStep), "Resize")]
+    [JsonDerivedType(typeof(RoiStep), "Roi")]
     [JsonDerivedType(typeof(TransformStep), "Transform")]
+    [JsonDerivedType(typeof(BlobStep), "Blob")]
     [JsonDerivedType(typeof(SaveStep), "Save")]
     public abstract record PipelineStep
     {
@@ -213,6 +219,122 @@ namespace ColourClashNet.Pipeline
                 yield return "set at least one of Width and Height";
             if (!Enum.IsDefined(Mode))
                 yield return $"{nameof(Mode)} {Mode} is not valid";
+        }
+    }
+
+    /// <summary>
+    /// Shapes of <see cref="RoiStep"/>.
+    /// </summary>
+    public enum RoiStepShape
+    {
+        /// <summary>Rectangle <c>X, Y, Width, Height</c>: every pixel is kept.</summary>
+        Rectangle,
+        /// <summary>Ellipse inscribed in <c>X, Y, Width, Height</c>.</summary>
+        Ellipse,
+        /// <summary>Polygon with the vertices <c>Points</c>.</summary>
+        Polygon,
+    }
+
+    /// <summary>
+    /// Vertex of a polygonal region of interest, in image coordinates.
+    /// </summary>
+    public sealed record RoiPoint(float X, float Y);
+
+    /// <summary>
+    /// Keeps a region of interest of the current image: the image becomes the bounding box of the shape, and the
+    /// pixels outside the shape take <see cref="OutsideColor"/> (a rectangle keeps every pixel).
+    /// </summary>
+    public sealed record RoiStep : PipelineStep
+    {
+        /// <summary>Shape of the region.</summary>
+        public RoiStepShape Shape { get; init; } = RoiStepShape.Rectangle;
+        /// <summary>Left coordinate of the box (rectangle, ellipse).</summary>
+        public int X { get; init; }
+        /// <summary>Top coordinate of the box (rectangle, ellipse).</summary>
+        public int Y { get; init; }
+        /// <summary>Width of the box (rectangle, ellipse).</summary>
+        public int Width { get; init; }
+        /// <summary>Height of the box (rectangle, ellipse).</summary>
+        public int Height { get; init; }
+        /// <summary>Vertices of the polygon.</summary>
+        public IReadOnlyList<RoiPoint> Points { get; init; } = Array.Empty<RoiPoint>();
+        /// <summary>
+        /// Color of the pixels outside the shape (default: the background color, so a background removal can drop them).
+        /// </summary>
+        [JsonConverter(typeof(ColorJsonConverter))]
+        public int OutsideColor { get; init; } = ColorDefaults.DefaultBkgColorInt;
+
+        /// <inheritdoc/>
+        public override string Kind => $"Roi {Shape}";
+
+        /// <inheritdoc/>
+        public override IEnumerable<string> Validate()
+        {
+            if (!Enum.IsDefined(Shape))
+                yield return $"{nameof(Shape)} {Shape} is not valid";
+            if (Shape == RoiStepShape.Polygon)
+            {
+                if (Points == null || Points.Count < 3)
+                    yield return $"a polygon needs at least 3 {nameof(Points)}";
+            }
+            else if (Width <= 0 || Height <= 0)
+            {
+                yield return $"size {Width}x{Height} must be positive";
+            }
+        }
+
+        /// <summary>
+        /// Builds the shape of the region.
+        /// </summary>
+        public RoiShape ToShape() => Shape switch
+        {
+            RoiStepShape.Ellipse => new EllipseRoiShape(new System.Drawing.RectangleF(X, Y, Width, Height)),
+            RoiStepShape.Polygon => new PolygonRoiShape(Points.Select(p => new System.Drawing.PointF(p.X, p.Y)).ToArray()),
+            _ => new RectangleRoiShape(new System.Drawing.RectangleF(X, Y, Width, Height)),
+        };
+    }
+
+    /// <summary>
+    /// Extracts the sprites (blobs) of a sprite sheet: the current image becomes the blobs stacked vertically,
+    /// and each blob can also be saved as a separate image.
+    /// </summary>
+    public sealed record BlobStep : PipelineStep
+    {
+        /// <summary>
+        /// Detection settings: background colors and tolerance, connectivity, size filters.
+        /// </summary>
+        public BlobOptions Options { get; init; } = new();
+
+        /// <summary>
+        /// Pixels between the stacked blobs.
+        /// </summary>
+        public int Padding { get; init; } = 1;
+
+        /// <summary>
+        /// When set, every blob is also saved in this folder (relative to the pipeline file), as PNG.
+        /// </summary>
+        public string ExportFolder { get; init; } = string.Empty;
+
+        /// <summary>
+        /// File name prefix of the exported blobs.
+        /// </summary>
+        public string ExportPrefix { get; init; } = "sprite";
+
+        /// <inheritdoc/>
+        public override string Kind => "Blob";
+
+        /// <inheritdoc/>
+        public override IEnumerable<string> Validate()
+        {
+            if (Options == null)
+            {
+                yield return $"{nameof(Options)} are missing";
+                yield break;
+            }
+            foreach (var error in Options.Validate())
+                yield return error;
+            if (Padding < 0)
+                yield return $"{nameof(Padding)} must not be negative (is {Padding})";
         }
     }
 

@@ -1,0 +1,18 @@
+// K-means reduction to 16 colors, Floyd-Steinberg dithering.
+{
+  "Version": 1,
+  "Name": "Clustering, 16 colors",
+  "Steps": [
+    { "$type": "Load", "File": "../../../Images/Original.png" },
+    {
+      "$type": "Transform",
+      "Options": {
+        "$type": "Clustering",
+        "MaxColors": 16,
+        "TrainingLoops": 10,
+        "Dithering": { "DitheringType": "FloydSteinberg", "DitheringStrength": 0.8 }
+      }
+    },
+    { "$type": "Save", "File": "output/clustering-16.png" }
+  ]
+}

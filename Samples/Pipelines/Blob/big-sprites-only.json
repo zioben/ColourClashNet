@@ -1,0 +1,19 @@
+// Keeps only the big sprites (at least 24x24 pixels): size filters of the blob detection.
+{
+  "Version": 1,
+  "Name": "Big sprites only",
+  "Steps": [
+    { "$type": "Load", "File": "../../Images/sprite-sheet.png" },
+    {
+      "$type": "Blob",
+      "Options": {
+        "Threshold": { "BackgroundColors": [ "#FF00FF" ] },
+        "MinWidth": 24,
+        "MinHeight": 24,
+        "BackgroundColor": "#000000"
+      },
+      "Padding": 4
+    },
+    { "$type": "Save", "File": "output/big-sprites.png" }
+  ]
+}

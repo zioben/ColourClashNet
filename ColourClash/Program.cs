@@ -47,11 +47,37 @@ namespace ColourClash
         }
 
         /// <summary>
-        /// <c>run pipeline.json [--input file] [--output file] [--verbose]</c>
+        /// <c>run pipeline.json|folder ... [--input file] [--output file] [--verbose]</c>
+        /// <para/>
+        /// Several files or folders (every <c>*.json</c> inside, recursively) are run one after the other;
+        /// <c>--input</c> and <c>--output</c> need a single pipeline.
         /// </summary>
         static int Run(CommandLine arguments)
         {
-            var (pipeline, file) = LoadPipeline(arguments);
+            var files = ExpandFiles(arguments);
+            if (files.Count > 1)
+            {
+                if (arguments.Has("input") || arguments.Has("output"))
+                    throw new ArgumentException("--input and --output need a single pipeline file");
+                int failed = 0;
+                foreach (var file in files)
+                {
+                    Console.WriteLine($"=== {file}");
+                    if (RunFile(file, arguments) != ExitOk)
+                        failed++;
+                }
+                Console.WriteLine($"{files.Count - failed} of {files.Count} pipelines completed");
+                return failed == 0 ? ExitOk : ExitFailed;
+            }
+            return RunFile(files[0], arguments);
+        }
+
+        /// <summary>
+        /// Runs one pipeline file.
+        /// </summary>
+        static int RunFile(string file, CommandLine arguments)
+        {
+            var pipeline = LoadPipeline(file);
             if (pipeline == null)
                 return ExitUsage;
             if (arguments.Value("input") is string input)
@@ -59,7 +85,7 @@ namespace ColourClash
             if (arguments.Value("output") is string output)
                 pipeline = pipeline.WithOutput(Path.GetFullPath(output));
 
-            var runner = new PipelineRunner { BaseDirectory = Path.GetDirectoryName(Path.GetFullPath(file!)) ?? string.Empty };
+            var runner = new PipelineRunner { BaseDirectory = Path.GetDirectoryName(Path.GetFullPath(file)) ?? string.Empty };
             runner.StepStarted += (s, e) => Console.WriteLine($"[{e.Number}/{e.Count}] {e.Step}");
             runner.StepCompleted += (s, e) => Console.WriteLine($"      {(e.Result!.IsSuccess ? "ok" : "FAILED")} : {e.Result.Message} ({e.Result.ProcessingTimeMilliseconds:f0} ms)");
 
@@ -78,25 +104,55 @@ namespace ColourClash
         }
 
         /// <summary>
-        /// <c>validate pipeline.json</c>
+        /// <c>validate pipeline.json|folder ...</c>: checks every pipeline without running it.
         /// </summary>
         static int Validate(CommandLine arguments)
         {
-            var (pipeline, file) = LoadPipeline(arguments);
-            if (pipeline == null)
-                return ExitUsage;
-            var errors = pipeline.Validate().ToList();
-            if (errors.Count == 0)
+            int result = ExitOk;
+            foreach (var file in ExpandFiles(arguments))
             {
-                Console.WriteLine($"{file} : valid, version {pipeline.Version}, {pipeline.Steps.Count} steps");
-                foreach (var step in pipeline.Steps)
-                    Console.WriteLine($"  - {step}");
-                return ExitOk;
+                var pipeline = LoadPipeline(file);
+                if (pipeline == null)
+                {
+                    result = ExitUsage;
+                    continue;
+                }
+                var errors = pipeline.Validate().ToList();
+                if (errors.Count == 0)
+                {
+                    Console.WriteLine($"{file} : valid, version {pipeline.Version}, {pipeline.Steps.Count} steps");
+                    foreach (var step in pipeline.Steps)
+                        Console.WriteLine($"  - {step}");
+                    continue;
+                }
+                Console.Error.WriteLine($"{file} : {errors.Count} problems");
+                foreach (var error in errors)
+                    Console.Error.WriteLine($"  - {error}");
+                if (result == ExitOk)
+                    result = ExitFailed;
             }
-            Console.Error.WriteLine($"{file} : {errors.Count} problems");
-            foreach (var error in errors)
-                Console.Error.WriteLine($"  - {error}");
-            return ExitFailed;
+            return result;
+        }
+
+        /// <summary>
+        /// Pipeline files named on the command line: files as they are, folders expanded to their <c>*.json</c> files.
+        /// </summary>
+        /// <exception cref="ArgumentException">No file given, or a path that does not exist.</exception>
+        static List<string> ExpandFiles(CommandLine arguments)
+        {
+            var files = new List<string>();
+            foreach (var path in arguments.AllPositional)
+            {
+                if (Directory.Exists(path))
+                    files.AddRange(Directory.GetFiles(path, "*.json", SearchOption.AllDirectories).OrderBy(f => f, StringComparer.OrdinalIgnoreCase));
+                else if (File.Exists(path))
+                    files.Add(path);
+                else
+                    throw new ArgumentException($"'{path}' does not exist");
+            }
+            if (files.Count == 0)
+                throw new ArgumentException("missing pipeline file or folder");
+            return files;
         }
 
         /// <summary>
@@ -140,19 +196,18 @@ namespace ColourClash
         }
 
         /// <summary>
-        /// Loads the pipeline named by the first positional argument; prints the error when it cannot.
+        /// Loads a pipeline file; prints the error and returns null when it cannot.
         /// </summary>
-        static (PipelineDefinition? pipeline, string? file) LoadPipeline(CommandLine arguments)
+        static PipelineDefinition? LoadPipeline(string file)
         {
-            var file = arguments.Positional(0) ?? throw new ArgumentException("missing pipeline file");
             try
             {
-                return (PipelineSerializer.Load(file), file);
+                return PipelineSerializer.Load(file);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
             {
                 Console.Error.WriteLine($"{file} : {ex.Message}");
-                return (null, file);
+                return null;
             }
         }
 
@@ -185,10 +240,11 @@ namespace ColourClash
             Console.WriteLine($"{name.Name} {name.Version} - retro image conversion pipelines");
             Console.WriteLine();
             Console.WriteLine("Usage:");
-            Console.WriteLine($"  {name.Name} run <pipeline.json> [--input <image>] [--output <image>] [--verbose]");
-            Console.WriteLine("      runs the pipeline; --input replaces the first load step, --output the last save step");
-            Console.WriteLine($"  {name.Name} validate <pipeline.json>");
-            Console.WriteLine("      checks the pipeline without running it");
+            Console.WriteLine($"  {name.Name} run <pipeline.json | folder> ... [--input <image>] [--output <image>] [--verbose]");
+            Console.WriteLine("      runs the pipelines (a folder: every *.json inside);");
+            Console.WriteLine("      with a single pipeline, --input replaces the first load step and --output the last save step");
+            Console.WriteLine($"  {name.Name} validate <pipeline.json | folder> ...");
+            Console.WriteLine("      checks the pipelines without running them");
             Console.WriteLine($"  {name.Name} template <transformation> [--input <image>] [--output <image>]");
             Console.WriteLine("      prints a pipeline with the default options of a transformation (redirect it to a .json file)");
             Console.WriteLine($"  {name.Name} list");
@@ -241,6 +297,9 @@ namespace ColourClash
             }
             return commandLine;
         }
+
+        /// <summary>All the positional arguments.</summary>
+        public IReadOnlyList<string> AllPositional => positional;
 
         /// <summary>Positional argument <paramref name="index"/>, or null.</summary>
         public string? Positional(int index) => index < positional.Count ? positional[index] : null;

@@ -3,8 +3,9 @@
   "Version": 1,
   "Name": "C64 multicolor",
   "Steps": [
-    { "$type": "Load", "File": "../../Images/Original.png" },
-    { "$type": "Resize", "Width": 320, "Height": 200, "Mode": "Average" },
+    { "$type": "Load", "File": "../../../Images/Original.png" },
+    { "$type": "Resize", "Width": 320, "Height": 0, "Mode": "Average" },
+    { "$type": "Crop", "X": 0, "Y": 140, "Width": 320, "Height": 200 },
     {
       "$type": "Transform",
       "Options": {

@@ -1,15 +1,16 @@
 // ZX Spectrum conversion with automatic seed tuning.
 // Run it from the repository root:
-//   ColourClash run Samples/Pipelines/zx-autotune.json
+//   ColourClashNetCli run Samples/Pipelines/Transformations/zx-autotune.json
 // or on another image:
-//   ColourClash run Samples/Pipelines/zx-autotune.json --input photo.png --output photo-zx.png
+//   ColourClashNetCli run Samples/Pipelines/Transformations/zx-autotune.json --input photo.png --output photo-zx.png
 {
   "Version": 1,
   "Name": "ZX Spectrum, autotune",
   "Description": "256x192, normal and bright palettes, fast seed search",
   "Steps": [
-    { "$type": "Load", "File": "../../Images/Original.png" },
-    { "$type": "Resize", "Width": 256, "Height": 192, "Mode": "Average" },
+    { "$type": "Load", "File": "../../../Images/Original.png" },
+    { "$type": "Resize", "Width": 256, "Height": 0, "Mode": "Average" },
+    { "$type": "Crop", "X": 0, "Y": 96, "Width": 256, "Height": 192 },
     {
       "$type": "Transform",
       "Options": { "$type": "ZxSpectrum", "PaletteMode": "BothPalettes", "Autotune": "Fast" }

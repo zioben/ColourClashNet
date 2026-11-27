@@ -1,6 +1,7 @@
 using ColourClashNet.Color.Transformation;
 using ColourClashNet.Imaging;
 using ColourClashNet.Log;
+using ColourClashProcessing.Blob;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -219,6 +220,36 @@ namespace ColourClashNet.Pipeline
                         int height = resize.Height > 0 ? resize.Height : Math.Max(1, (int)Math.Round((double)image.Height * resize.Width / image.Width));
                         var resized = ImageTools.Resize(image, width, height, resize.Mode == ResizeMode.Average);
                         return (resized, $"resized to {width}x{height} ({resize.Mode})", double.NaN);
+                    }
+                case RoiStep roi:
+                    {
+                        var shape = roi.ToShape();
+                        var extracted = shape.ExtractFrom(image, roi.OutsideColor);
+                        return extracted == null
+                            ? (null, $"the {roi.Shape} region is outside the {image.Width}x{image.Height} image", double.NaN)
+                            : (extracted, $"{roi.Shape} region {extracted.Width}x{extracted.Height}", double.NaN);
+                    }
+                case BlobStep blobStep:
+                    {
+                        var blob = new ColourClashProcessing.Blob.Blob { Options = blobStep.Options };
+                        var detection = blob.Process(image, token);
+                        token.ThrowIfCancellationRequested();
+                        if (!detection.IsSuccess)
+                            return (null, detection.Message, double.NaN);
+                        if (blob.BlobList.Count == 0)
+                            return (null, "no blobs found: check the background colors and the size filters", double.NaN);
+                        string exported = string.Empty;
+                        if (!string.IsNullOrWhiteSpace(blobStep.ExportFolder))
+                        {
+                            var folder = ResolvePath(blobStep.ExportFolder);
+                            if (!BlobTools.ExportImages(blob, folder, blobStep.ExportPrefix))
+                                return (null, $"cannot export the blobs to {folder}", double.NaN);
+                            exported = $", exported to {folder}";
+                        }
+                        var stacked = BlobTools.ReshapeVertical(blob, 0, blobStep.Padding, blobStep.Padding, 0, blobStep.Padding);
+                        return stacked == null
+                            ? (null, "cannot stack the blobs", double.NaN)
+                            : (stacked, $"{blob.BlobList.Count} blobs{exported}", double.NaN);
                     }
                 case TransformStep transformStep:
                     {

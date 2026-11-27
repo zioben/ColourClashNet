@@ -1,0 +1,12 @@
+// Amstrad CPC mode 0: 160x200 wide pixels, 16 of 27 colors.
+{
+  "Version": 1,
+  "Name": "Amstrad CPC mode 0",
+  "Steps": [
+    { "$type": "Load", "File": "../../../Images/Original.png" },
+    { "$type": "Resize", "Width": 320, "Height": 0, "Mode": "Average" },
+    { "$type": "Crop", "X": 0, "Y": 140, "Width": 320, "Height": 200 },
+    { "$type": "Transform", "Options": { "$type": "Cpc", "VideoMode": "Mode0", "Dithering": { "DitheringType": "Ordered_2x2" } } },
+    { "$type": "Save", "File": "output/cpc-mode0.png" }
+  ]
+}

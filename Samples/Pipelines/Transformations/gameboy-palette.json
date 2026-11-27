@@ -1,0 +1,19 @@
+// Fixed 4 color palette (Game Boy greens), ordered dithering.
+{
+  "Version": 1,
+  "Name": "Game Boy palette",
+  "Steps": [
+    { "$type": "Load", "File": "../../../Images/Original.png" },
+    { "$type": "Resize", "Width": 160, "Height": 0, "Mode": "Average" },
+    {
+      "$type": "Transform",
+      "Options": {
+        "$type": "FixedPalette",
+        "UserPalette": [ "#0F380F", "#306230", "#8BAC0F", "#9BBC0F" ],
+        "Dithering": { "DitheringType": "Ordered_4x4" }
+      }
+    },
+    { "$type": "Resize", "Width": 320, "Height": 0, "Mode": "Nearest", "Label": "2x enlargement" },
+    { "$type": "Save", "File": "output/gameboy.png" }
+  ]
+}
