@@ -20,10 +20,11 @@ namespace ColourClashNet.Components
     /// <summary>
     /// Designer component that draws an image on any <see cref="System.Windows.Forms.Control"/> with zoom and mouse panning.
     /// <para/>
-    /// Left button: draws and edits a region of interest (see <see cref="ShapeTool"/>); with no tool it scrolls the image
-    /// and a double click resets the position. Middle button: scrolls the image. Wheel: zoom.
+    /// Left button: scrolls the image, a double click resets the position; while a drawing tool is active
+    /// (see <see cref="ShapeTool"/>) it draws the region of interest and the right button scrolls instead.
+    /// Middle button: always scrolls. Wheel: zoom.
     /// <para/>
-    /// Right click: context menu (zoom, reset position, shape tools, grid, color picking).
+    /// Right click without dragging: context menu (zoom, reset position, shape tools, grid, color picking).
     /// An optional pixel grid can be shown and used to align the shapes (see <see cref="GridVisible"/>, <see cref="GridSnap"/>).
     /// </summary>
     public partial class BitmapRender : Component
@@ -186,7 +187,8 @@ namespace ColourClashNet.Components
         }
 
         /// <summary>
-        /// Mouse button used to drag the image when no drawing tool is active (the middle button always drags it).
+        /// Mouse button used to drag the image when no drawing tool is active
+        /// (while a tool is active <see cref="MouseSelectButton"/> drags it; the middle button always does).
         /// </summary>
         [Browsable(true), Category("Behavior")]
         [Description("Define mouse button for dragging")]
@@ -540,20 +542,28 @@ namespace ColourClashNet.Components
 
         bool firstClick = true;
 
+        // True when the last press was a double click used by the shape
+        bool shapeDoubleClick;
+
         /// <summary>
         /// Starts a drag.
         /// </summary>
         protected void OnMouseDown(object sender, MouseEventArgs args)
         {
             // A press that draws or edits the shape, or opens the menu, must not scroll the image
+            shapeDoubleClick = false;
             if (OnShapeMouseDown(args))
             {
+                // A double click that the shape used (closing a polygon, a handle) must not reset the position
+                shapeDoubleClick = args.Clicks >= 2;
                 MouseDown?.Invoke(sender, args);
                 return;
             }
-            // The scroll button is chosen at the press: the moving button, or the middle one
+            // The scroll button is chosen at the press: the moving button with no tool, the menu button while drawing,
+            // the middle one always
+            var scrollButton = ShapeTool == EnumShapeTool.None && polygonDraft.Count == 0 ? MouseMovingButton : MouseSelectButton;
             if (mouseManager.MouseState != MouseHandler.EnumMouseState.push && mouseManager.MouseState != MouseHandler.EnumMouseState.tracking
-                && (args.Button == MouseMovingButton || args.Button == MouseButtons.Middle))
+                && (args.Button == scrollButton || args.Button == MouseButtons.Middle))
             {
                 mouseManager.MouseButton = args.Button;
             }
@@ -912,7 +922,7 @@ namespace ColourClashNet.Components
         protected void OnMouseDoubleClick(object? sender, MouseEventArgs args)
         {
             // Not with a tool or on a ROI handle: a double click there belongs to the shape (it closes a polygon)
-            if (args.Button == MouseMovingButton && ShapeTool == EnumShapeTool.None && polygonDraft.Count == 0
+            if (args.Button == MouseMovingButton && !shapeDoubleClick && ShapeTool == EnumShapeTool.None && polygonDraft.Count == 0
                 && HitHandle(args.Location) < 0 && !HitCenter(args.Location))
                 ResetPosition();
         }

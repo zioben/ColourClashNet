@@ -343,19 +343,21 @@ The source and processed images are shown by `BitmapRender` views:
 
 | Mouse | Action |
 |-|-|
-| Left drag | with no shape tool: scroll the image; with a tool: draw the ROI |
-| Middle drag | scroll the image (also while a tool is active) |
+| Left drag | scroll the image; while a shape tool is active: draw the ROI |
+| Right drag | while a shape tool is active: scroll the image |
+| Middle drag | scroll the image |
 | Wheel | zoom (25% per notch in manual zoom) |
-| Left double click | with no tool: reset the image position (also "Reset position" in the context menu) |
+| Left double click | reset the image position (also "Reset position" in the context menu) |
 | Right click | context menu: zoom, reset position, shape tools, grid, color picking |
 
 A region of interest (ROI) is drawn with the left button, after choosing a tool in the toolbar
-(Freehand, Rectangle, Ellipse, Polygon; the button names are in the tooltips) or in the context menu:
+(Freehand, Rectangle, Ellipse, Polygon; the button names are in the tooltips) or in the context menu;
+meanwhile the right button scrolls the image:
 - Freehand, Rectangle, Ellipse: drag to draw;
 - Polygon: click to add vertices, double click, click the first vertex or "Close polygon" in the context menu to close it;
-- drag a handle (box corners and edge midpoints, polygon vertices) to resize or reshape;
-- drag the round center handle to move the whole ROI;
-- click the checked tool button again to go back to scrolling with the left button.
+- once the ROI is drawn the tool turns off and the left button scrolls the image again;
+- drag a handle (box corners and edge midpoints, polygon vertices) to resize or reshape, at any time;
+- drag the round center handle to move the whole ROI.
 
 **Grid**: the toolbar grid button (or *Grid > Show grid* in the context menu) draws a pixel grid over the image,
 with one line style per level: 8 pixels dotted, 16 dash dot dot, 64 dash dot, 128 solid.

@@ -21,8 +21,9 @@ namespace ColourClashNet.Components
     /// <item>Polygon: every click adds a vertex; double click or click on the first vertex to close it.</item>
     /// <item>Drag a handle (box corners and edge midpoints, polygon vertices) to resize or reshape,
     /// drag the center handle to move the whole shape.</item>
-    /// <item>With no drawing tool the left button scrolls the image; the middle button always does.</item>
-    /// <item>Right click: context menu.</item>
+    /// <item>While a drawing tool is active the right button scrolls the image; when the shape is completed
+    /// the tool goes back to <see cref="EnumShapeTool.None"/> and the left button scrolls again.</item>
+    /// <item>Right click without dragging: context menu. The middle button always scrolls.</item>
     /// </list>
     /// With <see cref="GridSnap"/> on, the new points, the handles and the moved shape are aligned to the grid.
     /// </summary>
@@ -33,7 +34,7 @@ namespace ColourClashNet.Components
         /// </summary>
         public enum EnumShapeTool
         {
-            /// <summary>No drawing: the left button scrolls the image and still edits the shape on its handles.</summary>
+            /// <summary>No drawing: the left button scrolls the image and edits the shape on its handles.</summary>
             None,
             /// <summary>Free hand ROI.</summary>
             Freehand,
@@ -136,7 +137,7 @@ namespace ColourClashNet.Components
         [DefaultValue(typeof(System.Drawing.Color), "Yellow")]
         public System.Drawing.Color ShapeColor { get; set; } = System.Drawing.Color.Yellow;
 
-        // State of a shape action (left button) or of a context menu click (right button)
+        // State of a shape action (left button)
         MouseButtons shapeButton = MouseButtons.None;
         bool shapePressed;
         bool shapeDragged;
@@ -146,6 +147,10 @@ namespace ColourClashNet.Components
         int dragHandle = -1;
         EnumShapeDrag dragMode = EnumShapeDrag.None;
         readonly List<PointF> freehandPoints = new();
+
+        // Right button press: a click opens the context menu, a drag scrolls the image
+        bool menuPressed;
+        Point menuPressPoint;
 
         // Vertices of the polygon being drawn, in image coordinates, and the position of the next one
         readonly List<PointF> polygonDraft = new();
@@ -313,19 +318,21 @@ namespace ColourClashNet.Components
         }
 
         /// <summary>
-        /// Starts a shape action: right button click (context menu), or with the left button a handle drag,
-        /// a shape move from the center handle, or a new shape of the current tool.
+        /// Starts a shape action with the left button: a handle drag, a shape move from the center handle,
+        /// or a new shape of the current tool. A right button press is only recorded, for the context menu.
         /// </summary>
         /// <returns>True when the press belongs to the shape and must not scroll the image.</returns>
         bool OnShapeMouseDown(MouseEventArgs args)
         {
-            if (Image == null || shapePressed)
-                return false;
             if (args.Button == MouseSelectButton)
             {
-                BeginShapePress(args, EnumShapeDrag.None);
-                return true;
+                // Not consumed: while a tool is active the right button also scrolls the image
+                menuPressed = true;
+                menuPressPoint = args.Location;
+                return false;
             }
+            if (Image == null || shapePressed)
+                return false;
             if (args.Button != MouseDrawButton)
                 return false;
 
@@ -438,11 +445,25 @@ namespace ColourClashNet.Components
         }
 
         /// <summary>
-        /// Ends a shape action: completes a drag, adds a polygon vertex, or opens the context menu on a right click.
+        /// Ends a shape action: completes a drag or adds a polygon vertex; a right click without dragging opens the context menu.
+        /// <para/>
+        /// A completed new shape turns the drawing tool off, so the left button scrolls the image again.
         /// </summary>
         /// <returns>True when the release ends a shape action (the image scroll must ignore it).</returns>
         bool OnShapeMouseUp(MouseEventArgs args)
         {
+            if (args.Button == MouseSelectButton)
+            {
+                if (menuPressed)
+                {
+                    menuPressed = false;
+                    var delta = args.Location.Sub(menuPressPoint);
+                    if (Math.Abs(delta.X) <= DragThreshold && Math.Abs(delta.Y) <= DragThreshold)
+                        ShowContextMenu(args.Location);
+                }
+                // Not consumed: a right drag scroll must end too
+                return false;
+            }
             if (!shapePressed || args.Button != shapeButton)
                 return false;
             var button = shapeButton;
@@ -451,17 +472,16 @@ namespace ColourClashNet.Components
             var mode = dragMode;
             dragMode = EnumShapeDrag.None;
 
-            if (button == MouseSelectButton)
-            {
-                if (!shapeDragged)
-                    ShowContextMenu(args.Location);
-                return true;
-            }
             if (shapeDragged)
             {
-                // A shape too small to be useful is discarded and the previous one restored
-                if ((mode == EnumShapeDrag.NewBox || mode == EnumShapeDrag.NewFreehand) && shape?.IsValid != true)
-                    Shape = dragStartShape;
+                if (mode == EnumShapeDrag.NewBox || mode == EnumShapeDrag.NewFreehand)
+                {
+                    // A shape too small to be useful is discarded and the previous one restored (the tool stays on)
+                    if (shape?.IsValid != true)
+                        Shape = dragStartShape;
+                    else
+                        ShapeTool = EnumShapeTool.None;
+                }
                 ForceRefresh();
                 return true;
             }
@@ -501,7 +521,10 @@ namespace ColourClashNet.Components
                 var polygon = new PolygonRoiShape(polygonDraft.ToArray());
                 polygonDraft.Clear();
                 if (polygon.IsValid)
+                {
                     Shape = polygon;
+                    ShapeTool = EnumShapeTool.None;
+                }
             }
             ForceRefresh();
         }
