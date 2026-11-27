@@ -1,0 +1,19 @@
+// Commodore 64 multicolor bitmap: 160x200 wide pixels, 4 colors per 4x8 cell.
+{
+  "Version": 1,
+  "Name": "C64 multicolor",
+  "Steps": [
+    { "$type": "Load", "File": "../Images/photo.png" },
+    { "$type": "Resize", "Width": 320, "Height": 0, "Mode": "Average" },
+    { "$type": "Crop", "X": 0, "Y": 140, "Width": 320, "Height": 200 },
+    {
+      "$type": "Transform",
+      "Options": {
+        "$type": "C64",
+        "VideoMode": "Multicolor",
+        "Dithering": { "DitheringType": "FloydSteinberg", "DitheringStrength": 0.6 }
+      }
+    },
+    { "$type": "Save", "File": "output/c64-multicolor.png" }
+  ]
+}

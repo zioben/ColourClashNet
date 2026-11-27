@@ -1,0 +1,10 @@
+// IBM VGA: RGB666 color space, 256 colors.
+{
+  "Version": 1,
+  "Name": "VGA, 256 colors",
+  "Steps": [
+    { "$type": "Load", "File": "../Images/photo.png" },
+    { "$type": "Transform", "Options": { "$type": "Vga" } },
+    { "$type": "Save", "File": "output/vga-256.png" }
+  ]
+}

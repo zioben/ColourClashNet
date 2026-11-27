@@ -45,15 +45,15 @@ jobs:
 
       # Every sample pipeline is validated, then run end to end (load, process, save) with the command line tool
       - name: Validate sample pipelines
-        run: dotnet run --project ColourClash/ColourClash.csproj --configuration Release --no-build -- validate Samples
+        run: dotnet run --project ColourClash/ColourClash.csproj --configuration Release --no-build -- validate ColourClash/PipelineExamples
 
       - name: Run sample pipelines
-        run: dotnet run --project ColourClash/ColourClash.csproj --configuration Release --no-build -- run Samples
+        run: dotnet run --project ColourClash/ColourClash.csproj --configuration Release --no-build -- run ColourClash/PipelineExamples
 
       - name: Upload sample results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sample-pipeline-results
-          path: Samples/Pipelines/**/output/
+          path: ColourClash/PipelineExamples/**/output/
           if-no-files-found: warn

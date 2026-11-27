@@ -310,15 +310,16 @@ Every step accepts an optional `Label`. Relative paths are relative to the folde
 - In code: `PipelineSerializer.Load/Save`, `PipelineDefinition.Validate()`, `new PipelineRunner().Run(pipeline, image)`
   (step events, progress of the transformations, cancellation; errors are returned in the result).
 
-Ready to run examples are in [`Samples`](./Samples/README.md): common transformations, blob processing,
-regions of interest and combos (e.g. one photo for four platforms, sprites to the Game Boy palette).
+Ready to run examples are in [`ColourClash/PipelineExamples`](./ColourClash/PipelineExamples/README.md), copied next to
+the executables at every build: common transformations, blob processing, regions of interest and combos
+(e.g. one photo for four platforms, sprites to the Game Boy palette).
 
 **Command line** (`ColourClash` project, executable `ColourClashNetCli`):
 ```bash
-ColourClashNetCli run Samples/Pipelines/Transformations/zx-autotune.json --input photo.png --output photo-zx.png
+ColourClashNetCli run PipelineExamples/Transformations/zx-autotune.json --input photo.png --output photo-zx.png
 ```
 ```bash
-ColourClashNetCli validate Samples
+ColourClashNetCli validate PipelineExamples
 ```
 ```bash
 ColourClashNetCli template ZxSpectrum --input photo.png --output out.png > my-pipeline.json
@@ -402,8 +403,8 @@ dotnet run --project XUnitTester/XUnitTester.csproj
 ```
 
 **Continuous integration**: `.github/workflows/ci.yml` builds the solution, runs the tests, then validates and runs
-every sample pipeline with the command line tool, on every push and pull request (Windows runner, .NET 10).
-The images produced by the samples can be downloaded from the run page (artifact `sample-pipeline-results`).
+every example pipeline with the command line tool, on every push and pull request (Windows runner, .NET 10).
+The images produced by the examples can be downloaded from the run page (artifact `sample-pipeline-results`).
 
 The tests do not need external files. Reference pictures made on the real systems, useful to compare the results,
 are in `Images/References/TestImages` (Amstrad CPC modes 0/1/2, CGA, C64 hires/multicolor/FLI/PETSCII,

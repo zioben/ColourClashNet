@@ -1,0 +1,12 @@
+// Commodore 64 hires bitmap: 320x200, 2 colors per 8x8 cell.
+{
+  "Version": 1,
+  "Name": "C64 hires",
+  "Steps": [
+    { "$type": "Load", "File": "../Images/photo.png" },
+    { "$type": "Resize", "Width": 320, "Height": 0, "Mode": "Average" },
+    { "$type": "Crop", "X": 0, "Y": 140, "Width": 320, "Height": 200 },
+    { "$type": "Transform", "Options": { "$type": "C64", "VideoMode": "HiRes" } },
+    { "$type": "Save", "File": "output/c64-hires.png" }
+  ]
+}

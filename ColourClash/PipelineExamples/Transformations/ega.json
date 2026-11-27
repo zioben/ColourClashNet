@@ -1,0 +1,10 @@
+// IBM EGA: fixed 16 color palette.
+{
+  "Version": 1,
+  "Name": "EGA",
+  "Steps": [
+    { "$type": "Load", "File": "../Images/photo.png" },
+    { "$type": "Transform", "Options": { "$type": "Ega", "Dithering": { "DitheringType": "FloydSteinberg" } } },
+    { "$type": "Save", "File": "output/ega.png" }
+  ]
+}

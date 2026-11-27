@@ -1,0 +1,11 @@
+// Amiga HAM6 with 2 pixels of lookahead against the color fringes.
+{
+  "Version": 1,
+  "Name": "Amiga HAM6",
+  "Steps": [
+    { "$type": "Load", "File": "../Images/photo.png" },
+    { "$type": "Resize", "Width": 320, "Height": 0, "Mode": "Average" },
+    { "$type": "Transform", "Options": { "$type": "Amiga", "VideoMode": "Ham6", "HamLookahead": 2 } },
+    { "$type": "Save", "File": "output/amiga-ham6.png" }
+  ]
+}

@@ -15,8 +15,9 @@
     <ProjectReference Include="..\ColourClashSupport\ColourClashSupport.csproj" />
   </ItemGroup>
 
+  <!-- Example pipelines and their images, copied next to the executable (output folders excluded) -->
   <ItemGroup>
-    <Folder Include="PipelineExamples\" />
+    <None Include="PipelineExamples\**\*" Exclude="PipelineExamples\**\output\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

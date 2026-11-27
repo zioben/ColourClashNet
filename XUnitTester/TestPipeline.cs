@@ -247,14 +247,14 @@ namespace XUnitTester
         }
 
         [Fact]
-        public void SamplePipelines_AreValid()
+        public void ExamplePipelines_AreValid()
         {
-            // The samples live in the repository: walk up from the test binaries to find them
+            // The examples live in the repository: walk up from the test binaries to find them
             var folder = AppContext.BaseDirectory;
-            while (folder != null && !Directory.Exists(Path.Combine(folder, "Samples", "Pipelines")))
+            while (folder != null && !Directory.Exists(Path.Combine(folder, "ColourClash", "PipelineExamples")))
                 folder = Path.GetDirectoryName(folder);
-            Assert.SkipWhen(folder == null, "Samples folder not found: the tests are not running from the repository");
-            var files = Directory.GetFiles(Path.Combine(folder!, "Samples", "Pipelines"), "*.json", SearchOption.AllDirectories);
+            Assert.SkipWhen(folder == null, "PipelineExamples folder not found: the tests are not running from the repository");
+            var files = Directory.GetFiles(Path.Combine(folder!, "ColourClash", "PipelineExamples"), "*.json", SearchOption.AllDirectories);
             Assert.NotEmpty(files);
             foreach (var file in files)
             {
