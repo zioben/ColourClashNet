@@ -1496,7 +1496,7 @@
             tsbShapeRectangle.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbShapeRectangle.Name = "tsbShapeRectangle";
             tsbShapeRectangle.Text = "Rectangle";
-            tsbShapeRectangle.ToolTipText = "Right button: drag to draw a rectangular ROI";
+            tsbShapeRectangle.ToolTipText = "Left button: drag to draw a rectangular ROI";
             // 
             // tsbShapeEllipse
             // 
@@ -1504,7 +1504,7 @@
             tsbShapeEllipse.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbShapeEllipse.Name = "tsbShapeEllipse";
             tsbShapeEllipse.Text = "Ellipse";
-            tsbShapeEllipse.ToolTipText = "Right button: drag to draw an elliptic ROI";
+            tsbShapeEllipse.ToolTipText = "Left button: drag to draw an elliptic ROI";
             // 
             // tsbShapePolygon
             // 
@@ -1512,7 +1512,7 @@
             tsbShapePolygon.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbShapePolygon.Name = "tsbShapePolygon";
             tsbShapePolygon.Text = "Polygon";
-            tsbShapePolygon.ToolTipText = "Right button: click to add vertices, double click or click the first vertex to close";
+            tsbShapePolygon.ToolTipText = "Left button: click to add vertices, double click or click the first vertex to close";
             // 
             // tsbShapeFreehand
             // 
@@ -1520,7 +1520,7 @@
             tsbShapeFreehand.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbShapeFreehand.Name = "tsbShapeFreehand";
             tsbShapeFreehand.Text = "Freehand";
-            tsbShapeFreehand.ToolTipText = "Right button: drag to draw a free hand ROI";
+            tsbShapeFreehand.ToolTipText = "Left button: drag to draw a free hand ROI";
             // 
             // tssShapes
             // 

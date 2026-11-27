@@ -343,19 +343,26 @@ The source and processed images are shown by `BitmapRender` views:
 
 | Mouse | Action |
 |-|-|
-| Left drag | scroll the image |
+| Left drag | scroll the image; while a shape tool is active: draw the ROI |
+| Middle drag | scroll the image |
 | Wheel | zoom (25% per notch in manual zoom) |
 | Left double click | reset the image position (also "Reset position" in the context menu) |
-| Right click | context menu: zoom, reset position, shape tools, color picking |
+| Right click | context menu: zoom, reset position, shape tools, grid, color picking |
 
-A region of interest (ROI) is drawn with the right button, after choosing a tool in the toolbar
+A region of interest (ROI) is drawn with the left button, after choosing a tool in the toolbar
 (Freehand, Rectangle, Ellipse, Polygon; the button names are in the tooltips) or in the context menu:
 - Freehand, Rectangle, Ellipse: drag to draw;
-- Polygon: click to add vertices, double click or click the first vertex to close it;
-- drag a handle (box corners and edge midpoints, polygon vertices) to resize or reshape, with the left or the right button;
-- drag the round center handle with either button, or inside the ROI with the right button, to move the whole ROI
-  (elsewhere the left button keeps scrolling the image);
-- a click inside the ROI, a click with no tool, or Ctrl + click opens the context menu.
+- Polygon: click to add vertices, double click, click the first vertex or "Close polygon" in the context menu to close it;
+- once the ROI is drawn the tool turns off and the left button scrolls the image again;
+- drag a handle (box corners and edge midpoints, polygon vertices) to resize or reshape, at any time;
+- drag the round center handle to move the whole ROI.
+
+**Grid**: the toolbar grid button (or *Grid > Show grid* in the context menu) draws a pixel grid over the image,
+with one line style per level: 8 pixels dotted, 16 dash dot dot, 64 dash dot, 128 solid.
+Levels too dense for the current zoom are hidden.
+**Snap to grid** (toolbar button, the arrow chooses 8, 16, 64 or 128) aligns the ROI corners, polygon vertices,
+moved handles and the moved ROI to the grid; freehand paths are not aligned.
+The grid settings are shared by the source and processed views.
 
 The ROI is kept in image coordinates (`ColourClashNet.Imaging.Shapes.RoiShape`), so it follows zoom and scroll,
 and it is shared by the source and processed views. Rectangles and ellipses snap to whole pixels.

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
@@ -86,6 +86,43 @@ namespace ColourClashNet.Controls
                 CustomEndCap = new AdjustableArrowCap(3, 3),
             };
             g.DrawLine(arrow, P(s, 0.38, 0.60), P(s, 0.86, 0.12));
+        });
+
+        /// <summary>
+        /// Grid: dotted fine lines and solid coarse lines.
+        /// </summary>
+        public static Bitmap Grid(int size = DefaultSize) => Draw(size, (g, s) =>
+        {
+            using var fine = new Pen(System.Drawing.Color.FromArgb(0, 150, 200), 1f) { DashStyle = DashStyle.Dot };
+            using var coarse = new Pen(Outline, s / 12f);
+            for (int i = 1; i < 4; i++)
+            {
+                float p = s * (0.1f + 0.8f * i / 4);
+                var pen = i == 2 ? coarse : fine;
+                g.DrawLine(pen, p, s * 0.1f, p, s * 0.9f);
+                g.DrawLine(pen, s * 0.1f, p, s * 0.9f, p);
+            }
+            g.DrawRectangle(coarse, s * 0.1f, s * 0.1f, s * 0.8f, s * 0.8f);
+        });
+
+        /// <summary>
+        /// Snap to grid: a grid with a vertex on a crossing.
+        /// </summary>
+        public static Bitmap Snap(int size = DefaultSize) => Draw(size, (g, s) =>
+        {
+            using var fine = new Pen(System.Drawing.Color.FromArgb(0, 150, 200), 1f) { DashStyle = DashStyle.Dot };
+            for (int i = 0; i <= 2; i++)
+            {
+                float p = s * (0.15f + 0.35f * i);
+                g.DrawLine(fine, p, s * 0.05f, p, s * 0.95f);
+                g.DrawLine(fine, s * 0.05f, p, s * 0.95f, p);
+            }
+            // Rectangle with its corner on a crossing of the grid
+            var rect = new RectangleF(P(s, 0.50, 0.50), new SizeF(s * 0.35f, s * 0.35f));
+            FillAndOutline(g, s, path => path.AddRectangle(rect));
+            using var brush = new SolidBrush(System.Drawing.Color.FromArgb(200, 30, 30));
+            float h = s * 0.11f;
+            g.FillEllipse(brush, s * 0.5f - h, s * 0.5f - h, 2 * h, 2 * h);
         });
 
         /// <summary>
