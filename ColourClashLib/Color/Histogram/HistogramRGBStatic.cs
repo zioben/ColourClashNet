@@ -16,7 +16,7 @@ namespace ColourClashNet.Color
         static readonly int[] colorArray = new int[256 * 256 * 256];
 
         // Pixel count above which the array based counting is faster than the dictionary based one
-        static readonly int sizeLimit = 1920 * 1080;
+        static readonly int sizeLimit = int.MaxValue;// 1920 * 1080;
 
         static object locker = new object();
 

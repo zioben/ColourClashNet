@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NLog" Version="6.2.1" />
     <PackageReference Include="SkiaSharp" Version="4.153.1" />
     <PackageReference Include="System.Resources.Extensions" Version="10.0.12" />
   </ItemGroup>
