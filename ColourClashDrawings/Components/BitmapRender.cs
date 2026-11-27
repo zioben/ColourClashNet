@@ -20,9 +20,11 @@ namespace ColourClashNet.Components
     /// <summary>
     /// Designer component that draws an image on any <see cref="System.Windows.Forms.Control"/> with zoom and mouse panning.
     /// <para/>
-    /// Left button: drag to scroll the image, wheel to zoom, double click to reset the position.
-    /// Right button: draws and edits a region of interest (see <see cref="ShapeTool"/>), or opens the context menu
-    /// (zoom, reset position, shape tools, color picking) on a click.
+    /// Left button: draws and edits a region of interest (see <see cref="ShapeTool"/>); with no tool it scrolls the image
+    /// and a double click resets the position. Middle button: scrolls the image. Wheel: zoom.
+    /// <para/>
+    /// Right click: context menu (zoom, reset position, shape tools, grid, color picking).
+    /// An optional pixel grid can be shown and used to align the shapes (see <see cref="GridVisible"/>, <see cref="GridSnap"/>).
     /// </summary>
     public partial class BitmapRender : Component
     {
@@ -184,7 +186,7 @@ namespace ColourClashNet.Components
         }
 
         /// <summary>
-        /// Mouse button used to drag the image.
+        /// Mouse button used to drag the image when no drawing tool is active (the middle button always drags it).
         /// </summary>
         [Browsable(true), Category("Behavior")]
         [Description("Define mouse button for dragging")]
@@ -192,10 +194,18 @@ namespace ColourClashNet.Components
         public MouseButtons MouseMovingButton { get; set; } = MouseButtons.Left;    
 
         /// <summary>
-        /// Mouse button used for selections.
+        /// Mouse button used to draw and edit the region of interest.
         /// </summary>
         [Browsable(true), Category("Behavior")]
-        [Description("Define mouse button for selection")]
+        [Description("Define mouse button for drawing the region of interest")]
+        [DefaultValue(MouseButtons.Left)]
+        public MouseButtons MouseDrawButton { get; set; } = MouseButtons.Left;
+
+        /// <summary>
+        /// Mouse button that opens the context menu.
+        /// </summary>
+        [Browsable(true), Category("Behavior")]
+        [Description("Define mouse button for the context menu")]
         [DefaultValue(MouseButtons.Right)]
         public MouseButtons MouseSelectButton { get; set; } = MouseButtons.Right;
 
@@ -344,6 +354,7 @@ namespace ColourClashNet.Components
         protected void Create()
         {
             MouseMovingButton = MouseButtons.Left;
+            MouseDrawButton = MouseButtons.Left;
             MouseSelectButton = MouseButtons.Right;
             InitializeComponent();
             InitializeGUI();
@@ -443,7 +454,7 @@ namespace ColourClashNet.Components
                 control.MouseWheel += OnMouseWheel;
                 control.MouseDoubleClick += OnMouseDoubleClick;
                 // The context menu is opened by the right button handler, on a click without dragging:
-                // assigning it to the control would open it on every right click and prevent drawing
+                // assigning it to the control would also open it at the end of a right drag
             }
         }
 
@@ -534,11 +545,17 @@ namespace ColourClashNet.Components
         /// </summary>
         protected void OnMouseDown(object sender, MouseEventArgs args)
         {
-            // A press on a ROI handle edits the shape: the image must not scroll
-            if (OnShapeMouseDown(args) && args.Button == MouseMovingButton)
+            // A press that draws or edits the shape, or opens the menu, must not scroll the image
+            if (OnShapeMouseDown(args))
             {
                 MouseDown?.Invoke(sender, args);
                 return;
+            }
+            // The scroll button is chosen at the press: the moving button, or the middle one
+            if (mouseManager.MouseState != MouseHandler.EnumMouseState.push && mouseManager.MouseState != MouseHandler.EnumMouseState.tracking
+                && (args.Button == MouseMovingButton || args.Button == MouseButtons.Middle))
+            {
+                mouseManager.MouseButton = args.Button;
             }
             if (mouseManager.OnMouseDown(args))
             {
@@ -582,7 +599,7 @@ namespace ColourClashNet.Components
         /// </summary>
         protected void OnMouseUp(object sender, MouseEventArgs args)
         {
-            if (OnShapeMouseUp(args) && args.Button == MouseMovingButton)
+            if (OnShapeMouseUp(args))
             {
                 MouseUp?.Invoke(sender, args);
                 return;
@@ -607,6 +624,7 @@ namespace ColourClashNet.Components
             {
                 UpdateControlAndImageRoi();               
                 coordinateManager.DrawImage(e.Graphics, Image);
+                DrawGrid(e.Graphics);
                 // The region of interest is drawn over the image, in the same coordinates
                 DrawShapes(e.Graphics);
             }
@@ -889,12 +907,13 @@ namespace ColourClashNet.Components
         public void OriginZero() => ResetPosition();
 
         /// <summary>
-        /// A double click with the drag button resets the position of the image.
+        /// A double click with the drag button, with no drawing tool, resets the position of the image.
         /// </summary>
         protected void OnMouseDoubleClick(object? sender, MouseEventArgs args)
         {
-            // Not on a ROI handle: a double click there belongs to the shape editing
-            if (args.Button == MouseMovingButton && HitHandle(args.Location) < 0 && !HitCenter(args.Location))
+            // Not with a tool or on a ROI handle: a double click there belongs to the shape (it closes a polygon)
+            if (args.Button == MouseMovingButton && ShapeTool == EnumShapeTool.None && polygonDraft.Count == 0
+                && HitHandle(args.Location) < 0 && !HitCenter(args.Location))
                 ResetPosition();
         }
 

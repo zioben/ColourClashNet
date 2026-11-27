@@ -315,6 +315,7 @@ namespace ColourClashNet.Controls
                 render.ShapeToolChanged += (s, e) => SetShapeTool(render.ShapeTool);
                 render.ShapeExtractRequested += (s, e) => ExtractShape(render);
             }
+            CreateGridTools();
 
             void SetShapeTool(Components.BitmapRender.EnumShapeTool tool)
             {
@@ -326,6 +327,75 @@ namespace ColourClashNet.Controls
                 foreach (var (button, buttonTool) in toolButtons)
                     button.Checked = buttonTool == tool;
                 syncingShapes = false;
+            }
+        }
+
+        /// <summary>
+        /// Adds the grid buttons to the shape toolbar: show grid, and snap to grid with the snap size in its drop down.
+        /// <para/>
+        /// The grid settings are the same on the two image views, whether changed from the toolbar or a context menu.
+        /// </summary>
+        void CreateGridTools()
+        {
+            var showGrid = new ToolStripButton("Show Grid")
+            {
+                DisplayStyle = ToolStripItemDisplayStyle.Image,
+                Image = ShapeIcons.Grid(),
+                CheckOnClick = true,
+                ToolTipText = "Show the 8 / 16 / 64 / 128 pixel grid (dotted, dash dot dot, dash dot, solid)",
+            };
+            var snapGrid = new ToolStripSplitButton("Snap to Grid")
+            {
+                DisplayStyle = ToolStripItemDisplayStyle.Image,
+                Image = ShapeIcons.Snap(),
+            };
+            var sizeItems = new Dictionary<int, ToolStripMenuItem>();
+            foreach (var size in Components.BitmapRender.GridSnapSizes)
+            {
+                var item = new ToolStripMenuItem($"{size} x {size}");
+                item.Click += (s, e) => ApplyGrid(r => r.GridSnapSize = size);
+                sizeItems[size] = item;
+                snapGrid.DropDownItems.Add(item);
+            }
+            showGrid.Click += (s, e) => ApplyGrid(r => r.GridVisible = showGrid.Checked);
+            snapGrid.ButtonClick += (s, e) => ApplyGrid(r => r.GridSnap = !r.GridSnap);
+
+            int index = tsShapes.Items.IndexOf(tssShapes);
+            tsShapes.Items.Insert(index, new ToolStripSeparator());
+            tsShapes.Items.Insert(index + 1, showGrid);
+            tsShapes.Items.Insert(index + 2, snapGrid);
+
+            foreach (var render in new[] { bitmapRenderSource, bitmapRenderDest })
+            {
+                var other = render == bitmapRenderSource ? bitmapRenderDest : bitmapRenderSource;
+                render.GridChanged += (s, e) =>
+                {
+                    other.GridVisible = render.GridVisible;
+                    other.GridSnap = render.GridSnap;
+                    other.GridSnapSize = render.GridSnapSize;
+                    UpdateButtons();
+                };
+            }
+            UpdateButtons();
+
+            void ApplyGrid(Action<Components.BitmapRender> change)
+            {
+                // The change is copied to the other view by GridChanged
+                change(bitmapRenderSource);
+                UpdateButtons();
+            }
+
+            void UpdateButtons()
+            {
+                var render = bitmapRenderSource;
+                showGrid.Checked = render.GridVisible;
+                // A split button has no checked state: the pressed look shows the snap is on
+                snapGrid.BackColor = render.GridSnap ? SystemColors.GradientActiveCaption : SystemColors.Control;
+                snapGrid.ToolTipText = render.GridSnap
+                    ? $"Snap to grid: on, {render.GridSnapSize} x {render.GridSnapSize} (click to turn off, arrow for the size)"
+                    : $"Snap to grid: off, {render.GridSnapSize} x {render.GridSnapSize} (click to turn on, arrow for the size)";
+                foreach (var (size, item) in sizeItems)
+                    item.Checked = size == render.GridSnapSize;
             }
         }
 
@@ -355,7 +425,7 @@ namespace ColourClashNet.Controls
                 var extracted = render.ExtractShape(GetBkgColorReplacement());
                 if (extracted == null)
                 {
-                    LogMan.Warning(sC, sM, "no region of interest to extract (draw one with the right mouse button)");
+                    LogMan.Warning(sC, sM, "no region of interest to extract (draw one with the left mouse button)");
                     return;
                 }
                 var bitmap = ImageToolsGDI.ImageDataToGdiImage(extracted);
