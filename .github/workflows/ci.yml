@@ -1,0 +1,47 @@
+# Build and test on every push and pull request.
+# Windows runner: the WinForms projects and the test project target net10.0-windows.
+name: CI
+
+on:
+  push:
+    branches: [ master, "claude/**" ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore ColourClashNetSolution.sln
+
+      - name: Build
+        run: dotnet build ColourClashNetSolution.sln --configuration Release --no-restore
+
+      # xunit v3 test projects are self-hosted executables: the exit code is non-zero when a test fails
+      - name: Test
+        run: dotnet run --project XUnitTester/XUnitTester.csproj --configuration Release --no-build
+
+      - name: Command line smoke test
+        run: dotnet run --project ColourClash/ColourClash.csproj --configuration Release --no-build -- validate Samples/Pipelines/zx-autotune.json

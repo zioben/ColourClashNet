@@ -48,6 +48,68 @@ public static partial class ImageTools
     }
 
     /// <summary>
+    /// Resizes the image to <paramref name="width"/> x <paramref name="height"/>.
+    /// <para/>
+    /// <paramref name="average"/> false: nearest source pixel, the original colors are kept.
+    /// <paramref name="average"/> true: each pixel is the mean of the source pixels it covers (better for reductions);
+    /// non-color pixels (tags) are left out of the mean, and kept when the area has no real color.
+    /// </summary>
+    /// <param name="image">Source image</param>
+    /// <param name="width">New width</param>
+    /// <param name="height">New height</param>
+    /// <param name="average">True for the area average, false for the nearest pixel</param>
+    /// <returns>A new image.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Non positive size.</exception>
+    public static ImageData Resize(ImageData image, int width, int height, bool average)
+    {
+        ImageData.AssertValid(image);
+        if (width <= 0 || height <= 0)
+            throw new ArgumentOutOfRangeException(nameof(width), $"size {width}x{height} must be positive");
+        var source = image.matrix;
+        int sourceWidth = image.Width;
+        int sourceHeight = image.Height;
+        var result = new int[height, width];
+        Parallel.For(0, height, r =>
+        {
+            // Source rows covered by the destination row r: [rowStart, rowEnd)
+            int rowStart = (int)((long)r * sourceHeight / height);
+            int rowEnd = Math.Max(rowStart + 1, (int)((long)(r + 1) * sourceHeight / height));
+            for (int c = 0; c < width; c++)
+            {
+                int columnStart = (int)((long)c * sourceWidth / width);
+                if (!average)
+                {
+                    // Nearest: the source pixel under the center of the destination pixel
+                    int sr = Math.Min(sourceHeight - 1, (int)((r + 0.5) * sourceHeight / height));
+                    int sc = Math.Min(sourceWidth - 1, (int)((c + 0.5) * sourceWidth / width));
+                    result[r, c] = source[sr, sc];
+                    continue;
+                }
+                int columnEnd = Math.Max(columnStart + 1, (int)((long)(c + 1) * sourceWidth / width));
+                long red = 0, green = 0, blue = 0;
+                int count = 0;
+                for (int sr = rowStart; sr < rowEnd; sr++)
+                {
+                    for (int sc = columnStart; sc < columnEnd; sc++)
+                    {
+                        int rgb = source[sr, sc];
+                        if (rgb < 0)
+                            continue;
+                        red += rgb.ToR();
+                        green += rgb.ToG();
+                        blue += rgb.ToB();
+                        count++;
+                    }
+                }
+                result[r, c] = count > 0
+                    ? ColorIntExt.FromRGB((int)(red / count), (int)(green / count), (int)(blue / count))
+                    : source[rowStart, columnStart];
+            }
+        });
+        return new ImageData().Create(result);
+    }
+
+    /// <summary>
     /// Doubles the horizontal resolution by duplicating every column.
     /// </summary>
     /// <param name="image">Source image</param>

@@ -63,6 +63,13 @@ namespace ColourClashNet.Components
         [DefaultValue(null)]
         public PipelineOptions Pipeline { get; set; } = new PipelineOptions();
 
+        /// <summary>
+        /// Options of the last transformation completed successfully; null when none has run yet.
+        /// Used to save the current settings as a pipeline.
+        /// </summary>
+        [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public TransformOptions? LastProcessedOptions { get; private set; }
+
 
         IColorTransform transformSource;
         IColorTransform transformBkgRemover;
@@ -404,6 +411,7 @@ namespace ColourClashNet.Components
                     return null;
                 }
                 DataProcessed = processedResult.DataOut;
+                LastProcessedOptions = transformOptions;
                 LogMan.Message(sClass, sMethod, $"{transformOptions.TransformType} completed in {processedResult.ProcessingTimeMilliseconds:f0} ms : {DataProcessed.Colors} colors, error {processedResult.TransformationError:g4}");
                 ImageProcessed = ImageToolsGDI.ImageDataToGdiImage(DataProcessed);
                 OnProcess?.Invoke(this, new ColorManagerProcessEventArgs
