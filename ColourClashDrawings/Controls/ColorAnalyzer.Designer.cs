@@ -1496,7 +1496,7 @@
             tsbShapeRectangle.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbShapeRectangle.Name = "tsbShapeRectangle";
             tsbShapeRectangle.Text = "Rectangle";
-            tsbShapeRectangle.ToolTipText = "Left button: drag to draw a rectangular ROI (right button: scroll)";
+            tsbShapeRectangle.ToolTipText = "Left button: drag to draw a rectangular ROI";
             // 
             // tsbShapeEllipse
             // 

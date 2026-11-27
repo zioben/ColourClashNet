@@ -21,8 +21,8 @@ namespace ColourClashNet.Components
     /// <item>Polygon: every click adds a vertex; double click or click on the first vertex to close it.</item>
     /// <item>Drag a handle (box corners and edge midpoints, polygon vertices) to resize or reshape,
     /// drag the center handle to move the whole shape.</item>
-    /// <item>While a drawing tool is active the right button scrolls the image; when the shape is completed
-    /// the tool goes back to <see cref="EnumShapeTool.None"/> and the left button scrolls again.</item>
+    /// <item>When the shape is completed the tool goes back to <see cref="EnumShapeTool.None"/>
+    /// and the left button scrolls the image again.</item>
     /// <item>Right click without dragging: context menu. The middle button always scrolls.</item>
     /// </list>
     /// With <see cref="GridSnap"/> on, the new points, the handles and the moved shape are aligned to the grid.
@@ -148,7 +148,7 @@ namespace ColourClashNet.Components
         EnumShapeDrag dragMode = EnumShapeDrag.None;
         readonly List<PointF> freehandPoints = new();
 
-        // Right button press: a click opens the context menu, a drag scrolls the image
+        // Right button press: a click without dragging opens the context menu
         bool menuPressed;
         Point menuPressPoint;
 
@@ -326,10 +326,9 @@ namespace ColourClashNet.Components
         {
             if (args.Button == MouseSelectButton)
             {
-                // Not consumed: while a tool is active the right button also scrolls the image
                 menuPressed = true;
                 menuPressPoint = args.Location;
-                return false;
+                return true;
             }
             if (Image == null || shapePressed)
                 return false;
@@ -461,8 +460,7 @@ namespace ColourClashNet.Components
                     if (Math.Abs(delta.X) <= DragThreshold && Math.Abs(delta.Y) <= DragThreshold)
                         ShowContextMenu(args.Location);
                 }
-                // Not consumed: a right drag scroll must end too
-                return false;
+                return true;
             }
             if (!shapePressed || args.Button != shapeButton)
                 return false;

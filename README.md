@@ -344,15 +344,13 @@ The source and processed images are shown by `BitmapRender` views:
 | Mouse | Action |
 |-|-|
 | Left drag | scroll the image; while a shape tool is active: draw the ROI |
-| Right drag | while a shape tool is active: scroll the image |
 | Middle drag | scroll the image |
 | Wheel | zoom (25% per notch in manual zoom) |
 | Left double click | reset the image position (also "Reset position" in the context menu) |
 | Right click | context menu: zoom, reset position, shape tools, grid, color picking |
 
 A region of interest (ROI) is drawn with the left button, after choosing a tool in the toolbar
-(Freehand, Rectangle, Ellipse, Polygon; the button names are in the tooltips) or in the context menu;
-meanwhile the right button scrolls the image:
+(Freehand, Rectangle, Ellipse, Polygon; the button names are in the tooltips) or in the context menu:
 - Freehand, Rectangle, Ellipse: drag to draw;
 - Polygon: click to add vertices, double click, click the first vertex or "Close polygon" in the context menu to close it;
 - once the ROI is drawn the tool turns off and the left button scrolls the image again;

@@ -21,7 +21,7 @@ namespace ColourClashNet.Components
     /// Designer component that draws an image on any <see cref="System.Windows.Forms.Control"/> with zoom and mouse panning.
     /// <para/>
     /// Left button: scrolls the image, a double click resets the position; while a drawing tool is active
-    /// (see <see cref="ShapeTool"/>) it draws the region of interest and the right button scrolls instead.
+    /// (see <see cref="ShapeTool"/>) it draws the region of interest instead.
     /// Middle button: always scrolls. Wheel: zoom.
     /// <para/>
     /// Right click without dragging: context menu (zoom, reset position, shape tools, grid, color picking).
@@ -187,8 +187,7 @@ namespace ColourClashNet.Components
         }
 
         /// <summary>
-        /// Mouse button used to drag the image when no drawing tool is active
-        /// (while a tool is active <see cref="MouseSelectButton"/> drags it; the middle button always does).
+        /// Mouse button used to drag the image when no drawing tool is active (the middle button always drags it).
         /// </summary>
         [Browsable(true), Category("Behavior")]
         [Description("Define mouse button for dragging")]
@@ -559,11 +558,10 @@ namespace ColourClashNet.Components
                 MouseDown?.Invoke(sender, args);
                 return;
             }
-            // The scroll button is chosen at the press: the moving button with no tool, the menu button while drawing,
-            // the middle one always
-            var scrollButton = ShapeTool == EnumShapeTool.None && polygonDraft.Count == 0 ? MouseMovingButton : MouseSelectButton;
+            // The scroll button is chosen at the press: the moving button with no drawing tool, the middle one always
+            bool drawing = ShapeTool != EnumShapeTool.None || polygonDraft.Count > 0;
             if (mouseManager.MouseState != MouseHandler.EnumMouseState.push && mouseManager.MouseState != MouseHandler.EnumMouseState.tracking
-                && (args.Button == scrollButton || args.Button == MouseButtons.Middle))
+                && ((args.Button == MouseMovingButton && !drawing) || args.Button == MouseButtons.Middle))
             {
                 mouseManager.MouseButton = args.Button;
             }
