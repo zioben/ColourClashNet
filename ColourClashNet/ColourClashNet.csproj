@@ -12,7 +12,10 @@
   <ItemGroup>
     <ProjectReference Include="..\ColourClashDrawings\ColourClashDrawings.csproj" />
     <ProjectReference Include="..\ColourClashLib\ColourClashLib.csproj" />
+    <ProjectReference Include="..\ColourClashProcessing\ColourClashProcessing.csproj" />
     <ProjectReference Include="..\ColourClashSupport\ColourClashSupport.csproj" />
+    <ProjectReference Include="..\ColourClash\ColourClash.csproj" />
+    <ProjectReference Include="..\ModuleTester\ModuleTester.csproj" />
   </ItemGroup>
 
   <ItemGroup>

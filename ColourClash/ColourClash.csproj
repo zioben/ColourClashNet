@@ -15,4 +15,8 @@
     <ProjectReference Include="..\ColourClashSupport\ColourClashSupport.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="PipelineExamples\" />
+  </ItemGroup>
+
 </Project>
